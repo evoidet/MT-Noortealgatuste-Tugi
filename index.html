@@ -6,7 +6,10 @@
   <title>MTÜ Noortealgatuste Tugi</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
+  <!-- ================= HEADER ================= -->
 
   <header class="header">
     <div class="logo">Noortealgatuste Tugi</div>
@@ -15,14 +18,19 @@
       <a href="#about">Meist</a>
       <a href="#projects">Projektid</a>
       <a href="#contact">Kontakt</a>
+      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
     </nav>
   </header>
+
+  <!-- ================= HERO ================= -->
 
   <section class="hero">
     <h1>MTÜ Noortealgatuste Tugi</h1>
     <p>Toetame noorte ideid, algatusi ja kogukondlikku arengut Ida-Virumaal.</p>
     <a href="#contact" class="button">Võta ühendust</a>
   </section>
+
+  <!-- ================= ABOUT ================= -->
 
   <section id="about" class="section">
     <h2>Meist</h2>
@@ -31,6 +39,8 @@
       ja arendada koostööd kogukonnas.
     </p>
   </section>
+
+  <!-- ================= PROJECTS ================= -->
 
   <section id="projects" class="section">
     <h2>Projektid</h2>
@@ -48,14 +58,109 @@
     </div>
   </section>
 
+  <!-- ================= CONTACT ================= -->
+
   <section id="contact" class="section contact">
     <h2>Kontakt</h2>
-    <p>E-post: info@noortetugi.ee</p>
+    <p>E-post: <a href="mailto:juhatus@noortetugi.ee">juhatus@noortetugi.ee</a></p>
     <p>Asukoht: Ida-Virumaa, Eesti</p>
   </section>
 
-  <footer class="footer">
-    <p>© 2026 MTÜ Noortealgatuste Tugi</p>
+  <!-- ================= POPUP NEWSLETTER ================= -->
+
+  <div class="newsletter-overlay" id="newsletterOverlay">
+    <div class="newsletter-popup">
+      <button class="newsletter-close" id="newsletterClose" aria-label="Sulge aken">
+        ×   
+      </button>
+
+      <div class="newsletter-badge">INFOKIRI</div>
+
+      <h2>Liitu meie infokirjaga</h2>
+
+      <p>
+        Soovid saada teavet meie sündmuste, projektide, noortealgatuste ja
+        võimaluste kohta? Sisesta oma e-posti aadress ning liitu infokirjaga.
+      </p>
+
+      <form id="newsletterForm" class="newsletter-form">
+        <label for="newsletterEmail">E-posti aadress</label>
+
+        <input
+          type="email"
+          id="newsletterEmail"
+          name="email"
+          placeholder="sinu@email.ee"
+          required
+        />
+
+        <label class="newsletter-consent">
+          <input type="checkbox" id="newsletterConsent" required />
+          <span>
+            Olen nõus, et <strong>MTÜ Noortealgatuste Tugi</strong> töötleb minu
+            e-posti aadressi infokirja saatmise eesmärgil. Saan nõusoleku igal
+            ajal tagasi võtta. Olen tutvunud
+            <a href="/privaatsuspoliitika.html">privaatsuspoliitikaga</a>.
+          </span>
+        </label>
+
+        <p class="newsletter-error" id="newsletterError"></p>
+
+        <button type="submit" class="newsletter-submit">
+          Liitun infokirjaga
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= BOTTOM NEWSLETTER ================= -->
+
+<section class="newsletter-section">
+  <div class="newsletter-content">
+    <div class="newsletter-text">
+      <span class="newsletter-label">INFOKIRI</span>
+
+      <h2>Hoia end kursis meie tegemistega</h2>
+
+      <p>
+        Liitu infokirjaga, et saada teavet meie sündmuste, projektide,
+        noortealgatuste ja võimaluste kohta Ida-Virumaal.
+      </p>
+    </div>
+
+    <form class="newsletter-form">
+      <div class="newsletter-input-row">
+        <input type="email" placeholder="Sinu e-posti aadress" required>
+        <button type="submit">Liitun</button>
+      </div>
+
+      <label class="newsletter-consent">
+        <input type="checkbox" required>
+        <span>
+          Olen nõus, et MTÜ Noortealgatuste Tugi töötleb minu e-posti aadressi
+          infokirja saatmise eesmärgil. Olen tutvunud
+          <a href="privacy.html">privaatsuspoliitikaga</a>.
+        </span>
+      </label>
+
+      <p class="newsletter-note">
+        Saadame infot ainult oluliste sündmuste, projektide ja võimaluste kohta.
+      </p>
+    </form>
+  </div>
+</section>
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="site-footer">
+    <div class="footer-container">
+      <p>© 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.</p>
+
+      <nav class="footer-links">
+        <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+        <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      </nav>
+    </div>
   </footer>
 
   <script src="script.js"></script>
