@@ -1,159 +1,477 @@
+/* =========================================================
+   MTÜ Noortealgatuste Tugi — CLEAN STYLE.CSS
+   Värvipalett:
+   #E9F1CB - hele taust
+   #0E3B03 - väga tume roheline
+   #5CE413 - ere aktsent
+   #254B10 - keskmine roheline
+   ========================================================= */
+
+/* =========================================================
+   1. RESET + VARIABLES
+   Üldised värvid, fondid ja vaikimisi seaded
+   ========================================================= */
+
+:root {
+  --bg: #e9f1cb;
+  --dark: #0e3b03;
+  --green: #254b10;
+  --accent: #5ce413;
+  --white: #ffffff;
+
+  --text: #0e3b03;
+  --text-soft: rgba(14, 59, 3, 0.74);
+  --text-light: rgba(255, 255, 255, 0.84);
+
+  --border: rgba(14, 59, 3, 0.14);
+  --card-bg: rgba(255, 255, 255, 0.76);
+  --soft-green: rgba(233, 241, 203, 0.82);
+
+  --shadow: 0 18px 45px rgba(14, 59, 3, 0.10);
+  --shadow-strong: 0 25px 60px rgba(14, 59, 3, 0.20);
+
+  --radius-small: 14px;
+  --radius-medium: 22px;
+  --radius-large: 30px;
+
+  --container: 1200px;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  color: #1d1d1d;
-  background: #f7f7f7;
+  font-family: Inter, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
   line-height: 1.6;
 }
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: var(--green);
+}
+
+a:hover {
+  color: var(--dark);
+}
+
+/* =========================================================
+   2. HEADER / ÜLEMINE MENÜÜ
+   Logo, nimi ja navigatsioon
+   ========================================================= */
 
 .header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: white;
-  padding: 20px 8%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  background: rgba(233, 241, 203, 0.96);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(14, 59, 3, 0.08);
+  backdrop-filter: blur(10px);
+  padding: 0;
 }
 
+/* Kasutus juhul, kui headeris on .header-inner */
+.header-inner {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 22px 3%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 34px;
+}
+
+/* Fallback juhul, kui headeris EI ole .header-inner */
+.header:not(:has(.header-inner)) {
+  padding: 22px 3%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 34px;
+}
+
+.logo,
 .logo a {
-  color: #1d1d1d;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--dark);
   text-decoration: none;
-  font-weight: bold;
-  font-size: 22px;
+  font-weight: 900;
+  font-size: 24px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.logo-img {
+  width: 130px;
+  height: 70px;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.logo span {
+  color: var(--dark);
 }
 
 .nav {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .nav a {
+  margin-left: 0;
+  color: var(--dark);
   text-decoration: none;
-  color: #1d1d1d;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 700;
+  transition: 0.2s ease;
 }
 
 .nav a:hover {
-  color: #1f5eff;
+  color: var(--green);
 }
 
-.logo {
-  font-weight: bold;
-  font-size: 22px;
-}
-
-.nav a {
-  margin-left: 20px;
-  text-decoration: none;
-  color: #1d1d1d;
-  font-weight: 500;
-}
+/* =========================================================
+   3. HERO / AVALEHE ESIMENE BLOKK
+   Pealkiri, kirjeldus ja põhikutse
+   ========================================================= */
 
 .hero {
-  padding: 100px 8%;
-  background: linear-gradient(135deg, #e8f1ff, #ffffff);
+  padding: 105px 8%;
   text-align: center;
+  background:
+    radial-gradient(circle at top left, rgba(92, 228, 19, 0.28), transparent 32%),
+    linear-gradient(135deg, #e9f1cb 0%, #ffffff 100%);
+  color: var(--dark);
 }
 
 .hero h1 {
-  font-size: 46px;
-  margin-bottom: 20px;
+  max-width: 900px;
+  margin: 0 auto 20px;
+  color: var(--dark);
+  font-size: clamp(40px, 6vw, 68px);
+  line-height: 1.05;
 }
 
 .hero p {
-  font-size: 20px;
-  max-width: 700px;
+  max-width: 760px;
   margin: 0 auto 30px;
+  color: var(--text-soft);
+  font-size: 20px;
+  line-height: 1.65;
 }
 
 .button {
   display: inline-block;
-  background: #1f5eff;
-  color: white;
   padding: 14px 28px;
-  border-radius: 8px;
+  border-radius: var(--radius-small);
+  background: var(--dark);
+  color: var(--white);
   text-decoration: none;
-  font-weight: bold;
+  font-weight: 900;
+  transition: 0.25s ease;
 }
 
+.button:hover {
+  background: var(--green);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   4. GENERAL SECTIONS
+   Tavalised lehe osad ja üldised pealkirjad
+   ========================================================= */
+
 .section {
-  padding: 70px 8%;
-  background: white;
+  padding: 75px 8%;
+  background: rgba(255, 255, 255, 0.72);
   margin: 20px auto;
 }
 
 .section h2 {
-  font-size: 32px;
-  margin-bottom: 20px;
+  color: var(--dark);
+  font-size: 38px;
+  line-height: 1.15;
+  margin-bottom: 18px;
 }
 
-.cards {
+.section-label {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(92, 228, 19, 0.16);
+  color: var(--green);
+  border: 1px solid rgba(92, 228, 19, 0.32);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   5. ABOUT + TEAM / MEIST JA MEESKOND
+   Organisatsiooni kirjeldus, juhtkond ja tiimikaardid
+   ========================================================= */
+
+.about-section {
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.about-content {
+  max-width: 850px;
+  margin-bottom: 38px;
+}
+
+.about-intro {
+  color: var(--text-soft);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+/* Juhtkond */
+.leadership-block {
+  width: 100%;
+  margin-top: 48px;
+  margin-bottom: 54px;
+}
+
+.team-subtitle {
+  margin-bottom: 24px;
+}
+
+.team-subtitle span {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(92, 228, 19, 0.16);
+  color: var(--dark);
+  border: 1px solid rgba(92, 228, 19, 0.35);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+}
+
+.team-subtitle h3 {
+  margin: 0;
+  color: var(--dark);
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.team-subtitle-small {
+  margin-top: 20px;
+  margin-bottom: 24px;
+}
+
+.leadership-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(360px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 22px;
+}
+
+/* Tiimikaart */
+.team-card {
+  min-height: 145px;
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border-radius: var(--radius-medium);
+  background: var(--soft-green);
+  border: 1px solid var(--border);
+  color: var(--dark);
+  transition: 0.25s ease;
 }
 
-.card {
-  background: #f1f4f9;
-  padding: 25px;
-  border-radius: 12px;
-  flex: 1;
-  min-width: 250px;
+.team-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
 }
 
-.card h3 {
+.leader-card {
+  gap: 24px;
+  min-height: 170px;
+  padding: 28px;
+}
+
+.team-photo {
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  object-fit: cover;
+  object-position: center;
+  flex-shrink: 0;
+  border: 3px solid var(--white);
+  box-shadow: 0 10px 22px rgba(14, 59, 3, 0.18);
+}
+
+.leader-card .team-photo {
+  width: 92px;
+  height: 92px;
+  border-radius: 20px;
+}
+
+.team-info h3 {
+  margin-bottom: 4px;
+  color: var(--dark);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.leader-card .team-info h3 {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.team-role {
+  margin-bottom: 8px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.leader-card .team-role {
+  font-size: 15px;
   margin-bottom: 10px;
 }
 
+.team-text {
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.leader-card .team-text {
+  font-size: 15px;
+}
+
+.team-contact {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.team-contact:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   6. PROJECTS / PROJEKTID
+   Projektikaardid avalehel
+   ========================================================= */
+
+.projects-section {
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.projects-header {
+  max-width: 850px;
+  margin-bottom: 34px;
+}
+
+.projects-header h2 {
+  color: var(--dark);
+  font-size: 38px;
+  margin-bottom: 14px;
+}
+
+.projects-header p {
+  color: var(--text-soft);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+}
+
+.card {
+  padding: 28px;
+  border-radius: var(--radius-medium);
+  background: var(--soft-green);
+  border: 1px solid var(--border);
+  color: var(--dark);
+  box-shadow: 0 14px 34px rgba(14, 59, 3, 0.08);
+  transition: 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px rgba(14, 59, 3, 0.13);
+}
+
+.card h3 {
+  margin-bottom: 12px;
+  color: var(--dark);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.card p {
+  color: var(--text-soft);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* =========================================================
+   7. CONTACT SECTION
+   Kontaktiplokk avalehel
+   ========================================================= */
+
 .contact {
-  background: #eef4ff;
+  background: rgba(233, 241, 203, 0.9);
 }
 
-.footer {
-  text-align: center;
-  padding: 25px;
-  background: #1d1d1d;
-  color: white;
+.contact p {
+  color: var(--text-soft);
+  font-size: 17px;
 }
 
-@media (max-width: 700px) {
-  .header {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .nav a {
-    margin: 0 8px;
-  }
-
-  .hero h1 {
-    font-size: 34px;
-  }
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: #f4f7fb;
-  color: #071833;
-}
-
-/* ========================= */
-/* NEWSLETTER POPUP */
-/* ========================= */
+/* =========================================================
+   8. NEWSLETTER POPUP
+   Hüpikaken infokirjaga liitumiseks
+   ========================================================= */
 
 .newsletter-overlay {
   position: fixed;
@@ -163,7 +481,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(7, 24, 51, 0.62);
+  background: rgba(14, 59, 3, 0.64);
   backdrop-filter: blur(6px);
 }
 
@@ -177,8 +495,9 @@ body {
   max-width: 520px;
   padding: 36px;
   border-radius: 24px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(7, 24, 51, 0.25);
+  background: var(--white);
+  color: var(--dark);
+  box-shadow: 0 24px 70px rgba(14, 59, 3, 0.26);
   animation: popupFadeIn 0.3s ease;
 }
 
@@ -202,15 +521,15 @@ body {
   height: 36px;
   border: none;
   border-radius: 50%;
-  background: #eef4ff;
-  color: #0d2b5c;
+  background: var(--bg);
+  color: var(--dark);
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
 }
 
 .newsletter-close:hover {
-  background: #dbeafe;
+  background: rgba(92, 228, 19, 0.18);
 }
 
 .newsletter-badge {
@@ -218,23 +537,24 @@ body {
   margin-bottom: 16px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: #eef4ff;
-  color: #1d63d6;
+  background: rgba(92, 228, 19, 0.16);
+  color: var(--green);
+  border: 1px solid rgba(92, 228, 19, 0.28);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.18em;
 }
 
 .newsletter-popup h2 {
   margin: 0 0 14px;
+  color: var(--dark);
   font-size: 32px;
   line-height: 1.15;
-  color: #071833;
 }
 
 .newsletter-popup p {
   margin: 0 0 22px;
-  color: #4a5870;
+  color: var(--text-soft);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -246,25 +566,25 @@ body {
 }
 
 .newsletter-form label {
+  color: var(--dark);
   font-size: 14px;
   font-weight: 700;
-  color: #071833;
 }
 
 .newsletter-form input[type="email"] {
   width: 100%;
   padding: 15px 16px;
-  border: 1px solid #d7e0ef;
+  border: 1px solid var(--border);
   border-radius: 14px;
   outline: none;
+  background: var(--white);
+  color: var(--dark);
   font-size: 16px;
-  color: #071833;
-  background: #ffffff;
 }
 
 .newsletter-form input[type="email"]:focus {
-  border-color: #1d63d6;
-  box-shadow: 0 0 0 4px rgba(29, 99, 214, 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(92, 228, 19, 0.22);
 }
 
 .newsletter-consent {
@@ -272,8 +592,7 @@ body {
   gap: 10px;
   align-items: flex-start;
   margin-top: 4px;
-  font-weight: 400 !important;
-  color: #4a5870 !important;
+  color: var(--text-soft);
   line-height: 1.5;
 }
 
@@ -284,26 +603,22 @@ body {
 }
 
 .newsletter-consent span {
+  color: var(--text-soft);
   font-size: 13px;
-  color: #4a5870;
 }
 
 .newsletter-consent a {
-  color: #1d63d6;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.newsletter-consent a:hover {
+  color: var(--green);
+  font-weight: 900;
   text-decoration: underline;
 }
 
 .newsletter-error {
   display: none;
-  margin: 0 !important;
-  color: #c62828 !important;
-  font-size: 14px !important;
-  line-height: 1.4 !important;
+  margin: 0;
+  color: #c62828;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .newsletter-error.active {
@@ -315,339 +630,34 @@ body {
   padding: 15px 18px;
   border: none;
   border-radius: 14px;
-  background: #1d63d6;
-  color: #ffffff;
+  background: var(--dark);
+  color: var(--white);
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 900;
   cursor: pointer;
   transition: 0.2s ease;
 }
 
 .newsletter-submit:hover {
-  background: #154ead;
+  background: var(--green);
   transform: translateY(-1px);
 }
 
-/* ========================= */
-/* PRIVACY PAGE */
-/* ========================= */
+/* =========================================================
+   9. BOTTOM NEWSLETTER / ALUMINE INFOKIRI
+   Suur infokirja plokk avalehel ja privaatsuspoliitikas
+   ========================================================= */
 
-.privacy-hero {
-  padding: 70px 20px;
-  background:
-    linear-gradient(rgba(11, 44, 91, 0.94), rgba(11, 44, 91, 0.94)),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 39px,
-      rgba(255, 255, 255, 0.05) 40px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 39px,
-      rgba(255, 255, 255, 0.05) 40px
-    );
-  color: #ffffff;
-}
-
-.privacy-hero-container {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.privacy-label {
-  display: inline-block;
-  margin-bottom: 22px;
-  padding: 9px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  color: #cfe0ff;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-}
-
-.privacy-hero h1 {
-  margin: 0 0 18px;
-  font-size: clamp(42px, 6vw, 76px);
-  line-height: 1.05;
-}
-
-.privacy-hero p {
-  max-width: 850px;
-  margin: 0;
-  color: #d6e2f5;
-  font-size: 22px;
-  line-height: 1.5;
-}
-
-.privacy-info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-top: 50px;
-}
-
-.privacy-info-box {
-  padding: 24px 28px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.privacy-info-box span {
-  display: block;
-  margin-bottom: 10px;
-  color: #b8caf0;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.privacy-info-box strong {
-  font-size: 20px;
-  color: #ffffff;
-}
-
-.privacy-page {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 36px;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 70px 20px;
-}
-
-.privacy-content {
-  padding: 54px;
-  border: 1px solid #dce4f0;
-  border-radius: 28px;
-  background: #ffffff;
-  box-shadow: 0 18px 50px rgba(7, 24, 51, 0.06);
-}
-
-.privacy-content h2 {
-  margin: 0 0 14px;
-  font-size: 34px;
-  color: #071833;
-}
-
-.privacy-content > p {
-  margin: 0 0 26px;
-  color: #526177;
-  font-size: 20px;
-  line-height: 1.55;
-}
-
-.privacy-content hr {
-  margin: 30px 0 36px;
-  border: none;
-  border-top: 1px solid #e3e9f3;
-}
-
-.privacy-content article {
-  padding: 34px 0;
-  border-bottom: 1px solid #edf1f7;
-}
-
-.privacy-content article:last-child {
-  border-bottom: none;
-}
-
-.privacy-content h3 {
-  margin: 0 0 18px;
-  font-size: 27px;
-  color: #071833;
-}
-
-.privacy-content article p {
-  margin: 0 0 16px;
-  color: #3f4d63;
-  font-size: 19px;
-  line-height: 1.65;
-}
-
-.privacy-content article p:last-child {
-  margin-bottom: 0;
-}
-
-.privacy-content a {
-  color: #1d63d6;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.privacy-content a:hover {
-  text-decoration: underline;
-}
-
-.privacy-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.sidebar-card,
-.sidebar-note {
-  padding: 30px;
-  border: 1px solid #dce4f0;
-  border-radius: 28px;
-  background: #ffffff;
-  box-shadow: 0 18px 50px rgba(7, 24, 51, 0.06);
-}
-
-.sidebar-card span,
-.sidebar-note span {
-  display: block;
-  margin-bottom: 14px;
-  color: #1d63d6;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.sidebar-card h3 {
-  margin: 0 0 20px;
-  font-size: 27px;
-  color: #071833;
-}
-
-.sidebar-card p,
-.sidebar-note p {
-  margin: 0 0 14px;
-  color: #526177;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.sidebar-card p:last-child,
-.sidebar-note p:last-child {
-  margin-bottom: 0;
-}
-
-.sidebar-card a {
-  color: #1d63d6;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.sidebar-note {
-  background: #eef5ff;
-}
-
-/* ========================= */
-/* FOOTER */
-/* ========================= */
-
-.site-footer {
-  padding: 30px 20px;
-  background: #071833;
-  color: #c9d4e6;
-}
-
-.footer-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.footer-container p {
-  margin: 0;
-}
-
-.footer-links {
-  display: flex;
-  gap: 22px;
-  flex-wrap: wrap;
-}
-
-.footer-links a {
-  color: #ffffff;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.footer-links a:hover {
-  text-decoration: underline;
-}
-
-/* ========================= */
-/* RESPONSIVE */
-/* ========================= */
-
-@media (max-width: 980px) {
-  .privacy-info-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .privacy-page {
-    grid-template-columns: 1fr;
-  }
-
-  .privacy-sidebar {
-    order: -1;
-  }
-}
-
-@media (max-width: 640px) {
-  .newsletter-popup {
-    padding: 28px 22px;
-    border-radius: 20px;
-  }
-
-  .newsletter-popup h2 {
-    font-size: 26px;
-  }
-
-  .privacy-hero {
-    padding: 48px 18px;
-  }
-
-  .privacy-hero p {
-    font-size: 18px;
-  }
-
-  .privacy-content {
-    padding: 30px 22px;
-    border-radius: 22px;
-  }
-
-  .privacy-content h2 {
-    font-size: 28px;
-  }
-
-  .privacy-content h3 {
-    font-size: 23px;
-  }
-
-  .privacy-content article p {
-    font-size: 17px;
-  }
-
-  .footer-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-/* ========================= */
-/* BOTTOM NEWSLETTER */
-/* ========================= */
-
-.bottom-newsletter {
+.bottom-newsletter,
+.newsletter-section {
   padding: 80px 8%;
   background:
-    radial-gradient(circle at top left, rgba(31, 94, 255, 0.12), transparent 34%),
-    linear-gradient(180deg, #f4f7fb 0%, #eaf1fb 100%);
+    radial-gradient(circle at top left, rgba(92, 228, 19, 0.18), transparent 35%),
+    linear-gradient(180deg, #e9f1cb 0%, #f8fbef 100%);
 }
 
-.bottom-newsletter-card {
+.bottom-newsletter-card,
+.newsletter-content {
   position: relative;
   overflow: hidden;
   display: grid;
@@ -656,126 +666,140 @@ body {
   max-width: 1180px;
   margin: 0 auto;
   padding: 46px;
-  border-radius: 30px;
-  background: #0b2344;
-  color: white;
-  box-shadow: 0 24px 70px rgba(7, 24, 51, 0.18);
-}
-
-.bottom-newsletter-card::before {
-  content: "";
-  position: absolute;
-  top: -120px;
-  right: -120px;
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background: rgba(31, 94, 255, 0.35);
-  filter: blur(10px);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(circle at top right, rgba(92, 228, 19, 0.28), transparent 28%),
+    linear-gradient(135deg, var(--dark) 0%, var(--green) 100%);
+  color: var(--white);
+  box-shadow: var(--shadow-strong);
 }
 
 .bottom-newsletter-content,
-.bottom-newsletter-form {
+.bottom-newsletter-form,
+.newsletter-text,
+.newsletter-form {
   position: relative;
   z-index: 1;
 }
 
-.bottom-newsletter-label {
+.bottom-newsletter-label,
+.newsletter-label {
   display: inline-block;
   margin-bottom: 18px;
   padding: 8px 14px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
-  color: #bcd2ff;
+  color: #e9f1cb;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.18em;
 }
 
-.bottom-newsletter h2 {
+.bottom-newsletter h2,
+.newsletter-text h2 {
   margin: 0 0 16px;
-  max-width: 520px;
+  max-width: 560px;
+  color: var(--white);
   font-size: clamp(32px, 4vw, 52px);
   line-height: 1.08;
 }
 
-.bottom-newsletter-content p {
-  max-width: 540px;
-  color: #d8e4f8;
+.bottom-newsletter-content p,
+.newsletter-text p {
+  max-width: 560px;
+  color: var(--text-light);
   font-size: 18px;
   line-height: 1.7;
 }
 
-.bottom-newsletter-form {
+.bottom-newsletter-form,
+.newsletter-content .newsletter-form {
   align-self: center;
   padding: 26px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(8px);
 }
 
-.bottom-newsletter-row {
+.bottom-newsletter-row,
+.newsletter-input-row {
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
 }
 
-.bottom-newsletter-row input {
+.bottom-newsletter-row input,
+.newsletter-input-row input {
   flex: 1;
   min-width: 0;
   padding: 16px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(14, 59, 3, 0.14);
   border-radius: 14px;
   outline: none;
-  background: white;
-  color: #071833;
+  background: var(--white);
+  color: var(--dark);
   font-size: 16px;
 }
 
-.bottom-newsletter-row input:focus {
-  box-shadow: 0 0 0 4px rgba(31, 94, 255, 0.25);
+.bottom-newsletter-row input:focus,
+.newsletter-input-row input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(92, 228, 19, 0.22);
 }
 
-.bottom-newsletter-row button {
+.bottom-newsletter-row button,
+.newsletter-input-row button {
   padding: 16px 24px;
   border: none;
   border-radius: 14px;
-  background: #1f5eff;
-  color: white;
+  background: var(--dark);
+  color: var(--white);
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 900;
   cursor: pointer;
   transition: 0.2s ease;
 }
 
-.bottom-newsletter-row button:hover {
-  background: #1748c7;
+.bottom-newsletter-row button:hover,
+.newsletter-input-row button:hover {
+  background: var(--accent);
+  color: var(--dark);
   transform: translateY(-1px);
 }
 
-.bottom-newsletter-consent {
+.bottom-newsletter-consent,
+.newsletter-content .newsletter-consent {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  color: #d8e4f8;
+  color: rgba(255, 255, 255, 0.90);
   font-size: 13px;
   line-height: 1.5;
 }
 
-.bottom-newsletter-consent input {
+.bottom-newsletter-consent input,
+.newsletter-content .newsletter-consent input {
   margin-top: 4px;
   min-width: 16px;
   min-height: 16px;
 }
 
-.bottom-newsletter-consent a {
-  color: white;
-  font-weight: 800;
+.bottom-newsletter-consent span,
+.newsletter-content .newsletter-consent span {
+  color: rgba(255, 255, 255, 0.90);
 }
 
-.bottom-newsletter-note {
+.bottom-newsletter-consent a,
+.newsletter-content .newsletter-consent a {
+  color: var(--white);
+  font-weight: 900;
+}
+
+.bottom-newsletter-note,
+.newsletter-note {
   margin-top: 14px;
-  color: #bcd2ff;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -783,1511 +807,20 @@ body {
 .bottom-newsletter-message {
   margin-top: 14px;
   font-size: 15px;
-  font-weight: 800;
-}
-
-@media (max-width: 850px) {
-  .bottom-newsletter-card {
-    grid-template-columns: 1fr;
-    padding: 34px 24px;
-  }
-
-  .bottom-newsletter-row {
-    flex-direction: column;
-  }
-
-  .bottom-newsletter-row button {
-    width: 100%;
-  }
-}
-
-.newsletter-section {
-  padding: 70px 8%;
-  background: #eef4ff;
-}
-
-.newsletter-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, #061a38, #0b2b5a, #1f5eff);
-  color: white;
-  border-radius: 24px;
-  padding: 55px 45px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 45px;
-  align-items: center;
-  box-shadow: 0 25px 60px rgba(6, 26, 56, 0.25);
-}
-
-.newsletter-label {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.12);
-  color: #cfe0ff;
-  padding: 9px 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  margin-bottom: 22px;
-}
-
-.newsletter-text h2 {
-  font-size: 48px;
-  line-height: 1.1;
-  margin-bottom: 24px;
-}
-
-.newsletter-text p {
-  font-size: 20px;
-  line-height: 1.6;
-  max-width: 520px;
-}
-
-.newsletter-form {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 28px;
-  border-radius: 20px;
-}
-
-.newsletter-input-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.newsletter-input-row input {
-  flex: 1;
-  padding: 16px 18px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-}
-
-.newsletter-input-row button {
-  background: #1f5eff;
-  color: white;
-  border: none;
-  padding: 16px 26px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.newsletter-input-row button:hover {
-  background: #1748c9;
-}
-
-.newsletter-consent {
-  display: flex;
-  gap: 12px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.92);
-  margin-bottom: 18px;
-}
-
-.newsletter-consent input {
-  margin-top: 4px;
-}
-
-.newsletter-consent a {
-  color: #ffffff;
-  font-weight: 800;
-  text-decoration: underline;
-}
-
-.newsletter-note {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-@media (max-width: 800px) {
-  .newsletter-content {
-    grid-template-columns: 1fr;
-    padding: 35px 25px;
-  }
-
-  .newsletter-text h2 {
-    font-size: 34px;
-  }
-
-  .newsletter-input-row {
-    flex-direction: column;
-  }
-
-  .newsletter-input-row button {
-    width: 100%;
-  }
-}
-
-.site-footer {
-  background: #061a38;
-  color: #ffffff;
-  padding: 70px 8% 28px;
-}
-
-.footer-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
-  gap: 50px;
-}
-
-.footer-brand h3 {
-  font-size: 26px;
-  margin-bottom: 18px;
-  color: #ffffff;
-}
-
-.footer-brand p {
-  max-width: 390px;
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.7;
-  margin-bottom: 26px;
-}
-
-.footer-socials {
-  display: flex;
-  gap: 14px;
-}
-
-.footer-socials a {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  font-weight: 800;
-  font-size: 18px;
-  transition: 0.25s ease;
-}
-
-.footer-socials a:hover {
-  background: #1f5eff;
-  transform: translateY(-3px);
-}
-
-.footer-column h4 {
-  color: #ffffff;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 1.6px;
-  margin-bottom: 22px;
-}
-
-.footer-column a,
-.footer-column p {
-  display: block;
-  color: rgba(255, 255, 255, 0.68);
-  text-decoration: none;
-  margin-bottom: 14px;
-  line-height: 1.5;
-}
-
-.footer-column a:hover {
-  color: #ffffff;
-}
-
-.footer-bottom {
-  max-width: 1200px;
-  margin: 55px auto 0;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 14px;
-}
-
-.footer-bottom p {
-  margin: 0;
-}
-
-.footer-bottom-links {
-  display: flex;
-  gap: 24px;
-}
-
-.footer-bottom-links a {
-  color: rgba(255, 255, 255, 0.72);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.footer-bottom-links a:hover {
-  color: #ffffff;
-}
-
-@media (max-width: 900px) {
-  .footer-main {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  .site-footer {
-    padding: 50px 6% 25px;
-  }
-
-  .footer-main {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-
-  .footer-bottom {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .footer-bottom-links {
-    flex-direction: column;
-    gap: 10px;
-  }
-}
-
-.about-section {
-  background: #ffffff;
-}
-
-.about-content {
-  max-width: 850px;
-  margin-bottom: 38px;
-}
-
-.section-label {
-  display: inline-block;
-  background: #eef4ff;
-  color: #1f5eff;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  margin-bottom: 16px;
-}
-
-.about-section h2 {
-  font-size: 38px;
-  margin-bottom: 18px;
-  color: #061a38;
-}
-
-.about-intro {
-  font-size: 18px;
-  line-height: 1.7;
-  color: #4b5870;
-}
-
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
-}
-
-.leadership-block {
-  margin-top: 42px;
-  margin-bottom: 42px;
-}
-
-.team-subtitle {
-  margin-bottom: 18px;
-}
-
-.team-subtitle span {
-  display: inline-block;
-  color: #1f5eff;
-  background: #eef4ff;
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  margin-bottom: 12px;
-}
-
-.team-subtitle h3 {
-  font-size: 24px;
-  color: #061a38;
-  margin: 0;
-}
-
-.team-subtitle-small {
-  margin-top: 10px;
-}
-
-.leadership-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.leader-card {
-  background: #f5f8ff;
-  color: #061a38;
-  border: 1px solid rgba(31, 94, 255, 0.16);
-}
-
-.leader-card .team-info h3 {
-  color: #061a38;
-}
-
-.leader-card .team-role {
-  color: #1f5eff;
-}
-
-.leader-card .team-text {
-  color: #5b667a;
-}
-
-.leader-card .team-contact {
-  color: #1f5eff;
-}
-
-@media (max-width: 750px) {
-  .leadership-grid {
-    grid-template-columns: 1fr;
-  }
-}
-.team-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: #f5f8ff;
-  border: 1px solid rgba(31, 94, 255, 0.08);
-  border-radius: 18px;
-  padding: 18px;
-  transition: 0.25s ease;
-}
-
-.team-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 35px rgba(6, 26, 56, 0.08);
-}
-
-.team-photo {
-  width: 76px;
-  height: 76px;
-  border-radius: 18px;
-  object-fit: cover;
-  object-position: center;
-  flex-shrink: 0;
-  border: 3px solid #ffffff;
-  box-shadow: 0 8px 18px rgba(6, 26, 56, 0.12);
-}
-
-.team-info h3 {
-  font-size: 18px;
-  margin-bottom: 4px;
-  color: #061a38;
-}
-
-.team-role {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1f5eff;
-  margin-bottom: 8px;
-}
-
-.team-text {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #5b667a;
-}
-@media (max-width: 520px) {
-  .team-card {
-    align-items: flex-start;
-  }
-
-  .team-photo {
-    width: 64px;
-    height: 64px;
-    border-radius: 15px;
-  }
-
-  .about-section h2 {
-    font-size: 30px;
-  }
-
-  .about-intro {
-    font-size: 16px;
-  }
-}
-/* ========================================================= */
-/* UUS ROHELINE STIIL / NEW GREEN THEME */
-/* Värvipalett:
-   #E9F1CB - hele taust
-   #0E3B03 - väga tume roheline, põhitekst ja footer
-   #5CE413 - ere roheline, aktsent ja nupud
-   #254B10 - keskmine roheline, sektsioonid ja hover
-*/
-/* ========================================================= */
-
-:root {
-  --color-bg: #e9f1cb;
-  --color-dark: #0e3b03;
-  --color-green: #254b10;
-  --color-accent: #5ce413;
-  --color-white: #ffffff;
-  --color-text-soft: rgba(14, 59, 3, 0.72);
-  --color-border: rgba(14, 59, 3, 0.14);
-  --shadow-soft: 0 18px 45px rgba(14, 59, 3, 0.12);
-}
-
-/* ========================================================= */
-/* ÜLDINE LEHT / GENERAL PAGE */
-/* Siin on kogu saidi põhitaust ja tekst */
-/* ========================================================= */
-
-body {
-  background: var(--color-bg);
-  color: var(--color-dark);
-}
-
-a {
-  color: var(--color-green);
-}
-
-a:hover {
-  color: var(--color-dark);
-}
-
-/* ========================================================= */
-/* HEADER / ÜLEMINE MENÜÜ */
-/* Logo, navigeerimine, sticky menüü */
-/* ========================================================= */
-
-.header {
-  background: rgba(233, 241, 203, 0.94);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 8px 24px rgba(14, 59, 3, 0.08);
-  backdrop-filter: blur(10px);
-}
-
-.logo,
-.logo a {
-  color: var(--color-dark);
-}
-
-.nav a {
-  color: var(--color-dark);
-}
-
-.nav a:hover {
-  color: var(--color-green);
-}
-
-/* ========================================================= */
-/* HERO / AVALEHE ESIMENE SUUR BLOKK */
-/* Pealkiri, kirjeldus ja esimene nupp */
-/* ========================================================= */
-
-.hero {
-  background:
-    radial-gradient(circle at top left, rgba(92, 228, 19, 0.28), transparent 32%),
-    linear-gradient(135deg, #e9f1cb 0%, #ffffff 100%);
-  color: var(--color-dark);
-}
-
-.hero h1 {
-  color: var(--color-dark);
-}
-
-.hero p {
-  color: var(--color-text-soft);
-}
-
-/* ========================================================= */
-/* NUPUD / BUTTONS */
-/* Kõik peamised nupud saidil */
-/* ========================================================= */
-
-.button,
-.newsletter-submit,
-.newsletter-input-row button,
-.bottom-newsletter-row button {
-  background: var(--color-dark);
-  color: var(--color-white);
-  border: none;
-}
-
-.button:hover,
-.newsletter-submit:hover,
-.newsletter-input-row button:hover,
-.bottom-newsletter-row button:hover {
-  background: var(--color-green);
-  color: var(--color-white);
-  transform: translateY(-1px);
-}
-
-/* ========================================================= */
-/* SEKTSIOONID / MAIN SECTIONS */
-/* Tavalised valged/rohelised sisublokid */
-/* ========================================================= */
-
-.section {
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-dark);
-}
-
-.section h2,
-.section h3 {
-  color: var(--color-dark);
-}
-
-.card {
-  background: rgba(233, 241, 203, 0.8);
-  border: 1px solid var(--color-border);
-  color: var(--color-dark);
-}
-
-.card h3 {
-  color: var(--color-dark);
-}
-
-.contact {
-  background: rgba(233, 241, 203, 0.9);
-}
-
-/* ========================================================= */
-/* VÄIKESED SILDID / LABELS */
-/* MEIST, JUHTKOND, MEESKOND, INFOKIRI jne */
-/* ========================================================= */
-
-.section-label,
-.team-subtitle span,
-.newsletter-badge,
-.bottom-newsletter-label,
-.newsletter-label,
-.privacy-label,
-.sidebar-card span,
-.sidebar-note span {
-  background: rgba(92, 228, 19, 0.16);
-  color: var(--color-green);
-  border: 1px solid rgba(92, 228, 19, 0.28);
-}
-
-/* ========================================================= */
-/* MEIST + MEESKOND / ABOUT + TEAM */
-/* Tiimikaardid, fotod, rollid */
-/* ========================================================= */
-
-.about-section {
-  background: rgba(255, 255, 255, 0.76);
-}
-
-.about-section h2,
-.team-subtitle h3,
-.team-info h3 {
-  color: var(--color-dark);
-}
-
-.about-intro,
-.team-text {
-  color: var(--color-text-soft);
-}
-
-.team-card,
-.leader-card {
-  background: rgba(233, 241, 203, 0.78);
-  border: 1px solid var(--color-border);
-  color: var(--color-dark);
-}
-
-.team-card:hover,
-.leader-card:hover {
-  box-shadow: var(--shadow-soft);
-}
-
-.team-role,
-.leader-card .team-role,
-.team-contact,
-.leader-card .team-contact {
-  color: var(--color-green);
-}
-
-.leader-card .team-info h3,
-.leader-card .team-text {
-  color: var(--color-dark);
-}
-
-.leader-card .team-text {
-  color: var(--color-text-soft);
-}
-
-.team-photo {
-  border: 3px solid var(--color-white);
-  box-shadow: 0 10px 22px rgba(14, 59, 3, 0.18);
-}
-
-/* ========================================================= */
-/* INFOKIRI ALL / BOTTOM NEWSLETTER */
-/* Suur roheline tellimisvorm avalehe alumises osas */
-/* ========================================================= */
-
-.newsletter-section,
-.bottom-newsletter {
-  background:
-    radial-gradient(circle at top left, rgba(92, 228, 19, 0.18), transparent 35%),
-    linear-gradient(180deg, #e9f1cb 0%, #f8fbef 100%);
-}
-
-.newsletter-content,
-.bottom-newsletter-card {
-  background:
-    radial-gradient(circle at top right, rgba(92, 228, 19, 0.28), transparent 28%),
-    linear-gradient(135deg, #0e3b03 0%, #254b10 100%);
-  color: var(--color-white);
-  box-shadow: 0 25px 60px rgba(14, 59, 3, 0.26);
-}
-
-.newsletter-text h2,
-.bottom-newsletter h2 {
-  color: var(--color-white);
-}
-
-.newsletter-text p,
-.bottom-newsletter-content p {
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.newsletter-form,
-.bottom-newsletter-form {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.newsletter-input-row input,
-.bottom-newsletter-row input,
-.newsletter-form input[type="email"] {
-  background: var(--color-white);
-  color: var(--color-dark);
-  border: 1px solid rgba(14, 59, 3, 0.14);
-}
-
-.newsletter-input-row input:focus,
-.bottom-newsletter-row input:focus,
-.newsletter-form input[type="email"]:focus {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 4px rgba(92, 228, 19, 0.22);
-}
-
-.newsletter-consent,
-.bottom-newsletter-consent,
-.newsletter-note,
-.bottom-newsletter-note {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-.newsletter-consent span,
-.newsletter-consent a,
-.bottom-newsletter-consent a {
-  color: var(--color-white);
-}
-
-/* ========================================================= */
-/* POPUP INFOKIRI / NEWSLETTER POPUP */
-/* Väike hüpikaken, mis küsib e-posti */
-/* ========================================================= */
-
-.newsletter-overlay {
-  background: rgba(14, 59, 3, 0.64);
-}
-
-.newsletter-popup {
-  background: #ffffff;
-  color: var(--color-dark);
-  box-shadow: 0 24px 70px rgba(14, 59, 3, 0.26);
-}
-
-.newsletter-popup h2,
-.newsletter-form label {
-  color: var(--color-dark);
-}
-
-.newsletter-popup p,
-.newsletter-consent span {
-  color: var(--color-text-soft);
-}
-
-.newsletter-close {
-  background: var(--color-bg);
-  color: var(--color-dark);
-}
-
-.newsletter-close:hover {
-  background: rgba(92, 228, 19, 0.18);
-}
-
-/* ========================================================= */
-/* PRIVAATSUSPOLIITIKA / PRIVACY PAGE */
-/* Eraldi privaatsuspoliitika lehe värvid */
-/* ========================================================= */
-
-.privacy-hero {
-  background:
-    linear-gradient(rgba(14, 59, 3, 0.94), rgba(14, 59, 3, 0.94)),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 39px,
-      rgba(255, 255, 255, 0.06) 40px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 39px,
-      rgba(255, 255, 255, 0.06) 40px
-    );
-  color: var(--color-white);
-}
-
-.privacy-hero p {
-  color: rgba(255, 255, 255, 0.84);
-}
-
-.privacy-info-box {
-  border: 1px solid rgba(233, 241, 203, 0.34);
-  background: rgba(233, 241, 203, 0.08);
-}
-
-.privacy-info-box span {
-  color: rgba(233, 241, 203, 0.8);
-}
-
-.privacy-info-box strong {
-  color: var(--color-white);
-}
-
-.privacy-content,
-.sidebar-card,
-.sidebar-note {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-soft);
-}
-
-.privacy-content h2,
-.privacy-content h3,
-.sidebar-card h3 {
-  color: var(--color-dark);
-}
-
-.privacy-content > p,
-.privacy-content article p,
-.sidebar-card p,
-.sidebar-note p {
-  color: var(--color-text-soft);
-}
-
-.privacy-content a,
-.sidebar-card a {
-  color: var(--color-green);
-}
-
-.privacy-content hr,
-.privacy-content article {
-  border-color: rgba(14, 59, 3, 0.12);
-}
-
-.sidebar-note {
-  background: rgba(233, 241, 203, 0.72);
-}
-
-/* ========================================================= */
-/* FOOTER / ALUMINE OSA */
-/* Kontaktid, kiirlingid, sotsiaalmeedia */
-/* ========================================================= */
-
-.site-footer,
-.footer {
-  background:
-    radial-gradient(circle at top right, rgba(92, 228, 19, 0.18), transparent 28%),
-    linear-gradient(135deg, #0e3b03 0%, #254b10 100%);
-  color: var(--color-white);
-}
-
-.footer-brand h3,
-.footer-column h4 {
-  color: var(--color-white);
-}
-
-.footer-brand p,
-.footer-column a,
-.footer-column p,
-.footer-bottom,
-.footer-bottom-links a {
-  color: rgba(255, 255, 255, 0.76);
-}
-
-.footer-column a:hover,
-.footer-bottom-links a:hover {
-  color: var(--color-white);
-}
-
-.footer-socials a {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--color-white);
-}
-
-.footer-socials a:hover {
-  background: var(--color-accent);
-  color: var(--color-dark);
-}
-
-.footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-/* ========================================================= */
-/* MOBIIL / RESPONSIVE */
-/* Väiksemad ekraanid ja telefonid */
-/* ========================================================= */
-
-@media (max-width: 800px) {
-  .newsletter-content,
-  .bottom-newsletter-card {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 520px) {
-  .hero {
-    padding: 80px 6%;
-  }
-
-  .hero h1 {
-    font-size: 34px;
-  }
-
-  .team-card {
-    background: rgba(255, 255, 255, 0.82);
-  }
-}
-/* ========================================================= */
-/* HEADER / ÜLEMINE MENÜÜ */
-/* Logo, organisatsiooni nimi ja menüülingid */
-/* ========================================================= */
-
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: rgba(233, 241, 203, 0.96);
-  border-bottom: 1px solid rgba(14, 59, 3, 0.14);
-  box-shadow: 0 8px 24px rgba(14, 59, 3, 0.08);
-  backdrop-filter: blur(10px);
-  padding: 0;
-}
-
-.header-inner {
-  width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 24px 4%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 28px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: #0e3b03;
-  text-decoration: none;
-  font-weight: 900;
-  font-size: 24px;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.logo-img {
-  width: 150px;
-  height: 58px;
-  border-radius: 16px;
-  object-fit: contain;
-  object-position: center;
-  background: #ffffff;
-  padding: 7px;
-  border: 1px solid rgba(14, 59, 3, 0.12);
-  box-shadow: 0 8px 20px rgba(14, 59, 3, 0.08);
-}
-
-.logo span {
-  color: #0e3b03;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.nav a {
-  margin-left: 0;
-  color: #0e3b03;
-  text-decoration: none;
-  font-size: 15px;
-  font-weight: 600;
-  transition: 0.2s ease;
-}
-
-.nav a:hover {
-  color: #254b10;
-}
-
-@media (max-width: 950px) {
-  .header-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 20px 5%;
-  }
-
-  .nav {
-    justify-content: flex-start;
-    gap: 14px 20px;
-  }
-
-  .nav a {
-    font-size: 15px;
-  }
-}
-
-@media (max-width: 520px) {
-  .logo {
-    font-size: 20px;
-  }
-
-  .logo-img {
-    width: 36px;
-    height: 36px;
-  }
-}
-/* ========================================================= */
-/* HEADER FIX / Parandame ülemise menüü */
-/* Logo suurem + menüü ei lähe uuele reale */
-/* ========================================================= */
-
-.header-inner {
-  max-width: 1500px;
-  padding: 28px 4%;
-  gap: 40px;
-}
-
-.logo-img {
-  width: 155px;
-  height: 72px;
-  border-radius: 18px;
-  object-fit: contain;
-  object-position: center;
-  background: #ffffff;
-  padding: 8px;
-  border: 1px solid rgba(14, 59, 3, 0.12);
-  box-shadow: 0 10px 24px rgba(14, 59, 3, 0.1);
-}
-
-.logo {
-  gap: 18px;
-  font-size: 26px;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 24px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.nav a {
-  margin-left: 0;
-  font-size: 16px;
-  font-weight: 700;
-}
-/* ========================================================= */
-/* HEADER FIX / Logo ilma raamita + menüü ühes reas */
-/* ========================================================= */
-
-.header-inner {
-  max-width: 1500px;
-  padding: 22px 3%;
-  gap: 34px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 24px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.logo-img {
-  width: 130px;
-  height: 70px;
-  object-fit: contain;
-  object-position: center;
-
-  /* eemaldame valge raami */
-  background: transparent;
-  padding: 0;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 20px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.nav a {
-  margin-left: 0;
-  font-size: 15px;
-  font-weight: 700;
-}
-/* ========================================================= */
-/* ABOUT SECTION FIX / Juhtkond ja meeskond paremini loetavaks */
-/* ========================================================= */
-
-/* Убираем странное сжатие блока "Juhtkond" */
-.leadership-block {
-  width: 100%;
-  margin-top: 48px;
-  margin-bottom: 54px;
-}
-
-/* Заголовки JUHTKOND / MEESKOND делаем аккуратнее */
-.team-subtitle {
-  margin-bottom: 24px;
-}
-
-.team-subtitle span {
-  display: inline-block;
-  background: rgba(92, 228, 19, 0.16);
-  color: #0e3b03;
-  border: 1px solid rgba(92, 228, 19, 0.35);
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-}
-
-.team-subtitle h3 {
-  margin-top: 14px;
-  font-size: 30px;
-  color: #0e3b03;
-}
-
-/* Карточки руководителей делаем широкими */
-.leadership-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(360px, 1fr));
-  gap: 24px;
-  max-width: 1100px;
-}
-
-/* Сами карточки руководителей */
-.leader-card {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  min-height: 170px;
-  padding: 28px;
-  background: #e9f1cb;
-  border: 1px solid rgba(14, 59, 3, 0.18);
-  border-radius: 22px;
-  color: #0e3b03;
-}
-
-/* Фото руководителей чуть больше */
-.leader-card .team-photo {
-  width: 92px;
-  height: 92px;
-  border-radius: 20px;
-  flex-shrink: 0;
-}
-
-/* Текст руководителей */
-.leader-card .team-info h3 {
-  color: #0e3b03;
-  font-size: 22px;
-  margin-bottom: 6px;
-}
-
-.leader-card .team-role {
-  color: #254b10;
-  font-size: 15px;
-  font-weight: 900;
-  margin-bottom: 10px;
-}
-
-.leader-card .team-text {
-  color: rgba(14, 59, 3, 0.78);
-  font-size: 15px;
-  line-height: 1.55;
-}
-
-/* Meeskond ниже делаем отдельным блоком */
-.team-subtitle-small {
-  margin-top: 20px;
-  margin-bottom: 24px;
-}
-
-/* Обычная команда — широкие аккуратные карточки */
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 22px;
-}
-
-/* Обычные карточки команды */
-.team-card {
-  min-height: 145px;
-  padding: 24px;
-}
-
-/* На телефоне всё становится в одну колонку */
-@media (max-width: 900px) {
-  .leadership-grid,
-  .team-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .leader-card,
-  .team-card {
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 520px) {
-  .leader-card,
-  .team-card {
-    gap: 16px;
-    padding: 18px;
-  }
-
-  .leader-card .team-photo,
-  .team-photo {
-    width: 70px;
-    height: 70px;
-  }
-
-  .team-subtitle h3 {
-    font-size: 24px;
-  }
-}
-/* ========================================================= */
-/* NEW PRIVACY PAGE / Uus privaatsuspoliitika disain */
-/* ========================================================= */
-
-.privacy-new-hero {
-  padding: 95px 8% 70px;
-  background:
-    radial-gradient(circle at top right, rgba(92, 228, 19, 0.22), transparent 32%),
-    linear-gradient(135deg, #0e3b03 0%, #254b10 100%);
-  color: #ffffff;
-}
-
-.privacy-new-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.privacy-new-badge {
-  display: inline-block;
-  margin-bottom: 24px;
-  padding: 9px 18px;
-  border-radius: 999px;
-  background: rgba(233, 241, 203, 0.12);
-  border: 1px solid rgba(233, 241, 203, 0.22);
-  color: #e9f1cb;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 2.5px;
-}
-
-.privacy-new-hero h1 {
-  max-width: 780px;
-  margin: 0 0 22px;
-  font-size: clamp(42px, 6vw, 76px);
-  line-height: 1.05;
-  color: #ffffff;
-}
-
-.privacy-new-hero p {
-  max-width: 820px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 21px;
-  line-height: 1.6;
-}
-
-.privacy-new-meta {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-top: 48px;
-}
-
-.privacy-new-meta div {
-  padding: 22px;
-  border-radius: 20px;
-  background: rgba(233, 241, 203, 0.1);
-  border: 1px solid rgba(233, 241, 203, 0.18);
-}
-
-.privacy-new-meta span {
-  display: block;
-  margin-bottom: 8px;
-  color: rgba(233, 241, 203, 0.78);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
-}
-
-.privacy-new-meta strong {
-  color: #ffffff;
-  font-size: 18px;
-}
-
-.privacy-new-page {
-  padding: 70px 8%;
-  background: #e9f1cb;
-}
-
-.privacy-new-intro {
-  max-width: 1200px;
-  margin: 0 auto 34px;
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 24px;
-}
-
-.privacy-intro-card,
-.privacy-side-card,
-.privacy-new-card,
-.privacy-contact-panel {
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(14, 59, 3, 0.14);
-  border-radius: 26px;
-  box-shadow: 0 18px 45px rgba(14, 59, 3, 0.08);
-}
-
-.privacy-intro-card {
-  padding: 38px;
-}
-
-.privacy-intro-card span {
-  display: inline-block;
-  margin-bottom: 16px;
-  color: #254b10;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.privacy-intro-card h2 {
-  max-width: 760px;
-  margin: 0 0 18px;
-  color: #0e3b03;
-  font-size: 38px;
-  line-height: 1.15;
-}
-
-.privacy-intro-card p {
-  max-width: 820px;
-  margin: 0;
-  color: rgba(14, 59, 3, 0.74);
-  font-size: 18px;
-  line-height: 1.7;
-}
-
-.privacy-side-card {
-  padding: 34px;
-}
-
-.privacy-side-card h3 {
-  margin: 0 0 18px;
-  color: #0e3b03;
-  font-size: 24px;
-}
-
-.privacy-side-card ul {
-  margin: 0;
-  padding-left: 20px;
-  color: rgba(14, 59, 3, 0.76);
-  line-height: 1.8;
-}
-
-.privacy-new-grid {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 22px;
-}
-
-.privacy-new-card {
-  padding: 32px;
-}
-
-.privacy-card-number {
-  width: 46px;
-  height: 46px;
-  margin-bottom: 20px;
-  border-radius: 16px;
-  background: #0e3b03;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-weight: 900;
 }
 
-.privacy-new-card h3 {
-  margin: 0 0 14px;
-  color: #0e3b03;
-  font-size: 24px;
-}
+/* =========================================================
+   10. PRIVACY PAGE / PRIVAATSUSPOLIITIKA
+   Uus roheline loetav privaatsuspoliitika disain
+   ========================================================= */
 
-.privacy-new-card p {
-  margin: 0;
-  color: rgba(14, 59, 3, 0.76);
-  font-size: 16px;
-  line-height: 1.75;
-}
-
-.privacy-new-card a {
-  color: #254b10;
-  font-weight: 900;
-}
-
-.privacy-contact-panel {
-  max-width: 1200px;
-  margin: 34px auto 0;
-  padding: 38px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(92, 228, 19, 0.2), transparent 30%),
-    linear-gradient(135deg, #0e3b03, #254b10);
-  color: #ffffff;
-}
-
-.privacy-contact-panel span {
-  display: inline-block;
-  margin-bottom: 12px;
-  color: #e9f1cb;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.privacy-contact-panel h2 {
-  margin: 0 0 12px;
-  color: #ffffff;
-  font-size: 34px;
-}
-
-.privacy-contact-panel p {
-  max-width: 720px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.65;
-}
-
-.privacy-contact-button {
-  flex-shrink: 0;
-  display: inline-block;
-  padding: 15px 24px;
-  border-radius: 14px;
-  background: #5ce413;
-  color: #0e3b03;
-  font-weight: 900;
-  text-decoration: none;
-}
-
-.privacy-contact-button:hover {
-  background: #e9f1cb;
-  color: #0e3b03;
-}
-
-@media (max-width: 900px) {
-  .privacy-new-meta,
-  .privacy-new-intro,
-  .privacy-new-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .privacy-contact-panel {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 560px) {
-  .privacy-new-hero {
-    padding: 70px 6% 50px;
-  }
-
-  .privacy-new-page {
-    padding: 46px 6%;
-  }
-
-  .privacy-intro-card,
-  .privacy-side-card,
-  .privacy-new-card,
-  .privacy-contact-panel {
-    padding: 24px;
-    border-radius: 22px;
-  }
-
-  .privacy-intro-card h2 {
-    font-size: 30px;
-  }
-
-  .privacy-new-card h3 {
-    font-size: 21px;
-  }
-}
-/* ========================================================= */
-/* PRIVAATSUSPOLIITIKA / UUS ROHELINE LOETAV DISAIN */
-/* See osa muudab ainult privaatsuspoliitika lehe välimust */
-/* ========================================================= */
-
-/* HERO / ülemine suur plokk */
 .privacy-new-hero {
   padding: 90px 8% 70px;
   background:
     radial-gradient(circle at top right, rgba(92, 228, 19, 0.22), transparent 34%),
-    linear-gradient(135deg, #0e3b03 0%, #254b10 100%);
-  color: #ffffff;
+    linear-gradient(135deg, var(--dark) 0%, var(--green) 100%);
+  color: var(--white);
 }
 
 .privacy-new-container {
@@ -2302,7 +835,7 @@ a:hover {
   border-radius: 999px;
   background: rgba(233, 241, 203, 0.14);
   border: 1px solid rgba(233, 241, 203, 0.28);
-  color: #e9f1cb;
+  color: var(--bg);
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 2.5px;
@@ -2312,7 +845,7 @@ a:hover {
 .privacy-new-hero h1 {
   max-width: 820px;
   margin: 0 0 22px;
-  color: #ffffff;
+  color: var(--white);
   font-size: clamp(42px, 6vw, 72px);
   line-height: 1.05;
 }
@@ -2325,7 +858,6 @@ a:hover {
   line-height: 1.6;
 }
 
-/* Väikesed info kastid hero all */
 .privacy-new-meta {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2351,19 +883,17 @@ a:hover {
 }
 
 .privacy-new-meta strong {
-  color: #ffffff;
+  color: var(--white);
   font-size: 18px;
 }
 
-/* Peamine privaatsuspoliitika ala */
 .privacy-new-page {
   padding: 70px 8%;
   background:
     radial-gradient(circle at top left, rgba(92, 228, 19, 0.12), transparent 30%),
-    #e9f1cb;
+    var(--bg);
 }
 
-/* Alguse kaks olulist plokki */
 .privacy-new-intro {
   max-width: 1180px;
   margin: 0 auto 34px;
@@ -2373,21 +903,32 @@ a:hover {
 }
 
 .privacy-intro-card,
-.privacy-side-card {
-  background: rgba(255, 255, 255, 0.76);
-  border: 1px solid rgba(14, 59, 3, 0.14);
+.privacy-side-card,
+.privacy-new-card,
+.privacy-contact-panel {
   border-radius: 28px;
-  box-shadow: 0 18px 45px rgba(14, 59, 3, 0.08);
+  box-shadow: var(--shadow);
+}
+
+.privacy-intro-card,
+.privacy-side-card,
+.privacy-new-card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--border);
 }
 
 .privacy-intro-card {
   padding: 40px;
 }
 
+.privacy-side-card {
+  padding: 34px;
+}
+
 .privacy-intro-card span {
   display: inline-block;
   margin-bottom: 16px;
-  color: #254b10;
+  color: var(--green);
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 2px;
@@ -2397,37 +938,29 @@ a:hover {
 .privacy-intro-card h2 {
   max-width: 760px;
   margin: 0 0 18px;
-  color: #0e3b03;
+  color: var(--dark);
   font-size: 38px;
   line-height: 1.15;
 }
 
-.privacy-intro-card p {
-  max-width: 820px;
-  margin: 0;
-  color: rgba(14, 59, 3, 0.74);
+.privacy-intro-card p,
+.privacy-side-card ul {
+  color: var(--text-soft);
   font-size: 18px;
   line-height: 1.7;
 }
 
-.privacy-side-card {
-  padding: 34px;
-}
-
 .privacy-side-card h3 {
   margin: 0 0 18px;
-  color: #0e3b03;
+  color: var(--dark);
   font-size: 24px;
 }
 
 .privacy-side-card ul {
   margin: 0;
   padding-left: 20px;
-  color: rgba(14, 59, 3, 0.76);
-  line-height: 1.8;
 }
 
-/* Privaatsuspoliitika kaardid */
 .privacy-new-grid {
   max-width: 1180px;
   margin: 0 auto;
@@ -2439,10 +972,6 @@ a:hover {
 .privacy-new-card {
   position: relative;
   padding: 34px;
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(14, 59, 3, 0.14);
-  box-shadow: 0 18px 45px rgba(14, 59, 3, 0.08);
   transition: 0.25s ease;
 }
 
@@ -2456,8 +985,8 @@ a:hover {
   height: 52px;
   margin-bottom: 22px;
   border-radius: 18px;
-  background: #0e3b03;
-  color: #ffffff;
+  background: var(--dark);
+  color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2467,45 +996,42 @@ a:hover {
 
 .privacy-new-card h3 {
   margin: 0 0 14px;
-  color: #0e3b03;
+  color: var(--dark);
   font-size: 25px;
   line-height: 1.2;
 }
 
 .privacy-new-card p {
   margin: 0;
-  color: rgba(14, 59, 3, 0.76);
+  color: var(--text-soft);
   font-size: 16.5px;
   line-height: 1.75;
 }
 
 .privacy-new-card a {
-  color: #254b10;
+  color: var(--green);
   font-weight: 900;
   text-decoration: underline;
 }
 
-/* Kontaktiplokk lõpus */
 .privacy-contact-panel {
   max-width: 1180px;
   margin: 34px auto 0;
   padding: 38px;
-  border-radius: 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 28px;
   background:
     radial-gradient(circle at top right, rgba(92, 228, 19, 0.24), transparent 32%),
-    linear-gradient(135deg, #0e3b03, #254b10);
-  color: #ffffff;
-  box-shadow: 0 22px 55px rgba(14, 59, 3, 0.18);
+    linear-gradient(135deg, var(--dark), var(--green));
+  color: var(--white);
 }
 
 .privacy-contact-panel span {
   display: inline-block;
   margin-bottom: 12px;
-  color: #e9f1cb;
+  color: var(--bg);
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 2px;
@@ -2514,14 +1040,14 @@ a:hover {
 
 .privacy-contact-panel h2 {
   margin: 0 0 12px;
-  color: #ffffff;
+  color: var(--white);
   font-size: 34px;
 }
 
 .privacy-contact-panel p {
   max-width: 720px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--text-light);
   line-height: 1.65;
 }
 
@@ -2530,23 +1056,185 @@ a:hover {
   display: inline-block;
   padding: 15px 24px;
   border-radius: 14px;
-  background: #5ce413;
-  color: #0e3b03;
+  background: var(--accent);
+  color: var(--dark);
   font-weight: 900;
   text-decoration: none;
 }
 
 .privacy-contact-button:hover {
-  background: #e9f1cb;
-  color: #0e3b03;
+  background: var(--bg);
+  color: var(--dark);
 }
 
-/* Telefoni ja tahvli vaade */
-@media (max-width: 900px) {
-  .privacy-new-meta,
+/* =========================================================
+   11. FOOTER / ALUMINE OSA
+   Kontaktid, lingid ja sotsiaalmeedia
+   ========================================================= */
+
+.site-footer,
+.footer {
+  padding: 70px 8% 28px;
+  background:
+    radial-gradient(circle at top right, rgba(92, 228, 19, 0.18), transparent 28%),
+    linear-gradient(135deg, var(--dark) 0%, var(--green) 100%);
+  color: var(--white);
+}
+
+.footer-main {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  gap: 50px;
+}
+
+.footer-brand h3 {
+  margin-bottom: 18px;
+  color: var(--white);
+  font-size: 26px;
+}
+
+.footer-brand p {
+  max-width: 390px;
+  margin-bottom: 26px;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.7;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 14px;
+}
+
+.footer-socials a {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 18px;
+  transition: 0.25s ease;
+}
+
+.footer-socials a:hover {
+  background: var(--accent);
+  color: var(--dark);
+  transform: translateY(-3px);
+}
+
+.footer-column h4 {
+  margin-bottom: 22px;
+  color: var(--white);
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+}
+
+.footer-column a,
+.footer-column p {
+  display: block;
+  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.76);
+  text-decoration: none;
+  line-height: 1.5;
+}
+
+.footer-column a:hover {
+  color: var(--white);
+}
+
+.footer-bottom {
+  max-width: var(--container);
+  margin: 55px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  color: rgba(255, 255, 255, 0.60);
+  font-size: 14px;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+.footer-bottom-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-bottom-links a {
+  color: rgba(255, 255, 255, 0.76);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.footer-bottom-links a:hover {
+  color: var(--white);
+}
+
+/* Vana lihtne footer, kui mõnel lehel on .footer-container */
+.footer-container {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--white);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* =========================================================
+   12. RESPONSIVE / TELEFON JA TAHVEL
+   Väiksemate ekraanide jaoks
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .header-inner,
+  .header:not(:has(.header-inner)) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 5%;
+  }
+
+  .nav {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    white-space: normal;
+    gap: 14px 20px;
+  }
+
+  .leadership-grid,
+  .team-grid,
   .privacy-new-intro,
-  .privacy-new-grid {
+  .privacy-new-grid,
+  .privacy-new-meta,
+  .bottom-newsletter-card,
+  .newsletter-content {
     grid-template-columns: 1fr;
+  }
+
+  .footer-main {
+    grid-template-columns: 1fr 1fr;
   }
 
   .privacy-contact-panel {
@@ -2555,15 +1243,64 @@ a:hover {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
+  .hero {
+    padding: 80px 6%;
+  }
+
+  .section,
+  .bottom-newsletter,
+  .newsletter-section,
+  .privacy-new-page {
+    padding: 50px 6%;
+  }
+
   .privacy-new-hero {
     padding: 70px 6% 50px;
   }
 
-  .privacy-new-page {
-    padding: 46px 6%;
+  .hero h1,
+  .privacy-new-hero h1 {
+    font-size: 40px;
   }
 
+  .hero p,
+  .privacy-new-hero p {
+    font-size: 18px;
+  }
+
+  .section h2,
+  .projects-header h2,
+  .about-section h2,
+  .privacy-intro-card h2 {
+    font-size: 30px;
+  }
+
+  .team-card,
+  .leader-card {
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .team-photo,
+  .leader-card .team-photo {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-subtitle h3 {
+    font-size: 24px;
+  }
+
+  .bottom-newsletter-card,
+  .newsletter-content,
+  .newsletter-popup,
   .privacy-intro-card,
   .privacy-side-card,
   .privacy-new-card,
@@ -2572,24 +1309,1123 @@ a:hover {
     border-radius: 22px;
   }
 
-  .privacy-new-hero h1 {
-    font-size: 40px;
+  .bottom-newsletter-row,
+  .newsletter-input-row {
+    flex-direction: column;
   }
 
-  .privacy-new-hero p {
-    font-size: 18px;
-  }
-
-  .privacy-intro-card h2 {
-    font-size: 30px;
-  }
-
-  .privacy-new-card h3 {
-    font-size: 21px;
-  }
-
+  .bottom-newsletter-row button,
+  .newsletter-input-row button,
   .privacy-contact-button {
     width: 100%;
     text-align: center;
   }
+
+  .footer-main {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .footer-bottom,
+  .footer-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-bottom-links {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .logo,
+  .logo a {
+    font-size: 20px;
+  }
+
+  .logo-img {
+    width: 95px;
+    height: 52px;
+  }
 }
+/* ========================= */
+/* TUNNUSTUSGALA PAGE */
+/* ========================= */
+
+.gala-hero {
+  padding: 110px 8%;
+  background:
+    linear-gradient(rgba(7, 24, 51, 0.72), rgba(7, 24, 51, 0.88)),
+    linear-gradient(135deg, #1f5eff, #071833);
+  color: #ffffff;
+}
+
+.gala-hero-content {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.gala-label {
+  display: inline-block;
+  margin-bottom: 22px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  color: #dbe7ff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.gala-hero h1 {
+  margin-bottom: 24px;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: 1.08;
+}
+
+.gala-hero p {
+  max-width: 760px;
+  margin: 0 auto 34px;
+  color: #dce6f7;
+  font-size: 20px;
+  line-height: 1.7;
+}
+
+.gala-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.gala-secondary-button {
+  display: inline-block;
+  padding: 14px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 10px;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.gala-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Kiirinfo */
+
+.gala-information {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1180px;
+  margin: -45px auto 0;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.gala-information-card {
+  padding: 26px;
+  border: 1px solid #dce4f0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 40px rgba(7, 24, 51, 0.1);
+}
+
+.gala-information-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: #627089;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.gala-information-card strong {
+  color: #071833;
+  font-size: 20px;
+}
+
+/* Üldised gala sektsioonid */
+
+.gala-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 90px 20px;
+}
+
+.gala-section-heading {
+  max-width: 760px;
+  margin-bottom: 38px;
+}
+
+.gala-section-label {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: #1f5eff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.gala-section h2,
+.gala-nomination h2 {
+  margin-bottom: 18px;
+  color: #071833;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.15;
+}
+
+.gala-section p {
+  color: #4d5b71;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+/* Sündmusest */
+
+.gala-about-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.5fr;
+  gap: 30px;
+  align-items: stretch;
+}
+
+.gala-about-text {
+  padding: 34px;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 12px 35px rgba(7, 24, 51, 0.07);
+}
+
+.gala-about-text p + p {
+  margin-top: 18px;
+}
+
+.gala-highlight-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 240px;
+  padding: 30px;
+  border-radius: 22px;
+  background: #1f5eff;
+  color: #ffffff;
+  text-align: center;
+}
+
+.gala-highlight-card strong {
+  font-size: 72px;
+  line-height: 1;
+}
+
+.gala-highlight-card span {
+  margin-top: 12px;
+  font-size: 18px;
+}
+
+/* Kategooriad */
+
+.gala-categories-section {
+  max-width: none;
+  padding-left: 8%;
+  padding-right: 8%;
+  background: #eef4ff;
+}
+
+.gala-categories-section .gala-section-heading,
+.gala-categories {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.gala-categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.gala-category-card {
+  padding: 30px;
+  border: 1px solid #d9e3f2;
+  border-radius: 20px;
+  background: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gala-category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(7, 24, 51, 0.1);
+}
+
+.gala-category-card > span {
+  display: block;
+  margin-bottom: 22px;
+  color: #1f5eff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.gala-category-card h3 {
+  margin-bottom: 12px;
+  color: #071833;
+  font-size: 23px;
+}
+
+.gala-category-card p {
+  color: #526177;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* Kandidaadi esitamine */
+
+.gala-nomination {
+  padding: 90px 20px;
+  background: #071833;
+  color: #ffffff;
+}
+
+.gala-nomination-content {
+  max-width: 820px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.gala-nomination h2 {
+  color: #ffffff;
+}
+
+.gala-nomination p {
+  margin-bottom: 28px;
+  color: #d5e1f3;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.gala-nomination small {
+  display: block;
+  margin-top: 18px;
+  color: #9fb0ca;
+}
+
+/* Kontakt */
+
+.gala-contact {
+  text-align: center;
+}
+
+.gala-contact a {
+  color: #1f5eff;
+  font-weight: 700;
+}
+
+/* Projekti kaart avalehel */
+
+.project-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.project-card-more {
+  display: inline-block;
+  margin-top: 18px;
+  color: #1f5eff;
+  font-weight: 700;
+}
+
+/* Telefon ja tahvel */
+
+@media (max-width: 850px) {
+  .gala-information {
+    grid-template-columns: 1fr;
+    margin-top: 25px;
+  }
+
+  .gala-about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gala-categories {
+    grid-template-columns: 1fr;
+  }
+
+  .gala-hero {
+    padding: 80px 20px;
+  }
+}
+/* ========================= */
+/* PROJEKTIKIRJUTAMISE LAAGER */
+/* ========================= */
+
+/* Laagri ülemine osa */
+
+.camp-hero {
+  position: relative;
+  overflow: hidden;
+
+  padding: 100px 8% 150px;
+
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(46, 180, 138, 0.25),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 85% 75%,
+      rgba(61, 126, 196, 0.22),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      #082f27 0%,
+      #0e493b 50%,
+      #123d52 100%
+    );
+
+  color: #ffffff;
+}
+
+.camp-hero-content {
+  position: relative;
+  z-index: 1;
+
+  max-width: 940px;
+  margin: 0 auto;
+
+  text-align: center;
+}
+
+.camp-label {
+  display: inline-block;
+
+  margin-bottom: 24px;
+  padding: 9px 17px;
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #c8f4e5;
+
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.camp-hero h1 {
+  max-width: 920px;
+  margin: 0 auto 24px;
+
+  color: #ffffff;
+
+  font-size: clamp(42px, 5.5vw, 70px);
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.camp-hero p {
+  max-width: 760px;
+  margin: 0 auto 36px;
+
+  color: #d9e9e5;
+
+  font-size: 19px;
+  line-height: 1.7;
+}
+
+/* Nupud */
+
+.camp-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.camp-buttons .button {
+  display: inline-block;
+
+  padding: 15px 28px;
+
+  border-radius: 12px;
+  background: #2baa82;
+  color: #ffffff;
+
+  font-weight: 800;
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.camp-buttons .button:hover {
+  background: #238e6d;
+  transform: translateY(-2px);
+}
+
+.camp-secondary-button {
+  display: inline-block;
+
+  padding: 14px 28px;
+
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+
+  font-weight: 800;
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.camp-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-2px);
+}
+
+/* Kiirinfo */
+
+.camp-information {
+  position: relative;
+  z-index: 5;
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+
+  max-width: 1180px;
+  margin: -55px auto 0;
+  padding: 0 20px;
+}
+
+.camp-information-card {
+  min-height: 130px;
+  padding: 26px;
+
+  border: 1px solid #dce7e2;
+  border-radius: 20px;
+
+  background: #ffffff;
+  box-shadow: 0 16px 38px rgba(8, 48, 37, 0.12);
+}
+
+.camp-information-card span {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color: #62756e;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.camp-information-card strong {
+  color: #102d25;
+
+  font-size: 19px;
+  line-height: 1.4;
+}
+```
+
+/* Üldised sektsioonid */
+
+.camp-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 90px 20px;
+}
+
+.camp-section-heading {
+  max-width: 780px;
+  margin-bottom: 40px;
+}
+
+.camp-section-label {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: #168a70;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.camp-section h2,
+.camp-audience h2,
+.camp-program h2,
+.camp-registration h2 {
+  margin-bottom: 18px;
+  color: #071833;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.15;
+}
+
+.camp-section p,
+.camp-audience p,
+.camp-program p {
+  color: #4d5b71;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+/* Laagrist */
+
+.camp-about-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.5fr;
+  gap: 30px;
+}
+
+.camp-about-text {
+  padding: 35px;
+  border: 1px solid #e1e8f0;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 12px 35px rgba(7, 24, 51, 0.06);
+}
+
+.camp-about-text p + p {
+  margin-top: 18px;
+}
+
+.camp-highlight-card {
+  display: flex;
+  min-height: 250px;
+  padding: 30px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #168a70, #0c6755);
+  color: #ffffff;
+  text-align: center;
+}
+
+.camp-highlight-card strong {
+  font-size: 76px;
+  line-height: 1;
+}
+
+.camp-highlight-card span {
+  max-width: 190px;
+  margin-top: 13px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+/* Kellele */
+
+.camp-audience {
+  padding: 90px 8%;
+  background: #edf7f4;
+}
+
+.camp-audience-container {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.camp-audience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.camp-audience-card {
+  padding: 31px;
+  border: 1px solid #d6e8e2;
+  border-radius: 22px;
+  background: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.camp-audience-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 17px 42px rgba(7, 24, 51, 0.09);
+}
+
+.camp-audience-card > span {
+  display: block;
+  margin-bottom: 22px;
+  color: #168a70;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.camp-audience-card h3 {
+  margin-bottom: 13px;
+  color: #071833;
+  font-size: 23px;
+}
+
+.camp-audience-card p {
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* Oskused */
+
+.camp-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.camp-skill-card {
+  display: flex;
+  gap: 20px;
+  padding: 27px;
+  border: 1px solid #e0e7ef;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.camp-skill-icon {
+  display: flex;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #e5f5f0;
+  color: #168a70;
+  font-weight: 900;
+}
+
+.camp-skill-card h3 {
+  margin-bottom: 8px;
+  color: #071833;
+  font-size: 20px;
+}
+
+.camp-skill-card p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Programm */
+
+.camp-program {
+  padding: 90px 8%;
+  background: #071833;
+}
+
+.camp-program-container {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.camp-program h2 {
+  color: #ffffff;
+}
+
+.camp-program .camp-section-heading p {
+  color: #c9d6e8;
+}
+
+.camp-days {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.camp-day-card {
+  padding: 35px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.camp-day-number {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: #168a70;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.camp-day-card h3 {
+  margin-bottom: 20px;
+  font-size: 25px;
+}
+
+.camp-day-card ul {
+  padding-left: 20px;
+  color: #d5e1f0;
+  line-height: 1.9;
+}
+
+/* Registreerimine */
+
+.camp-registration {
+  padding: 95px 20px;
+  background:
+    radial-gradient(circle at right top, rgba(22, 138, 112, 0.18), transparent 34%),
+    #f4f8fb;
+}
+
+.camp-registration-content {
+  max-width: 820px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.camp-registration p {
+  margin-bottom: 29px;
+  color: #526177;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.camp-registration small {
+  display: block;
+  margin-top: 18px;
+  color: #6d798b;
+}
+
+/* Kontakt */
+
+.camp-contact {
+  text-align: center;
+}
+
+.camp-contact a {
+  color: #168a70;
+  font-weight: 800;
+}
+
+/* Telefon ja tahvel */
+
+@media (max-width: 950px) {
+  .camp-information {
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 25px;
+  }
+
+  .camp-about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .camp-audience-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .camp-skills-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .camp-days {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .camp-hero {
+    padding: 78px 20px;
+  }
+
+  .camp-information {
+    grid-template-columns: 1fr;
+  }
+
+  .camp-information-card {
+    padding: 21px;
+  }
+
+  .camp-section,
+  .camp-audience,
+  .camp-program,
+  .camp-registration {
+    padding-top: 65px;
+    padding-bottom: 65px;
+  }
+
+  .camp-skill-card {
+    flex-direction: column;
+  }
+}
+```css
+/* ================================================= */
+/* RESPONSIVE — töötab ainult väiksematel ekraanidel */
+/* Tavalisel arvutil jääb olemasolev disain samaks */
+/* ================================================= */
+
+/* Pildid ei lähe ekraanist välja */
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ================================================= */
+/* TAHVEL — kuni 1000 px */
+/* ================================================= */
+
+@media (max-width: 1000px) {
+
+  /* Päis */
+
+  .header-inner {
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .nav {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+  }
+
+  /* Gala ja laagri infokaardid */
+
+  .gala-information,
+  .camp-information {
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 25px;
+  }
+
+  /* Kaheveerulised blokid muutuvad üheveeruliseks */
+
+  .gala-about-grid,
+  .camp-about-grid,
+  .camp-days,
+  .privacy-page,
+  .bottom-newsletter-card {
+    grid-template-columns: 1fr;
+  }
+
+  /* Footer */
+
+  .footer-main {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ================================================= */
+/* TELEFON — kuni 700 px */
+/* ================================================= */
+
+@media (max-width: 700px) {
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Päis */
+
+  .header {
+    position: relative;
+  }
+
+  .header-inner {
+    min-height: auto;
+    padding: 14px 18px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .logo-img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nav {
+    width: 100%;
+    gap: 8px 14px;
+  }
+
+  .nav a {
+    margin: 0;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* Väike lehemenüü */
+
+  .page-subnav {
+    position: relative;
+    top: 0;
+  }
+
+  .page-subnav-inner {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  /* Avalehe ülaosa */
+
+  .hero {
+    padding: 65px 20px;
+  }
+
+  .hero h1 {
+    font-size: 36px;
+  }
+
+  .hero p {
+    font-size: 17px;
+  }
+
+  /* Gala ja laagri ülaosa */
+
+  .gala-hero,
+  .camp-hero,
+  .privacy-hero {
+    padding: 65px 20px;
+  }
+
+  .gala-hero h1,
+  .camp-hero h1,
+  .privacy-hero h1 {
+    font-size: 38px;
+  }
+
+  .gala-hero p,
+  .camp-hero p,
+  .privacy-hero p {
+    font-size: 17px;
+  }
+
+  /* Sektsioonid */
+
+  .section,
+  .gala-section,
+  .camp-section,
+  .camp-audience,
+  .camp-program,
+  .camp-registration {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  /* Kaardid üheks veeruks */
+
+  .cards,
+  .gala-categories,
+  .camp-audience-grid,
+  .camp-skills-grid,
+  .gala-information,
+  .camp-information {
+    grid-template-columns: 1fr;
+  }
+
+  .gala-information,
+  .camp-information {
+    margin-top: 24px;
+  }
+
+  /* Nupud */
+
+  .gala-buttons,
+  .camp-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gala-buttons a,
+  .camp-buttons a {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Infokiri */
+
+  .bottom-newsletter {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .bottom-newsletter-card {
+    padding: 30px 22px;
+  }
+
+  .bottom-newsletter-row {
+    flex-direction: column;
+  }
+
+  .bottom-newsletter-row button {
+    width: 100%;
+  }
+
+  /* Privaatsuspoliitika */
+
+  .privacy-content {
+    padding: 30px 22px;
+  }
+
+  /* Footer */
+
+  .footer-main {
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ================================================= */
+/* VÄGA VÄIKE TELEFON — kuni 430 px */
+/* ================================================= */
+
+@media (max-width: 430px) {
+
+  .nav {
+    flex-direction: column;
+  }
+
+  .nav a {
+    width: 100%;
+    padding: 4px 0;
+  }
+
+  .hero,
+  .gala-hero,
+  .camp-hero,
+  .privacy-hero {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .section,
+  .gala-section,
+  .camp-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .card,
+  .gala-category-card,
+  .camp-audience-card,
+  .camp-information-card,
+  .gala-information-card {
+    padding: 22px;
+  }
+}
+```
