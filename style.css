@@ -203,6 +203,28 @@ a:hover {
   transform: translateY(-2px);
 }
 
+.gala-button {
+  background: #FFF6D0;
+  color: #071833;
+  border: 2px solid #071833;
+}
+
+.gala-button:hover {
+  background: #f3e4a5;
+  color: #071833;
+}
+
+.gala-buttons .gala-primary-button {
+  background: #FFF6D0;
+  color: #071833;
+  border: 1px solid #FFF6D0;
+}
+
+.gala-buttons .gala-primary-button:hover {
+  background: #f3e6ad;
+  color: #071833;
+}
+
 /* =========================================================
    4. GENERAL SECTIONS
    Tavalised lehe osad ja üldised pealkirjad
@@ -1108,18 +1130,24 @@ a:hover {
 }
 
 .footer-socials a {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.22);
   color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  font-weight: 900;
-  font-size: 18px;
   transition: 0.25s ease;
+}
+
+.footer-socials a svg,
+.footer-socials a img {
+  width: 25px;
+  height: 25px;
+  display: block;
+  object-fit: contain;
 }
 
 .footer-socials a:hover {
@@ -1359,6 +1387,16 @@ a:hover {
   color: #ffffff;
 }
 
+/* Этот код должен быть уже после закрывающей скобки */
+
+body.gala-page {
+  background-color: #FFF6D0 !important;
+}
+
+body.gala-page main {
+  background-color: #FFF6D0 !important;
+}
+
 .gala-hero-content {
   max-width: 900px;
   margin: 0 auto;
@@ -1564,9 +1602,9 @@ a:hover {
 
 .gala-category-card > span {
   display: block;
-  margin-bottom: 22px;
+  margin-bottom: 08px;
   color: #1f5eff;
-  font-size: 14px;
+  font-size: 50px;
   font-weight: 800;
 }
 
@@ -1658,6 +1696,17 @@ a:hover {
   .gala-hero {
     padding: 80px 20px;
   }
+}
+body.gala-page {
+  background-color: #FFF6D0 !important;
+}
+
+body.gala-page main {
+  background-color: #FFF6D0 !important;
+}
+
+body.gala-page .gala-section {
+  background-color: transparent;
 }
 /* ========================= */
 /* PROJEKTIKIRJUTAMISE LAAGER */
@@ -1841,7 +1890,6 @@ a:hover {
   font-size: 19px;
   line-height: 1.4;
 }
-```
 
 /* Üldised sektsioonid */
 
@@ -2163,7 +2211,7 @@ a:hover {
     flex-direction: column;
   }
 }
-```css
+
 /* ================================================= */
 /* RESPONSIVE — töötab ainult väiksematel ekraanidel */
 /* Tavalisel arvutil jääb olemasolev disain samaks */
@@ -2428,4 +2476,121 @@ img {
     padding: 22px;
   }
 }
-```
+
+/* ========================= */
+/* GALA COUNTDOWN */
+/* ========================= */
+
+.gala-countdown {
+  margin-top: 34px;
+  padding: 32px;
+
+  border: 1px solid #d8e3ff;
+  border-radius: 24px;
+
+  background:
+    radial-gradient(
+      circle at right top,
+      rgba(42, 99, 255, 0.17),
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #f1f5ff 100%
+    );
+
+  box-shadow: 0 16px 42px rgba(7, 24, 51, 0.08);
+}
+
+.gala-countdown-heading {
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.gala-countdown-heading span {
+  display: block;
+  margin-bottom: 8px;
+
+  color: #2a63ff;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+}
+
+.gala-countdown-heading h3 {
+  margin: 0;
+
+  color: #071833;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.25;
+}
+
+.gala-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.gala-countdown-item {
+  display: flex;
+  min-height: 125px;
+  padding: 20px;
+
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #dce5f7;
+  border-radius: 18px;
+
+  background: #ffffff;
+  text-align: center;
+}
+
+.gala-countdown-item strong {
+  color: #2a63ff;
+
+  font-size: clamp(36px, 5vw, 54px);
+  font-weight: 900;
+  line-height: 1;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.gala-countdown-item span {
+  margin-top: 10px;
+
+  color: #526177;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gala-countdown-finished {
+  margin: 22px 0 0;
+
+  color: #2a63ff;
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* Телефон */
+
+@media (max-width: 700px) {
+  .gala-countdown {
+    padding: 24px 18px;
+  }
+
+  .gala-countdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .gala-countdown-item {
+    min-height: 110px;
+    padding: 16px 10px;
+  }
+}

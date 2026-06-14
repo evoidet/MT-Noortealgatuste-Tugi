@@ -26,9 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }, 2000);
     }
 
-    closeButton.addEventListener("click", function () {
-      closeNewsletterPopup();
-    });
+    closeButton.addEventListener("click", closeNewsletterPopup);
 
     overlay.addEventListener("click", function (event) {
       if (event.target === overlay) {
@@ -109,20 +107,115 @@ document.addEventListener("DOMContentLoaded", function () {
       bottomMessage.textContent = "";
 
       if (!isValidEmail(email)) {
-        bottomMessage.textContent = "Palun sisestage korrektne e-posti aadress.";
+        bottomMessage.textContent =
+          "Palun sisestage korrektne e-posti aadress.";
         return;
       }
 
       if (!consent) {
-        bottomMessage.textContent = "Infokirjaga liitumiseks tuleb anda nõusolek.";
+        bottomMessage.textContent =
+          "Infokirjaga liitumiseks tuleb anda nõusolek.";
         return;
       }
 
       localStorage.setItem("newsletterSubscribed", "true");
 
-      bottomMessage.textContent = "Aitäh! Teie e-posti aadress on vastu võetud.";
+      bottomMessage.textContent =
+        "Aitäh! Teie e-posti aadress on vastu võetud.";
+
       bottomEmail.value = "";
       bottomConsent.checked = false;
     });
+  }
+
+  /* ========================= */
+  /* GALA COUNTDOWN */
+  /* ========================= */
+
+  const countdown = document.getElementById("galaCountdown");
+
+  if (countdown) {
+    const targetDate = new Date(
+      countdown.dataset.eventDate
+    ).getTime();
+
+    const daysElement = document.getElementById("countdownDays");
+    const hoursElement = document.getElementById("countdownHours");
+    const minutesElement = document.getElementById("countdownMinutes");
+    const secondsElement = document.getElementById("countdownSeconds");
+    const finishedElement = document.getElementById("countdownFinished");
+
+    if (
+      daysElement &&
+      hoursElement &&
+      minutesElement &&
+      secondsElement &&
+      finishedElement
+    ) {
+      let timerId = null;
+
+      function updateCountdown() {
+        if (Number.isNaN(targetDate)) {
+          finishedElement.textContent =
+            "Sündmuse kuupäev ei ole õigesti määratud.";
+
+          console.error(
+            "Incorrect event date:",
+            countdown.dataset.eventDate
+          );
+
+          return;
+        }
+
+        const remainingTime = targetDate - Date.now();
+
+        if (remainingTime <= 0) {
+          daysElement.textContent = "00";
+          hoursElement.textContent = "00";
+          minutesElement.textContent = "00";
+          secondsElement.textContent = "00";
+
+          finishedElement.textContent =
+            "Kandidaatide esitamise aeg on läbi!";
+
+          if (timerId !== null) {
+            clearInterval(timerId);
+          }
+
+          return;
+        }
+
+        const days = Math.floor(
+          remainingTime / (1000 * 60 * 60 * 24)
+        );
+
+        const hours = Math.floor(
+          (remainingTime % (1000 * 60 * 60 * 24)) /
+            (1000 * 60 * 60)
+        );
+
+        const minutes = Math.floor(
+          (remainingTime % (1000 * 60 * 60)) /
+            (1000 * 60)
+        );
+
+        const seconds = Math.floor(
+          (remainingTime % (1000 * 60)) / 1000
+        );
+
+        daysElement.textContent = String(days).padStart(2, "0");
+        hoursElement.textContent = String(hours).padStart(2, "0");
+        minutesElement.textContent = String(minutes).padStart(2, "0");
+        secondsElement.textContent = String(seconds).padStart(2, "0");
+      }
+
+      updateCountdown();
+
+      if (!Number.isNaN(targetDate) && targetDate > Date.now()) {
+        timerId = setInterval(updateCountdown, 1000);
+      }
+    } else {
+      console.error("Countdown elements were not found in HTML.");
+    }
   }
 });
