@@ -67,66 +67,54 @@ a:hover {
   color: var(--dark);
 }
 
+
 /* =========================================================
-   2. HEADER / ÜLEMINE MENÜÜ
-   Logo, nimi ja navigatsioon
+   HEADER + MOBILE MENU
+   Ühesugune kõikidel lehtedel
    ========================================================= */
 
 .header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(233, 241, 203, 0.96);
+  width: 100%;
+
+  background: #ffffff;
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 8px 24px rgba(14, 59, 3, 0.08);
-  backdrop-filter: blur(10px);
-  padding: 0;
+  box-shadow: 0 6px 20px rgba(14, 59, 3, 0.08);
 }
 
-/* Kasutus juhul, kui headeris on .header-inner */
 .header-inner {
   width: 100%;
   max-width: 1500px;
   margin: 0 auto;
-  padding: 22px 3%;
+  padding: 18px 3%;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 34px;
+  gap: 32px;
 }
 
-/* Fallback juhul, kui headeris EI ole .header-inner */
-.header:not(:has(.header-inner)) {
-  padding: 22px 3%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 34px;
-}
+/* Logo */
 
-.logo,
-.logo a {
+.logo {
   display: flex;
   align-items: center;
   gap: 14px;
+
   color: var(--dark);
   text-decoration: none;
-  font-weight: 900;
   font-size: 24px;
-  line-height: 1;
+  font-weight: 900;
   white-space: nowrap;
 }
 
 .logo-img {
   width: 130px;
-  height: 70px;
+  height: 64px;
+
   object-fit: contain;
-  object-position: center;
-  background: transparent;
-  padding: 0;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
   flex-shrink: 0;
 }
 
@@ -134,17 +122,18 @@ a:hover {
   color: var(--dark);
 }
 
+/* Arvuti menüü */
+
 .nav {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 20px;
-  flex-wrap: nowrap;
+
   white-space: nowrap;
 }
 
 .nav a {
-  margin-left: 0;
   color: var(--dark);
   text-decoration: none;
   font-size: 15px;
@@ -154,6 +143,111 @@ a:hover {
 
 .nav a:hover {
   color: var(--green);
+}
+
+/* Mobiilimenüü nupp on arvutis peidetud */
+
+.menu-toggle {
+  display: none;
+
+  width: 46px;
+  height: 46px;
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  background: #ffffff;
+  color: var(--dark);
+
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   TELEFON JA TAHVEL
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .header-inner {
+    position: relative;
+    padding: 12px 5%;
+    gap: 18px;
+  }
+
+  .logo {
+    font-size: 19px;
+  }
+
+  .logo-img {
+    width: 95px;
+    height: 52px;
+  }
+
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Menüü on alguses suletud */
+
+  .nav {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 5%;
+    right: 5%;
+
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+
+    padding: 12px;
+
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 18px 45px rgba(14, 59, 3, 0.16);
+
+    white-space: normal;
+  }
+
+  /* Menüü pärast nupule vajutamist */
+
+  .nav.open {
+    display: flex;
+  }
+
+  .nav a {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 10px;
+
+    color: var(--dark);
+    font-size: 15px;
+  }
+
+  .nav a:hover {
+    background: var(--bg);
+    color: var(--dark);
+  }
+}
+
+/* Väike telefon */
+
+@media (max-width: 560px) {
+  .logo span {
+    display: none;
+  }
+
+  .logo-img {
+    width: 100px;
+    height: 50px;
+  }
 }
 
 /* =========================================================
