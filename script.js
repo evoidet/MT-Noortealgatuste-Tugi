@@ -359,4 +359,93 @@ if (galaCountdown) {
     startCampCountdown();
     }
 })();
+
+/* =========================================================
+   MOBILE MENU
+   ========================================================= */
+
+(function () {
+  function initializeMobileMenu() {
+    const menuButton = document.getElementById("menuToggle");
+    const navigation = document.getElementById("mainNav");
+
+    if (!menuButton || !navigation) {
+      console.error(
+        "Мобильное меню не найдено. Проверь id='menuToggle' и id='mainNav'."
+      );
+      return;
+    }
+
+    function openMenu() {
+      navigation.classList.add("open");
+      menuButton.classList.add("active");
+
+      menuButton.setAttribute("aria-expanded", "true");
+      menuButton.setAttribute("aria-label", "Sulge menüü");
+    }
+
+    function closeMenu() {
+      navigation.classList.remove("open");
+      menuButton.classList.remove("active");
+
+      menuButton.setAttribute("aria-expanded", "false");
+      menuButton.setAttribute("aria-label", "Ava menüü");
+    }
+
+    function toggleMenu() {
+      const menuIsOpen = navigation.classList.contains("open");
+
+      if (menuIsOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    }
+
+    /* Нажатие на три точки */
+    menuButton.addEventListener("click", function (event) {
+      event.stopPropagation();
+      toggleMenu();
+    });
+
+    /* Нажатие внутри меню не закрывает его */
+    navigation.addEventListener("click", function (event) {
+      event.stopPropagation();
+    });
+
+    /* Закрытие после выбора ссылки */
+    navigation.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", closeMenu);
+    });
+
+    /* Закрытие при нажатии вне меню */
+    document.addEventListener("click", closeMenu);
+
+    /* Закрытие клавишей Escape */
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    });
+
+    /* Закрытие при переходе с телефона на большой экран */
+    window.addEventListener("resize", function () {
+      if (window.innerWidth > 900) {
+        closeMenu();
+      }
+    });
+
+    console.log("Mobile menu is working");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initializeMobileMenu,
+      { once: true }
+    );
+  } else {
+    initializeMobileMenu();
+  }
+})();
 });
