@@ -92,18 +92,24 @@ a:hover {
     gap: 18px;
   }
 
-  .menu-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
 
-    flex-shrink: 0;
-  }
+  width: 52px;
+  height: 52px;
+
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1;
+
+  flex-shrink: 0;
 }
 
 /* Logo */
