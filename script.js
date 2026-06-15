@@ -365,87 +365,119 @@ if (galaCountdown) {
    ========================================================= */
 
 (function () {
-  function initializeMobileMenu() {
-    const menuButton = document.getElementById("menuToggle");
-    const navigation = document.getElementById("mainNav");
+  function initMobileMenu() {
+    const menuButton =
+      document.getElementById("menuToggle") ||
+      document.querySelector(".menu-toggle");
 
-    if (!menuButton || !navigation) {
-      console.error(
-        "Мобильное меню не найдено. Проверь id='menuToggle' и id='mainNav'."
-      );
+    const navigation =
+      document.getElementById("mainNav") ||
+      document.querySelector(".nav");
+
+    if (!menuButton) {
+      console.error("Кнопка с тремя точками не найдена");
       return;
     }
 
-    function openMenu() {
+    if (!navigation) {
+      console.error("Навигационное меню не найдено");
+      return;
+    }
+
+    let menuIsOpen = false;
+
+    function showMenu() {
+      menuIsOpen = true;
+
       navigation.classList.add("open");
       menuButton.classList.add("active");
 
+      navigation.style.setProperty("display", "flex", "important");
+      navigation.style.setProperty("visibility", "visible", "important");
+      navigation.style.setProperty("opacity", "1", "important");
+      navigation.style.setProperty("pointer-events", "auto", "important");
+
       menuButton.setAttribute("aria-expanded", "true");
-      menuButton.setAttribute("aria-label", "Sulge menüü");
+
+      console.log("Меню открыто");
     }
 
-    function closeMenu() {
+    function hideMenu() {
+      menuIsOpen = false;
+
       navigation.classList.remove("open");
       menuButton.classList.remove("active");
 
+      if (window.innerWidth <= 1100) {
+        navigation.style.setProperty("display", "none", "important");
+        navigation.style.setProperty("visibility", "hidden", "important");
+        navigation.style.setProperty("opacity", "0", "important");
+        navigation.style.setProperty("pointer-events", "none", "important");
+      }
+
       menuButton.setAttribute("aria-expanded", "false");
-      menuButton.setAttribute("aria-label", "Ava menüü");
+
+      console.log("Меню закрыто");
     }
 
-    function toggleMenu() {
-      const menuIsOpen = navigation.classList.contains("open");
+    function toggleMenu(event) {
+      event.preventDefault();
+      event.stopPropagation();
 
       if (menuIsOpen) {
-        closeMenu();
+        hideMenu();
       } else {
-        openMenu();
+        showMenu();
       }
     }
 
-    /* Нажатие на три точки */
-    menuButton.addEventListener("click", function (event) {
-      event.stopPropagation();
-      toggleMenu();
-    });
+    menuButton.addEventListener("click", toggleMenu);
 
-    /* Нажатие внутри меню не закрывает его */
     navigation.addEventListener("click", function (event) {
       event.stopPropagation();
     });
 
-    /* Закрытие после выбора ссылки */
     navigation.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", closeMenu);
+      link.addEventListener("click", hideMenu);
     });
 
-    /* Закрытие при нажатии вне меню */
-    document.addEventListener("click", closeMenu);
+    document.addEventListener("click", function () {
+      if (menuIsOpen) {
+        hideMenu();
+      }
+    });
 
-    /* Закрытие клавишей Escape */
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") {
-        closeMenu();
+      if (event.key === "Escape" && menuIsOpen) {
+        hideMenu();
       }
     });
 
-    /* Закрытие при переходе с телефона на большой экран */
     window.addEventListener("resize", function () {
-      if (window.innerWidth > 900) {
-        closeMenu();
+      if (window.innerWidth > 1100) {
+        menuIsOpen = false;
+
+        navigation.classList.remove("open");
+        navigation.style.removeProperty("display");
+        navigation.style.removeProperty("visibility");
+        navigation.style.removeProperty("opacity");
+        navigation.style.removeProperty("pointer-events");
+      } else {
+        hideMenu();
       }
     });
 
-    console.log("Mobile menu is working");
+    if (window.innerWidth <= 1100) {
+      hideMenu();
+    }
+
+    console.log("Мобильное меню подключено");
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      initializeMobileMenu,
-      { once: true }
-    );
+    document.addEventListener("DOMContentLoaded", initMobileMenu);
   } else {
-    initializeMobileMenu();
+    initMobileMenu();
   }
 })();
 });
