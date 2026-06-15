@@ -2098,9 +2098,11 @@ body.gala-page .gala-section {
 .camp-audience-card > span {
   display: block;
   margin-bottom: 22px;
+
   color: #168a70;
-  font-size: 14px;
+  font-size: 42px;
   font-weight: 900;
+  line-height: 1;
 }
 
 .camp-audience-card h3 {
