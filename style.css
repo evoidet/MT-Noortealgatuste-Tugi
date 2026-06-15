@@ -84,16 +84,26 @@ a:hover {
   box-shadow: 0 6px 20px rgba(14, 59, 3, 0.08);
 }
 
-.header-inner {
-  width: 100%;
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 18px 3%;
+@media (max-width: 1050px) {
+  .header-inner {
+    position: relative;
+    padding: 12px 14px;
+    padding-right: 74px;
+    gap: 18px;
+  }
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    flex-shrink: 0;
+  }
 }
 
 /* Logo */
@@ -147,23 +157,26 @@ a:hover {
 
 /* Mobiilimenüü nupp on arvutis peidetud */
 
-.menu-toggle {
-  display: none;
+@media (max-width: 1050px) {
+  .header-inner {
+    position: relative;
+    padding: 12px 14px;
+    padding-right: 74px;
+    gap: 18px;
+  }
 
-  width: 46px;
-  height: 46px;
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  border: 1px solid var(--border);
-  border-radius: 14px;
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
 
-  background: #ffffff;
-  color: var(--dark);
-
-  font-size: 30px;
-  font-weight: 900;
-  line-height: 1;
-
-  cursor: pointer;
+    flex-shrink: 0;
+  }
 }
 
 /* =========================================================
