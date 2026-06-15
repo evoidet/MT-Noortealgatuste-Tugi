@@ -225,92 +225,130 @@ document.addEventListener("DOMContentLoaded", function () {
    LAAGRI COUNTDOWN
    ========================================================= */
 
-const campCountdown = document.getElementById("campCountdown");
+(function () {
+  function startCampCountdown() {
+    const countdown = document.getElementById("campCountdown");
 
-if (campCountdown) {
-  const eventDate = new Date(
-    campCountdown.dataset.eventDate
-  ).getTime();
-
-  const daysElement = document.getElementById("campCountdownDays");
-  const hoursElement = document.getElementById("campCountdownHours");
-  const minutesElement = document.getElementById("campCountdownMinutes");
-  const secondsElement = document.getElementById("campCountdownSeconds");
-  const finishedElement = document.getElementById("campCountdownFinished");
-
-  function updateCampCountdown() {
-    const now = new Date().getTime();
-    const distance = eventDate - now;
-
-    if (distance <= 0) {
-      daysElement.textContent = "00";
-      hoursElement.textContent = "00";
-      minutesElement.textContent = "00";
-      secondsElement.textContent = "00";
-
-      finishedElement.textContent = "Laager on alanud!";
-
-      clearInterval(campCountdownInterval);
+    if (!countdown) {
+      console.error("Не найден элемент #campCountdown");
       return;
     }
 
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    // Защита от двойного запуска таймера
+    if (countdown.dataset.timerStarted === "true") {
+      return;
+    }
 
-    const hours = Math.floor(
-      (distance / (1000 * 60 * 60)) % 24
+    const daysElement =
+      document.getElementById("campCountdownDays");
+
+    const hoursElement =
+      document.getElementById("campCountdownHours");
+
+    const minutesElement =
+      document.getElementById("campCountdownMinutes");
+
+    const secondsElement =
+      document.getElementById("campCountdownSeconds");
+
+    const finishedElement =
+      document.getElementById("campCountdownFinished");
+
+    if (
+      !daysElement ||
+      !hoursElement ||
+      !minutesElement ||
+      !secondsElement ||
+      !finishedElement
+    ) {
+      console.error("Не найдены элементы таймера лагеря");
+      return;
+    }
+
+    const dateText = countdown.dataset.eventDate;
+    const targetDate = Date.parse(dateText);
+
+    if (Number.isNaN(targetDate)) {
+      console.error("Неправильная дата лагеря:", dateText);
+
+      finishedElement.textContent =
+        "Laagri kuupäev ei ole õigesti määratud.";
+
+      return;
+    }
+
+    countdown.dataset.timerStarted = "true";
+
+    let intervalId = null;
+
+    function updateCountdown() {
+      const remainingTime = targetDate - Date.now();
+
+      if (remainingTime <= 0) {
+        daysElement.textContent = "00";
+        hoursElement.textContent = "00";
+        minutesElement.textContent = "00";
+        secondsElement.textContent = "00";
+
+        finishedElement.textContent = "Laager on alanud!";
+
+        if (intervalId !== null) {
+          clearInterval(intervalId);
+        }
+
+        return;
+      }
+
+      const days = Math.floor(
+        remainingTime / (1000 * 60 * 60 * 24)
+      );
+
+      const hours = Math.floor(
+        (remainingTime % (1000 * 60 * 60 * 24)) /
+          (1000 * 60 * 60)
+      );
+
+      const minutes = Math.floor(
+        (remainingTime % (1000 * 60 * 60)) /
+          (1000 * 60)
+      );
+
+      const seconds = Math.floor(
+        (remainingTime % (1000 * 60)) / 1000
+      );
+
+      daysElement.textContent =
+        String(days).padStart(2, "0");
+
+      hoursElement.textContent =
+        String(hours).padStart(2, "0");
+
+      minutesElement.textContent =
+        String(minutes).padStart(2, "0");
+
+      secondsElement.textContent =
+        String(seconds).padStart(2, "0");
+    }
+
+    updateCountdown();
+
+    intervalId = setInterval(updateCountdown, 1000);
+
+    console.log(
+      "Camp countdown started:",
+      new Date(targetDate)
     );
-
-    const minutes = Math.floor(
-      (distance / (1000 * 60)) % 60
-    );
-
-    const seconds = Math.floor(
-      (distance / 1000) % 60
-    );
-
-    daysElement.textContent = String(days).padStart(2, "0");
-    hoursElement.textContent = String(hours).padStart(2, "0");
-    minutesElement.textContent = String(minutes).padStart(2, "0");
-    secondsElement.textContent = String(seconds).padStart(2, "0");
   }
 
-  updateCampCountdown();
-
-  const campCountdownInterval = setInterval(
-    updateCampCountdown,
-    1000
-  );
-}
-
-
-/* =========================
-   MOBILE MENU
-   ========================= */
-
-document.addEventListener("DOMContentLoaded", function () {
-  const menuButton = document.getElementById("menuToggle");
-  const navigation = document.getElementById("mainNav");
-
-  if (!menuButton || !navigation) {
-    return;
-  }
-
-  menuButton.addEventListener("click", function () {
-    const isOpen = navigation.classList.toggle("open");
-
-    menuButton.setAttribute("aria-expanded", String(isOpen));
-    menuButton.setAttribute(
-      "aria-label",
-      isOpen ? "Sulge menüü" : "Ava menüü"
+  // Работает независимо от того,
+  // где подключён JavaScript
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      startCampCountdown,
+      { once: true }
     );
-  });
-
-  /* Закрываем меню после нажатия на ссылку */
-  navigation.querySelectorAll("a").forEach(function (link) {
-    link.addEventListener("click", function () {
-      navigation.classList.remove("open");
-      menuButton.setAttribute("aria-expanded", "false");
-      menuButton.setAttribute("aria-label", "Ava menüü");
-    });
-  });
-});
+  } else {
+    startCampCountdown();
+  }
+})();
