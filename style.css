@@ -431,9 +431,9 @@ a:hover {
 }
 
 .projects-header h2 {
+  margin-bottom: 14px;
   color: var(--dark);
   font-size: 38px;
-  margin-bottom: 14px;
 }
 
 .projects-header p {
@@ -442,38 +442,120 @@ a:hover {
   line-height: 1.7;
 }
 
-.cards {
+/* Kolm projekti ühes reas */
+.project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
 }
 
-.card {
-  padding: 28px;
-  border-radius: var(--radius-medium);
-  background: var(--soft-green);
+/* Välimine roheline kaart */
+.project-card {
+  display: block;
+  min-width: 0;
+  padding: 20px;
   border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--soft-green);
   color: var(--dark);
-  box-shadow: 0 14px 34px rgba(14, 59, 3, 0.08);
-  transition: 0.25s ease;
+  text-decoration: none;
+  box-shadow: 0 16px 40px rgba(14, 59, 3, 0.09);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 48px rgba(14, 59, 3, 0.13);
+/* Valge kaart rohelise kaardi sees */
+.project-card-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 300px;
+  padding: 30px;
+  border: 1px solid rgba(14, 59, 3, 0.1);
+  border-radius: 22px;
+  background: #ffffff;
 }
 
-.card h3 {
-  margin-bottom: 12px;
+/* Väike projekti tüübi silt */
+.project-card-label {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 20px;
+  padding: 7px 13px;
+  border: 1px solid rgba(92, 228, 19, 0.3);
+  border-radius: 999px;
+  background: rgba(92, 228, 19, 0.16);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* Projekti nimi */
+.project-card h3 {
+  margin: 0 0 14px;
   color: var(--dark);
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.25;
 }
 
-.card p {
+/* Projekti kirjeldus */
+.project-card p {
+  margin: 0;
   color: var(--text-soft);
   font-size: 16px;
-  line-height: 1.65;
+  line-height: 1.7;
+}
+
+/* Vaata lähemalt tekst */
+.project-card-more {
+  margin-top: auto;
+  padding-top: 24px;
+  color: var(--green);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+/* Hover-efekt */
+.project-card:hover {
+  color: var(--dark);
+  transform: translateY(-5px);
+  box-shadow: 0 24px 55px rgba(14, 59, 3, 0.15);
+}
+
+.project-card:hover .project-card-more {
+  color: var(--dark);
+}
+
+/* Tahvel */
+@media (max-width: 950px) {
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Telefon */
+@media (max-width: 650px) {
+  .project-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-card {
+    padding: 15px;
+    border-radius: 22px;
+  }
+
+  .project-card-inner {
+    min-height: 250px;
+    padding: 24px;
+    border-radius: 18px;
+  }
+
+  .project-card h3 {
+    font-size: 22px;
+  }
 }
 
 /* =========================================================
@@ -1140,6 +1222,12 @@ a:hover {
   justify-content: center;
   text-decoration: none;
   transition: 0.25s ease;
+}
+
+.footer-socials a.social-text {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .footer-socials a svg,
