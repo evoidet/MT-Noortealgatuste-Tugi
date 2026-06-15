@@ -129,97 +129,104 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ========================= */
-  /* GALA COUNTDOWN */
-  /* ========================= */
+  /* =========================
+   GALA COUNTDOWN
+   ========================= */
 
-  const countdown = document.getElementById("galaCountdown");
+const galaCountdown = document.getElementById("galaCountdown");
 
-  if (countdown) {
+if (galaCountdown) {
+  const daysElement =
+    document.getElementById("countdownDays");
+
+  const hoursElement =
+    document.getElementById("countdownHours");
+
+  const minutesElement =
+    document.getElementById("countdownMinutes");
+
+  const secondsElement =
+    document.getElementById("countdownSeconds");
+
+  const finishedElement =
+    document.getElementById("countdownFinished");
+
+  if (
+    daysElement &&
+    hoursElement &&
+    minutesElement &&
+    secondsElement &&
+    finishedElement
+  ) {
+    // 2 августа 2026 года, 23:59:59
     const targetDate = new Date(
-      countdown.dataset.eventDate
+      "2026-08-02T23:59:59+03:00"
     ).getTime();
 
-    const daysElement = document.getElementById("countdownDays");
-    const hoursElement = document.getElementById("countdownHours");
-    const minutesElement = document.getElementById("countdownMinutes");
-    const secondsElement = document.getElementById("countdownSeconds");
-    const finishedElement = document.getElementById("countdownFinished");
+    let galaInterval = null;
 
-    if (
-      daysElement &&
-      hoursElement &&
-      minutesElement &&
-      secondsElement &&
-      finishedElement
-    ) {
-      let timerId = null;
+    function updateGalaCountdown() {
+      const remainingTime = targetDate - Date.now();
 
-      function updateCountdown() {
-        if (Number.isNaN(targetDate)) {
-          finishedElement.textContent =
-            "Sündmuse kuupäev ei ole õigesti määratud.";
+      if (remainingTime <= 0) {
+        daysElement.textContent = "00";
+        hoursElement.textContent = "00";
+        minutesElement.textContent = "00";
+        secondsElement.textContent = "00";
 
-          console.error(
-            "Incorrect event date:",
-            countdown.dataset.eventDate
-          );
+        finishedElement.textContent =
+          "Kandidaatide esitamise aeg on läbi!";
 
-          return;
+        if (galaInterval !== null) {
+          clearInterval(galaInterval);
         }
 
-        const remainingTime = targetDate - Date.now();
-
-        if (remainingTime <= 0) {
-          daysElement.textContent = "00";
-          hoursElement.textContent = "00";
-          minutesElement.textContent = "00";
-          secondsElement.textContent = "00";
-
-          finishedElement.textContent =
-            "Kandidaatide esitamise aeg on läbi!";
-
-          if (timerId !== null) {
-            clearInterval(timerId);
-          }
-
-          return;
-        }
-
-        const days = Math.floor(
-          remainingTime / (1000 * 60 * 60 * 24)
-        );
-
-        const hours = Math.floor(
-          (remainingTime % (1000 * 60 * 60 * 24)) /
-            (1000 * 60 * 60)
-        );
-
-        const minutes = Math.floor(
-          (remainingTime % (1000 * 60 * 60)) /
-            (1000 * 60)
-        );
-
-        const seconds = Math.floor(
-          (remainingTime % (1000 * 60)) / 1000
-        );
-
-        daysElement.textContent = String(days).padStart(2, "0");
-        hoursElement.textContent = String(hours).padStart(2, "0");
-        minutesElement.textContent = String(minutes).padStart(2, "0");
-        secondsElement.textContent = String(seconds).padStart(2, "0");
+        return;
       }
 
-      updateCountdown();
+      const days = Math.floor(
+        remainingTime / (1000 * 60 * 60 * 24)
+      );
 
-      if (!Number.isNaN(targetDate) && targetDate > Date.now()) {
-        timerId = setInterval(updateCountdown, 1000);
-      }
-    } else {
-      console.error("Countdown elements were not found in HTML.");
+      const hours = Math.floor(
+        (remainingTime % (1000 * 60 * 60 * 24)) /
+          (1000 * 60 * 60)
+      );
+
+      const minutes = Math.floor(
+        (remainingTime % (1000 * 60 * 60)) /
+          (1000 * 60)
+      );
+
+      const seconds = Math.floor(
+        (remainingTime % (1000 * 60)) / 1000
+      );
+
+      daysElement.textContent =
+        String(days).padStart(2, "0");
+
+      hoursElement.textContent =
+        String(hours).padStart(2, "0");
+
+      minutesElement.textContent =
+        String(minutes).padStart(2, "0");
+
+      secondsElement.textContent =
+        String(seconds).padStart(2, "0");
     }
+
+    updateGalaCountdown();
+
+    galaInterval = setInterval(
+      updateGalaCountdown,
+      1000
+    );
+
+    console.log("Gala countdown started");
+  } else {
+    console.error("Не найдены цифры таймера гала");
   }
-});
+}
 
 /* =========================================================
    LAAGRI COUNTDOWN
@@ -350,5 +357,6 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   } else {
     startCampCountdown();
-  }
+    }
 })();
+});
