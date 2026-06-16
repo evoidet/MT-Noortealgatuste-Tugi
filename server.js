@@ -4,9 +4,14 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+app.get("/", function (req, res) {
+  res.send("Server töötab");
+});
 
 app.post("/api/contact", async function (req, res) {
   const { name, email, phone, subject, message } = req.body;
@@ -47,7 +52,7 @@ ${message}
       message: "Sõnum saadetud."
     });
   } catch (error) {
-    console.error(error);
+    console.error("Mail error:", error);
 
     res.status(500).json({
       success: false,
@@ -55,8 +60,6 @@ ${message}
     });
   }
 });
-
-const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, function () {
   console.log(`Server töötab pordil ${PORT}`);
