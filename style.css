@@ -84,34 +84,6 @@ a:hover {
   box-shadow: 0 6px 20px rgba(14, 59, 3, 0.08);
 }
 
-@media (max-width: 1050px) {
-  .header-inner {
-    position: relative;
-    padding: 12px 14px;
-    padding-right: 74px;
-    gap: 18px;
-  }
-
-.menu-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-
-  width: 52px;
-  height: 52px;
-
-  font-size: 40px;
-  font-weight: 900;
-  line-height: 1;
-
-  flex-shrink: 0;
-  }
-}
 /* Logo */
 
 .logo {
@@ -161,38 +133,34 @@ a:hover {
   color: var(--green);
 }
 
-/* Mobiilimenüü nupp on arvutis peidetud */
+/* На компьютере кнопка с тремя точками скрыта */
 
-@media (max-width: 1050px) {
-  .header-inner {
-    position: relative;
-    padding: 12px 14px;
-    padding-right: 74px;
-    gap: 18px;
-  }
-
-  .menu-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-
-    flex-shrink: 0;
-  }
+.menu-toggle {
+  display: none;
 }
 
 /* =========================================================
    TELEFON JA TAHVEL
    ========================================================= */
+/* Шапка на компьютере */
+
+.header-inner {
+  width: 100%;
+  margin: 0;
+  padding: 10px 25px;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+}
+/* Телефон и планшет */
 
 @media (max-width: 1050px) {
   .header-inner {
     position: relative;
-    padding: 12px 5%;
+    padding: 12px 74px 12px 5%;
     gap: 18px;
   }
 
@@ -205,11 +173,27 @@ a:hover {
     height: 52px;
   }
 
+  /* На телефоне и планшете три точки появляются */
+
   .menu-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 52px;
+    height: 52px;
+
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1;
+
     flex-shrink: 0;
+    cursor: pointer;
   }
 
   /* Menüü on alguses suletud */
@@ -219,6 +203,7 @@ a:hover {
     top: calc(100% + 1px);
     left: 5%;
     right: 5%;
+    z-index: 1001;
 
     display: none;
     flex-direction: column;
@@ -234,8 +219,6 @@ a:hover {
 
     white-space: normal;
   }
-
-  /* Menüü pärast nupule vajutamist */
 
   .nav.open {
     display: flex;
