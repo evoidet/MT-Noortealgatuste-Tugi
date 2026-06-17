@@ -481,46 +481,4 @@ if (galaCountdown) {
   }
 })();
 
-/* ========================= */
-/* CONTACT FORM */
-/* ========================= */
-
-const contactForm = document.getElementById("contactForm");
-
-if (contactForm) {
-  contactForm.addEventListener("submit", async function (event) {
-    event.preventDefault();
-
-    const formData = new FormData(contactForm);
-
-    const data = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      subject: formData.get("subject"),
-      message: formData.get("message")
-    };
-
-    try {
-      const response = await fetch("http://localhost:3000/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-
-      alert(result.message);
-
-      if (result.success) {
-        contactForm.reset();
-      }
-    } catch (error) {
-      alert("Sõnumi saatmine ebaõnnestus. Proovige hiljem uuesti.");
-    }
-  });
-}
-
 });
