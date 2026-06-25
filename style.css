@@ -1823,202 +1823,686 @@ font-size: 14px;
   }
 }
 /* ========================= */
-/* TUNNUSTUSGALA PAGE */
+/* TUNNUSTUSGALA PAGE        */
+/* Kõik gala stiilid on siin */
 /* ========================= */
 
-.gala-hero {
-  padding: 110px 8%;
-  background:
-    linear-gradient(rgba(7, 24, 51, 0.72), rgba(7, 24, 51, 0.88)),
-    linear-gradient(135deg, #1f5eff, #071833);
-  color: #ffffff;
-}
-
-/* Этот код должен быть уже после закрывающей скобки */
-
 body.gala-page {
-  background-color: #FFF6D0 !important;
+  --gala-bg: #fff6d0;
+  --gala-cream: #fffaf0;
+  --gala-white: #ffffff;
+  --gala-navy: #071833;
+  --gala-navy-soft: #10264d;
+  --gala-blue: #1f5eff;
+  --gala-gold: #c89b3c;
+  --gala-gold-light: #f0d99c;
+  --gala-text: #35435a;
+  --gala-text-soft: #667187;
+  --gala-border: rgba(7, 24, 51, 0.13);
+  --gala-shadow: 0 20px 55px rgba(7, 24, 51, 0.12);
+
+  background: var(--gala-bg) !important;
 }
 
 body.gala-page main {
-  background-color: #FFF6D0 !important;
+  overflow: hidden;
+  background: var(--gala-bg) !important;
+}
+
+/* Gala hero */
+
+.gala-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 92px 8% 140px;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(240, 217, 156, 0.18), transparent 28%),
+    radial-gradient(circle at 86% 82%, rgba(31, 94, 255, 0.24), transparent 30%),
+    linear-gradient(135deg, #071833 0%, #10264d 58%, #071833 100%);
+  color: #ffffff;
+}
+
+.gala-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  background-image:
+    linear-gradient(115deg, transparent 0 46%, rgba(255,255,255,0.08) 46% 46.4%, transparent 46.4%),
+    radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1.4px);
+  background-size: 100% 100%, 54px 54px;
+}
+
+.gala-hero::after {
+  content: "2026";
+  position: absolute;
+  right: -20px;
+  bottom: -70px;
+  color: rgba(255, 255, 255, 0.035);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(150px, 24vw, 350px);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.gala-hero-inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 0.72fr);
+  gap: 70px;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  align-items: center;
 }
 
 .gala-hero-content {
-  max-width: 900px;
-  margin: 0 auto;
-  text-align: center;
+  max-width: 720px;
+  text-align: left;
 }
 
 .gala-label {
-  display: inline-block;
-  margin-bottom: 22px;
-  padding: 8px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 9px 17px;
+  border: 1px solid rgba(240, 217, 156, 0.48);
   border-radius: 999px;
-  color: #dbe7ff;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  background: rgba(240, 217, 156, 0.08);
+  color: var(--gala-gold-light);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.gala-label::before {
+  content: "✦";
+  font-size: 14px;
 }
 
 .gala-hero h1 {
-  margin-bottom: 24px;
-  font-size: clamp(42px, 6vw, 72px);
-  line-height: 1.08;
+  max-width: 760px;
+  margin: 0 0 24px;
+  color: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(46px, 6vw, 76px);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
 }
 
 .gala-hero p {
-  max-width: 760px;
-  margin: 0 auto 34px;
-  color: #dce6f7;
-  font-size: 20px;
-  line-height: 1.7;
+  max-width: 690px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 19px;
+  line-height: 1.75;
 }
 
 .gala-buttons {
   display: flex;
-  justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
+  margin-top: 34px;
+}
+
+.gala-buttons .gala-primary-button,
+.gala-button {
+  padding: 15px 27px;
+  border: 1px solid var(--gala-gold-light);
+  border-radius: 12px;
+  background: var(--gala-gold-light);
+  color: var(--gala-navy);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+}
+
+.gala-buttons .gala-primary-button:hover,
+.gala-button:hover {
+  background: #ffffff;
+  color: var(--gala-navy);
+  border-color: #ffffff;
 }
 
 .gala-secondary-button {
-  display: inline-block;
-  padding: 14px 28px;
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  border-radius: 10px;
+  display: inline-flex;
+  padding: 14px 27px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
+  font-weight: 800;
   text-decoration: none;
-  font-weight: 700;
+  transition: 0.22s ease;
 }
 
 .gala-secondary-button:hover {
-  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--gala-gold-light);
+  background: rgba(240, 217, 156, 0.12);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.gala-hero-visual {
+  position: relative;
+  min-height: 500px;
+  border: 1px solid rgba(240, 217, 156, 0.34);
+  border-radius: 170px 170px 28px 28px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
+    #0b1f43;
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.36);
+  isolation: isolate;
+}
+
+.gala-hero-visual::before {
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.34);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  z-index: -1;
+}
+
+.gala-hero-visual::after {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 1px solid rgba(240, 217, 156, 0.25);
+  border-radius: 155px 155px 18px 18px;
+  pointer-events: none;
+}
+
+.gala-hero-visual img {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.gala-hero-seal {
+  position: absolute;
+  top: 30px;
+  right: -28px;
+  display: flex;
+  width: 118px;
+  height: 118px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--gala-gold-light);
+  border-radius: 50%;
+  background: var(--gala-navy);
+  color: #ffffff;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+.gala-hero-seal strong {
+  color: var(--gala-gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 29px;
+  line-height: 1;
+}
+
+.gala-hero-seal span {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.gala-hero-caption {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  left: 22px;
+  padding: 19px 21px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 16px;
+  background: rgba(7, 24, 51, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.gala-hero-caption span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--gala-gold-light);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.gala-hero-caption strong {
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.gala-hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.gala-hero-glow-one {
+  top: 70px;
+  left: 4%;
+  width: 150px;
+  height: 150px;
+  border: 1px solid rgba(240, 217, 156, 0.2);
+}
+
+.gala-hero-glow-two {
+  right: 6%;
+  bottom: 70px;
+  width: 240px;
+  height: 240px;
+  border: 1px solid rgba(31, 94, 255, 0.25);
 }
 
 /* Kiirinfo */
 
 .gala-information {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  max-width: 1180px;
-  margin: -45px auto 0;
-  padding: 0 20px;
   position: relative;
-  z-index: 2;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1180px;
+  margin: -62px auto 0;
+  padding: 0 20px;
 }
 
 .gala-information-card {
-  padding: 26px;
-  border: 1px solid #dce4f0;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 14px 40px rgba(7, 24, 51, 0.1);
+  position: relative;
+  overflow: hidden;
+  min-height: 145px;
+  padding: 28px;
+  border: 1px solid rgba(200, 155, 60, 0.35);
+  border-radius: 20px;
+  background: rgba(255, 250, 240, 0.98);
+  box-shadow: var(--gala-shadow);
+}
+
+.gala-information-card::before {
+  content: "✦";
+  position: absolute;
+  right: 20px;
+  top: 14px;
+  color: rgba(200, 155, 60, 0.24);
+  font-size: 35px;
 }
 
 .gala-information-card span {
   display: block;
-  margin-bottom: 8px;
-  color: #627089;
-  font-size: 13px;
-  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--gala-gold);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
 }
 
 .gala-information-card strong {
-  color: #071833;
-  font-size: 20px;
+  display: block;
+  max-width: 270px;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  line-height: 1.3;
 }
 
-/* Üldised gala sektsioonid */
+/* Gala üldised sektsioonid */
 
 .gala-section {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 90px 20px;
+  padding: 95px 20px;
+  background: transparent !important;
 }
 
 .gala-section-heading {
-  max-width: 760px;
-  margin-bottom: 38px;
+  max-width: 790px;
+  margin-bottom: 42px;
 }
 
 .gala-section-label {
-  display: inline-block;
-  margin-bottom: 14px;
-  color: #1f5eff;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  color: var(--gala-gold);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.gala-section-label::before {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: currentColor;
 }
 
 .gala-section h2,
+.gala-experience h2,
 .gala-nomination h2 {
-  margin-bottom: 18px;
-  color: #071833;
-  font-size: clamp(32px, 4vw, 48px);
-  line-height: 1.15;
+  margin: 0 0 18px;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(36px, 4.8vw, 58px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
 }
 
+.gala-section-heading p,
 .gala-section p {
-  color: #4d5b71;
+  color: var(--gala-text-soft);
   font-size: 18px;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 /* Sündmusest */
 
+.gala-about-section {
+  padding-top: 105px;
+}
+
 .gala-about-grid {
   display: grid;
-  grid-template-columns: 1.5fr 0.5fr;
-  gap: 30px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 26px;
   align-items: stretch;
 }
 
 .gala-about-text {
-  padding: 34px;
-  border-radius: 22px;
-  background: #ffffff;
-  box-shadow: 0 12px 35px rgba(7, 24, 51, 0.07);
+  position: relative;
+  padding: 42px;
+  border: 1px solid var(--gala-border);
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 14px 38px rgba(7, 24, 51, 0.07);
+}
+
+.gala-about-text::after {
+  content: "“";
+  position: absolute;
+  right: 26px;
+  bottom: -22px;
+  color: rgba(200, 155, 60, 0.17);
+  font-family: Georgia, serif;
+  font-size: 120px;
+  line-height: 1;
+}
+
+.gala-about-text p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--gala-text);
+  font-size: 18px;
+  line-height: 1.8;
 }
 
 .gala-about-text p + p {
-  margin-top: 18px;
+  margin-top: 19px;
+}
+
+.gala-about-signature {
+  position: relative;
+  z-index: 1;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(7, 24, 51, 0.12);
+}
+
+.gala-about-signature span {
+  color: var(--gala-gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.gala-highlight-stack {
+  display: grid;
+  grid-template-rows: 1.25fr 0.75fr;
+  gap: 16px;
 }
 
 .gala-highlight-card {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 240px;
+  min-height: 160px;
   padding: 30px;
-  border-radius: 22px;
-  background: #1f5eff;
-  color: #ffffff;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(200, 155, 60, 0.35);
+  border-radius: 24px;
+  background: var(--gala-cream);
+  color: var(--gala-navy);
   text-align: center;
+  box-shadow: 0 14px 38px rgba(7, 24, 51, 0.07);
+}
+
+.gala-highlight-main {
+  background:
+    radial-gradient(circle at top right, rgba(240, 217, 156, 0.17), transparent 35%),
+    var(--gala-navy);
+  color: #ffffff;
 }
 
 .gala-highlight-card strong {
-  font-size: 72px;
+  color: var(--gala-gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(46px, 6vw, 76px);
   line-height: 1;
 }
 
 .gala-highlight-card span {
-  margin-top: 12px;
-  font-size: 18px;
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+/* Gala countdown */
+
+.gala-countdown {
+  position: relative;
+  overflow: hidden;
+  margin-top: 34px;
+  padding: 34px;
+  border: 1px solid rgba(200, 155, 60, 0.36);
+  border-radius: 25px;
+  background:
+    radial-gradient(circle at right top, rgba(240, 217, 156, 0.2), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #fffaf0 100%);
+  box-shadow: 0 16px 42px rgba(7, 24, 51, 0.08);
+}
+
+.gala-countdown::after {
+  content: "✦";
+  position: absolute;
+  right: 24px;
+  top: 12px;
+  color: rgba(200, 155, 60, 0.16);
+  font-size: 72px;
+}
+
+.gala-countdown-heading {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 26px;
+  text-align: center;
+}
+
+.gala-countdown-heading span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gala-gold);
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.gala-countdown-heading h3 {
+  margin: 0;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(22px, 3vw, 31px);
+  line-height: 1.25;
+}
+
+.gala-countdown-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.gala-countdown-item {
+  display: flex;
+  min-height: 128px;
+  padding: 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(7, 24, 51, 0.1);
+  border-radius: 18px;
+  background: var(--gala-navy);
+  text-align: center;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+.gala-countdown-item strong {
+  color: var(--gala-gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(37px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.gala-countdown-item span {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gala-countdown-finished {
+  position: relative;
+  z-index: 1;
+  margin: 22px 0 0;
+  color: var(--gala-gold);
+  font-size: 19px;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* Galaõhtu */
+
+.gala-experience {
+  padding: 95px 8%;
+  background:
+    radial-gradient(circle at left top, rgba(200, 155, 60, 0.15), transparent 28%),
+    var(--gala-navy);
+}
+
+.gala-experience-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.gala-section-heading-light h2 {
+  color: #ffffff;
+}
+
+.gala-section-heading-light p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.gala-experience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.gala-experience-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 270px;
+  padding: 31px;
+  border: 1px solid rgba(240, 217, 156, 0.23);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.055);
+  transition: 0.25s ease;
+}
+
+.gala-experience-card::after {
+  content: "✦";
+  position: absolute;
+  right: 20px;
+  bottom: 8px;
+  color: rgba(240, 217, 156, 0.14);
+  font-size: 70px;
+}
+
+.gala-experience-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.gala-experience-card > span {
+  display: block;
+  margin-bottom: 40px;
+  color: var(--gala-gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 43px;
+}
+
+.gala-experience-card h3 {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 13px;
+  color: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+}
+
+.gala-experience-card p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: rgba(255,255,255,0.7);
+  font-size: 16px;
+  line-height: 1.7;
 }
 
 /* Kategooriad */
 
 .gala-categories-section {
   max-width: none;
-  padding-left: 8%;
-  padding-right: 8%;
-  background: #eef4ff;
+  padding: 100px 8%;
+  background: var(--gala-bg) !important;
 }
 
 .gala-categories-section .gala-section-heading,
@@ -2030,55 +2514,230 @@ body.gala-page main {
 
 .gala-categories {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 21px;
 }
 
 .gala-category-card {
-  padding: 30px;
-  border: 1px solid #d9e3f2;
-  border-radius: 20px;
-  background: #ffffff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 300px;
+  padding: 31px;
+  border: 1px solid rgba(200, 155, 60, 0.28);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 35px rgba(7, 24, 51, 0.06);
+  transition: 0.24s ease;
+}
+
+.gala-category-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gala-gold), var(--gala-gold-light));
+}
+
+.gala-category-card::after {
+  content: "✦";
+  position: absolute;
+  right: 20px;
+  bottom: 8px;
+  color: rgba(200, 155, 60, 0.09);
+  font-size: 72px;
 }
 
 .gala-category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 16px 40px rgba(7, 24, 51, 0.1);
+  transform: translateY(-6px);
+  border-color: rgba(200, 155, 60, 0.55);
+  box-shadow: 0 20px 46px rgba(7, 24, 51, 0.11);
 }
 
 .gala-category-card > span {
   display: block;
-  margin-bottom: 08px;
-  color: #1f5eff;
-  font-size: 50px;
-  font-weight: 800;
+  margin-bottom: 24px;
+  color: var(--gala-gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 43px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .gala-category-card h3 {
-  margin-bottom: 12px;
-  color: #071833;
-  font-size: 23px;
+  position: relative;
+  z-index: 1;
+  margin: 0 0 13px;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1.25;
 }
 
 .gala-category-card p {
-  color: #526177;
-  font-size: 16px;
-  line-height: 1.65;
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--gala-text-soft);
+  font-size: 15.5px;
+  line-height: 1.67;
+}
+
+/* Fotogalerii */
+
+.gala-gallery-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 100px 20px 110px;
+}
+
+.gala-gallery-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 40px;
+  align-items: end;
+}
+
+.gala-gallery-note {
+  margin-bottom: 42px;
+  padding: 22px;
+  border-left: 3px solid var(--gala-gold);
+  background: rgba(255,255,255,0.6);
+}
+
+.gala-gallery-note strong,
+.gala-gallery-note span {
+  display: block;
+}
+
+.gala-gallery-note strong {
+  margin-bottom: 6px;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+}
+
+.gala-gallery-note span {
+  color: var(--gala-text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.gala-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: 225px;
+  gap: 15px;
+}
+
+.gala-gallery-item {
+  position: relative;
+  overflow: hidden;
+  grid-column: span 4;
+  border: 1px solid rgba(200, 155, 60, 0.32);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(240, 217, 156, 0.12), transparent 35%),
+    var(--gala-navy);
+  box-shadow: 0 13px 34px rgba(7, 24, 51, 0.11);
+  color: #ffffff;
+  text-decoration: none;
+  isolation: isolate;
+}
+
+.gala-gallery-item::before {
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.38);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  z-index: -1;
+}
+
+.gala-gallery-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(7,24,51,0.88), transparent 58%);
+  pointer-events: none;
+}
+
+.gala-gallery-featured {
+  grid-column: span 8;
+  grid-row: span 2;
+}
+
+.gala-gallery-wide {
+  grid-column: span 8;
+}
+
+.gala-gallery-tall {
+  grid-row: span 2;
+}
+
+.gala-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease, filter 0.45s ease;
+}
+
+.gala-gallery-item:hover img {
+  transform: scale(1.045);
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.gala-gallery-item > span {
+  position: absolute;
+  z-index: 2;
+  right: 18px;
+  bottom: 17px;
+  left: 18px;
+  color: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 /* Kandidaadi esitamine */
 
 .gala-nomination {
-  padding: 90px 20px;
-  background: #071833;
+  position: relative;
+  overflow: hidden;
+  padding: 105px 20px;
+  background:
+    radial-gradient(circle at 80% 15%, rgba(200, 155, 60, 0.2), transparent 28%),
+    linear-gradient(135deg, var(--gala-navy), var(--gala-navy-soft));
   color: #ffffff;
 }
 
+.gala-nomination::after {
+  content: "✦";
+  position: absolute;
+  right: 7%;
+  bottom: -80px;
+  color: rgba(240,217,156,0.08);
+  font-size: 240px;
+  line-height: 1;
+}
+
 .gala-nomination-content {
-  max-width: 820px;
+  position: relative;
+  z-index: 1;
+  max-width: 850px;
   margin: 0 auto;
   text-align: center;
+}
+
+.gala-nomination .gala-section-label {
+  color: var(--gala-gold-light);
 }
 
 .gala-nomination h2 {
@@ -2086,75 +2745,305 @@ body.gala-page main {
 }
 
 .gala-nomination p {
-  margin-bottom: 28px;
-  color: #d5e1f3;
+  margin: 0 auto 30px;
+  color: rgba(255,255,255,0.75);
   font-size: 18px;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .gala-nomination small {
   display: block;
-  margin-top: 18px;
-  color: #9fb0ca;
+  margin-top: 20px;
+  color: rgba(255,255,255,0.58);
 }
 
 /* Kontakt */
 
 .gala-contact {
-  text-align: center;
+  text-align: left;
 }
 
-.gala-contact a {
-  color: #1f5eff;
-  font-weight: 700;
+.gala-contact-card {
+  display: flex;
+  padding: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 35px;
+  border: 1px solid rgba(200, 155, 60, 0.32);
+  border-radius: 26px;
+  background: rgba(255,255,255,0.7);
+  box-shadow: var(--gala-shadow);
 }
 
-/* Projekti kaart avalehel */
+.gala-contact-card h2 {
+  margin-bottom: 12px;
+}
 
-.project-card-link {
-  display: block;
-  color: inherit;
+.gala-contact-card p {
+  max-width: 700px;
+  margin: 0;
+}
+
+.gala-contact-link {
+  flex-shrink: 0;
+  padding: 15px 22px;
+  border: 1px solid var(--gala-gold);
+  border-radius: 12px;
+  background: var(--gala-navy);
+  color: #ffffff;
+  font-weight: 900;
   text-decoration: none;
 }
 
-.project-card-more {
-  display: inline-block;
-  margin-top: 18px;
-  color: #1f5eff;
-  font-weight: 700;
+.gala-contact-link:hover {
+  background: var(--gala-gold);
+  color: var(--gala-navy);
 }
 
-/* Telefon ja tahvel */
+/* Gala lehe infokiri: ainult gala lehel */
+
+body.gala-page .bottom-newsletter {
+  background: var(--gala-bg);
+}
+
+body.gala-page .bottom-newsletter-card {
+  background:
+    radial-gradient(circle at top right, rgba(200,155,60,0.22), transparent 30%),
+    linear-gradient(135deg, var(--gala-navy), var(--gala-navy-soft));
+}
+
+body.gala-page .bottom-newsletter-label {
+  color: var(--gala-gold-light);
+}
+
+body.gala-page .bottom-newsletter-row button {
+  background: var(--gala-gold-light);
+  color: var(--gala-navy);
+}
+
+body.gala-page .bottom-newsletter-row button:hover {
+  background: #ffffff;
+  color: var(--gala-navy);
+}
+
+/* Gala responsive */
+
+@media (max-width: 1050px) {
+  .gala-hero-inner {
+    grid-template-columns: 1fr 0.72fr;
+    gap: 40px;
+  }
+
+  .gala-categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gala-gallery-header {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .gala-gallery-note {
+    max-width: 430px;
+  }
+}
 
 @media (max-width: 850px) {
+  .gala-hero {
+    padding: 78px 20px 95px;
+  }
+
+  .gala-hero-inner,
+  .gala-about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gala-hero-content {
+    text-align: center;
+  }
+
+  .gala-hero p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .gala-buttons {
+    justify-content: center;
+  }
+
+  .gala-hero-visual {
+    width: min(520px, 100%);
+    min-height: 430px;
+    margin: 10px auto 0;
+  }
+
+  .gala-hero-visual img {
+    min-height: 430px;
+  }
+
   .gala-information {
     grid-template-columns: 1fr;
     margin-top: 25px;
   }
 
-  .gala-about-grid {
+  .gala-highlight-stack,
+  .gala-experience-grid {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  .gala-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 260px;
+  }
+
+  .gala-gallery-item,
+  .gala-gallery-featured,
+  .gala-gallery-wide {
+    grid-column: auto;
+  }
+
+  .gala-gallery-featured,
+  .gala-gallery-tall {
+    grid-row: span 2;
+  }
+
+  .gala-contact-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .gala-section,
+  .gala-gallery-section {
+    padding-top: 70px;
+    padding-bottom: 70px;
+  }
+
+  .gala-experience,
+  .gala-categories-section,
+  .gala-nomination {
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+
+  .gala-hero h1 {
+    font-size: 43px;
+  }
+
+  .gala-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gala-buttons a {
+    width: 100%;
+    text-align: center;
+  }
+
+  .gala-hero-visual {
+    min-height: 390px;
+    border-radius: 120px 120px 24px 24px;
+  }
+
+  .gala-hero-visual img {
+    min-height: 390px;
+  }
+
+  .gala-hero-seal {
+    right: -6px;
+    width: 100px;
+    height: 100px;
+  }
+
+  .gala-about-text,
+  .gala-countdown,
+  .gala-contact-card {
+    padding: 25px;
+  }
+
+  .gala-countdown-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .gala-countdown-item {
+    min-height: 112px;
+    padding: 16px 10px;
   }
 
   .gala-categories {
     grid-template-columns: 1fr;
   }
 
-  .gala-hero {
-    padding: 80px 20px;
+  .gala-category-card {
+    min-height: auto;
+  }
+
+  .gala-gallery-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 285px;
+  }
+
+  .gala-gallery-item,
+  .gala-gallery-featured,
+  .gala-gallery-wide,
+  .gala-gallery-tall {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .gala-contact-link {
+    width: 100%;
+    text-align: center;
   }
 }
-body.gala-page {
-  background-color: #FFF6D0 !important;
+
+@media (max-width: 430px) {
+  .gala-hero {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .gala-hero h1 {
+    font-size: 38px;
+  }
+
+  .gala-section,
+  .gala-gallery-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .gala-section h2,
+  .gala-experience h2,
+  .gala-nomination h2 {
+    font-size: 34px;
+  }
+
+  .gala-hero-visual {
+    min-height: 340px;
+    border-radius: 95px 95px 20px 20px;
+  }
+
+  .gala-hero-visual img {
+    min-height: 340px;
+  }
+
+  .gala-hero-caption {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .gala-information-card,
+  .gala-category-card,
+  .gala-experience-card {
+    padding: 23px;
+  }
 }
 
-body.gala-page main {
-  background-color: #FFF6D0 !important;
-}
-
-body.gala-page .gala-section {
-  background-color: transparent;
-}
 /* ========================= */
 /* PROJEKTIKIRJUTAMISE LAAGER */
 /* ========================= */
@@ -2698,7 +3587,6 @@ img {
 
   /* Gala ja laagri infokaardid */
 
-  .gala-information,
   .camp-information {
     grid-template-columns: repeat(2, 1fr);
     margin-top: 25px;
@@ -2706,7 +3594,6 @@ img {
 
   /* Kaheveerulised blokid muutuvad üheveeruliseks */
 
-  .gala-about-grid,
   .camp-about-grid,
   .camp-days,
   .privacy-page,
@@ -2790,19 +3677,16 @@ img {
 
   /* Gala ja laagri ülaosa */
 
-  .gala-hero,
   .camp-hero,
   .privacy-hero {
     padding: 65px 20px;
   }
 
-  .gala-hero h1,
   .camp-hero h1,
   .privacy-hero h1 {
     font-size: 38px;
   }
 
-  .gala-hero p,
   .camp-hero p,
   .privacy-hero p {
     font-size: 17px;
@@ -2811,7 +3695,6 @@ img {
   /* Sektsioonid */
 
   .section,
-  .gala-section,
   .camp-section,
   .camp-audience,
   .camp-program,
@@ -2823,28 +3706,23 @@ img {
   /* Kaardid üheks veeruks */
 
   .cards,
-  .gala-categories,
   .camp-audience-grid,
   .camp-skills-grid,
-  .gala-information,
   .camp-information {
     grid-template-columns: 1fr;
   }
 
-  .gala-information,
   .camp-information {
     margin-top: 24px;
   }
 
   /* Nupud */
 
-  .gala-buttons,
   .camp-buttons {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .gala-buttons a,
   .camp-buttons a {
     width: 100%;
     text-align: center;
@@ -2904,7 +3782,6 @@ img {
   }
 
   .hero,
-  .gala-hero,
   .camp-hero,
   .privacy-hero {
     padding-left: 16px;
@@ -2912,136 +3789,15 @@ img {
   }
 
   .section,
-  .gala-section,
   .camp-section {
     padding-left: 16px;
     padding-right: 16px;
   }
 
   .card,
-  .gala-category-card,
   .camp-audience-card,
-  .camp-information-card,
-  .gala-information-card {
+  .camp-information-card {
     padding: 22px;
-  }
-}
-
-/* ========================= */
-/* GALA COUNTDOWN */
-/* ========================= */
-
-.gala-countdown {
-  margin-top: 34px;
-  padding: 32px;
-
-  border: 1px solid #d8e3ff;
-  border-radius: 24px;
-
-  background:
-    radial-gradient(
-      circle at right top,
-      rgba(42, 99, 255, 0.17),
-      transparent 38%
-    ),
-    linear-gradient(
-      135deg,
-      #ffffff 0%,
-      #f1f5ff 100%
-    );
-
-  box-shadow: 0 16px 42px rgba(7, 24, 51, 0.08);
-}
-
-.gala-countdown-heading {
-  margin-bottom: 25px;
-  text-align: center;
-}
-
-.gala-countdown-heading span {
-  display: block;
-  margin-bottom: 8px;
-
-  color: #2a63ff;
-  font-size: 32px;
-  font-weight: 900;
-  letter-spacing: 0.17em;
-}
-
-.gala-countdown-heading h3 {
-  margin: 0;
-
-  color: #071833;
-  font-size: clamp(22px, 3vw, 30px);
-  line-height: 1.25;
-}
-
-.gala-countdown-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.gala-countdown-item {
-  display: flex;
-  min-height: 125px;
-  padding: 20px;
-
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  border: 1px solid #dce5f7;
-  border-radius: 18px;
-
-  background: #ffffff;
-  text-align: center;
-}
-
-.gala-countdown-item strong {
-  color: #2a63ff;
-
-  font-size: clamp(36px, 5vw, 54px);
-  font-weight: 900;
-  line-height: 1;
-
-  font-variant-numeric: tabular-nums;
-}
-
-.gala-countdown-item span {
-  margin-top: 10px;
-
-  color: #526177;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.gala-countdown-finished {
-  margin: 22px 0 0;
-
-  color: #2a63ff;
-  font-size: 20px;
-  font-weight: 800;
-  text-align: center;
-}
-
-/* Телефон */
-
-@media (max-width: 700px) {
-  .gala-countdown {
-    padding: 24px 18px;
-  }
-
-  .gala-countdown-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .gala-countdown-item {
-    min-height: 110px;
-    padding: 16px 10px;
   }
 }
 

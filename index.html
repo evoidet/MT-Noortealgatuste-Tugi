@@ -8,10 +8,14 @@
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="shortcut icon" href="/favicon.png">
 
-  <link rel="stylesheet" href="style.css">
+  <!-- Общие стили всего сайта -->
+  <link rel="stylesheet" href="/style.css">
+
+  <!-- Стили только главной страницы -->
+  <link rel="stylesheet" href="/home.css">
 </head>
 
-<body>
+<body class="home-page">
 
   <!-- ================= MAIN HEADER ================= -->
 
@@ -51,275 +55,475 @@
   </div>
 </header>
 
+<!-- ================= AVALEHE PÕHISISU ================= -->
 
-  <!-- ================= HERO ================= -->
+<main class="home-main">
 
-  <section class="hero">
-    <h1>MTÜ Noortealgatuste Tugi</h1>
-    <p>Toetame noorte ideid, algatusi ja kogukondlikku arengut Ida-Virumaal.</p>
-    <a href="#contact" class="button">Võta ühendust</a>
+  <!-- ================= WOW HERO ================= -->
+
+  <section class="home-hero" id="top">
+    <div class="home-hero-grid-pattern" aria-hidden="true"></div>
+    <div class="home-hero-glow home-hero-glow-one" aria-hidden="true"></div>
+    <div class="home-hero-glow home-hero-glow-two" aria-hidden="true"></div>
+
+    <div class="home-container home-hero-layout">
+      <div class="home-hero-copy" data-reveal>
+        <span class="home-kicker">
+          NOORTE IDEEDEST PÄRIS MUUTUS
+        </span>
+
+        <h1>
+          Aitame noortel
+          <span>tegutseda, kasvada ja mõjutada</span>
+        </h1>
+
+        <p>
+          MTÜ Noortealgatuste Tugi loob Ida-Virumaa noortele võimalusi,
+          toetab julgeid algatusi ning aitab ideedel kasvada päriselt
+          teostatavateks projektideks.
+        </p>
+
+        <div class="home-hero-actions">
+          <a href="#projects" class="home-button home-button-primary">
+            Vaata meie projekte
+            <span aria-hidden="true">→</span>
+          </a>
+
+          <a href="#contact" class="home-button home-button-secondary">
+            Võta ühendust
+          </a>
+        </div>
+
+        <div class="home-hero-path" aria-label="Meie tööprotsess">
+          <span>Idee</span>
+          <i aria-hidden="true">→</i>
+          <span>Tugi</span>
+          <i aria-hidden="true">→</i>
+          <span>Mõju</span>
+        </div>
+      </div>
+
+      <div class="home-hero-visual" data-reveal data-reveal-delay="140">
+        <div class="home-orbit" aria-hidden="true">
+          <div class="home-orbit-ring home-orbit-ring-one"></div>
+          <div class="home-orbit-ring home-orbit-ring-two"></div>
+
+          <div class="home-logo-stage">
+            <span class="home-logo-stage-label">MTÜ</span>
+            <img
+              src="assets/logo.png"
+              alt="MTÜ Noortealgatuste Tugi logo"
+              class="home-hero-logo"
+            >
+            <strong>Noortealgatuste Tugi</strong>
+            <p>Ida-Virumaa noorte ideede kasvulava</p>
+          </div>
+
+          <div class="home-floating-badge home-floating-badge-one">
+            <span>01</span>
+            Noortelt noortele
+          </div>
+
+          <div class="home-floating-badge home-floating-badge-two">
+            <span>02</span>
+            Ideest teostuseni
+          </div>
+
+          <div class="home-floating-badge home-floating-badge-three">
+            <span>03</span>
+            Kogukonnale kasulik
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="#home-impact" class="home-scroll-cue" aria-label="Liigu järgmise sektsioonini">
+      <span>Avasta rohkem</span>
+      <i aria-hidden="true"></i>
+    </a>
   </section>
+
+
+  <!-- ================= IMPACT STRIP ================= -->
+
+  <section class="home-impact-strip" id="home-impact">
+    <div class="home-container home-impact-grid">
+
+      <article class="home-impact-item" data-reveal>
+        <span class="home-impact-number">01</span>
+        <div>
+          <strong>Noortelt noortele</strong>
+          <p>Noored ei ole ainult osalejad, vaid ka ideede autorid ja eestvedajad.</p>
+        </div>
+      </article>
+
+      <article class="home-impact-item" data-reveal data-reveal-delay="100">
+        <span class="home-impact-number">02</span>
+        <div>
+          <strong>Ida-Virumaa fookus</strong>
+          <p>Loome võimalusi, mis lähtuvad kohalike noorte vajadustest ja unistustest.</p>
+        </div>
+      </article>
+
+      <article class="home-impact-item" data-reveal data-reveal-delay="200">
+        <span class="home-impact-number">03</span>
+        <div>
+          <strong>Ideest tulemuseni</strong>
+          <p>Aitame planeerida, leida ressursse ja viia algatused päriselt ellu.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
 
   <!-- ================= ABOUT ================= -->
 
-  <section id="about" class="section about-section">
-  <div class="about-content">
-    <span class="section-label">MEIST</span>
+  <section id="about" class="home-section home-about">
+    <div class="home-container">
 
-    <h2>Noortealgatuste Tugi</h2>
-
-    <p class="about-intro">
-      MTÜ Noortealgatuste Tugi toetab noorte ideid, algatusi ja kogukondlikke
-      projekte Ida-Virumaal. Meie eesmärk on luua noortele võimalusi tegutseda,
-      õppida ja oma ideid päriselt ellu viia.
-    </p>
-  </div>
-
-  <div class="team-grid">
-
-    <div class="leadership-block">
-  <div class="team-subtitle">
-    <span>JUHTKOND</span>
-    <h3>Organisatsiooni eestvedajad</h3>
-  </div>
-
-  <div class="leadership-grid">
-    <article class="team-card leader-card">
-      <img src="assets/team/mario.png" alt="Mario Polshin" class="team-photo">
-
-      <div class="team-info">
-        <h3>Mario Polshin</h3>
-        <p class="team-role">Tegevjuht</p>
-        <p class="team-text">
-          Vastutab ürituste korralduse, meeskonna töö koordineerimise ja projektide elluviimise eest.
-        </p>
-      </div>
-    </article>
-
-    <article class="team-card leader-card">
-      <img src="assets/team/mihhail.png" alt="Mihhail Semiyanov" class="team-photo">
-
-      <div class="team-info">
-        <h3>Mihhail Semiyanov</h3>
-        <p class="team-role">Avalike suhete juht</p>
-        <p class="team-text">
-          Aitab juhtida noorteprojekte, sündmusi ja kogukondlike algatuste elluviimist.
-        </p>
-      </div>
-    </article>
-  </div>
-</div>
-
-<div class="team-subtitle team-subtitle-small">
-  <span>MEESKOND</span>
-  <h3>Meie tiim</h3>
-</div>
-
-<div class="team-grid">
-
-  <article class="team-card">
-    <img src="assets/team/egor.png" alt="Egor Stepanov" class="team-photo">
-
-    <div class="team-info">
-      <h3>Egor Stepanov</h3>
-      <p class="team-role">Finantsjuht</p>
-      <p class="team-text">
-        Tegeleb organisatsiooni rahaliste küsimuste, eelarve koostamise ja finantsaruandlusega.
-      </p>
-    </div>
-  </article>
-
-    <article class="team-card">
-    <img src="assets/team/sofia.png" alt="Sofia Germ" class="team-photo">
-
-    <div class="team-info">
-      <h3>Sofia Germ</h3>
-      <p class="team-role">Kommunikatsioonijuht</p>
-      <p class="team-text">
-        Vastutab kommunikatsiooni, avaliku info ja organisatsiooni nähtavuse arendamise eest.
-      </p>
-    </div>
-  </article>
-
-  <article class="team-card">
-    <img src="assets/team/jekaterina.png" alt="Jekaterina Rogožina" class="team-photo">
-
-    <div class="team-info">
-      <h3>Jekaterina Rogožina</h3>
-      <p class="team-role">Turundusjuht</p>
-      <p class="team-text">
-        Vastutab organisatsiooni turundustegevuste, sotsiaalmeedia ja avalike suhete eest.
-      </p>
-    </div>
-  </article>
-
-  <article class="team-card">
-    <img src="assets/team/andrei.png" alt="Andrei Ostretsov" class="team-photo">
-
-    <div class="team-info">
-      <h3>Andrei Ostretsov</h3>
-      <p class="team-role">Kommunikatsioonijuhi assistent</p>
-      <p class="team-text">
-        Aitab kaasa kommunikatsiooni, info jagamise ja kogukondlike tegevuste elluviimisele.
-      </p>
-    </div>
-  </article>
-
-</div>
-
-  </div>
-</section>
-
-
-<!-- ================= PROJECTS ================= -->
-
-<section id="projects" class="section projects-section">
-  <div class="projects-header">
-    <span class="section-label">PROJEKTID</span>
-
-    <h2>Meie tegevused ja projektid</h2>
-
-    <p>
-      Korraldame noortele suunatud tunnustusüritusi, praktilisi laagreid
-      ja loovaid kogukonnasündmusi.
-    </p>
-  </div>
-
-  <div class="project-grid">
-
-    <!-- Noorte Tunnustusgala -->
-    <a href="/tunnustusgala.html" class="project-card" id="tunnustusgala">
-      <div class="project-card-inner">
-        <span class="project-card-label">TUNNUSTUSÜRITUS</span>
-
-        <h3>Noorte tunnustusgala</h3>
+      <div class="home-section-heading home-section-heading-split" data-reveal>
+        <div>
+          <span class="home-section-label">MEIST</span>
+          <h2>Koht, kus noore idee saab hoo sisse</h2>
+        </div>
 
         <p>
-          Sündmus, kus tunnustame aktiivseid, silmapaistvaid ja
-          kogukonda panustavaid noori.
+          Me usume, et noortel peab olema võimalus mitte ainult ideid jagada,
+          vaid ka neid katsetada, arendada ja päriselt ellu viia. Selleks
+          ühendame nõustamise, praktilise toe, partnerid ja kogukonna.
         </p>
-
-        <span class="project-card-more">
-          Vaata lähemalt →
-        </span>
       </div>
-    </a>
 
-    <!-- Projektikirjutamise laager -->
-    <a href="/laager.html" class="project-card" id="laager">
-      <div class="project-card-inner">
-        <span class="project-card-label">PRAKTILINE LAAGER</span>
+      <div class="home-values-grid">
 
-        <h3>Projektikirjutamise laager</h3>
+        <article class="home-value-card" data-reveal>
+          <span class="home-value-icon" aria-hidden="true">↗</span>
+          <span class="home-value-number">01</span>
+          <h3>Toetame</h3>
+          <p>
+            Aitame noortel oma idee selgelt sõnastada, tegevused läbi mõelda
+            ja järgmised sammud paika panna.
+          </p>
+        </article>
 
+        <article class="home-value-card home-value-card-featured" data-reveal data-reveal-delay="100">
+          <span class="home-value-icon" aria-hidden="true">✦</span>
+          <span class="home-value-number">02</span>
+          <h3>Arendame</h3>
+          <p>
+            Loome praktilisi õpikogemusi, kus noored saavad uusi oskusi,
+            kontakte ja enesekindlust.
+          </p>
+        </article>
+
+        <article class="home-value-card" data-reveal data-reveal-delay="200">
+          <span class="home-value-icon" aria-hidden="true">◎</span>
+          <span class="home-value-number">03</span>
+          <h3>Ühendame</h3>
+          <p>
+            Toome kokku noored, spetsialistid, organisatsioonid ja toetajad,
+            et head ideed jõuaksid suurema mõjuni.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ================= MOVING MESSAGE ================= -->
+
+  <section class="home-marquee" aria-label="Meie väärtused">
+    <div class="home-marquee-track">
+      <span>NOORTE IDEED</span><i>✦</i>
+      <span>JULGED ALGATUSED</span><i>✦</i>
+      <span>PÄRIS KOGEMUS</span><i>✦</i>
+      <span>TUGEV KOGUKOND</span><i>✦</i>
+      <span>NOORTE IDEED</span><i>✦</i>
+      <span>JULGED ALGATUSED</span><i>✦</i>
+      <span>PÄRIS KOGEMUS</span><i>✦</i>
+      <span>TUGEV KOGUKOND</span><i>✦</i>
+    </div>
+  </section>
+
+
+  <!-- ================= TEAM ================= -->
+
+  <section class="home-section home-team-section">
+    <div class="home-container">
+
+      <div class="home-section-heading" data-reveal>
+        <span class="home-section-label">MEESKOND</span>
+        <h2>Inimesed, kes aitavad ideedel kasvada</h2>
         <p>
-          Praktiline laager, kus noored õpivad ideede arendamist,
-          projektide kirjutamist ja rahastuse leidmist.
+          Meie meeskond ühendab projektijuhtimise, kommunikatsiooni,
+          turunduse, finantsid ja noorsootöö kogemuse.
         </p>
-
-        <span class="project-card-more">
-          Vaata lähemalt →
-        </span>
       </div>
-    </a>
 
-    <!-- Street Jam Dance -->
-    <a href="/street.html" class="project-card">
-      <div class="project-card-inner">
-        <span class="project-card-label">TANTSUÜRITUS</span>
+      <div class="home-team-group">
+        <div class="home-team-group-heading" data-reveal>
+          <span>JUHTKOND</span>
+          <h3>Organisatsiooni eestvedajad</h3>
+        </div>
 
-        <h3>Street Jam Dance</h3>
+        <div class="home-leadership-grid">
+          <article class="home-person-card home-person-card-lead" data-reveal data-tilt>
+            <div class="home-person-photo-wrap">
+              <img src="assets/team/mario.png" alt="Mario Polshin" class="team-photo">
+              <span>01</span>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role">Tegevjuht</p>
+              <h3>Mario Polshin</h3>
+              <p>
+                Vastutab ürituste korralduse, meeskonna töö koordineerimise
+                ja projektide elluviimise eest.
+              </p>
+            </div>
+          </article>
 
+          <article class="home-person-card home-person-card-lead" data-reveal data-reveal-delay="100" data-tilt>
+            <div class="home-person-photo-wrap">
+              <img src="assets/team/mihhail.png" alt="Mihhail Semiyanov" class="team-photo">
+              <span>02</span>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role">Avalike suhete juht</p>
+              <h3>Mihhail Semiyanov</h3>
+              <p>
+                Aitab juhtida noorteprojekte, sündmusi ja kogukondlike
+                algatuste elluviimist.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="home-team-group home-team-group-secondary">
+        <div class="home-team-group-heading" data-reveal>
+          <span>TIIM</span>
+          <h3>Meie spetsialistid</h3>
+        </div>
+
+        <div class="home-team-grid">
+
+          <article class="home-person-card" data-reveal data-tilt>
+            <div class="home-person-photo-wrap">
+              <img src="assets/team/egor.png" alt="Egor Stepanov" class="team-photo">
+              <span>03</span>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role">Finantsjuht</p>
+              <h3>Egor Stepanov</h3>
+              <p>
+                Tegeleb organisatsiooni rahaliste küsimuste, eelarve
+                koostamise ja finantsaruandlusega.
+              </p>
+            </div>
+          </article>
+
+          <article class="home-person-card" data-reveal data-reveal-delay="70" data-tilt>
+            <div class="home-person-photo-wrap">
+              <img src="assets/team/sofia.png" alt="Sofia Germ" class="team-photo">
+              <span>04</span>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role">Kommunikatsioonijuht</p>
+              <h3>Sofia Germ</h3>
+              <p>
+                Vastutab kommunikatsiooni, avaliku info ja organisatsiooni
+                nähtavuse arendamise eest.
+              </p>
+            </div>
+          </article>
+
+          <article class="home-person-card" data-reveal data-reveal-delay="140" data-tilt>
+            <div class="home-person-photo-wrap">
+              <img src="assets/team/jekaterina.png" alt="Jekaterina Rogožina" class="team-photo">
+              <span>05</span>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role">Turundusjuht</p>
+              <h3>Jekaterina Rogožina</h3>
+              <p>
+                Vastutab organisatsiooni turundustegevuste, sotsiaalmeedia
+                ja avalike suhete eest.
+              </p>
+            </div>
+          </article>
+
+          <article class="home-person-card" data-reveal data-reveal-delay="210" data-tilt>
+            <div class="home-person-photo-wrap">
+              <img src="assets/team/andrei.png" alt="Andrei Ostretsov" class="team-photo">
+              <span>06</span>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role">Kommunikatsioonijuhi assistent</p>
+              <h3>Andrei Ostretsov</h3>
+              <p>
+                Aitab kaasa kommunikatsiooni, info jagamise ja kogukondlike
+                tegevuste elluviimisele.
+              </p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ================= PROJECTS ================= -->
+
+  <section id="projects" class="home-section home-projects-section">
+    <div class="home-container">
+
+      <div class="home-section-heading home-section-heading-light" data-reveal>
+        <span class="home-section-label">PROJEKTID</span>
+        <h2>Ideed, mis on saanud päris sündmusteks</h2>
         <p>
-          Noortele suunatud tantsu- ja kogukonnasündmus, mis ühendab
-          aktiivseid ja loovaid noori.
+          Meie projektid ühendavad tunnustamise, praktilise õppimise,
+          loovuse ja noorte omaalgatuse.
         </p>
-
-        <span class="project-card-more">
-          Vaata lähemalt →
-        </span>
       </div>
-    </a>
 
-  </div>
-</section>
+      <div class="home-project-grid">
+
+        <a href="/tunnustusgala.html" class="home-project-card" data-reveal data-tilt>
+          <span class="home-project-index">01</span>
+          <div class="home-project-orb" aria-hidden="true"></div>
+          <span class="home-project-label">TUNNUSTUSÜRITUS</span>
+          <h3>Noorte Tunnustusgala</h3>
+          <p>
+            Pidulik sündmus, kus tunnustame aktiivseid, silmapaistvaid
+            ja kogukonda panustavaid Ida-Virumaa noori.
+          </p>
+          <span class="home-project-link">
+            Vaata projekti <i aria-hidden="true">↗</i>
+          </span>
+        </a>
+
+        <a href="/laager.html" class="home-project-card" data-reveal data-reveal-delay="100" data-tilt>
+          <span class="home-project-index">02</span>
+          <div class="home-project-orb" aria-hidden="true"></div>
+          <span class="home-project-label">PRAKTILINE LAAGER</span>
+          <h3>Projektikirjutamise laager</h3>
+          <p>
+            Kahepäevane praktiline kogemus, kus noored arendavad ideid,
+            kirjutavad projekte ja õpivad rahastust leidma.
+          </p>
+          <span class="home-project-link">
+            Vaata projekti <i aria-hidden="true">↗</i>
+          </span>
+        </a>
+
+        <a href="/street.html" class="home-project-card" data-reveal data-reveal-delay="200" data-tilt>
+          <span class="home-project-index">03</span>
+          <div class="home-project-orb" aria-hidden="true"></div>
+          <span class="home-project-label">TANTSUÜRITUS</span>
+          <h3>Street Dance Jam</h3>
+          <p>
+            Noortelt noortele loodud tänavatantsusündmus, mis ühendab
+            töötoad, tantsulahingud ja hiphop-kultuuri.
+          </p>
+          <span class="home-project-link">
+            Vaata projekti <i aria-hidden="true">↗</i>
+          </span>
+        </a>
+
+      </div>
+    </div>
+  </section>
 
 
   <!-- ================= CONTACT ================= -->
 
-<section id="contact" class="section contact">
-  <div class="contact-wrap">
-    <div class="contact-info">
-      <span class="contact-label">Kontakt</span>
-      <h2>Kontaktandmed</h2>
+  <section id="contact" class="home-section home-contact-section">
+    <div class="home-container home-contact-layout">
 
-      <div class="contact-item">
-        <span class="contact-icon">⌖</span>
-        <div>
-          <h4>Aadress</h4>
-          <p>Ida-Virumaa, Eesti</p>
+      <div class="home-contact-panel" data-reveal>
+        <span class="home-section-label">KONTAKT</span>
+        <h2>Kas sul on idee, mida tahaksid ellu viia?</h2>
+        <p>
+          Kirjuta meile. Arutame koos, millist tuge vajad ja milline võiks
+          olla sinu järgmine samm.
+        </p>
+
+        <div class="home-contact-list">
+          <a href="mailto:juhatus@noortetugi.ee">
+            <span aria-hidden="true">✉</span>
+            <div>
+              <small>E-post</small>
+              <strong>juhatus@noortetugi.ee</strong>
+            </div>
+          </a>
+
+          <div>
+            <span aria-hidden="true">⌖</span>
+            <div>
+              <small>Piirkond</small>
+              <strong>Ida-Virumaa, Eesti</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-contact-decoration" aria-hidden="true">
+          <span></span><span></span><span></span>
         </div>
       </div>
 
-      <div class="contact-item">
-        <span class="contact-icon">✉</span>
-        <div>
-          <h4>E-post</h4>
-          <p><a href="mailto:juhatus@noortetugi.ee">juhatus@noortetugi.ee</a></p>
+      <div class="home-contact-card" data-reveal data-reveal-delay="120">
+        <div class="home-contact-card-heading">
+          <span>SAADA SÕNUM</span>
+          <h3>Räägi meile oma ideest</h3>
         </div>
+
+        <form class="home-contact-form">
+          <div class="home-form-row">
+            <label>
+              Teie nimi *
+              <input type="text" placeholder="Maria Tamm" required>
+            </label>
+
+            <label>
+              E-posti aadress *
+              <input type="email" placeholder="maria@example.ee" required>
+            </label>
+          </div>
+
+          <div class="home-form-row">
+            <label>
+              Telefon
+              <input type="tel" placeholder="+372 ...">
+            </label>
+
+            <label>
+              Teema *
+              <input type="text" placeholder="Minu idee" required>
+            </label>
+          </div>
+
+          <label>
+            Sõnum *
+            <textarea placeholder="Kirjelda lühidalt oma ideed või küsimust..." required></textarea>
+          </label>
+
+          <button type="submit" class="home-contact-submit">
+            Saada sõnum
+            <span aria-hidden="true">→</span>
+          </button>
+        </form>
       </div>
 
-      <div class="contact-social">
-        <h4>Sotsiaalmeedia</h4>
-        <div class="social-links">
-          <a href="#" aria-label="Facebook">f</a>
-          <a href="#" aria-label="Instagram">◎</a>
-        </div>
-      </div>
     </div>
+  </section>
 
-    <div class="contact-card">
-      <h3>Saada sõnum</h3>
+</main>
 
-      <form class="contact-form">
-        <div class="form-row">
-          <label>
-            Teie nimi *
-            <input type="text" placeholder="Maria Tamm" required>
-          </label>
 
-          <label>
-            E-posti aadress *
-            <input type="email" placeholder="maria@example.ee" required>
-          </label>
-        </div>
-
-        <div class="form-row">
-          <label>
-            Telefon
-            <input type="tel" placeholder="+372 ...">
-          </label>
-
-          <label>
-            Teema *
-            <input type="text" required>
-          </label>
-        </div>
-
-        <label>
-          Sõnum *
-          <textarea required></textarea>
-        </label>
-
-        <button type="submit" class="contact-submit">
-          Saada sõnum
-        </button>
-      </form>
-    </div>
-  </div>
-</section>
-
-  <!-- ================= POPUP NEWSLETTER ================= -->
+<!-- ================= POPUP NEWSLETTER ================= -->
 
   <div class="newsletter-overlay" id="newsletterOverlay">
     <div class="newsletter-popup">
@@ -368,7 +572,7 @@
 
   <!-- ================= BOTTOM NEWSLETTER ================= -->
 
-<section class="newsletter-section">
+<section id="newsletter" class="newsletter-section">
   <div class="newsletter-content">
     <div class="newsletter-text">
       <span class="newsletter-label">INFOKIRI</span>
@@ -392,7 +596,7 @@
         <span>
           Olen nõus, et MTÜ Noortealgatuste Tugi töötleb minu e-posti aadressi
           infokirja saatmise eesmärgil. Olen tutvunud
-          <a href="privacy.html">privaatsuspoliitikaga</a>.
+          <a href="/privaatsuspoliitika.html">privaatsuspoliitikaga</a>
         </span>
       </label>
 
@@ -519,5 +723,81 @@
 </footer>
 
 <script src="/script.js"></script>
+
+<script>
+  (() => {
+    const page = document.querySelector(".home-page");
+    if (!page) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const revealItems = document.querySelectorAll("[data-reveal]");
+
+    revealItems.forEach((item) => {
+      const delay = item.dataset.revealDelay || "0";
+      item.style.setProperty("--reveal-delay", `${delay}ms`);
+    });
+
+    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+      revealItems.forEach((item) => item.classList.add("is-visible"));
+    } else {
+      const observer = new IntersectionObserver(
+        (entries, currentObserver) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add("is-visible");
+            currentObserver.unobserve(entry.target);
+          });
+        },
+        {
+          threshold: 0.14,
+          rootMargin: "0px 0px -45px 0px"
+        }
+      );
+
+      revealItems.forEach((item) => observer.observe(item));
+    }
+
+    const hero = document.querySelector(".home-hero");
+
+    if (hero && !prefersReducedMotion) {
+      hero.addEventListener("pointermove", (event) => {
+        const rect = hero.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 100;
+        const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+        hero.style.setProperty("--pointer-x", `${x}%`);
+        hero.style.setProperty("--pointer-y", `${y}%`);
+      });
+    }
+
+    if (
+      !prefersReducedMotion &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    ) {
+      document.querySelectorAll("[data-tilt]").forEach((card) => {
+        card.addEventListener("pointermove", (event) => {
+          const rect = card.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+          const rotateY = ((x / rect.width) - 0.5) * 5;
+          const rotateX = ((y / rect.height) - 0.5) * -5;
+
+          card.style.setProperty("--tilt-x", `${rotateX}deg`);
+          card.style.setProperty("--tilt-y", `${rotateY}deg`);
+          card.style.setProperty("--shine-x", `${(x / rect.width) * 100}%`);
+          card.style.setProperty("--shine-y", `${(y / rect.height) * 100}%`);
+        });
+
+        card.addEventListener("pointerleave", () => {
+          card.style.setProperty("--tilt-x", "0deg");
+          card.style.setProperty("--tilt-y", "0deg");
+        });
+      });
+    }
+  })();
+</script>
 </body>
 </html>
