@@ -1,0 +1,2421 @@
+/* =========================================================
+   GALA.CSS — AINULT NOORTE TUNNUSTUSGALA LEHT
+   Laadida tunnustusgala.html lehel pärast /style.css faili.
+   Kõik reeglid on piiratud body.gala-page klassiga.
+   ========================================================= */
+
+body.gala-page {
+  --gala-cream: #fff6d0;
+  --gala-cream-soft: #fffaf0;
+  --gala-cream-deep: #f4e4ae;
+  --gala-navy: #071833;
+  --gala-navy-soft: #102a52;
+  --gala-blue: #183e76;
+  --gala-gold: #c89b32;
+  --gala-gold-light: #f2d47b;
+  --gala-gold-pale: #fff0b5;
+  --gala-rose: #b75d72;
+  --gala-white: #ffffff;
+  --gala-text: #10213c;
+  --gala-text-soft: rgba(16, 33, 60, 0.72);
+  --gala-border: rgba(7, 24, 51, 0.14);
+  --gala-shadow: 0 28px 80px rgba(7, 24, 51, 0.16);
+  --gala-shadow-dark: 0 35px 100px rgba(2, 10, 24, 0.42);
+  --gala-radius: 28px;
+
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--gala-cream);
+  color: var(--gala-text);
+}
+
+body.gala-page.gala-lightbox-open {
+  overflow: hidden;
+}
+
+body.gala-page .gala-main {
+  position: relative;
+  overflow: clip;
+  background: var(--gala-cream);
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+body.gala-page .header {
+  border-bottom: 1px solid rgba(200, 155, 50, 0.23);
+  background: rgba(255, 250, 240, 0.92);
+  box-shadow: 0 10px 34px rgba(7, 24, 51, 0.09);
+  backdrop-filter: blur(18px);
+}
+
+body.gala-page .logo,
+body.gala-page .logo span,
+body.gala-page .nav a {
+  color: var(--gala-navy);
+}
+
+body.gala-page .nav a {
+  position: relative;
+}
+
+body.gala-page .nav a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gala-gold),
+      transparent
+    );
+  transform: scaleX(0);
+  transition: transform 0.28s ease;
+}
+
+body.gala-page .nav a:hover {
+  color: var(--gala-gold);
+}
+
+body.gala-page .nav a:hover::after {
+  transform: scaleX(1);
+}
+
+body.gala-page .menu-toggle {
+  border: 1px solid rgba(200, 155, 50, 0.38);
+  border-radius: 14px;
+  background: rgba(200, 155, 50, 0.08);
+  color: var(--gala-navy);
+}
+
+/* =========================================================
+   SCROLL PROGRESS
+   ========================================================= */
+
+body.gala-page .gala-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 13000;
+  width: var(--gala-progress, 0%);
+  height: 4px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--gala-gold),
+      var(--gala-gold-light),
+      var(--gala-rose),
+      var(--gala-gold)
+    );
+  box-shadow:
+    0 0 18px rgba(242, 212, 123, 0.75),
+    0 0 28px rgba(183, 93, 114, 0.28);
+  transition: width 0.08s linear;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+body.gala-page .gala-hero {
+  --gala-pointer-x: 50%;
+  --gala-pointer-y: 42%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 790px;
+  padding: 112px 7% 150px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at var(--gala-pointer-x) var(--gala-pointer-y),
+      rgba(242, 212, 123, 0.18),
+      transparent 23%
+    ),
+    radial-gradient(circle at 11% 18%, rgba(183, 93, 114, 0.18), transparent 30%),
+    radial-gradient(circle at 91% 78%, rgba(200, 155, 50, 0.22), transparent 32%),
+    linear-gradient(138deg, #06152d 0%, #0a2144 53%, #102c56 100%);
+  color: var(--gala-white);
+}
+
+body.gala-page .gala-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  opacity: 0.09;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.17) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.17) 1px, transparent 1px);
+  background-size: 70px 70px;
+  mask-image:
+    linear-gradient(to bottom, #000 0%, transparent 78%);
+  animation: galaGridDrift 18s linear infinite;
+}
+
+body.gala-page .gala-hero::after {
+  content: "TUNNUSTAME • INSPIREERIME • ÜHENDAME";
+  position: absolute;
+  right: -110px;
+  bottom: 27px;
+  z-index: -3;
+  color: rgba(255, 255, 255, 0.032);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(58px, 9vw, 145px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  animation: galaGhostText 11s ease-in-out infinite alternate;
+}
+
+body.gala-page .gala-hero-inner {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(350px, 0.78fr);
+  gap: 82px;
+  width: min(1220px, 100%);
+  margin: 0 auto;
+  align-items: center;
+}
+
+body.gala-page .gala-hero-content {
+  position: relative;
+  z-index: 4;
+  animation: galaHeroCopy 0.95s cubic-bezier(0.18, 0.78, 0.2, 1) both;
+}
+
+body.gala-page .gala-label {
+  display: inline-flex;
+  margin-bottom: 28px;
+  padding: 11px 18px;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid rgba(242, 212, 123, 0.52);
+  border-radius: 999px;
+  background: rgba(242, 212, 123, 0.08);
+  color: var(--gala-gold-light);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: none;
+  box-shadow:
+    inset 0 0 24px rgba(242, 212, 123, 0.05),
+    0 10px 25px rgba(2, 10, 24, 0.18);
+}
+
+body.gala-page .gala-label::before {
+  content: "✦";
+  color: var(--gala-gold-light);
+  font-size: 16px;
+  animation: galaSparkleSpin 4.2s linear infinite;
+}
+
+body.gala-page .gala-hero h1 {
+  max-width: 790px;
+  margin: 0 0 27px;
+  color: var(--gala-white);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(48px, 6vw, 84px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  text-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.36),
+    0 0 24px rgba(242, 212, 123, 0.07);
+}
+
+body.gala-page .gala-hero-content > p {
+  max-width: 690px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 19px;
+  line-height: 1.78;
+}
+
+body.gala-page .gala-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 38px;
+}
+
+body.gala-page .gala-buttons a,
+body.gala-page .gala-button {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-height: 56px;
+  padding: 15px 28px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+  text-decoration: none;
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    background 0.28s ease,
+    color 0.28s ease;
+}
+
+body.gala-page .gala-buttons a::before,
+body.gala-page .gala-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      110deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.65) 46%,
+      transparent 70%
+    );
+  transform: translateX(-125%);
+  transition: transform 0.62s ease;
+}
+
+body.gala-page .gala-buttons a:hover::before,
+body.gala-page .gala-button:hover::before {
+  transform: translateX(125%);
+}
+
+body.gala-page .gala-buttons a:hover,
+body.gala-page .gala-button:hover {
+  transform: translateY(-4px);
+}
+
+body.gala-page .gala-primary-button,
+body.gala-page .gala-button {
+  border: 1px solid var(--gala-gold-light);
+  background:
+    linear-gradient(
+      135deg,
+      var(--gala-gold-light),
+      var(--gala-gold)
+    );
+  color: var(--gala-navy);
+  box-shadow:
+    0 14px 38px rgba(200, 155, 50, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+body.gala-page .gala-primary-button:hover,
+body.gala-page .gala-button:hover {
+  background:
+    linear-gradient(
+      135deg,
+      #fff1b7,
+      var(--gala-gold-light)
+    );
+  color: var(--gala-navy);
+  box-shadow:
+    0 20px 48px rgba(200, 155, 50, 0.38),
+    0 0 25px rgba(242, 212, 123, 0.24);
+}
+
+body.gala-page .gala-secondary-button {
+  border: 1px solid rgba(255, 255, 255, 0.33);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--gala-white);
+  backdrop-filter: blur(12px);
+}
+
+body.gala-page .gala-secondary-button:hover {
+  border-color: rgba(242, 212, 123, 0.62);
+  background: rgba(242, 212, 123, 0.11);
+  color: var(--gala-gold-light);
+}
+
+/* Hero foto */
+
+body.gala-page .gala-hero-visual {
+  --gala-rotate-x: 0deg;
+  --gala-rotate-y: 0deg;
+  --gala-shine-x: 50%;
+  --gala-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 565px;
+  overflow: visible;
+  border: 1px solid rgba(242, 212, 123, 0.44);
+  border-radius: 190px 190px 28px 28px;
+  background:
+    radial-gradient(
+      circle at var(--gala-shine-x) var(--gala-shine-y),
+      rgba(255, 255, 255, 0.16),
+      transparent 26%
+    ),
+    linear-gradient(150deg, #183e76, #071833);
+  box-shadow:
+    var(--gala-shadow-dark),
+    0 0 0 12px rgba(242, 212, 123, 0.045);
+  transform:
+    perspective(1200px)
+    rotateX(var(--gala-rotate-x))
+    rotateY(var(--gala-rotate-y));
+  transform-style: preserve-3d;
+  animation: galaHeroVisualEntrance 1.05s 0.12s cubic-bezier(0.18, 0.8, 0.2, 1) both;
+  transition: transform 0.18s ease-out;
+}
+
+body.gala-page .gala-hero-visual::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  z-index: -2;
+  border: 1px solid rgba(242, 212, 123, 0.26);
+  border-radius: 210px 210px 40px 40px;
+  animation: galaFrameBreath 3.8s ease-in-out infinite alternate;
+}
+
+body.gala-page .gala-hero-visual::after {
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  color: rgba(255, 255, 255, 0.25);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  text-align: center;
+}
+
+body.gala-page .gala-hero-visual img {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  filter: saturate(0.94) contrast(1.04);
+  transform: translateZ(24px);
+}
+
+body.gala-page .gala-hero-seal {
+  position: absolute;
+  top: -35px;
+  right: -30px;
+  z-index: 5;
+  display: flex;
+  width: 132px;
+  height: 132px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(7, 24, 51, 0.28);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 25%, #fff2b6, var(--gala-gold));
+  color: var(--gala-navy);
+  box-shadow:
+    0 17px 45px rgba(0, 0, 0, 0.35),
+    0 0 0 9px rgba(242, 212, 123, 0.12);
+  transform: translateZ(70px) rotate(7deg);
+  animation: galaSealFloat 4s ease-in-out infinite;
+}
+
+body.gala-page .gala-hero-seal::before,
+body.gala-page .gala-hero-seal::after {
+  content: "✦";
+  position: absolute;
+  color: var(--gala-navy);
+  font-size: 11px;
+}
+
+body.gala-page .gala-hero-seal::before {
+  top: 15px;
+}
+
+body.gala-page .gala-hero-seal::after {
+  bottom: 15px;
+}
+
+body.gala-page .gala-hero-seal strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 31px;
+  line-height: 1;
+}
+
+body.gala-page .gala-hero-seal span {
+  margin-top: 7px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+body.gala-page .gala-hero-caption {
+  position: absolute;
+  right: 24px;
+  bottom: 23px;
+  left: 24px;
+  z-index: 4;
+  padding: 19px 21px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  background: rgba(7, 24, 51, 0.68);
+  color: var(--gala-white);
+  box-shadow: 0 17px 40px rgba(0, 0, 0, 0.24);
+  transform: translateZ(55px);
+  backdrop-filter: blur(14px);
+}
+
+body.gala-page .gala-hero-caption span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--gala-gold-light);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+body.gala-page .gala-hero-caption strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+}
+
+/* Hero hõljuvad valgused */
+
+body.gala-page .gala-hero-glow {
+  position: absolute;
+  z-index: 1;
+  border-radius: 50%;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+body.gala-page .gala-hero-glow-one {
+  top: 9%;
+  left: -70px;
+  width: 260px;
+  height: 260px;
+  background: rgba(183, 93, 114, 0.17);
+  animation: galaGlowOne 7s ease-in-out infinite;
+}
+
+body.gala-page .gala-hero-glow-two {
+  right: -80px;
+  bottom: 6%;
+  width: 330px;
+  height: 330px;
+  background: rgba(242, 212, 123, 0.13);
+  animation: galaGlowTwo 8.5s ease-in-out infinite;
+}
+
+/* Tähesära */
+
+body.gala-page .gala-stars {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+body.gala-page .gala-stars span {
+  position: absolute;
+  top: var(--star-top);
+  left: var(--star-left);
+  width: var(--star-size);
+  height: var(--star-size);
+  border-radius: 50%;
+  background: var(--gala-gold-light);
+  box-shadow:
+    0 0 10px rgba(242, 212, 123, 0.9),
+    0 0 22px rgba(242, 212, 123, 0.42);
+  opacity: 0.28;
+  animation:
+    galaStarFloat var(--star-duration) ease-in-out var(--star-delay) infinite,
+    galaStarBlink 1.8s ease-in-out var(--star-delay) infinite alternate;
+}
+
+body.gala-page .gala-stars span:nth-child(4n) {
+  background: var(--gala-rose);
+  box-shadow:
+    0 0 10px rgba(183, 93, 114, 0.9),
+    0 0 22px rgba(183, 93, 114, 0.4);
+}
+
+/* =========================================================
+   INFO CARDS
+   ========================================================= */
+
+body.gala-page .gala-information {
+  position: relative;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+  width: min(1120px, calc(100% - 40px));
+  margin: -72px auto 0;
+}
+
+body.gala-page .gala-information-card {
+  --gala-rotate-x: 0deg;
+  --gala-rotate-y: 0deg;
+  --gala-shine-x: 50%;
+  --gala-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 157px;
+  padding: 29px 31px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 155, 50, 0.33);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at var(--gala-shine-x) var(--gala-shine-y),
+      rgba(242, 212, 123, 0.15),
+      transparent 29%
+    ),
+    rgba(255, 250, 240, 0.96);
+  box-shadow:
+    0 22px 58px rgba(7, 24, 51, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  transform:
+    perspective(900px)
+    rotateX(var(--gala-rotate-x))
+    rotateY(var(--gala-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  backdrop-filter: blur(18px);
+}
+
+body.gala-page .gala-information-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 24px;
+  left: 24px;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gala-gold),
+      transparent
+    );
+}
+
+body.gala-page .gala-information-card::after {
+  content: "✦";
+  position: absolute;
+  right: 18px;
+  bottom: 8px;
+  color: rgba(200, 155, 50, 0.12);
+  font-family: Georgia, serif;
+  font-size: 72px;
+  line-height: 1;
+  transition: transform 0.35s ease;
+}
+
+body.gala-page .gala-information-card:hover {
+  border-color: rgba(200, 155, 50, 0.62);
+  box-shadow:
+    0 29px 72px rgba(7, 24, 51, 0.2),
+    0 0 28px rgba(242, 212, 123, 0.13);
+}
+
+body.gala-page .gala-information-card:hover::after {
+  transform: rotate(22deg) scale(1.08);
+}
+
+body.gala-page .gala-information-card > span {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--gala-gold);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+body.gala-page .gala-information-card strong {
+  position: relative;
+  z-index: 2;
+  display: block;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(20px, 2vw, 27px);
+  line-height: 1.18;
+}
+
+/* =========================================================
+   ÜLDISED SEKTSIOONID
+   ========================================================= */
+
+body.gala-page .gala-section {
+  padding: 112px 7%;
+  background: var(--gala-cream);
+}
+
+body.gala-page .gala-section-heading {
+  max-width: 880px;
+  margin-bottom: 48px;
+}
+
+body.gala-page .gala-section-label {
+  display: inline-flex;
+  margin-bottom: 18px;
+  align-items: center;
+  gap: 11px;
+  color: var(--gala-gold);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.21em;
+  text-transform: uppercase;
+}
+
+body.gala-page .gala-section-label::before {
+  content: "";
+  width: 38px;
+  height: 2px;
+  background:
+    linear-gradient(90deg, var(--gala-gold), transparent);
+}
+
+body.gala-page .gala-section-heading h2,
+body.gala-page .gala-about-section h2,
+body.gala-page .gala-nomination h2,
+body.gala-page .gala-contact h2 {
+  margin: 0 0 19px;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(39px, 5vw, 65px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+body.gala-page .gala-section-heading > p {
+  margin: 0;
+  color: var(--gala-text-soft);
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+/* =========================================================
+   ABOUT
+   ========================================================= */
+
+body.gala-page .gala-about-section {
+  position: relative;
+  padding-top: 130px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 10%, rgba(200, 155, 50, 0.14), transparent 29%),
+    linear-gradient(180deg, var(--gala-cream) 0%, #fffaf0 100%);
+}
+
+body.gala-page .gala-about-section::before {
+  content: "2026";
+  position: absolute;
+  right: -35px;
+  bottom: 16px;
+  color: rgba(7, 24, 51, 0.035);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(140px, 23vw, 330px);
+  font-weight: 700;
+  line-height: 0.8;
+  pointer-events: none;
+}
+
+body.gala-page .gala-about-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(300px, 0.72fr);
+  gap: 28px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+body.gala-page .gala-about-section > .gala-section-heading,
+body.gala-page .gala-categories-section > .gala-section-heading,
+body.gala-page .gala-contact > * {
+  max-width: 1180px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+body.gala-page .gala-about-text {
+  position: relative;
+  padding: 47px;
+  border: 1px solid rgba(200, 155, 50, 0.25);
+  border-radius: var(--gala-radius);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 25px 65px rgba(7, 24, 51, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+body.gala-page .gala-about-text::before {
+  content: "“";
+  position: absolute;
+  top: 17px;
+  right: 30px;
+  color: rgba(200, 155, 50, 0.13);
+  font-family: Georgia, serif;
+  font-size: 115px;
+  line-height: 1;
+}
+
+body.gala-page .gala-about-text p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--gala-text-soft);
+  font-size: 18px;
+  line-height: 1.82;
+}
+
+body.gala-page .gala-about-text p + p {
+  margin-top: 22px;
+}
+
+body.gala-page .gala-about-signature {
+  margin-top: 32px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(7, 24, 51, 0.11);
+}
+
+body.gala-page .gala-about-signature span {
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+body.gala-page .gala-highlight-stack {
+  display: grid;
+  gap: 19px;
+}
+
+body.gala-page .gala-highlight-card {
+  --gala-rotate-x: 0deg;
+  --gala-rotate-y: 0deg;
+  --gala-shine-x: 50%;
+  --gala-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 206px;
+  padding: 32px;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  border: 1px solid rgba(200, 155, 50, 0.28);
+  border-radius: var(--gala-radius);
+  background:
+    radial-gradient(
+      circle at var(--gala-shine-x) var(--gala-shine-y),
+      rgba(255, 255, 255, 0.15),
+      transparent 28%
+    ),
+    linear-gradient(145deg, var(--gala-navy), var(--gala-blue));
+  color: var(--gala-white);
+  box-shadow: 0 23px 62px rgba(7, 24, 51, 0.18);
+  transform:
+    perspective(900px)
+    rotateX(var(--gala-rotate-x))
+    rotateY(var(--gala-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.3s ease;
+}
+
+body.gala-page .gala-highlight-card::before {
+  content: "";
+  position: absolute;
+  top: -35px;
+  right: -35px;
+  z-index: -1;
+  width: 150px;
+  height: 150px;
+  border: 26px solid rgba(242, 212, 123, 0.11);
+  border-radius: 50%;
+  animation: galaSlowSpin 14s linear infinite;
+}
+
+body.gala-page .gala-highlight-main {
+  min-height: 250px;
+  background:
+    radial-gradient(
+      circle at var(--gala-shine-x) var(--gala-shine-y),
+      rgba(255, 255, 255, 0.18),
+      transparent 28%
+    ),
+    linear-gradient(145deg, #b9821f, var(--gala-gold-light));
+  color: var(--gala-navy);
+}
+
+body.gala-page .gala-highlight-card:hover {
+  box-shadow:
+    0 32px 80px rgba(7, 24, 51, 0.26),
+    0 0 28px rgba(242, 212, 123, 0.16);
+}
+
+body.gala-page .gala-highlight-card strong {
+  position: relative;
+  z-index: 2;
+  display: block;
+  margin-bottom: 9px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(62px, 7vw, 92px);
+  line-height: 0.88;
+}
+
+body.gala-page .gala-highlight-card span {
+  position: relative;
+  z-index: 2;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   COUNTDOWN
+   ========================================================= */
+
+body.gala-page .gala-countdown {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(270px, 0.7fr) minmax(0, 1.3fr);
+  gap: 42px;
+  max-width: 1180px;
+  margin: 58px auto 0;
+  padding: 43px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(242, 212, 123, 0.26);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(242, 212, 123, 0.14), transparent 34%),
+    linear-gradient(145deg, #06152d, #0d2b57);
+  color: var(--gala-white);
+  box-shadow: var(--gala-shadow-dark);
+}
+
+body.gala-page .gala-countdown::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.12;
+  background:
+    repeating-linear-gradient(
+      -35deg,
+      transparent 0 20px,
+      rgba(255, 255, 255, 0.13) 20px 21px
+    );
+  animation: galaStripeMove 14s linear infinite;
+}
+
+body.gala-page .gala-countdown-heading span {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--gala-gold-light);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+body.gala-page .gala-countdown-heading h3 {
+  margin: 0;
+  color: var(--gala-white);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 3.5vw, 43px);
+  line-height: 1.08;
+}
+
+body.gala-page .gala-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+}
+
+body.gala-page .gala-countdown-item {
+  position: relative;
+  padding: 23px 13px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.075);
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+body.gala-page .gala-countdown-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gala-gold-light),
+      transparent
+    );
+}
+
+body.gala-page .gala-countdown-item strong {
+  display: block;
+  color: var(--gala-gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 4vw, 55px);
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(242, 212, 123, 0.18);
+  animation: galaCountPulse 2.8s ease-in-out infinite;
+}
+
+body.gala-page .gala-countdown-item:nth-child(2) strong {
+  animation-delay: -0.4s;
+}
+
+body.gala-page .gala-countdown-item:nth-child(3) strong {
+  animation-delay: -0.8s;
+}
+
+body.gala-page .gala-countdown-item:nth-child(4) strong {
+  animation-delay: -1.2s;
+}
+
+body.gala-page .gala-countdown-item span {
+  display: block;
+  margin-top: 9px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+body.gala-page .gala-countdown-finished {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--gala-gold-light);
+  font-weight: 800;
+  text-align: center;
+}
+
+/* =========================================================
+   GALA EXPERIENCE
+   ========================================================= */
+
+body.gala-page .gala-experience {
+  position: relative;
+  padding: 118px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 22%, rgba(183, 93, 114, 0.17), transparent 29%),
+    radial-gradient(circle at 92% 80%, rgba(242, 212, 123, 0.13), transparent 30%),
+    var(--gala-navy);
+}
+
+body.gala-page .gala-experience::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image:
+    radial-gradient(circle, #fff 1px, transparent 1.5px);
+  background-size: 29px 29px;
+  animation: galaDotsMove 17s linear infinite;
+}
+
+body.gala-page .gala-experience-inner {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+body.gala-page .gala-section-heading-light h2 {
+  color: var(--gala-white);
+}
+
+body.gala-page .gala-section-heading-light > p {
+  color: rgba(255, 255, 255, 0.69);
+}
+
+body.gala-page .gala-section-heading-light .gala-section-label {
+  color: var(--gala-gold-light);
+}
+
+body.gala-page .gala-experience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+body.gala-page .gala-experience-card {
+  --gala-rotate-x: 0deg;
+  --gala-rotate-y: 0deg;
+  --gala-shine-x: 50%;
+  --gala-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 335px;
+  padding: 34px;
+  overflow: hidden;
+  border: 1px solid rgba(242, 212, 123, 0.2);
+  border-radius: 27px;
+  background:
+    radial-gradient(
+      circle at var(--gala-shine-x) var(--gala-shine-y),
+      rgba(255, 255, 255, 0.13),
+      transparent 28%
+    ),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035));
+  color: var(--gala-white);
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.23);
+  transform:
+    perspective(900px)
+    rotateX(var(--gala-rotate-x))
+    rotateY(var(--gala-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  backdrop-filter: blur(14px);
+}
+
+body.gala-page .gala-experience-card::before {
+  content: "";
+  position: absolute;
+  top: -55px;
+  right: -45px;
+  z-index: -1;
+  width: 180px;
+  height: 180px;
+  border: 31px solid rgba(242, 212, 123, 0.075);
+  border-radius: 50%;
+  transition: transform 0.45s ease;
+}
+
+body.gala-page .gala-experience-card::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gala-gold-light),
+      transparent
+    );
+  transform: scaleX(0.25);
+  transition: transform 0.38s ease;
+}
+
+body.gala-page .gala-experience-card:hover {
+  border-color: rgba(242, 212, 123, 0.5);
+  box-shadow:
+    0 35px 80px rgba(0, 0, 0, 0.34),
+    0 0 30px rgba(242, 212, 123, 0.1);
+}
+
+body.gala-page .gala-experience-card:hover::before {
+  transform: rotate(40deg) scale(1.15);
+}
+
+body.gala-page .gala-experience-card:hover::after {
+  transform: scaleX(1);
+}
+
+body.gala-page .gala-experience-card > span {
+  display: block;
+  margin-bottom: 52px;
+  color: var(--gala-gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+body.gala-page .gala-experience-card h3 {
+  margin: 0 0 15px;
+  color: var(--gala-white);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 29px;
+  line-height: 1.1;
+}
+
+body.gala-page .gala-experience-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.67);
+  font-size: 16px;
+  line-height: 1.72;
+}
+
+/* =========================================================
+   CATEGORIES
+   ========================================================= */
+
+body.gala-page .gala-categories-section {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 6% 8%, rgba(200, 155, 50, 0.13), transparent 26%),
+    linear-gradient(180deg, #fffaf0, var(--gala-cream));
+}
+
+body.gala-page .gala-categories-section::before {
+  content: "12";
+  position: absolute;
+  top: 50px;
+  right: -45px;
+  color: rgba(7, 24, 51, 0.035);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 300px;
+  font-weight: 700;
+  line-height: 0.8;
+}
+
+body.gala-page .gala-categories {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 19px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+body.gala-page .gala-category-card {
+  --gala-rotate-x: 0deg;
+  --gala-rotate-y: 0deg;
+  --gala-shine-x: 50%;
+  --gala-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 315px;
+  padding: 31px;
+  overflow: hidden;
+  border: 1px solid rgba(7, 24, 51, 0.12);
+  border-radius: 25px;
+  background:
+    radial-gradient(
+      circle at var(--gala-shine-x) var(--gala-shine-y),
+      rgba(242, 212, 123, 0.2),
+      transparent 29%
+    ),
+    rgba(255, 255, 255, 0.76);
+  box-shadow:
+    0 18px 50px rgba(7, 24, 51, 0.075),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  transform:
+    perspective(900px)
+    rotateX(var(--gala-rotate-x))
+    rotateY(var(--gala-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+body.gala-page .gala-category-card::before {
+  content: "✦";
+  position: absolute;
+  top: 17px;
+  right: 20px;
+  z-index: -1;
+  color: rgba(200, 155, 50, 0.12);
+  font-family: Georgia, serif;
+  font-size: 68px;
+  line-height: 1;
+  transition: transform 0.4s ease;
+}
+
+body.gala-page .gala-category-card::after {
+  content: "";
+  position: absolute;
+  right: 29px;
+  bottom: 0;
+  left: 29px;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gala-gold),
+      transparent
+    );
+  transform: scaleX(0.18);
+  transition: transform 0.38s ease;
+}
+
+body.gala-page .gala-category-card:hover {
+  z-index: 3;
+  border-color: rgba(200, 155, 50, 0.48);
+  box-shadow:
+    0 31px 74px rgba(7, 24, 51, 0.15),
+    0 0 30px rgba(242, 212, 123, 0.13);
+}
+
+body.gala-page .gala-category-card:hover::before {
+  transform: rotate(35deg) scale(1.15);
+}
+
+body.gala-page .gala-category-card:hover::after {
+  transform: scaleX(1);
+}
+
+body.gala-page .gala-category-card > span {
+  display: block;
+  margin-bottom: 41px;
+  color: var(--gala-gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 39px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+body.gala-page .gala-category-card h3 {
+  margin: 0 0 14px;
+  color: var(--gala-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 25px;
+  line-height: 1.13;
+}
+
+body.gala-page .gala-category-card p {
+  margin: 0;
+  color: var(--gala-text-soft);
+  font-size: 15px;
+  line-height: 1.72;
+}
+
+/* =========================================================
+   GALLERY
+   ========================================================= */
+
+body.gala-page .gala-gallery-section {
+  position: relative;
+  padding: 118px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(183, 93, 114, 0.15), transparent 27%),
+    radial-gradient(circle at 89% 88%, rgba(242, 212, 123, 0.11), transparent 28%),
+    var(--gala-navy);
+}
+
+body.gala-page .gala-gallery-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 54px,
+      rgba(255, 255, 255, 0.13) 54px 55px
+    );
+  animation: galaGalleryLines 18s linear infinite;
+}
+
+body.gala-page .gala-gallery-header,
+body.gala-page .gala-gallery-grid {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, 100%);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+body.gala-page .gala-gallery-header {
+  display: flex;
+  gap: 45px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+
+body.gala-page .gala-gallery-header .gala-section-heading {
+  margin-bottom: 0;
+}
+
+body.gala-page .gala-gallery-header .gala-section-heading h2 {
+  color: var(--gala-white);
+}
+
+body.gala-page .gala-gallery-header .gala-section-heading > p {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+body.gala-page .gala-gallery-header .gala-section-label {
+  color: var(--gala-gold-light);
+}
+
+body.gala-page .gala-gallery-note {
+  flex: 0 0 250px;
+  padding: 23px;
+  border: 1px solid rgba(242, 212, 123, 0.25);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gala-white);
+  backdrop-filter: blur(12px);
+}
+
+body.gala-page .gala-gallery-note strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--gala-gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+}
+
+body.gala-page .gala-gallery-note span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+body.gala-page .gala-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: 235px;
+  gap: 16px;
+}
+
+body.gala-page .gala-gallery-item {
+  --gala-rotate-x: 0deg;
+  --gala-rotate-y: 0deg;
+  --gala-shine-x: 50%;
+  --gala-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  grid-column: span 4;
+  overflow: hidden;
+  border: 1px solid rgba(242, 212, 123, 0.19);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at var(--gala-shine-x) var(--gala-shine-y),
+      rgba(255, 255, 255, 0.11),
+      transparent 27%
+    ),
+    linear-gradient(145deg, #102a52, #071833);
+  color: var(--gala-white);
+  text-decoration: none;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.28);
+  transform:
+    perspective(950px)
+    rotateX(var(--gala-rotate-x))
+    rotateY(var(--gala-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+body.gala-page .gala-gallery-item::before {
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  padding: 25px;
+  color: rgba(255, 255, 255, 0.26);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  text-align: center;
+}
+
+body.gala-page .gala-gallery-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(to top, rgba(7, 24, 51, 0.92), transparent 58%);
+  pointer-events: none;
+}
+
+body.gala-page .gala-gallery-featured {
+  grid-column: span 8;
+  grid-row: span 2;
+}
+
+body.gala-page .gala-gallery-tall {
+  grid-row: span 2;
+}
+
+body.gala-page .gala-gallery-wide {
+  grid-column: span 8;
+}
+
+body.gala-page .gala-gallery-item:hover {
+  z-index: 5;
+  border-color: rgba(242, 212, 123, 0.56);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.47),
+    0 0 32px rgba(242, 212, 123, 0.12);
+}
+
+body.gala-page .gala-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.9) contrast(1.03);
+  transition:
+    transform 0.72s cubic-bezier(0.18, 0.8, 0.2, 1),
+    filter 0.45s ease;
+}
+
+body.gala-page .gala-gallery-item:hover img {
+  transform: scale(1.085);
+  filter: saturate(1.1) contrast(1.04);
+}
+
+body.gala-page .gala-gallery-item > span {
+  position: absolute;
+  right: 22px;
+  bottom: 20px;
+  left: 22px;
+  z-index: 3;
+  color: var(--gala-white);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.18;
+  transform: translateY(5px);
+  transition: transform 0.32s ease;
+}
+
+body.gala-page .gala-gallery-item:hover > span {
+  transform: translateY(0);
+}
+
+/* Lightbox */
+
+body.gala-page .gala-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  display: flex;
+  padding: 28px;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(2, 9, 21, 0.93);
+  backdrop-filter: blur(19px);
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+body.gala-page .gala-lightbox::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(183, 93, 114, 0.17), transparent 29%),
+    radial-gradient(circle at 85% 85%, rgba(242, 212, 123, 0.12), transparent 27%);
+  pointer-events: none;
+}
+
+body.gala-page .gala-lightbox.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+body.gala-page .gala-lightbox-frame {
+  position: relative;
+  z-index: 2;
+  max-width: min(1120px, 92vw);
+  max-height: 86vh;
+  padding: 12px;
+  border: 1px solid rgba(242, 212, 123, 0.25);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 38px 110px rgba(0, 0, 0, 0.68),
+    0 0 0 10px rgba(242, 212, 123, 0.035);
+  transform: scale(0.94);
+  transition: transform 0.35s ease;
+}
+
+body.gala-page .gala-lightbox.is-open .gala-lightbox-frame {
+  transform: scale(1);
+}
+
+body.gala-page .gala-lightbox-frame img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 76vh;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+body.gala-page .gala-lightbox-frame p {
+  margin: 12px 6px 2px;
+  color: var(--gala-gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  text-align: center;
+}
+
+body.gala-page .gala-lightbox-close {
+  position: absolute;
+  top: 22px;
+  right: 25px;
+  z-index: 4;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(242, 212, 123, 0.35);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--gala-white);
+  font-size: 35px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.27s ease,
+    background 0.27s ease,
+    color 0.27s ease;
+}
+
+body.gala-page .gala-lightbox-close:hover {
+  background: var(--gala-gold-light);
+  color: var(--gala-navy);
+  transform: rotate(90deg);
+}
+
+/* =========================================================
+   NOMINATION
+   ========================================================= */
+
+body.gala-page .gala-nomination {
+  position: relative;
+  isolation: isolate;
+  padding: 122px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 7% 85%, rgba(183, 93, 114, 0.2), transparent 30%),
+    radial-gradient(circle at 91% 15%, rgba(242, 212, 123, 0.15), transparent 30%),
+    linear-gradient(145deg, #06152d, #0d2b57);
+}
+
+body.gala-page .gala-nomination::before {
+  content: "✦";
+  position: absolute;
+  top: -70px;
+  right: 3%;
+  z-index: -1;
+  color: rgba(242, 212, 123, 0.07);
+  font-family: Georgia, serif;
+  font-size: 330px;
+  line-height: 1;
+  animation: galaSlowSpin 24s linear infinite;
+}
+
+body.gala-page .gala-nomination-content {
+  position: relative;
+  z-index: 2;
+  max-width: 910px;
+  margin: 0 auto;
+  padding: 60px;
+  border: 1px solid rgba(242, 212, 123, 0.28);
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(242, 212, 123, 0.15), transparent 30%),
+    rgba(255, 255, 255, 0.06);
+  color: var(--gala-white);
+  text-align: center;
+  box-shadow: var(--gala-shadow-dark);
+  backdrop-filter: blur(15px);
+}
+
+body.gala-page .gala-nomination-content::before,
+body.gala-page .gala-nomination-content::after {
+  content: "✦";
+  position: absolute;
+  color: var(--gala-gold-light);
+  font-family: Georgia, serif;
+  animation: galaSparklePulse 2.4s ease-in-out infinite;
+}
+
+body.gala-page .gala-nomination-content::before {
+  top: 26px;
+  left: 33px;
+  font-size: 27px;
+}
+
+body.gala-page .gala-nomination-content::after {
+  right: 35px;
+  bottom: 28px;
+  font-size: 18px;
+  animation-delay: -1.1s;
+}
+
+body.gala-page .gala-nomination .gala-section-label {
+  color: var(--gala-gold-light);
+}
+
+body.gala-page .gala-nomination h2 {
+  color: var(--gala-white);
+}
+
+body.gala-page .gala-nomination-content > p {
+  max-width: 700px;
+  margin: 0 auto 30px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+body.gala-page .gala-nomination-content small {
+  display: block;
+  margin-top: 18px;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 13px;
+}
+
+/* =========================================================
+   CONTACT
+   ========================================================= */
+
+body.gala-page .gala-contact {
+  position: relative;
+  background:
+    radial-gradient(circle at 92% 5%, rgba(200, 155, 50, 0.13), transparent 28%),
+    var(--gala-cream);
+}
+
+body.gala-page .gala-contact-card {
+  display: flex;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 47px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 38px;
+  border: 1px solid rgba(200, 155, 50, 0.28);
+  border-radius: 32px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.88),
+      rgba(255, 250, 240, 0.76)
+    );
+  box-shadow: 0 25px 66px rgba(7, 24, 51, 0.11);
+}
+
+body.gala-page .gala-contact-card h2 {
+  font-size: clamp(35px, 4.5vw, 56px);
+}
+
+body.gala-page .gala-contact-card p {
+  max-width: 730px;
+  margin: 0;
+  color: var(--gala-text-soft);
+  font-size: 17px;
+  line-height: 1.74;
+}
+
+body.gala-page .gala-contact-link {
+  flex-shrink: 0;
+  display: inline-flex;
+  min-height: 55px;
+  padding: 15px 24px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gala-navy);
+  border-radius: 999px;
+  background: var(--gala-navy);
+  color: var(--gala-white);
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 13px 30px rgba(7, 24, 51, 0.18);
+  transition:
+    transform 0.27s ease,
+    background 0.27s ease,
+    color 0.27s ease,
+    box-shadow 0.27s ease;
+}
+
+body.gala-page .gala-contact-link:hover {
+  background: var(--gala-gold-light);
+  color: var(--gala-navy);
+  transform: translateY(-4px);
+  box-shadow: 0 19px 40px rgba(200, 155, 50, 0.25);
+}
+
+/* =========================================================
+   NEWSLETTER — AINULT GALA LEHEL
+   ========================================================= */
+
+body.gala-page .bottom-newsletter {
+  position: relative;
+  padding: 100px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(183, 93, 114, 0.12), transparent 28%),
+    linear-gradient(180deg, #fffaf0, var(--gala-cream));
+}
+
+body.gala-page .bottom-newsletter-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.9fr);
+  gap: 42px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 50px;
+  overflow: hidden;
+  border: 1px solid rgba(242, 212, 123, 0.28);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(242, 212, 123, 0.16), transparent 30%),
+    linear-gradient(145deg, #06152d, #0d2b57);
+  color: var(--gala-white);
+  box-shadow: var(--gala-shadow-dark);
+}
+
+body.gala-page .bottom-newsletter-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.09;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 22px,
+      rgba(255, 255, 255, 0.13) 22px 23px
+    );
+  animation: galaStripeMove 16s linear infinite reverse;
+}
+
+body.gala-page .bottom-newsletter-label {
+  display: inline-flex;
+  margin-bottom: 18px;
+  align-items: center;
+  gap: 10px;
+  color: var(--gala-gold-light);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+body.gala-page .bottom-newsletter-label::before {
+  content: "✦";
+}
+
+body.gala-page .bottom-newsletter h2 {
+  margin: 0 0 17px;
+  color: var(--gala-white);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(35px, 4.2vw, 57px);
+  line-height: 1.03;
+}
+
+body.gala-page .bottom-newsletter-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.67);
+  font-size: 17px;
+  line-height: 1.74;
+}
+
+body.gala-page .bottom-newsletter-form {
+  align-self: center;
+  padding: 27px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.075);
+  backdrop-filter: blur(12px);
+}
+
+body.gala-page .bottom-newsletter-row {
+  display: flex;
+  gap: 11px;
+  margin-bottom: 17px;
+}
+
+body.gala-page .bottom-newsletter-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(242, 212, 123, 0.25);
+  border-radius: 999px;
+  outline: none;
+  background: var(--gala-white);
+  color: var(--gala-navy);
+  font-size: 15px;
+}
+
+body.gala-page .bottom-newsletter-row input:focus {
+  border-color: var(--gala-gold-light);
+  box-shadow: 0 0 0 4px rgba(242, 212, 123, 0.15);
+}
+
+body.gala-page .bottom-newsletter-row button {
+  padding: 15px 23px;
+  border: 1px solid var(--gala-gold-light);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, var(--gala-gold-light), var(--gala-gold));
+  color: var(--gala-navy);
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+body.gala-page .bottom-newsletter-row button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(200, 155, 50, 0.26);
+}
+
+body.gala-page .bottom-newsletter-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+body.gala-page .bottom-newsletter-consent input {
+  margin-top: 4px;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+body.gala-page .bottom-newsletter-consent span {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.gala-page .bottom-newsletter-consent a {
+  color: var(--gala-gold-light);
+  font-weight: 800;
+}
+
+/* =========================================================
+   FOOTER — GALA LEHT
+   ========================================================= */
+
+body.gala-page .site-footer {
+  border-top: 1px solid rgba(242, 212, 123, 0.16);
+  background:
+    radial-gradient(circle at 90% 8%, rgba(183, 93, 114, 0.19), transparent 27%),
+    linear-gradient(145deg, #041126 0%, #0b2448 100%);
+}
+
+body.gala-page .footer-socials a:hover {
+  background: var(--gala-gold-light);
+  color: var(--gala-navy);
+}
+
+/* =========================================================
+   REVEAL + TILT
+   ========================================================= */
+
+body.gala-page .gala-reveal {
+  opacity: 0;
+  transform: translateY(45px) scale(0.985);
+  transition:
+    opacity 0.78s ease var(--gala-delay, 0ms),
+    transform 0.78s cubic-bezier(0.18, 0.8, 0.24, 1) var(--gala-delay, 0ms);
+}
+
+body.gala-page .gala-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+body.gala-page .gala-tilt {
+  will-change: transform;
+}
+
+/* =========================================================
+   ANIMATSIOONID
+   ========================================================= */
+
+@keyframes galaGridDrift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 70px 70px, 70px 70px;
+  }
+}
+
+@keyframes galaGhostText {
+  from {
+    transform: rotate(-4deg) translateX(-22px);
+  }
+
+  to {
+    transform: rotate(-2deg) translateX(28px);
+  }
+}
+
+@keyframes galaHeroCopy {
+  from {
+    opacity: 0;
+    transform: translateX(-42px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes galaHeroVisualEntrance {
+  from {
+    opacity: 0;
+    transform:
+      perspective(1200px)
+      translateX(55px)
+      rotateY(-10deg)
+      scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes galaFrameBreath {
+  from {
+    opacity: 0.36;
+    transform: scale(0.99);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: scale(1.012);
+  }
+}
+
+@keyframes galaSealFloat {
+  0%,
+  100% {
+    transform: translateZ(70px) rotate(7deg) translateY(0);
+  }
+
+  50% {
+    transform: translateZ(70px) rotate(3deg) translateY(-9px);
+  }
+}
+
+@keyframes galaGlowOne {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(36px, 28px) scale(1.15);
+  }
+}
+
+@keyframes galaGlowTwo {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-30px, -22px) scale(1.12);
+  }
+}
+
+@keyframes galaStarFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(0.7);
+  }
+
+  50% {
+    transform: translate(14px, -24px) scale(1.25);
+  }
+}
+
+@keyframes galaStarBlink {
+  from {
+    opacity: 0.12;
+  }
+
+  to {
+    opacity: 0.76;
+  }
+}
+
+@keyframes galaSparkleSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes galaSlowSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes galaStripeMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 180px 0;
+  }
+}
+
+@keyframes galaCountPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.86;
+  }
+
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes galaDotsMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 116px 116px;
+  }
+}
+
+@keyframes galaGalleryLines {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 220px 0;
+  }
+}
+
+@keyframes galaSparklePulse {
+  0%,
+  100% {
+    transform: scale(0.85) rotate(0deg);
+    opacity: 0.48;
+  }
+
+  50% {
+    transform: scale(1.25) rotate(18deg);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   TAHVEL
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  body.gala-page .header-inner {
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 74px 12px 5%;
+  }
+
+  body.gala-page .nav {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 5%;
+    right: 5%;
+    display: none;
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid rgba(200, 155, 50, 0.23);
+    border-radius: 18px;
+    background: rgba(255, 250, 240, 0.98);
+    box-shadow: 0 20px 55px rgba(7, 24, 51, 0.2);
+  }
+
+  body.gala-page .nav.open {
+    display: flex;
+  }
+
+  body.gala-page .nav a {
+    padding: 13px 14px;
+  }
+
+  body.gala-page .nav a::after {
+    display: none;
+  }
+
+  body.gala-page .gala-hero-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.7fr);
+    gap: 48px;
+  }
+
+  body.gala-page .gala-information {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body.gala-page .gala-about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.gala-page .gala-highlight-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.gala-page .gala-highlight-main {
+    min-height: 220px;
+  }
+
+  body.gala-page .gala-countdown {
+    grid-template-columns: 1fr;
+  }
+
+  body.gala-page .gala-categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.gala-page .gala-gallery-header {
+    align-items: flex-start;
+  }
+
+  body.gala-page .gala-contact-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  body.gala-page .bottom-newsletter-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   TELEFON
+   ========================================================= */
+
+@media (max-width: 760px) {
+  body.gala-page .gala-hero {
+    min-height: auto;
+    padding: 78px 6% 105px;
+  }
+
+  body.gala-page .gala-hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  body.gala-page .gala-hero-content > p {
+    font-size: 17px;
+  }
+
+  body.gala-page .gala-buttons {
+    flex-direction: column;
+  }
+
+  body.gala-page .gala-buttons a,
+  body.gala-page .gala-button {
+    width: 100%;
+  }
+
+  body.gala-page .gala-hero-visual {
+    width: min(430px, calc(100% - 12px));
+    min-height: 520px;
+    margin: 30px auto 0;
+  }
+
+  body.gala-page .gala-hero-seal {
+    right: -6px;
+    width: 112px;
+    height: 112px;
+  }
+
+  body.gala-page .gala-information {
+    grid-template-columns: 1fr;
+    margin-top: -46px;
+  }
+
+  body.gala-page .gala-section,
+  body.gala-page .gala-experience,
+  body.gala-page .gala-gallery-section,
+  body.gala-page .gala-nomination,
+  body.gala-page .bottom-newsletter {
+    padding: 80px 6%;
+  }
+
+  body.gala-page .gala-about-section {
+    padding-top: 100px;
+  }
+
+  body.gala-page .gala-about-text,
+  body.gala-page .gala-nomination-content,
+  body.gala-page .gala-contact-card,
+  body.gala-page .bottom-newsletter-card {
+    padding: 31px;
+  }
+
+  body.gala-page .gala-highlight-stack,
+  body.gala-page .gala-experience-grid,
+  body.gala-page .gala-categories {
+    grid-template-columns: 1fr;
+  }
+
+  body.gala-page .gala-countdown {
+    padding: 30px;
+  }
+
+  body.gala-page .gala-countdown-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.gala-page .gala-gallery-header {
+    flex-direction: column;
+  }
+
+  body.gala-page .gala-gallery-note {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  body.gala-page .gala-gallery-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 290px;
+  }
+
+  body.gala-page .gala-gallery-item,
+  body.gala-page .gala-gallery-featured,
+  body.gala-page .gala-gallery-tall,
+  body.gala-page .gala-gallery-wide {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  body.gala-page .bottom-newsletter-row {
+    flex-direction: column;
+  }
+
+  body.gala-page .bottom-newsletter-row button {
+    width: 100%;
+  }
+
+  body.gala-page .gala-lightbox {
+    padding: 16px;
+  }
+
+  body.gala-page .gala-lightbox-close {
+    top: 13px;
+    right: 13px;
+  }
+}
+
+@media (max-width: 460px) {
+  body.gala-page .gala-hero h1 {
+    font-size: 43px;
+  }
+
+  body.gala-page .gala-section-heading h2,
+  body.gala-page .gala-about-section h2,
+  body.gala-page .gala-nomination h2,
+  body.gala-page .gala-contact h2 {
+    font-size: 36px;
+  }
+
+  body.gala-page .gala-hero-visual {
+    min-height: 445px;
+    border-radius: 150px 150px 24px 24px;
+  }
+
+  body.gala-page .gala-hero-seal {
+    top: -25px;
+    width: 98px;
+    height: 98px;
+  }
+
+  body.gala-page .gala-hero-seal strong {
+    font-size: 25px;
+  }
+
+  body.gala-page .gala-about-text,
+  body.gala-page .gala-countdown,
+  body.gala-page .gala-experience-card,
+  body.gala-page .gala-category-card,
+  body.gala-page .gala-nomination-content,
+  body.gala-page .gala-contact-card,
+  body.gala-page .bottom-newsletter-card {
+    padding: 25px;
+  }
+
+  body.gala-page .gala-countdown-item {
+    padding: 20px 8px;
+  }
+
+  body.gala-page .gala-gallery-grid {
+    grid-auto-rows: 245px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  body.gala-page *,
+  body.gala-page *::before,
+  body.gala-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  body.gala-page .gala-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,1216 @@
+/* =========================================================
+   PRIVACY.CSS — AINULT PRIVAATSUSPOLIITIKA LEHT
+   Laadida privaatsuspoliitika.html lehel pärast /style.css faili.
+   Kõik reeglid on piiratud body.privacy-page klassiga.
+   ========================================================= */
+
+body.privacy-page {
+  --privacy-bg: #eef3dc;
+  --privacy-cream: #fbfdf4;
+  --privacy-white: #ffffff;
+  --privacy-dark: #0e3b03;
+  --privacy-green: #254b10;
+  --privacy-accent: #5ce413;
+  --privacy-mint: #dff5cb;
+  --privacy-blue: #2c6f73;
+  --privacy-text: #17330f;
+  --privacy-text-soft: rgba(23, 51, 15, 0.7);
+  --privacy-border: rgba(14, 59, 3, 0.13);
+  --privacy-shadow: 0 24px 70px rgba(14, 59, 3, 0.11);
+  --privacy-shadow-strong: 0 34px 95px rgba(7, 35, 4, 0.2);
+  --privacy-radius: 28px;
+
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--privacy-bg);
+  color: var(--privacy-text);
+}
+
+body.privacy-page .privacy-new-page {
+  position: relative;
+  overflow: clip;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+body.privacy-page .header {
+  border-bottom: 1px solid rgba(92, 228, 19, 0.16);
+  background: rgba(251, 253, 244, 0.92);
+  box-shadow: 0 10px 34px rgba(14, 59, 3, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+body.privacy-page .logo,
+body.privacy-page .logo span,
+body.privacy-page .nav a {
+  color: var(--privacy-dark);
+}
+
+body.privacy-page .nav a {
+  position: relative;
+}
+
+body.privacy-page .nav a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--privacy-accent),
+      transparent
+    );
+  transform: scaleX(0);
+  transition: transform 0.28s ease;
+}
+
+body.privacy-page .nav a:hover {
+  color: var(--privacy-green);
+}
+
+body.privacy-page .nav a:hover::after {
+  transform: scaleX(1);
+}
+
+body.privacy-page .menu-toggle {
+  border: 1px solid rgba(37, 75, 16, 0.26);
+  border-radius: 14px;
+  background: rgba(92, 228, 19, 0.08);
+  color: var(--privacy-dark);
+}
+
+/* =========================================================
+   SCROLL PROGRESS
+   ========================================================= */
+
+body.privacy-page .privacy-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 13000;
+  width: var(--privacy-progress, 0%);
+  height: 4px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--privacy-accent),
+      #b7ef72,
+      var(--privacy-blue),
+      var(--privacy-accent)
+    );
+  box-shadow:
+    0 0 18px rgba(92, 228, 19, 0.5),
+    0 0 25px rgba(44, 111, 115, 0.2);
+  transition: width 0.08s linear;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+body.privacy-page .privacy-new-hero {
+  --privacy-pointer-x: 50%;
+  --privacy-pointer-y: 42%;
+
+  position: relative;
+  isolation: isolate;
+  padding: 108px 7% 90px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at var(--privacy-pointer-x) var(--privacy-pointer-y),
+      rgba(92, 228, 19, 0.16),
+      transparent 25%
+    ),
+    radial-gradient(circle at 10% 14%, rgba(44, 111, 115, 0.16), transparent 30%),
+    radial-gradient(circle at 91% 82%, rgba(183, 239, 114, 0.14), transparent 30%),
+    linear-gradient(138deg, #0b3204 0%, #154808 50%, #1f5a34 100%);
+  color: var(--privacy-white);
+}
+
+body.privacy-page .privacy-new-hero::after {
+  content: "SELGE • VAJALIK • TURVALINE";
+  position: absolute;
+  right: -120px;
+  bottom: 24px;
+  z-index: -3;
+  color: rgba(255, 255, 255, 0.035);
+  font-size: clamp(68px, 10vw, 150px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  animation: privacyGhostText 12s ease-in-out infinite alternate;
+}
+
+body.privacy-page .privacy-hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  opacity: 0.09;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image:
+    linear-gradient(to bottom, #000 0%, transparent 84%);
+  animation: privacyGridDrift 20s linear infinite;
+}
+
+body.privacy-page .privacy-hero-glow {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(12px);
+}
+
+body.privacy-page .privacy-hero-glow-one {
+  top: 8%;
+  left: -75px;
+  width: 280px;
+  height: 280px;
+  background: rgba(44, 111, 115, 0.14);
+  animation: privacyGlowOne 8s ease-in-out infinite;
+}
+
+body.privacy-page .privacy-hero-glow-two {
+  right: -90px;
+  bottom: 5%;
+  width: 350px;
+  height: 350px;
+  background: rgba(92, 228, 19, 0.11);
+  animation: privacyGlowTwo 9.5s ease-in-out infinite;
+}
+
+body.privacy-page .privacy-new-container {
+  position: relative;
+  z-index: 3;
+  width: min(1180px, 100%);
+  max-width: none;
+  margin: 0 auto;
+}
+
+body.privacy-page .privacy-new-badge {
+  display: inline-flex;
+  margin-bottom: 27px;
+  padding: 11px 18px;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid rgba(223, 245, 203, 0.34);
+  border-radius: 999px;
+  background: rgba(223, 245, 203, 0.08);
+  color: var(--privacy-mint);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  box-shadow: 0 12px 30px rgba(6, 28, 3, 0.18);
+  backdrop-filter: blur(10px);
+}
+
+body.privacy-page .privacy-new-badge::before {
+  content: "✓";
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--privacy-accent);
+  color: var(--privacy-dark);
+  font-size: 13px;
+  box-shadow: 0 0 18px rgba(92, 228, 19, 0.35);
+}
+
+body.privacy-page .privacy-new-hero h1 {
+  max-width: 900px;
+  margin: 0 0 24px;
+  color: var(--privacy-white);
+  font-size: clamp(50px, 7vw, 88px);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+  text-shadow: 0 22px 60px rgba(0, 0, 0, 0.26);
+}
+
+body.privacy-page .privacy-new-hero > .privacy-new-container > p {
+  max-width: 840px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.77);
+  font-size: 20px;
+  line-height: 1.76;
+}
+
+body.privacy-page .privacy-new-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+  margin-top: 48px;
+}
+
+body.privacy-page .privacy-new-meta > div {
+  --privacy-rotate-x: 0deg;
+  --privacy-rotate-y: 0deg;
+  --privacy-shine-x: 50%;
+  --privacy-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 145px;
+  padding: 26px;
+  overflow: hidden;
+  border: 1px solid rgba(223, 245, 203, 0.18);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at var(--privacy-shine-x) var(--privacy-shine-y),
+      rgba(255, 255, 255, 0.14),
+      transparent 28%
+    ),
+    rgba(255, 255, 255, 0.065);
+  box-shadow: 0 20px 55px rgba(5, 27, 3, 0.16);
+  transform:
+    perspective(900px)
+    rotateX(var(--privacy-rotate-x))
+    rotateY(var(--privacy-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    border-color 0.3s ease,
+    background 0.3s ease;
+  backdrop-filter: blur(14px);
+}
+
+body.privacy-page .privacy-new-meta > div::after {
+  content: "✓";
+  position: absolute;
+  right: 17px;
+  bottom: 7px;
+  color: rgba(223, 245, 203, 0.09);
+  font-size: 62px;
+  font-weight: 900;
+  transition: transform 0.35s ease;
+}
+
+body.privacy-page .privacy-new-meta > div:hover {
+  border-color: rgba(223, 245, 203, 0.38);
+  background:
+    radial-gradient(
+      circle at var(--privacy-shine-x) var(--privacy-shine-y),
+      rgba(255, 255, 255, 0.16),
+      transparent 28%
+    ),
+    rgba(255, 255, 255, 0.09);
+}
+
+body.privacy-page .privacy-new-meta > div:hover::after {
+  transform: rotate(10deg) scale(1.08);
+}
+
+body.privacy-page .privacy-new-meta span {
+  display: block;
+  margin-bottom: 10px;
+  color: rgba(223, 245, 203, 0.68);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+body.privacy-page .privacy-new-meta strong {
+  position: relative;
+  z-index: 2;
+  color: var(--privacy-white);
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+body.privacy-page .privacy-trust-path {
+  display: flex;
+  margin-top: 29px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+body.privacy-page .privacy-trust-path span {
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+body.privacy-page .privacy-trust-path i {
+  color: var(--privacy-accent);
+  font-style: normal;
+}
+
+/* =========================================================
+   PAGE BACKGROUND
+   ========================================================= */
+
+body.privacy-page .privacy-new-page {
+  padding: 92px 7% 108px;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(92, 228, 19, 0.12), transparent 28%),
+    radial-gradient(circle at 92% 90%, rgba(44, 111, 115, 0.08), transparent 30%),
+    linear-gradient(180deg, var(--privacy-bg), #f6f9ed);
+}
+
+body.privacy-page .privacy-new-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.28;
+  background-image:
+    radial-gradient(circle, rgba(14, 59, 3, 0.12) 1px, transparent 1.4px);
+  background-size: 34px 34px;
+  pointer-events: none;
+}
+
+/* =========================================================
+   INTRO
+   ========================================================= */
+
+body.privacy-page .privacy-new-intro {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: 24px;
+  width: min(1180px, 100%);
+  max-width: none;
+  margin: 0 auto 32px;
+}
+
+body.privacy-page .privacy-intro-card,
+body.privacy-page .privacy-side-card,
+body.privacy-page .privacy-new-card {
+  --privacy-rotate-x: 0deg;
+  --privacy-rotate-y: 0deg;
+  --privacy-shine-x: 50%;
+  --privacy-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--privacy-border);
+  border-radius: var(--privacy-radius);
+  background:
+    radial-gradient(
+      circle at var(--privacy-shine-x) var(--privacy-shine-y),
+      rgba(92, 228, 19, 0.1),
+      transparent 29%
+    ),
+    rgba(255, 255, 255, 0.78);
+  box-shadow: 0 22px 62px rgba(14, 59, 3, 0.08);
+  transform:
+    perspective(950px)
+    rotateX(var(--privacy-rotate-x))
+    rotateY(var(--privacy-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+body.privacy-page .privacy-intro-card {
+  padding: 45px;
+}
+
+body.privacy-page .privacy-intro-card::before {
+  content: "01";
+  position: absolute;
+  right: 24px;
+  bottom: -18px;
+  z-index: -1;
+  color: rgba(14, 59, 3, 0.045);
+  font-size: 150px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.privacy-page .privacy-intro-card > span {
+  display: inline-flex;
+  margin-bottom: 18px;
+  align-items: center;
+  gap: 10px;
+  color: var(--privacy-green);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+body.privacy-page .privacy-intro-card > span::before {
+  content: "";
+  width: 36px;
+  height: 2px;
+  background:
+    linear-gradient(90deg, var(--privacy-accent), transparent);
+}
+
+body.privacy-page .privacy-intro-card h2 {
+  max-width: 780px;
+  margin: 0 0 18px;
+  color: var(--privacy-dark);
+  font-size: clamp(37px, 4.8vw, 60px);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+body.privacy-page .privacy-intro-card p {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: var(--privacy-text-soft);
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+body.privacy-page .privacy-side-card {
+  padding: 37px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(92, 228, 19, 0.14), transparent 30%),
+    linear-gradient(145deg, #0d3a05, #1e5a12);
+  color: var(--privacy-white);
+  box-shadow: var(--privacy-shadow-strong);
+}
+
+body.privacy-page .privacy-side-card::before {
+  content: "";
+  position: absolute;
+  top: -45px;
+  right: -45px;
+  z-index: -1;
+  width: 160px;
+  height: 160px;
+  border: 26px solid rgba(223, 245, 203, 0.08);
+  border-radius: 50%;
+  animation: privacySlowSpin 16s linear infinite;
+}
+
+body.privacy-page .privacy-side-card h3 {
+  margin: 0 0 22px;
+  color: var(--privacy-white);
+  font-size: 27px;
+  line-height: 1.15;
+}
+
+body.privacy-page .privacy-side-card ul {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body.privacy-page .privacy-side-card li {
+  position: relative;
+  padding-left: 33px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+body.privacy-page .privacy-side-card li::before {
+  content: "✓";
+  position: absolute;
+  top: 1px;
+  left: 0;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(92, 228, 19, 0.16);
+  color: var(--privacy-accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* =========================================================
+   POLICY CARDS
+   ========================================================= */
+
+body.privacy-page .privacy-new-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  width: min(1180px, 100%);
+  max-width: none;
+  margin: 0 auto;
+}
+
+body.privacy-page .privacy-new-card {
+  min-height: 340px;
+  padding: 36px;
+}
+
+body.privacy-page .privacy-new-card::before {
+  content: "";
+  position: absolute;
+  top: -52px;
+  right: -50px;
+  z-index: -1;
+  width: 170px;
+  height: 170px;
+  border: 28px solid rgba(92, 228, 19, 0.06);
+  border-radius: 50%;
+  transition: transform 0.42s ease;
+}
+
+body.privacy-page .privacy-new-card::after {
+  content: "";
+  position: absolute;
+  right: 30px;
+  bottom: 0;
+  left: 30px;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--privacy-accent),
+      transparent
+    );
+  transform: scaleX(0.18);
+  transition: transform 0.38s ease;
+}
+
+body.privacy-page .privacy-new-card:hover {
+  z-index: 3;
+  border-color: rgba(37, 75, 16, 0.3);
+  box-shadow:
+    0 31px 74px rgba(14, 59, 3, 0.14),
+    0 0 28px rgba(92, 228, 19, 0.08);
+}
+
+body.privacy-page .privacy-new-card:hover::before {
+  transform: rotate(36deg) scale(1.1);
+}
+
+body.privacy-page .privacy-new-card:hover::after {
+  transform: scaleX(1);
+}
+
+body.privacy-page .privacy-card-number {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 30px;
+  place-items: center;
+  border: 1px solid rgba(92, 228, 19, 0.22);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(92, 228, 19, 0.18),
+      rgba(37, 75, 16, 0.08)
+    );
+  color: var(--privacy-green);
+  font-size: 17px;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease,
+    color 0.3s ease;
+}
+
+body.privacy-page .privacy-new-card:hover .privacy-card-number {
+  background: var(--privacy-dark);
+  color: var(--privacy-white);
+  transform: translateY(-4px) rotate(-3deg);
+}
+
+body.privacy-page .privacy-new-card h3 {
+  margin: 0 0 15px;
+  color: var(--privacy-dark);
+  font-size: 27px;
+  line-height: 1.15;
+}
+
+body.privacy-page .privacy-new-card p {
+  margin: 0;
+  color: var(--privacy-text-soft);
+  font-size: 16px;
+  line-height: 1.78;
+}
+
+body.privacy-page .privacy-new-card a {
+  color: var(--privacy-green);
+  font-weight: 900;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* =========================================================
+   CONTACT PANEL
+   ========================================================= */
+
+body.privacy-page .privacy-contact-panel {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: min(1180px, 100%);
+  max-width: none;
+  margin: 34px auto 0;
+  padding: 45px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+  overflow: hidden;
+  border: 1px solid rgba(223, 245, 203, 0.16);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(92, 228, 19, 0.14), transparent 30%),
+    linear-gradient(145deg, #0b3304, #1f5b13);
+  color: var(--privacy-white);
+  box-shadow: var(--privacy-shadow-strong);
+}
+
+body.privacy-page .privacy-contact-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.1;
+  background:
+    repeating-linear-gradient(
+      -34deg,
+      transparent 0 22px,
+      rgba(255, 255, 255, 0.14) 22px 23px
+    );
+  animation: privacyStripeMove 15s linear infinite;
+}
+
+body.privacy-page .privacy-contact-panel::after {
+  content: "?";
+  position: absolute;
+  right: 24%;
+  bottom: -58px;
+  z-index: -1;
+  color: rgba(255, 255, 255, 0.055);
+  font-size: 220px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.privacy-page .privacy-contact-panel > div {
+  position: relative;
+  z-index: 2;
+}
+
+body.privacy-page .privacy-contact-panel span {
+  display: inline-flex;
+  margin-bottom: 13px;
+  align-items: center;
+  gap: 9px;
+  color: var(--privacy-mint);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+body.privacy-page .privacy-contact-panel span::before {
+  content: "✦";
+  color: var(--privacy-accent);
+}
+
+body.privacy-page .privacy-contact-panel h2 {
+  max-width: 760px;
+  margin: 0 0 13px;
+  color: var(--privacy-white);
+  font-size: clamp(35px, 4.5vw, 56px);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+body.privacy-page .privacy-contact-panel p {
+  max-width: 740px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.69);
+  font-size: 17px;
+  line-height: 1.72;
+}
+
+body.privacy-page .privacy-contact-button {
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  display: inline-flex;
+  min-height: 56px;
+  padding: 15px 25px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--privacy-accent);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--privacy-accent),
+      #b7ef72
+    );
+  color: var(--privacy-dark);
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 15px 36px rgba(92, 228, 19, 0.2);
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+body.privacy-page .privacy-contact-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      110deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.7) 46%,
+      transparent 72%
+    );
+  transform: translateX(-125%);
+  transition: transform 0.62s ease;
+}
+
+body.privacy-page .privacy-contact-button:hover {
+  color: var(--privacy-dark);
+  transform: translateY(-4px);
+  box-shadow: 0 22px 48px rgba(92, 228, 19, 0.27);
+}
+
+body.privacy-page .privacy-contact-button:hover::before {
+  transform: translateX(125%);
+}
+
+/* =========================================================
+   NEWSLETTER — PRIVACY PAGE
+   ========================================================= */
+
+body.privacy-page .bottom-newsletter {
+  position: relative;
+  padding: 100px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(92, 228, 19, 0.11), transparent 28%),
+    linear-gradient(180deg, #f6f9ed, var(--privacy-bg));
+}
+
+body.privacy-page .bottom-newsletter-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.9fr);
+  gap: 42px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 50px;
+  overflow: hidden;
+  border: 1px solid rgba(223, 245, 203, 0.18);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(92, 228, 19, 0.13), transparent 30%),
+    linear-gradient(145deg, #0b3304, #1f5b13);
+  color: var(--privacy-white);
+  box-shadow: var(--privacy-shadow-strong);
+}
+
+body.privacy-page .bottom-newsletter-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.09;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 22px,
+      rgba(255, 255, 255, 0.13) 22px 23px
+    );
+  animation: privacyStripeMove 16s linear infinite reverse;
+}
+
+body.privacy-page .bottom-newsletter-label {
+  display: inline-flex;
+  margin-bottom: 18px;
+  align-items: center;
+  gap: 10px;
+  color: var(--privacy-mint);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+body.privacy-page .bottom-newsletter-label::before {
+  content: "✦";
+  color: var(--privacy-accent);
+}
+
+body.privacy-page .bottom-newsletter h2 {
+  margin: 0 0 17px;
+  color: var(--privacy-white);
+  font-size: clamp(35px, 4.2vw, 57px);
+  line-height: 1.03;
+}
+
+body.privacy-page .bottom-newsletter-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.67);
+  font-size: 17px;
+  line-height: 1.74;
+}
+
+body.privacy-page .bottom-newsletter-form {
+  align-self: center;
+  padding: 27px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+}
+
+body.privacy-page .bottom-newsletter-row {
+  display: flex;
+  gap: 11px;
+  margin-bottom: 17px;
+}
+
+body.privacy-page .bottom-newsletter-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(223, 245, 203, 0.24);
+  border-radius: 16px;
+  outline: none;
+  background: var(--privacy-white);
+  color: var(--privacy-dark);
+  font-size: 15px;
+}
+
+body.privacy-page .bottom-newsletter-row input:focus {
+  border-color: var(--privacy-accent);
+  box-shadow: 0 0 0 4px rgba(92, 228, 19, 0.14);
+}
+
+body.privacy-page .bottom-newsletter-row button {
+  padding: 15px 23px;
+  border: 1px solid var(--privacy-accent);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--privacy-accent),
+      #b7ef72
+    );
+  color: var(--privacy-dark);
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+body.privacy-page .bottom-newsletter-row button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(92, 228, 19, 0.22);
+}
+
+body.privacy-page .bottom-newsletter-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+body.privacy-page .bottom-newsletter-consent input {
+  margin-top: 4px;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+body.privacy-page .bottom-newsletter-consent span,
+body.privacy-page .bottom-newsletter-note {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.privacy-page .bottom-newsletter-consent a {
+  color: var(--privacy-mint);
+  font-weight: 800;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+body.privacy-page .site-footer {
+  border-top: 1px solid rgba(223, 245, 203, 0.13);
+  background:
+    radial-gradient(circle at 90% 8%, rgba(92, 228, 19, 0.12), transparent 27%),
+    linear-gradient(145deg, #082d03 0%, #1a4f10 100%);
+}
+
+body.privacy-page .footer-socials a:hover {
+  background: var(--privacy-accent);
+  color: var(--privacy-dark);
+}
+
+/* =========================================================
+   REVEAL + TILT
+   ========================================================= */
+
+body.privacy-page .privacy-reveal {
+  opacity: 0;
+  transform: translateY(38px) scale(0.988);
+  transition:
+    opacity 0.72s ease var(--privacy-delay, 0ms),
+    transform 0.72s cubic-bezier(0.18, 0.8, 0.24, 1) var(--privacy-delay, 0ms);
+}
+
+body.privacy-page .privacy-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+body.privacy-page .privacy-tilt {
+  will-change: transform;
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes privacyGridDrift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 68px 68px, 68px 68px;
+  }
+}
+
+@keyframes privacyGhostText {
+  from {
+    transform: rotate(-4deg) translateX(-20px);
+  }
+
+  to {
+    transform: rotate(-2deg) translateX(28px);
+  }
+}
+
+@keyframes privacyGlowOne {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(34px, 27px) scale(1.14);
+  }
+}
+
+@keyframes privacyGlowTwo {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-31px, -22px) scale(1.12);
+  }
+}
+
+@keyframes privacySlowSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes privacyStripeMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 180px 0;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  body.privacy-page .header-inner {
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 74px 12px 5%;
+  }
+
+  body.privacy-page .nav {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 5%;
+    right: 5%;
+    display: none;
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid rgba(37, 75, 16, 0.18);
+    border-radius: 18px;
+    background: rgba(251, 253, 244, 0.98);
+    box-shadow: 0 20px 55px rgba(14, 59, 3, 0.18);
+  }
+
+  body.privacy-page .nav.open {
+    display: flex;
+  }
+
+  body.privacy-page .nav a {
+    padding: 13px 14px;
+  }
+
+  body.privacy-page .nav a::after {
+    display: none;
+  }
+
+  body.privacy-page .privacy-new-meta {
+    grid-template-columns: 1fr;
+  }
+
+  body.privacy-page .privacy-new-intro {
+    grid-template-columns: 1fr;
+  }
+
+  body.privacy-page .privacy-new-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.privacy-page .privacy-contact-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  body.privacy-page .bottom-newsletter-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   PHONE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  body.privacy-page .privacy-new-hero {
+    padding: 78px 6% 70px;
+  }
+
+  body.privacy-page .privacy-new-hero > .privacy-new-container > p {
+    font-size: 17px;
+  }
+
+  body.privacy-page .privacy-trust-path i {
+    display: none;
+  }
+
+  body.privacy-page .privacy-new-page,
+  body.privacy-page .bottom-newsletter {
+    padding: 72px 6%;
+  }
+
+  body.privacy-page .privacy-intro-card,
+  body.privacy-page .privacy-side-card,
+  body.privacy-page .privacy-new-card,
+  body.privacy-page .privacy-contact-panel,
+  body.privacy-page .bottom-newsletter-card {
+    padding: 29px;
+  }
+
+  body.privacy-page .privacy-contact-button {
+    width: 100%;
+  }
+
+  body.privacy-page .bottom-newsletter-row {
+    flex-direction: column;
+  }
+
+  body.privacy-page .bottom-newsletter-row button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  body.privacy-page .privacy-new-hero h1 {
+    font-size: 43px;
+  }
+
+  body.privacy-page .privacy-intro-card h2,
+  body.privacy-page .privacy-contact-panel h2 {
+    font-size: 35px;
+  }
+
+  body.privacy-page .privacy-new-badge {
+    font-size: 10px;
+    letter-spacing: 0.13em;
+  }
+
+  body.privacy-page .privacy-intro-card,
+  body.privacy-page .privacy-side-card,
+  body.privacy-page .privacy-new-card,
+  body.privacy-page .privacy-contact-panel,
+  body.privacy-page .bottom-newsletter-card {
+    padding: 24px;
+  }
+
+  body.privacy-page .privacy-new-card {
+    min-height: auto;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  body.privacy-page *,
+  body.privacy-page *::before,
+  body.privacy-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  body.privacy-page .privacy-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

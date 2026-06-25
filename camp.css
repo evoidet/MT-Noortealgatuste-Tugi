@@ -1,0 +1,2768 @@
+/* =========================================================
+   CAMP.CSS — AINULT PROJEKTIKIRJUTAMISE LAAGRI LEHT
+   Laadida laager.html lehel pärast /style.css faili.
+   Kõik reeglid on piiratud body.camp-page klassiga.
+   ========================================================= */
+
+body.camp-page {
+  --camp-forest: #082f27;
+  --camp-forest-deep: #041f1a;
+  --camp-green: #168a70;
+  --camp-green-bright: #2fc39a;
+  --camp-mint: #c8f4e5;
+  --camp-sky: #5eb8dd;
+  --camp-blue: #123d52;
+  --camp-yellow: #f4d35e;
+  --camp-cream: #f7f5ea;
+  --camp-white: #ffffff;
+  --camp-text: #102d25;
+  --camp-text-soft: rgba(16, 45, 37, 0.72);
+  --camp-border: rgba(8, 47, 39, 0.14);
+  --camp-shadow: 0 28px 80px rgba(8, 47, 39, 0.15);
+  --camp-shadow-dark: 0 34px 95px rgba(2, 20, 17, 0.42);
+  --camp-radius: 28px;
+
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--camp-cream);
+  color: var(--camp-text);
+}
+
+body.camp-page.camp-lightbox-open {
+  overflow: hidden;
+}
+
+body.camp-page .camp-main {
+  position: relative;
+  overflow: clip;
+  background: var(--camp-cream);
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+body.camp-page .header {
+  border-bottom: 1px solid rgba(47, 195, 154, 0.2);
+  background: rgba(247, 245, 234, 0.92);
+  box-shadow: 0 10px 34px rgba(8, 47, 39, 0.09);
+  backdrop-filter: blur(18px);
+}
+
+body.camp-page .logo,
+body.camp-page .logo span,
+body.camp-page .nav a {
+  color: var(--camp-forest);
+}
+
+body.camp-page .nav a {
+  position: relative;
+}
+
+body.camp-page .nav a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--camp-green-bright),
+      transparent
+    );
+  transform: scaleX(0);
+  transition: transform 0.28s ease;
+}
+
+body.camp-page .nav a:hover {
+  color: var(--camp-green);
+}
+
+body.camp-page .nav a:hover::after {
+  transform: scaleX(1);
+}
+
+body.camp-page .menu-toggle {
+  border: 1px solid rgba(22, 138, 112, 0.35);
+  border-radius: 14px;
+  background: rgba(22, 138, 112, 0.08);
+  color: var(--camp-forest);
+}
+
+/* =========================================================
+   SCROLL PROGRESS
+   ========================================================= */
+
+body.camp-page .camp-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 13000;
+  width: var(--camp-progress, 0%);
+  height: 4px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--camp-green-bright),
+      var(--camp-sky),
+      var(--camp-yellow),
+      var(--camp-green-bright)
+    );
+  box-shadow:
+    0 0 18px rgba(47, 195, 154, 0.68),
+    0 0 26px rgba(94, 184, 221, 0.28);
+  transition: width 0.08s linear;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+body.camp-page .camp-hero {
+  --camp-pointer-x: 50%;
+  --camp-pointer-y: 42%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 800px;
+  padding: 112px 7% 150px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at var(--camp-pointer-x) var(--camp-pointer-y),
+      rgba(47, 195, 154, 0.19),
+      transparent 23%
+    ),
+    radial-gradient(circle at 10% 17%, rgba(94, 184, 221, 0.17), transparent 30%),
+    radial-gradient(circle at 91% 80%, rgba(244, 211, 94, 0.13), transparent 30%),
+    linear-gradient(137deg, #041f1a 0%, #082f27 50%, #123d52 100%);
+  color: var(--camp-white);
+}
+
+body.camp-page .camp-hero::before {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  z-index: -4;
+  opacity: 0.11;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 58px 58px;
+  transform: perspective(700px) rotateX(58deg) translateY(-12%);
+  transform-origin: center bottom;
+  animation: campGridMove 17s linear infinite;
+}
+
+body.camp-page .camp-hero::after {
+  content: "IDEE • TEADMINE • PROJEKT • MÕJU";
+  position: absolute;
+  right: -130px;
+  bottom: 20px;
+  z-index: -3;
+  color: rgba(255, 255, 255, 0.03);
+  font-size: clamp(70px, 10vw, 150px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  animation: campGhostText 11s ease-in-out infinite alternate;
+}
+
+body.camp-page .camp-hero-grid-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  opacity: 0.08;
+  background:
+    radial-gradient(circle at center, #fff 1px, transparent 1.5px);
+  background-size: 31px 31px;
+  pointer-events: none;
+  animation: campDotsDrift 18s linear infinite;
+}
+
+body.camp-page .camp-hero-inner {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
+  gap: 78px;
+  width: min(1220px, 100%);
+  margin: 0 auto;
+  align-items: center;
+}
+
+body.camp-page .camp-hero-content {
+  position: relative;
+  z-index: 3;
+  animation: campHeroCopy 0.95s cubic-bezier(0.18, 0.8, 0.2, 1) both;
+}
+
+body.camp-page .camp-label {
+  display: inline-flex;
+  margin-bottom: 28px;
+  padding: 11px 18px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(200, 244, 229, 0.44);
+  border-radius: 999px;
+  background: rgba(200, 244, 229, 0.075);
+  color: var(--camp-mint);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  box-shadow: 0 12px 30px rgba(1, 16, 13, 0.2);
+}
+
+body.camp-page .camp-label::before {
+  content: "✦";
+  color: var(--camp-yellow);
+  animation: campSparkleSpin 4s linear infinite;
+}
+
+body.camp-page .camp-hero h1 {
+  max-width: 820px;
+  margin: 0 0 27px;
+  color: var(--camp-white);
+  font-size: clamp(48px, 6vw, 82px);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  text-shadow: 0 20px 55px rgba(0, 0, 0, 0.34);
+}
+
+body.camp-page .camp-hero h1 span {
+  display: block;
+  color: var(--camp-mint);
+}
+
+body.camp-page .camp-hero-content > p {
+  max-width: 700px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 19px;
+  line-height: 1.78;
+}
+
+body.camp-page .camp-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 38px;
+}
+
+body.camp-page .camp-buttons a,
+body.camp-page .camp-registration .button {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-height: 56px;
+  padding: 15px 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  text-decoration: none;
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    background 0.28s ease,
+    color 0.28s ease;
+}
+
+body.camp-page .camp-buttons a::before,
+body.camp-page .camp-registration .button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      110deg,
+      transparent 18%,
+      rgba(255, 255, 255, 0.65) 46%,
+      transparent 72%
+    );
+  transform: translateX(-125%);
+  transition: transform 0.6s ease;
+}
+
+body.camp-page .camp-buttons a:hover::before,
+body.camp-page .camp-registration .button:hover::before {
+  transform: translateX(125%);
+}
+
+body.camp-page .camp-buttons a:hover,
+body.camp-page .camp-registration .button:hover {
+  transform: translateY(-4px);
+}
+
+body.camp-page .camp-primary-button,
+body.camp-page .camp-registration .button {
+  border: 1px solid var(--camp-green-bright);
+  background:
+    linear-gradient(
+      135deg,
+      var(--camp-green-bright),
+      var(--camp-green)
+    );
+  color: var(--camp-white);
+  box-shadow:
+    0 16px 38px rgba(47, 195, 154, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+body.camp-page .camp-primary-button:hover,
+body.camp-page .camp-registration .button:hover {
+  background:
+    linear-gradient(
+      135deg,
+      #46d4ac,
+      var(--camp-green-bright)
+    );
+  color: var(--camp-forest-deep);
+  box-shadow:
+    0 22px 50px rgba(47, 195, 154, 0.33),
+    0 0 28px rgba(200, 244, 229, 0.14);
+}
+
+body.camp-page .camp-secondary-button {
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--camp-white);
+  backdrop-filter: blur(12px);
+}
+
+body.camp-page .camp-secondary-button:hover {
+  border-color: rgba(200, 244, 229, 0.62);
+  background: rgba(200, 244, 229, 0.1);
+  color: var(--camp-mint);
+}
+
+body.camp-page .camp-hero-path {
+  display: flex;
+  margin-top: 34px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+body.camp-page .camp-hero-path span {
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+body.camp-page .camp-hero-path i {
+  color: var(--camp-yellow);
+  font-style: normal;
+}
+
+/* Hero visuaal */
+
+body.camp-page .camp-hero-visual {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+
+  position: relative;
+  min-height: 570px;
+  transform:
+    perspective(1200px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transform-style: preserve-3d;
+  animation: campHeroVisualEntrance 1.05s 0.12s cubic-bezier(0.18, 0.8, 0.2, 1) both;
+  transition: transform 0.18s ease-out;
+}
+
+body.camp-page .camp-idea-map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid rgba(200, 244, 229, 0.24);
+  border-radius: 48px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(47, 195, 154, 0.13), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025));
+  box-shadow:
+    var(--camp-shadow-dark),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+}
+
+body.camp-page .camp-idea-map::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.11;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 38px 38px;
+  animation: campMapGrid 14s linear infinite;
+}
+
+body.camp-page .camp-map-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  width: 235px;
+  min-height: 205px;
+  padding: 30px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(244, 211, 94, 0.36);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.2), transparent 30%),
+    linear-gradient(145deg, #168a70, #0b5f4f);
+  color: var(--camp-white);
+  text-align: center;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.34),
+    0 0 0 12px rgba(47, 195, 154, 0.07);
+  transform: translate(-50%, -50%) translateZ(38px);
+  animation: campCoreFloat 4s ease-in-out infinite;
+}
+
+body.camp-page .camp-map-core span {
+  margin-bottom: 10px;
+  color: var(--camp-yellow);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+body.camp-page .camp-map-core strong {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 30px;
+  line-height: 1.05;
+}
+
+body.camp-page .camp-map-core p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+body.camp-page .camp-map-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px dashed rgba(200, 244, 229, 0.28);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+body.camp-page .camp-map-ring-one {
+  width: 390px;
+  height: 390px;
+  animation: campSlowSpin 18s linear infinite;
+}
+
+body.camp-page .camp-map-ring-two {
+  width: 505px;
+  height: 505px;
+  border-color: rgba(94, 184, 221, 0.18);
+  animation: campSlowSpinReverse 25s linear infinite;
+}
+
+body.camp-page .camp-map-node {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  min-width: 120px;
+  padding: 12px 16px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(5, 31, 26, 0.78);
+  color: var(--camp-white);
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(12px);
+}
+
+body.camp-page .camp-map-node span {
+  color: var(--camp-yellow);
+  font-size: 11px;
+}
+
+body.camp-page .camp-map-node-one {
+  top: 12%;
+  left: 11%;
+  animation: campNodeOne 5s ease-in-out infinite;
+}
+
+body.camp-page .camp-map-node-two {
+  top: 15%;
+  right: 8%;
+  animation: campNodeTwo 5.8s ease-in-out infinite;
+}
+
+body.camp-page .camp-map-node-three {
+  right: 4%;
+  bottom: 25%;
+  animation: campNodeThree 5.2s ease-in-out infinite;
+}
+
+body.camp-page .camp-map-node-four {
+  bottom: 9%;
+  left: 18%;
+  animation: campNodeFour 6.1s ease-in-out infinite;
+}
+
+body.camp-page .camp-map-node-five {
+  top: 46%;
+  left: 3%;
+  animation: campNodeFive 5.5s ease-in-out infinite;
+}
+
+body.camp-page .camp-map-lines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background:
+    linear-gradient(28deg, transparent 49.5%, rgba(200, 244, 229, 0.23) 50%, transparent 50.5%),
+    linear-gradient(-24deg, transparent 49.5%, rgba(94, 184, 221, 0.2) 50%, transparent 50.5%);
+  animation: campLinePulse 3s ease-in-out infinite alternate;
+}
+
+body.camp-page .camp-scroll-cue {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+
+body.camp-page .camp-scroll-cue i {
+  display: block;
+  width: 28px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  position: relative;
+}
+
+body.camp-page .camp-scroll-cue i::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 4px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--camp-yellow);
+  transform: translateX(-50%);
+  animation: campScrollDot 1.7s ease-in-out infinite;
+}
+
+body.camp-page .camp-hero-glow {
+  position: absolute;
+  z-index: 1;
+  border-radius: 50%;
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+body.camp-page .camp-hero-glow-one {
+  top: 8%;
+  left: -70px;
+  width: 270px;
+  height: 270px;
+  background: rgba(94, 184, 221, 0.14);
+  animation: campGlowOne 7s ease-in-out infinite;
+}
+
+body.camp-page .camp-hero-glow-two {
+  right: -90px;
+  bottom: 8%;
+  width: 340px;
+  height: 340px;
+  background: rgba(47, 195, 154, 0.13);
+  animation: campGlowTwo 8.5s ease-in-out infinite;
+}
+
+/* =========================================================
+   QUICK INFO
+   ========================================================= */
+
+body.camp-page .camp-information {
+  position: relative;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: min(1160px, calc(100% - 40px));
+  margin: -70px auto 0;
+  padding: 0;
+}
+
+body.camp-page .camp-information-card {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+  --camp-shine-x: 50%;
+  --camp-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 158px;
+  padding: 29px 30px;
+  overflow: hidden;
+  border: 1px solid rgba(22, 138, 112, 0.2);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at var(--camp-shine-x) var(--camp-shine-y),
+      rgba(47, 195, 154, 0.13),
+      transparent 29%
+    ),
+    rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 23px 58px rgba(8, 47, 39, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform:
+    perspective(900px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  backdrop-filter: blur(16px);
+}
+
+body.camp-page .camp-information-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 22px;
+  left: 22px;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--camp-green-bright),
+      transparent
+    );
+}
+
+body.camp-page .camp-information-card::after {
+  content: "↗";
+  position: absolute;
+  right: 18px;
+  bottom: 8px;
+  color: rgba(22, 138, 112, 0.1);
+  font-size: 70px;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform 0.35s ease;
+}
+
+body.camp-page .camp-information-card:hover {
+  border-color: rgba(22, 138, 112, 0.45);
+  box-shadow:
+    0 31px 74px rgba(8, 47, 39, 0.2),
+    0 0 28px rgba(47, 195, 154, 0.1);
+}
+
+body.camp-page .camp-information-card:hover::after {
+  transform: translate(4px, -4px) rotate(8deg);
+}
+
+body.camp-page .camp-information-card > span {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--camp-green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+body.camp-page .camp-information-card strong {
+  position: relative;
+  z-index: 2;
+  display: block;
+  color: var(--camp-forest);
+  font-size: clamp(19px, 2vw, 25px);
+  line-height: 1.22;
+}
+
+/* =========================================================
+   COMMON CAMP SECTIONS
+   ========================================================= */
+
+body.camp-page .camp-section {
+  width: min(1180px, calc(100% - 40px));
+  max-width: none;
+  margin: 0 auto;
+  padding: 112px 0;
+}
+
+body.camp-page .camp-section-heading {
+  max-width: 860px;
+  margin-bottom: 48px;
+}
+
+body.camp-page .camp-section-label {
+  display: inline-flex;
+  margin-bottom: 18px;
+  align-items: center;
+  gap: 11px;
+  color: var(--camp-green);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+body.camp-page .camp-section-label::before {
+  content: "";
+  width: 38px;
+  height: 2px;
+  background:
+    linear-gradient(90deg, var(--camp-green-bright), transparent);
+}
+
+body.camp-page .camp-section h2,
+body.camp-page .camp-audience h2,
+body.camp-page .camp-program h2,
+body.camp-page .camp-registration h2,
+body.camp-page .camp-support h2,
+body.camp-page .camp-contact h2 {
+  margin: 0 0 19px;
+  color: var(--camp-forest);
+  font-size: clamp(39px, 5vw, 64px);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+body.camp-page .camp-section-heading > p,
+body.camp-page .camp-section p,
+body.camp-page .camp-audience p,
+body.camp-page .camp-program p,
+body.camp-page .camp-support p {
+  margin: 0;
+  color: var(--camp-text-soft);
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+/* =========================================================
+   ABOUT
+   ========================================================= */
+
+body.camp-page #camp-about {
+  position: relative;
+  padding-top: 135px;
+}
+
+body.camp-page #camp-about::before {
+  content: "IDEEST PROJEKTINI";
+  position: absolute;
+  top: 68px;
+  right: -40px;
+  color: rgba(8, 47, 39, 0.035);
+  font-size: clamp(70px, 12vw, 170px);
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+
+body.camp-page .camp-about-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.32fr) minmax(290px, 0.68fr);
+  gap: 28px;
+}
+
+body.camp-page .camp-about-text {
+  position: relative;
+  padding: 47px;
+  border: 1px solid rgba(22, 138, 112, 0.18);
+  border-radius: var(--camp-radius);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 25px 65px rgba(8, 47, 39, 0.09);
+  backdrop-filter: blur(12px);
+}
+
+body.camp-page .camp-about-text::before {
+  content: "↗";
+  position: absolute;
+  top: 18px;
+  right: 27px;
+  color: rgba(22, 138, 112, 0.11);
+  font-size: 95px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.camp-page .camp-about-text p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--camp-text-soft);
+  font-size: 18px;
+  line-height: 1.82;
+}
+
+body.camp-page .camp-about-text p + p {
+  margin-top: 22px;
+}
+
+body.camp-page .camp-highlight-card {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+  --camp-shine-x: 50%;
+  --camp-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 300px;
+  padding: 35px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  overflow: hidden;
+  border: 1px solid rgba(200, 244, 229, 0.2);
+  border-radius: var(--camp-radius);
+  background:
+    radial-gradient(
+      circle at var(--camp-shine-x) var(--camp-shine-y),
+      rgba(255, 255, 255, 0.18),
+      transparent 28%
+    ),
+    linear-gradient(145deg, var(--camp-green), var(--camp-forest));
+  color: var(--camp-white);
+  box-shadow: 0 26px 68px rgba(8, 47, 39, 0.22);
+  transform:
+    perspective(900px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.3s ease;
+}
+
+body.camp-page .camp-highlight-card::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -45px;
+  z-index: -1;
+  width: 185px;
+  height: 185px;
+  border: 30px solid rgba(200, 244, 229, 0.08);
+  border-radius: 50%;
+  animation: campSlowSpin 15s linear infinite;
+}
+
+body.camp-page .camp-highlight-card:hover {
+  box-shadow:
+    0 35px 82px rgba(8, 47, 39, 0.3),
+    0 0 30px rgba(47, 195, 154, 0.12);
+}
+
+body.camp-page .camp-highlight-card strong {
+  position: relative;
+  z-index: 2;
+  display: block;
+  margin-bottom: 10px;
+  color: var(--camp-yellow);
+  font-size: clamp(75px, 8vw, 108px);
+  font-weight: 900;
+  line-height: 0.82;
+}
+
+body.camp-page .camp-highlight-card span {
+  position: relative;
+  z-index: 2;
+  max-width: 230px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.45;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   COUNTDOWN
+   ========================================================= */
+
+body.camp-page .camp-countdown {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(270px, 0.72fr) minmax(0, 1.28fr);
+  gap: 42px;
+  width: min(1120px, calc(100% - 40px));
+  max-width: none;
+  margin: 0 auto 112px;
+  padding: 43px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(200, 244, 229, 0.2);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(244, 211, 94, 0.13), transparent 34%),
+    linear-gradient(145deg, #041f1a, #0d3d36 58%, #123d52);
+  color: var(--camp-white);
+  box-shadow: var(--camp-shadow-dark);
+}
+
+body.camp-page .camp-countdown::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.12;
+  background:
+    repeating-linear-gradient(
+      -35deg,
+      transparent 0 20px,
+      rgba(255, 255, 255, 0.13) 20px 21px
+    );
+  animation: campStripeMove 14s linear infinite;
+}
+
+body.camp-page .camp-countdown-heading {
+  margin: 0;
+  text-align: left;
+}
+
+body.camp-page .camp-countdown-heading span {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--camp-mint);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+body.camp-page .camp-countdown-heading h3 {
+  margin: 0;
+  color: var(--camp-white);
+  font-size: clamp(28px, 3.5vw, 43px);
+  line-height: 1.08;
+}
+
+body.camp-page .camp-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+}
+
+body.camp-page .camp-countdown-item {
+  position: relative;
+  display: block;
+  min-height: 0;
+  padding: 23px 13px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.07);
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+body.camp-page .camp-countdown-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--camp-green-bright),
+      transparent
+    );
+}
+
+body.camp-page .camp-countdown-item strong {
+  display: block;
+  color: var(--camp-mint);
+  font-size: clamp(34px, 4vw, 55px);
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(47, 195, 154, 0.2);
+  animation: campCountPulse 2.8s ease-in-out infinite;
+}
+
+body.camp-page .camp-countdown-item:nth-child(2) strong {
+  animation-delay: -0.4s;
+}
+
+body.camp-page .camp-countdown-item:nth-child(3) strong {
+  animation-delay: -0.8s;
+}
+
+body.camp-page .camp-countdown-item:nth-child(4) strong {
+  animation-delay: -1.2s;
+}
+
+body.camp-page .camp-countdown-item span {
+  display: block;
+  margin-top: 9px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+body.camp-page .camp-countdown-finished {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--camp-yellow);
+  font-weight: 900;
+  text-align: center;
+}
+
+/* =========================================================
+   AUDIENCE
+   ========================================================= */
+
+body.camp-page .camp-audience {
+  position: relative;
+  padding: 112px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 14%, rgba(94, 184, 221, 0.14), transparent 27%),
+    linear-gradient(180deg, #eef8f4 0%, #e8f4f0 100%);
+}
+
+body.camp-page .camp-audience::before {
+  content: "KELLELE?";
+  position: absolute;
+  right: -25px;
+  bottom: -25px;
+  color: rgba(8, 47, 39, 0.035);
+  font-size: clamp(100px, 18vw, 250px);
+  font-weight: 900;
+  line-height: 1;
+  transform: rotate(-6deg);
+}
+
+body.camp-page .camp-audience-container {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+body.camp-page .camp-audience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+body.camp-page .camp-audience-card {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+  --camp-shine-x: 50%;
+  --camp-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 320px;
+  padding: 33px;
+  overflow: hidden;
+  border: 1px solid rgba(22, 138, 112, 0.16);
+  border-radius: 26px;
+  background:
+    radial-gradient(
+      circle at var(--camp-shine-x) var(--camp-shine-y),
+      rgba(47, 195, 154, 0.14),
+      transparent 29%
+    ),
+    rgba(255, 255, 255, 0.78);
+  box-shadow: 0 20px 55px rgba(8, 47, 39, 0.08);
+  transform:
+    perspective(900px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+body.camp-page .camp-audience-card::before {
+  content: "";
+  position: absolute;
+  top: -45px;
+  right: -45px;
+  z-index: -1;
+  width: 155px;
+  height: 155px;
+  border: 24px solid rgba(47, 195, 154, 0.08);
+  border-radius: 50%;
+  transition: transform 0.4s ease;
+}
+
+body.camp-page .camp-audience-card::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  bottom: 0;
+  left: 28px;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--camp-green-bright),
+      transparent
+    );
+  transform: scaleX(0.2);
+  transition: transform 0.36s ease;
+}
+
+body.camp-page .camp-audience-card:hover {
+  z-index: 3;
+  border-color: rgba(22, 138, 112, 0.42);
+  box-shadow:
+    0 31px 74px rgba(8, 47, 39, 0.14),
+    0 0 28px rgba(47, 195, 154, 0.1);
+}
+
+body.camp-page .camp-audience-card:hover::before {
+  transform: rotate(35deg) scale(1.12);
+}
+
+body.camp-page .camp-audience-card:hover::after {
+  transform: scaleX(1);
+}
+
+body.camp-page .camp-audience-card > span {
+  display: block;
+  margin-bottom: 44px;
+  color: var(--camp-green);
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.camp-page .camp-audience-card h3 {
+  margin: 0 0 14px;
+  color: var(--camp-forest);
+  font-size: 26px;
+  line-height: 1.12;
+}
+
+body.camp-page .camp-audience-card p {
+  margin: 0;
+  color: var(--camp-text-soft);
+  font-size: 16px;
+  line-height: 1.72;
+}
+
+/* =========================================================
+   SKILLS
+   ========================================================= */
+
+body.camp-page .camp-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+body.camp-page .camp-skill-card {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+  --camp-shine-x: 50%;
+  --camp-shine-y: 50%;
+
+  position: relative;
+  display: flex;
+  min-height: 205px;
+  padding: 29px;
+  gap: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(22, 138, 112, 0.15);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at var(--camp-shine-x) var(--camp-shine-y),
+      rgba(94, 184, 221, 0.12),
+      transparent 28%
+    ),
+    rgba(255, 255, 255, 0.76);
+  box-shadow: 0 18px 48px rgba(8, 47, 39, 0.07);
+  transform:
+    perspective(900px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+body.camp-page .camp-skill-card:hover {
+  border-color: rgba(94, 184, 221, 0.38);
+  box-shadow:
+    0 28px 68px rgba(8, 47, 39, 0.13),
+    0 0 26px rgba(94, 184, 221, 0.09);
+}
+
+body.camp-page .camp-skill-icon {
+  display: flex;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 19px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(47, 195, 154, 0.17),
+      rgba(94, 184, 221, 0.14)
+    );
+  color: var(--camp-green);
+  font-size: 25px;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+body.camp-page .camp-skill-card h3 {
+  margin: 0 0 9px;
+  color: var(--camp-forest);
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+body.camp-page .camp-skill-card p {
+  margin: 0;
+  color: var(--camp-text-soft);
+  font-size: 15px;
+  line-height: 1.68;
+}
+
+/* =========================================================
+   PROGRAM
+   ========================================================= */
+
+body.camp-page .camp-program {
+  position: relative;
+  padding: 118px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(94, 184, 221, 0.14), transparent 28%),
+    radial-gradient(circle at 92% 82%, rgba(47, 195, 154, 0.12), transparent 30%),
+    var(--camp-forest-deep);
+}
+
+body.camp-page .camp-program::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image:
+    radial-gradient(circle, #fff 1px, transparent 1.5px);
+  background-size: 29px 29px;
+  animation: campDotsDrift 17s linear infinite;
+}
+
+body.camp-page .camp-program-container {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+body.camp-page .camp-program h2 {
+  color: var(--camp-white);
+}
+
+body.camp-page .camp-program .camp-section-heading p {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+body.camp-page .camp-program .camp-section-label {
+  color: var(--camp-mint);
+}
+
+body.camp-page .camp-days {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+body.camp-page .camp-day-card {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+  --camp-shine-x: 50%;
+  --camp-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 430px;
+  padding: 39px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 244, 229, 0.16);
+  border-radius: 28px;
+  background:
+    radial-gradient(
+      circle at var(--camp-shine-x) var(--camp-shine-y),
+      rgba(255, 255, 255, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+  color: var(--camp-white);
+  box-shadow: 0 26px 72px rgba(0, 0, 0, 0.25);
+  transform:
+    perspective(900px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+body.camp-page .camp-day-card::before {
+  content: "";
+  position: absolute;
+  top: -55px;
+  right: -45px;
+  z-index: -1;
+  width: 190px;
+  height: 190px;
+  border: 30px solid rgba(47, 195, 154, 0.07);
+  border-radius: 50%;
+  transition: transform 0.42s ease;
+}
+
+body.camp-page .camp-day-card:hover {
+  border-color: rgba(200, 244, 229, 0.38);
+  box-shadow:
+    0 36px 86px rgba(0, 0, 0, 0.36),
+    0 0 30px rgba(47, 195, 154, 0.08);
+}
+
+body.camp-page .camp-day-card:hover::before {
+  transform: rotate(40deg) scale(1.14);
+}
+
+body.camp-page .camp-day-number {
+  display: inline-flex;
+  margin-bottom: 25px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(47, 195, 154, 0.15);
+  color: var(--camp-mint);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+body.camp-page .camp-day-card h3 {
+  margin: 0 0 22px;
+  color: var(--camp-white);
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+body.camp-page .camp-day-card ul {
+  margin: 0;
+  padding-left: 22px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.9;
+}
+
+body.camp-page .camp-day-card li::marker {
+  color: var(--camp-yellow);
+}
+
+/* =========================================================
+   SUPPORT AFTER CAMP
+   ========================================================= */
+
+body.camp-page .camp-support {
+  position: relative;
+  padding: 116px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(94, 184, 221, 0.13), transparent 27%),
+    radial-gradient(circle at 92% 86%, rgba(244, 211, 94, 0.12), transparent 28%),
+    linear-gradient(145deg, #0b5547, #123d52);
+}
+
+body.camp-page .camp-support::before {
+  content: "EDASI";
+  position: absolute;
+  right: -25px;
+  bottom: -45px;
+  color: rgba(255, 255, 255, 0.035);
+  font-size: clamp(120px, 20vw, 280px);
+  font-weight: 900;
+  line-height: 1;
+  transform: rotate(-7deg);
+}
+
+body.camp-page .camp-support-inner {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+body.camp-page .camp-section-heading-light h2 {
+  color: var(--camp-white);
+}
+
+body.camp-page .camp-section-heading-light > p {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+body.camp-page .camp-section-heading-light .camp-section-label {
+  color: var(--camp-mint);
+}
+
+body.camp-page .camp-support-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+body.camp-page .camp-support-card {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+  --camp-shine-x: 50%;
+  --camp-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 315px;
+  padding: 34px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 27px;
+  background:
+    radial-gradient(
+      circle at var(--camp-shine-x) var(--camp-shine-y),
+      rgba(255, 255, 255, 0.13),
+      transparent 28%
+    ),
+    rgba(255, 255, 255, 0.07);
+  color: var(--camp-white);
+  box-shadow: 0 24px 62px rgba(0, 0, 0, 0.2);
+  transform:
+    perspective(900px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+body.camp-page .camp-support-card::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--camp-yellow),
+      transparent
+    );
+  transform: scaleX(0.2);
+  transition: transform 0.35s ease;
+}
+
+body.camp-page .camp-support-card:hover {
+  border-color: rgba(200, 244, 229, 0.35);
+  box-shadow:
+    0 34px 80px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(47, 195, 154, 0.08);
+}
+
+body.camp-page .camp-support-card:hover::after {
+  transform: scaleX(1);
+}
+
+body.camp-page .camp-support-card > span {
+  display: block;
+  margin-bottom: 50px;
+  color: var(--camp-yellow);
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.camp-page .camp-support-card h3 {
+  margin: 0 0 14px;
+  color: var(--camp-white);
+  font-size: 27px;
+  line-height: 1.12;
+}
+
+body.camp-page .camp-support-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 16px;
+  line-height: 1.72;
+}
+
+/* =========================================================
+   GALLERY
+   ========================================================= */
+
+body.camp-page .camp-gallery-section {
+  position: relative;
+  padding: 118px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% 8%, rgba(47, 195, 154, 0.13), transparent 27%),
+    radial-gradient(circle at 91% 88%, rgba(94, 184, 221, 0.12), transparent 28%),
+    var(--camp-forest-deep);
+}
+
+body.camp-page .camp-gallery-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 54px,
+      rgba(255, 255, 255, 0.13) 54px 55px
+    );
+  animation: campGalleryLines 18s linear infinite;
+}
+
+body.camp-page .camp-gallery-header,
+body.camp-page .camp-gallery-grid {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, 100%);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+body.camp-page .camp-gallery-header {
+  display: flex;
+  gap: 45px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+
+body.camp-page .camp-gallery-header .camp-section-heading {
+  margin-bottom: 0;
+}
+
+body.camp-page .camp-gallery-header .camp-section-heading h2 {
+  color: var(--camp-white);
+}
+
+body.camp-page .camp-gallery-header .camp-section-heading > p {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+body.camp-page .camp-gallery-header .camp-section-label {
+  color: var(--camp-mint);
+}
+
+body.camp-page .camp-gallery-note {
+  flex: 0 0 250px;
+  padding: 23px;
+  border: 1px solid rgba(200, 244, 229, 0.2);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--camp-white);
+  backdrop-filter: blur(12px);
+}
+
+body.camp-page .camp-gallery-note strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--camp-yellow);
+  font-size: 23px;
+}
+
+body.camp-page .camp-gallery-note span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+body.camp-page .camp-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: 235px;
+  gap: 16px;
+}
+
+body.camp-page .camp-gallery-item {
+  --camp-rotate-x: 0deg;
+  --camp-rotate-y: 0deg;
+  --camp-shine-x: 50%;
+  --camp-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  grid-column: span 4;
+  overflow: hidden;
+  border: 1px solid rgba(200, 244, 229, 0.16);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at var(--camp-shine-x) var(--camp-shine-y),
+      rgba(255, 255, 255, 0.11),
+      transparent 27%
+    ),
+    linear-gradient(145deg, #0d4a40, #082f27);
+  color: var(--camp-white);
+  text-decoration: none;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.28);
+  transform:
+    perspective(950px)
+    rotateX(var(--camp-rotate-x))
+    rotateY(var(--camp-rotate-y));
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+body.camp-page .camp-gallery-item::before {
+  content: attr(data-label);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  padding: 25px;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+body.camp-page .camp-gallery-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(to top, rgba(4, 31, 26, 0.94), transparent 58%);
+  pointer-events: none;
+}
+
+body.camp-page .camp-gallery-featured {
+  grid-column: span 8;
+  grid-row: span 2;
+}
+
+body.camp-page .camp-gallery-tall {
+  grid-row: span 2;
+}
+
+body.camp-page .camp-gallery-wide {
+  grid-column: span 8;
+}
+
+body.camp-page .camp-gallery-item:hover {
+  z-index: 5;
+  border-color: rgba(200, 244, 229, 0.5);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.45),
+    0 0 32px rgba(47, 195, 154, 0.11);
+}
+
+body.camp-page .camp-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92) contrast(1.03);
+  transition:
+    transform 0.72s cubic-bezier(0.18, 0.8, 0.2, 1),
+    filter 0.45s ease;
+}
+
+body.camp-page .camp-gallery-item:hover img {
+  transform: scale(1.085);
+  filter: saturate(1.1) contrast(1.04);
+}
+
+body.camp-page .camp-gallery-item > span {
+  position: absolute;
+  right: 22px;
+  bottom: 20px;
+  left: 22px;
+  z-index: 3;
+  color: var(--camp-white);
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.18;
+  transform: translateY(5px);
+  transition: transform 0.32s ease;
+}
+
+body.camp-page .camp-gallery-item:hover > span {
+  transform: translateY(0);
+}
+
+/* Lightbox */
+
+body.camp-page .camp-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  display: flex;
+  padding: 28px;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(2, 18, 15, 0.93);
+  backdrop-filter: blur(19px);
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+body.camp-page .camp-lightbox::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(94, 184, 221, 0.16), transparent 29%),
+    radial-gradient(circle at 85% 85%, rgba(47, 195, 154, 0.11), transparent 27%);
+  pointer-events: none;
+}
+
+body.camp-page .camp-lightbox.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+body.camp-page .camp-lightbox-frame {
+  position: relative;
+  z-index: 2;
+  max-width: min(1120px, 92vw);
+  max-height: 86vh;
+  padding: 12px;
+  border: 1px solid rgba(200, 244, 229, 0.22);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 38px 110px rgba(0, 0, 0, 0.68),
+    0 0 0 10px rgba(47, 195, 154, 0.035);
+  transform: scale(0.94);
+  transition: transform 0.35s ease;
+}
+
+body.camp-page .camp-lightbox.is-open .camp-lightbox-frame {
+  transform: scale(1);
+}
+
+body.camp-page .camp-lightbox-frame img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 76vh;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+body.camp-page .camp-lightbox-frame p {
+  margin: 12px 6px 2px;
+  color: var(--camp-mint);
+  font-size: 20px;
+  font-weight: 900;
+  text-align: center;
+}
+
+body.camp-page .camp-lightbox-close {
+  position: absolute;
+  top: 22px;
+  right: 25px;
+  z-index: 4;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(200, 244, 229, 0.32);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--camp-white);
+  font-size: 35px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.27s ease,
+    background 0.27s ease,
+    color 0.27s ease;
+}
+
+body.camp-page .camp-lightbox-close:hover {
+  background: var(--camp-mint);
+  color: var(--camp-forest);
+  transform: rotate(90deg);
+}
+
+/* =========================================================
+   REGISTRATION
+   ========================================================= */
+
+body.camp-page .camp-registration {
+  position: relative;
+  isolation: isolate;
+  padding: 122px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 86%, rgba(94, 184, 221, 0.18), transparent 30%),
+    radial-gradient(circle at 92% 14%, rgba(244, 211, 94, 0.13), transparent 30%),
+    linear-gradient(145deg, #e8f4f0, #f7f5ea);
+}
+
+body.camp-page .camp-registration::before {
+  content: "SINU IDEE";
+  position: absolute;
+  right: -30px;
+  bottom: -30px;
+  z-index: -1;
+  color: rgba(8, 47, 39, 0.04);
+  font-size: clamp(90px, 15vw, 210px);
+  font-weight: 900;
+  line-height: 1;
+  transform: rotate(-6deg);
+}
+
+body.camp-page .camp-registration-content {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 58px;
+  border: 1px solid rgba(22, 138, 112, 0.2);
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(47, 195, 154, 0.12), transparent 30%),
+    rgba(255, 255, 255, 0.76);
+  text-align: center;
+  box-shadow: var(--camp-shadow);
+  backdrop-filter: blur(14px);
+}
+
+body.camp-page .camp-registration-content::before,
+body.camp-page .camp-registration-content::after {
+  content: "✦";
+  position: absolute;
+  color: var(--camp-green-bright);
+  animation: campSparklePulse 2.5s ease-in-out infinite;
+}
+
+body.camp-page .camp-registration-content::before {
+  top: 27px;
+  left: 34px;
+  font-size: 27px;
+}
+
+body.camp-page .camp-registration-content::after {
+  right: 36px;
+  bottom: 29px;
+  color: var(--camp-yellow);
+  font-size: 18px;
+  animation-delay: -1.1s;
+}
+
+body.camp-page .camp-registration p {
+  max-width: 710px;
+  margin: 0 auto 30px;
+  color: var(--camp-text-soft);
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+body.camp-page .camp-registration small {
+  display: block;
+  margin-top: 18px;
+  color: rgba(16, 45, 37, 0.55);
+  font-size: 13px;
+}
+
+/* =========================================================
+   CONTACT
+   ========================================================= */
+
+body.camp-page .camp-contact {
+  padding-top: 102px;
+  padding-bottom: 102px;
+}
+
+body.camp-page .camp-contact-card {
+  display: flex;
+  padding: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  border: 1px solid rgba(22, 138, 112, 0.2);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(244, 211, 94, 0.11), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(232, 244, 240, 0.82));
+  box-shadow: 0 26px 68px rgba(8, 47, 39, 0.11);
+}
+
+body.camp-page .camp-contact-card h2 {
+  max-width: 760px;
+  font-size: clamp(35px, 4.5vw, 56px);
+}
+
+body.camp-page .camp-contact-card p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--camp-text-soft);
+  font-size: 17px;
+  line-height: 1.74;
+}
+
+body.camp-page .camp-contact-link {
+  flex-shrink: 0;
+  display: inline-flex;
+  min-height: 56px;
+  padding: 15px 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  border: 1px solid var(--camp-forest);
+  border-radius: 16px;
+  background: var(--camp-forest);
+  color: var(--camp-white);
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 14px 32px rgba(8, 47, 39, 0.18);
+  transition:
+    transform 0.27s ease,
+    background 0.27s ease,
+    color 0.27s ease,
+    box-shadow 0.27s ease;
+}
+
+body.camp-page .camp-contact-link:hover {
+  background: var(--camp-yellow);
+  color: var(--camp-forest);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 42px rgba(244, 211, 94, 0.22);
+}
+
+/* =========================================================
+   NEWSLETTER — CAMP PAGE
+   ========================================================= */
+
+body.camp-page .bottom-newsletter {
+  position: relative;
+  padding: 100px 7%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(94, 184, 221, 0.11), transparent 28%),
+    linear-gradient(180deg, #eef8f4, var(--camp-cream));
+}
+
+body.camp-page .bottom-newsletter-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.9fr);
+  gap: 42px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 50px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 244, 229, 0.2);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(244, 211, 94, 0.13), transparent 30%),
+    linear-gradient(145deg, #041f1a, #0d3d36 60%, #123d52);
+  color: var(--camp-white);
+  box-shadow: var(--camp-shadow-dark);
+}
+
+body.camp-page .bottom-newsletter-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.09;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 22px,
+      rgba(255, 255, 255, 0.13) 22px 23px
+    );
+  animation: campStripeMove 16s linear infinite reverse;
+}
+
+body.camp-page .bottom-newsletter-label {
+  display: inline-flex;
+  margin-bottom: 18px;
+  align-items: center;
+  gap: 10px;
+  color: var(--camp-mint);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+body.camp-page .bottom-newsletter-label::before {
+  content: "✦";
+  color: var(--camp-yellow);
+}
+
+body.camp-page .bottom-newsletter h2 {
+  margin: 0 0 17px;
+  color: var(--camp-white);
+  font-size: clamp(35px, 4.2vw, 57px);
+  line-height: 1.03;
+}
+
+body.camp-page .bottom-newsletter-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.67);
+  font-size: 17px;
+  line-height: 1.74;
+}
+
+body.camp-page .bottom-newsletter-form {
+  align-self: center;
+  padding: 27px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+}
+
+body.camp-page .bottom-newsletter-row {
+  display: flex;
+  gap: 11px;
+  margin-bottom: 17px;
+}
+
+body.camp-page .bottom-newsletter-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(200, 244, 229, 0.24);
+  border-radius: 16px;
+  outline: none;
+  background: var(--camp-white);
+  color: var(--camp-forest);
+  font-size: 15px;
+}
+
+body.camp-page .bottom-newsletter-row input:focus {
+  border-color: var(--camp-green-bright);
+  box-shadow: 0 0 0 4px rgba(47, 195, 154, 0.14);
+}
+
+body.camp-page .bottom-newsletter-row button {
+  padding: 15px 23px;
+  border: 1px solid var(--camp-green-bright);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--camp-green-bright),
+      var(--camp-green)
+    );
+  color: var(--camp-white);
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+body.camp-page .bottom-newsletter-row button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(47, 195, 154, 0.23);
+}
+
+body.camp-page .bottom-newsletter-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+body.camp-page .bottom-newsletter-consent input {
+  margin-top: 4px;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+body.camp-page .bottom-newsletter-consent span {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.camp-page .bottom-newsletter-consent a {
+  color: var(--camp-mint);
+  font-weight: 800;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+body.camp-page .site-footer {
+  border-top: 1px solid rgba(200, 244, 229, 0.14);
+  background:
+    radial-gradient(circle at 90% 8%, rgba(94, 184, 221, 0.16), transparent 27%),
+    linear-gradient(145deg, #031a16 0%, #0b3b33 100%);
+}
+
+body.camp-page .footer-socials a:hover {
+  background: var(--camp-mint);
+  color: var(--camp-forest);
+}
+
+/* =========================================================
+   REVEAL + TILT
+   ========================================================= */
+
+body.camp-page .camp-reveal {
+  opacity: 0;
+  transform: translateY(45px) scale(0.985);
+  transition:
+    opacity 0.78s ease var(--camp-delay, 0ms),
+    transform 0.78s cubic-bezier(0.18, 0.8, 0.24, 1) var(--camp-delay, 0ms);
+}
+
+body.camp-page .camp-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+body.camp-page .camp-tilt {
+  will-change: transform;
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes campGridMove {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 58px 58px, 58px 58px;
+  }
+}
+
+@keyframes campGhostText {
+  from {
+    transform: rotate(-4deg) translateX(-22px);
+  }
+
+  to {
+    transform: rotate(-2deg) translateX(28px);
+  }
+}
+
+@keyframes campDotsDrift {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 124px 124px;
+  }
+}
+
+@keyframes campHeroCopy {
+  from {
+    opacity: 0;
+    transform: translateX(-42px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes campHeroVisualEntrance {
+  from {
+    opacity: 0;
+    transform:
+      perspective(1200px)
+      translateX(55px)
+      rotateY(-9deg)
+      scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes campSparkleSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes campMapGrid {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 76px 76px, 76px 76px;
+  }
+}
+
+@keyframes campCoreFloat {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateZ(38px) translateY(0);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) translateZ(38px) translateY(-9px);
+  }
+}
+
+@keyframes campSlowSpin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes campSlowSpinReverse {
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
+@keyframes campNodeOne {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translate(8px, -9px) rotate(1deg);
+  }
+}
+
+@keyframes campNodeTwo {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(2deg);
+  }
+
+  50% {
+    transform: translate(-8px, -7px) rotate(-1deg);
+  }
+}
+
+@keyframes campNodeThree {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-10px, 7px);
+  }
+}
+
+@keyframes campNodeFour {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translate(9px, 7px) rotate(2deg);
+  }
+}
+
+@keyframes campNodeFive {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(7px, -6px);
+  }
+}
+
+@keyframes campLinePulse {
+  from {
+    opacity: 0.24;
+  }
+
+  to {
+    opacity: 0.6;
+  }
+}
+
+@keyframes campScrollDot {
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 0;
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, 18px);
+    opacity: 0;
+  }
+}
+
+@keyframes campGlowOne {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(34px, 28px) scale(1.14);
+  }
+}
+
+@keyframes campGlowTwo {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-30px, -22px) scale(1.12);
+  }
+}
+
+@keyframes campStripeMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 180px 0;
+  }
+}
+
+@keyframes campCountPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.86;
+  }
+
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes campGalleryLines {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 220px 0;
+  }
+}
+
+@keyframes campSparklePulse {
+  0%,
+  100% {
+    transform: scale(0.85) rotate(0deg);
+    opacity: 0.48;
+  }
+
+  50% {
+    transform: scale(1.25) rotate(18deg);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  body.camp-page .header-inner {
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 74px 12px 5%;
+  }
+
+  body.camp-page .nav {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 5%;
+    right: 5%;
+    display: none;
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid rgba(22, 138, 112, 0.2);
+    border-radius: 18px;
+    background: rgba(247, 245, 234, 0.98);
+    box-shadow: 0 20px 55px rgba(8, 47, 39, 0.2);
+  }
+
+  body.camp-page .nav.open {
+    display: flex;
+  }
+
+  body.camp-page .nav a {
+    padding: 13px 14px;
+  }
+
+  body.camp-page .nav a::after {
+    display: none;
+  }
+
+  body.camp-page .camp-hero-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 0.8fr);
+    gap: 48px;
+  }
+
+  body.camp-page .camp-information {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.camp-page .camp-about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.camp-page .camp-highlight-card {
+    min-height: 230px;
+  }
+
+  body.camp-page .camp-countdown {
+    grid-template-columns: 1fr;
+  }
+
+  body.camp-page .camp-audience-grid,
+  body.camp-page .camp-support-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.camp-page .camp-gallery-header {
+    align-items: flex-start;
+  }
+
+  body.camp-page .camp-contact-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  body.camp-page .bottom-newsletter-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   PHONE
+   ========================================================= */
+
+@media (max-width: 760px) {
+  body.camp-page .camp-hero {
+    min-height: auto;
+    padding: 78px 6% 105px;
+  }
+
+  body.camp-page .camp-hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  body.camp-page .camp-hero-content > p {
+    font-size: 17px;
+  }
+
+  body.camp-page .camp-buttons {
+    flex-direction: column;
+  }
+
+  body.camp-page .camp-buttons a,
+  body.camp-page .camp-registration .button {
+    width: 100%;
+  }
+
+  body.camp-page .camp-hero-visual {
+    min-height: 510px;
+    margin-top: 25px;
+  }
+
+  body.camp-page .camp-map-ring-two {
+    width: 440px;
+    height: 440px;
+  }
+
+  body.camp-page .camp-map-ring-one {
+    width: 330px;
+    height: 330px;
+  }
+
+  body.camp-page .camp-information {
+    grid-template-columns: 1fr;
+    margin-top: -46px;
+  }
+
+  body.camp-page .camp-section,
+  body.camp-page .camp-audience,
+  body.camp-page .camp-program,
+  body.camp-page .camp-support,
+  body.camp-page .camp-gallery-section,
+  body.camp-page .camp-registration,
+  body.camp-page .bottom-newsletter {
+    width: auto;
+    padding: 80px 6%;
+  }
+
+  body.camp-page #camp-about {
+    width: min(100% - 32px, 1180px);
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  body.camp-page .camp-about-text,
+  body.camp-page .camp-registration-content,
+  body.camp-page .camp-contact-card,
+  body.camp-page .bottom-newsletter-card {
+    padding: 31px;
+  }
+
+  body.camp-page .camp-countdown {
+    width: min(100% - 32px, 1120px);
+    padding: 30px;
+  }
+
+  body.camp-page .camp-countdown-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.camp-page .camp-audience-grid,
+  body.camp-page .camp-skills-grid,
+  body.camp-page .camp-days,
+  body.camp-page .camp-support-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.camp-page .camp-day-card {
+    min-height: auto;
+  }
+
+  body.camp-page .camp-gallery-header {
+    flex-direction: column;
+  }
+
+  body.camp-page .camp-gallery-note {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  body.camp-page .camp-gallery-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 290px;
+  }
+
+  body.camp-page .camp-gallery-item,
+  body.camp-page .camp-gallery-featured,
+  body.camp-page .camp-gallery-tall,
+  body.camp-page .camp-gallery-wide {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  body.camp-page .bottom-newsletter-row {
+    flex-direction: column;
+  }
+
+  body.camp-page .bottom-newsletter-row button {
+    width: 100%;
+  }
+
+  body.camp-page .camp-lightbox {
+    padding: 16px;
+  }
+
+  body.camp-page .camp-lightbox-close {
+    top: 13px;
+    right: 13px;
+  }
+}
+
+@media (max-width: 500px) {
+  body.camp-page .camp-hero h1 {
+    font-size: 42px;
+  }
+
+  body.camp-page .camp-section h2,
+  body.camp-page .camp-audience h2,
+  body.camp-page .camp-program h2,
+  body.camp-page .camp-registration h2,
+  body.camp-page .camp-support h2,
+  body.camp-page .camp-contact h2 {
+    font-size: 35px;
+  }
+
+  body.camp-page .camp-hero-visual {
+    min-height: 450px;
+  }
+
+  body.camp-page .camp-map-core {
+    width: 190px;
+    min-height: 175px;
+    padding: 25px;
+  }
+
+  body.camp-page .camp-map-core strong {
+    font-size: 25px;
+  }
+
+  body.camp-page .camp-map-node {
+    min-width: 98px;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  body.camp-page .camp-map-node-one {
+    left: 5%;
+  }
+
+  body.camp-page .camp-map-node-two {
+    right: 3%;
+  }
+
+  body.camp-page .camp-map-node-three {
+    right: 1%;
+  }
+
+  body.camp-page .camp-map-node-four {
+    left: 10%;
+  }
+
+  body.camp-page .camp-map-ring-two {
+    width: 380px;
+    height: 380px;
+  }
+
+  body.camp-page .camp-map-ring-one {
+    width: 285px;
+    height: 285px;
+  }
+
+  body.camp-page .camp-about-text,
+  body.camp-page .camp-countdown,
+  body.camp-page .camp-audience-card,
+  body.camp-page .camp-skill-card,
+  body.camp-page .camp-day-card,
+  body.camp-page .camp-support-card,
+  body.camp-page .camp-registration-content,
+  body.camp-page .camp-contact-card,
+  body.camp-page .bottom-newsletter-card {
+    padding: 25px;
+  }
+
+  body.camp-page .camp-skill-card {
+    flex-direction: column;
+  }
+
+  body.camp-page .camp-countdown-item {
+    padding: 20px 8px;
+  }
+
+  body.camp-page .camp-gallery-grid {
+    grid-auto-rows: 245px;
+  }
+
+  body.camp-page .camp-scroll-cue {
+    display: none;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  body.camp-page *,
+  body.camp-page *::before,
+  body.camp-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  body.camp-page .camp-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
