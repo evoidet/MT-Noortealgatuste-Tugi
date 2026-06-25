@@ -45,6 +45,7 @@
 
     <nav class="nav" id="mainNav">
       <a href="/">Avaleht</a>
+      <a href="/#news">Uudised</a>
       <a href="/tunnustusgala.html">noorte tunnustusgala</a>
       <a href="/laager.html">Projektikirjutamise laager</a>
       <a href="/vorgustik.html">Võrgustik</a>
@@ -438,6 +439,165 @@
   </section>
 
 
+
+  <!-- ================= NEWS & ACHIEVEMENTS ================= -->
+
+  <section id="news" class="home-section home-news-section">
+    <div class="home-news-glow home-news-glow-one" aria-hidden="true"></div>
+    <div class="home-news-glow home-news-glow-two" aria-hidden="true"></div>
+
+    <div class="home-container">
+      <div class="home-news-heading" data-reveal>
+        <div>
+          <span class="home-section-label">UUDISED JA SAAVUTUSED</span>
+          <h2>Meie tegemised, hetked ja järgmised sammud</h2>
+        </div>
+
+        <div class="home-news-heading-side">
+          <p>
+            Siia hakkame lisama organisatsiooni uudiseid, sündmuste kokkuvõtteid,
+            noorte saavutusi ja uusi võimalusi Ida-Virumaal.
+          </p>
+
+          <!-- Kui loote hiljem eraldi uudiste lehe, muutke span elemendiks <a href="/uudised.html"> -->
+          <span class="home-news-all home-news-all-static">
+            Uudiste leht peagi
+            <i aria-hidden="true">→</i>
+          </span>
+        </div>
+      </div>
+
+      <div class="home-news-filters" data-reveal data-reveal-delay="80" aria-label="Uudiste teemad">
+        <span class="is-active">Kõik</span>
+        <span>Saavutused</span>
+        <span>Sündmused</span>
+        <span>Noortealgatused</span>
+      </div>
+
+      <div class="home-news-layout">
+
+        <!-- SUUR ESILETÕSTETUD UUDIS -->
+        <article
+          class="home-news-card home-news-card-featured"
+          data-reveal
+          data-tilt
+        >
+          <div class="home-news-media" data-placeholder="Lisa uudise foto 01">
+            <img
+              src="/assets/news/news-01.jpg"
+              alt="MTÜ Noortealgatuste Tugi uudise foto"
+              loading="lazy"
+              onerror="this.remove()"
+            >
+          </div>
+
+          <div class="home-news-featured-overlay">
+            <div class="home-news-meta">
+              <span class="home-news-category">SAAVUTUSED</span>
+              <time>Uudis lisatakse peagi</time>
+            </div>
+
+            <h3>Siin hakkame jagama meie suuremaid saavutusi</h3>
+
+            <p>
+              Lisa siia hiljem organisatsiooni või noorte oluline saavutus,
+              tunnustus, koostöö või muu hetk, mida soovite esile tõsta.
+            </p>
+
+            <span class="home-news-card-link">
+              Uudis ilmub peagi
+              <i aria-hidden="true">↗</i>
+            </span>
+          </div>
+        </article>
+
+        <!-- KAKS VÄIKSEMAT UUDIST -->
+        <div class="home-news-side">
+
+          <article
+            class="home-news-card home-news-card-small"
+            data-reveal
+            data-reveal-delay="100"
+            data-tilt
+          >
+            <div class="home-news-small-media" data-placeholder="Foto 02">
+              <img
+                src="/assets/news/news-02.jpg"
+                alt="Noortealgatuste Tugi sündmuse foto"
+                loading="lazy"
+                onerror="this.remove()"
+              >
+            </div>
+
+            <div class="home-news-small-content">
+              <div class="home-news-meta">
+                <span class="home-news-category">SÜNDMUSED</span>
+                <time>Peagi</time>
+              </div>
+
+              <h3>Sündmuste kokkuvõtted ja eredamad hetked</h3>
+
+              <p>
+                Siin saab jagada toimunud sündmuste tulemusi, fotosid
+                ja osalejate kogemusi.
+              </p>
+
+              <span class="home-news-card-link">
+                Uudis ilmub peagi
+                <i aria-hidden="true">↗</i>
+              </span>
+            </div>
+          </article>
+
+          <article
+            class="home-news-card home-news-card-small"
+            data-reveal
+            data-reveal-delay="180"
+            data-tilt
+          >
+            <div class="home-news-small-media" data-placeholder="Foto 03">
+              <img
+                src="/assets/news/news-03.jpg"
+                alt="Ida-Virumaa noortealgatuse foto"
+                loading="lazy"
+                onerror="this.remove()"
+              >
+            </div>
+
+            <div class="home-news-small-content">
+              <div class="home-news-meta">
+                <span class="home-news-category">NOORTEALGATUSED</span>
+                <time>Peagi</time>
+              </div>
+
+              <h3>Uued ideed, võimalused ja koostööd</h3>
+
+              <p>
+                Lisa siia info uutest projektidest, partneritest,
+                taotlusvoorudest või noortele mõeldud võimalustest.
+              </p>
+
+              <span class="home-news-card-link">
+                Uudis ilmub peagi
+                <i aria-hidden="true">↗</i>
+              </span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <div class="home-news-note" data-reveal data-reveal-delay="220">
+        <span aria-hidden="true">✦</span>
+        <p>
+          Fotode lisamiseks loo kaust <strong>assets/news</strong> ja kasuta
+          failinimesid <strong>news-01.jpg</strong>, <strong>news-02.jpg</strong>
+          ja <strong>news-03.jpg</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= CONTACT ================= -->
 
   <section id="contact" class="home-section home-contact-section">
@@ -675,6 +835,7 @@
       <a href="index.html">Avaleht</a>
       <a href="index.html#about">Meist</a>
       <a href="index.html#projects">Projektid</a>
+      <a href="index.html#news">Uudised</a>
       <a href="index.html#newsletter">Infokiri</a>
       <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
     </div>
@@ -685,6 +846,7 @@
 
       <a href="tunnustusgala.html">noorte tunnustusgala</a>
       <a href="laager.html">Projektikirjutamise laager</a>
+      <a href="index.html#news">Uudised ja saavutused</a>
       <a href="index.html#projects">Noorteprojektid</a>
       <a href="mailto:juhatus@noortetugi.ee">Koostöö</a>
     </div>
@@ -711,6 +873,10 @@
     </p>
 
     <nav class="footer-bottom-links">
+      <a href="index.html#news">
+        Uudised
+      </a>
+
       <a href="privaatsuspoliitika.html">
         Privaatsuspoliitika
       </a>
