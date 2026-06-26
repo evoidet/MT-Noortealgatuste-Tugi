@@ -1032,6 +1032,60 @@ body.home-page .home-person-card .team-photo {
 body.home-page .home-person-card-lead .team-photo {
   width: 138px;
   height: 165px;
+  object-fit: cover;
+
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+body.home-page .home-person-card-lead .team-photo.loaded {
+  opacity: 1;
+}
+
+.team-photo {
+  cursor: pointer;
+}
+
+.photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.photo-modal.open {
+  display: flex;
+}
+
+.photo-modal-image {
+  max-width: 90vw;
+  max-height: 90vh;
+
+  width: auto;
+  height: auto;
+
+  object-fit: contain;
+  border-radius: 16px;
+}
+
+.photo-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 25px;
+
+  border: none;
+  background: transparent;
+  color: white;
+
+  font-size: 48px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 body.home-page .home-person-card:hover .team-photo {
@@ -2753,5 +2807,91 @@ body.home-page [data-reveal].is-visible {
     opacity: 1;
     translate: none;
     filter: none;
+  }
+}
+
+
+/* =========================================================
+   UUDISED — eraldi lehe ühendus ja dünaamiline sisu
+   ========================================================= */
+
+body.home-page .home-news-all {
+  text-decoration: none;
+}
+
+body.home-page .home-news-all:hover {
+  color: var(--home-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 38px rgba(14, 59, 3, 0.13);
+}
+
+body.home-page .home-news-filters a {
+  display: inline-flex;
+  min-height: 42px;
+  padding: 10px 17px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(14, 59, 3, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--home-green);
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+body.home-page .home-news-filters a:hover,
+body.home-page .home-news-filters a.is-active {
+  border-color: var(--home-dark);
+  background: var(--home-dark);
+  color: var(--home-white);
+  transform: translateY(-2px);
+}
+
+body.home-page a.home-news-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+body.home-page a.home-news-card:hover {
+  color: inherit;
+}
+
+body.home-page .home-news-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  min-height: 260px;
+  padding: 40px;
+  place-items: center;
+  border: 1px dashed rgba(14, 59, 3, 0.22);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--home-text-soft);
+  text-align: center;
+}
+
+body.home-page .home-news-empty span {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--home-accent);
+  color: var(--home-dark);
+  font-size: 26px;
+}
+
+body.home-page.photo-modal-open {
+  overflow: hidden;
+}
+
+@media (max-width: 460px) {
+  body.home-page .home-news-filters a {
+    width: 100%;
   }
 }

@@ -481,4 +481,53 @@ if (galaCountdown) {
   }
 })();
 
+document.querySelectorAll(".team-photo").forEach((image) => {
+  if (image.complete) {
+    image.classList.add("loaded");
+  } else {
+    image.addEventListener("load", () => {
+      image.classList.add("loaded");
+    });
+  }
 });
+
+const photoModal = document.getElementById("photoModal");
+const photoModalImage = document.getElementById("photoModalImage");
+const photoModalClose = document.querySelector(".photo-modal-close");
+
+document.querySelectorAll(".team-photo").forEach((image) => {
+  image.addEventListener("click", () => {
+    photoModalImage.src = image.currentSrc || image.src;
+    photoModalImage.alt = image.alt;
+
+    photoModal.classList.add("open");
+    photoModal.setAttribute("aria-hidden", "false");
+
+    document.body.style.overflow = "hidden";
+  });
+});
+
+function closePhotoModal() {
+  photoModal.classList.remove("open");
+  photoModal.setAttribute("aria-hidden", "true");
+  photoModalImage.src = "";
+
+  document.body.style.overflow = "";
+}
+
+photoModalClose.addEventListener("click", closePhotoModal);
+
+photoModal.addEventListener("click", (event) => {
+  if (event.target === photoModal) {
+    closePhotoModal();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closePhotoModal();
+  }
+}); 
+
+
+}); // закрывает document.addEventListener со строки 3

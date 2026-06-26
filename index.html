@@ -17,6 +17,11 @@
 
 <body class="home-page">
 
+  <div class="photo-modal" id="photoModal" aria-hidden="true">
+    <button class="photo-modal-close" type="button" aria-label="Sulge">×</button>
+    <img class="photo-modal-image" id="photoModalImage" src="" alt="">
+  </div>
+
   <!-- ================= MAIN HEADER ================= -->
 
 <header class="header">
@@ -45,7 +50,7 @@
 
     <nav class="nav" id="mainNav">
       <a href="/">Avaleht</a>
-      <a href="/#news">Uudised</a>
+      <a href="/uudised.html">Uudised</a>
       <a href="/tunnustusgala.html">noorte tunnustusgala</a>
       <a href="/laager.html">Projektikirjutamise laager</a>
       <a href="/vorgustik.html">Võrgustik</a>
@@ -272,7 +277,15 @@
         <div class="home-leadership-grid">
           <article class="home-person-card home-person-card-lead" data-reveal data-tilt>
             <div class="home-person-photo-wrap">
-              <img src="assets/team/mario.png" alt="Mario Polshin" class="team-photo">
+              <img
+                src="assets/team/mario.png"
+                data-full="assets/team/full/mario.jpg"
+                alt="Mario Polshin"
+                class="team-photo team-photo-clickable"
+                tabindex="0"
+                role="button"
+                aria-label="Ava Mario Polshini täispikk foto"
+              >
               <span>01</span>
             </div>
             <div class="home-person-info">
@@ -287,7 +300,15 @@
 
           <article class="home-person-card home-person-card-lead" data-reveal data-reveal-delay="100" data-tilt>
             <div class="home-person-photo-wrap">
-              <img src="assets/team/mihhail.png" alt="Mihhail Semiyanov" class="team-photo">
+              <img
+                src="assets/team/mihhail.png"
+                data-full="assets/team/full/mihhail.jpg"
+                alt="Mihhail Semiyanov"
+                class="team-photo team-photo-clickable"
+                tabindex="0"
+                role="button"
+                aria-label="Ava Mihhail Semiyanovi täispikk foto"
+              >
               <span>02</span>
             </div>
             <div class="home-person-info">
@@ -312,7 +333,15 @@
 
           <article class="home-person-card" data-reveal data-tilt>
             <div class="home-person-photo-wrap">
-              <img src="assets/team/egor.png" alt="Egor Stepanov" class="team-photo">
+              <img
+                src="assets/team/egor.png"
+                data-full="assets/team/full/egor.jpg"
+                alt="Egor Stepanov"
+                class="team-photo team-photo-clickable"
+                tabindex="0"
+                role="button"
+                aria-label="Ava Egor Stepanovi täispikk foto"
+              >
               <span>03</span>
             </div>
             <div class="home-person-info">
@@ -327,7 +356,15 @@
 
           <article class="home-person-card" data-reveal data-reveal-delay="70" data-tilt>
             <div class="home-person-photo-wrap">
-              <img src="assets/team/sofia.png" alt="Sofia Germ" class="team-photo">
+              <img
+                src="assets/team/sofia.png"
+                data-full="assets/team/full/sofia.jpg"
+                alt="Sofia Germ"
+                class="team-photo team-photo-clickable"
+                tabindex="0"
+                role="button"
+                aria-label="Ava Sofia Germi täispikk foto"
+              >
               <span>04</span>
             </div>
             <div class="home-person-info">
@@ -342,7 +379,15 @@
 
           <article class="home-person-card" data-reveal data-reveal-delay="140" data-tilt>
             <div class="home-person-photo-wrap">
-              <img src="assets/team/jekaterina.png" alt="Jekaterina Rogožina" class="team-photo">
+              <img
+                src="assets/team/jekaterina.png"
+                data-full="assets/team/full/jekaterina.jpg"
+                alt="Jekaterina Rogožina"
+                class="team-photo team-photo-clickable"
+                tabindex="0"
+                role="button"
+                aria-label="Ava Jekaterina Rogožini täispikk foto"
+              >
               <span>05</span>
             </div>
             <div class="home-person-info">
@@ -357,7 +402,15 @@
 
           <article class="home-person-card" data-reveal data-reveal-delay="210" data-tilt>
             <div class="home-person-photo-wrap">
-              <img src="assets/team/andrei.png" alt="Andrei Ostretsov" class="team-photo">
+              <img
+                src="assets/team/andrei.png"
+                data-full="assets/team/full/andrei.jpg"
+                alt="Andrei Ostretsov"
+                class="team-photo team-photo-clickable"
+                tabindex="0"
+                role="button"
+                aria-label="Ava Andrei Ostretsovi täispikk foto"
+              >
               <span>06</span>
             </div>
             <div class="home-person-info">
@@ -455,145 +508,36 @@
 
         <div class="home-news-heading-side">
           <p>
-            Siia hakkame lisama organisatsiooni uudiseid, sündmuste kokkuvõtteid,
-            noorte saavutusi ja uusi võimalusi Ida-Virumaal.
+            Organisatsiooni uudised, sündmuste kokkuvõtted, noorte saavutused
+            ja uued võimalused Ida-Virumaal.
           </p>
 
-          <!-- Kui loote hiljem eraldi uudiste lehe, muutke span elemendiks <a href="/uudised.html"> -->
-          <span class="home-news-all home-news-all-static">
-            Uudiste leht peagi
+          <a class="home-news-all" href="/uudised.html">
+            Vaata kõiki uudiseid
             <i aria-hidden="true">→</i>
-          </span>
+          </a>
         </div>
       </div>
 
-      <div class="home-news-filters" data-reveal data-reveal-delay="80" aria-label="Uudiste teemad">
-        <span class="is-active">Kõik</span>
-        <span>Saavutused</span>
-        <span>Sündmused</span>
-        <span>Noortealgatused</span>
-      </div>
+      <nav
+        class="home-news-filters"
+        data-reveal
+        data-reveal-delay="80"
+        aria-label="Uudiste teemad"
+      >
+        <a class="is-active" href="/uudised.html">Kõik</a>
+        <a href="/uudised.html?category=achievements">Saavutused</a>
+        <a href="/uudised.html?category=events">Sündmused</a>
+        <a href="/uudised.html?category=initiatives">Noortealgatused</a>
+      </nav>
 
-      <div class="home-news-layout">
-
-        <!-- SUUR ESILETÕSTETUD UUDIS -->
-        <article
-          class="home-news-card home-news-card-featured"
-          data-reveal
-          data-tilt
-        >
-          <div class="home-news-media" data-placeholder="Lisa uudise foto 01">
-            <img
-              src="/assets/news/news-01.jpg"
-              alt="MTÜ Noortealgatuste Tugi uudise foto"
-              loading="lazy"
-              onerror="this.remove()"
-            >
+      <!-- Kolm uusimat uudist lisatakse automaatselt news-data.js failist. -->
+      <div id="homeNewsList" class="home-news-layout" aria-live="polite">
+        <noscript>
+          <div class="home-news-empty">
+            Uudiste kuvamiseks peab JavaScript olema lubatud.
           </div>
-
-          <div class="home-news-featured-overlay">
-            <div class="home-news-meta">
-              <span class="home-news-category">SAAVUTUSED</span>
-              <time>Uudis lisatakse peagi</time>
-            </div>
-
-            <h3>Siin hakkame jagama meie suuremaid saavutusi</h3>
-
-            <p>
-              Lisa siia hiljem organisatsiooni või noorte oluline saavutus,
-              tunnustus, koostöö või muu hetk, mida soovite esile tõsta.
-            </p>
-
-            <span class="home-news-card-link">
-              Uudis ilmub peagi
-              <i aria-hidden="true">↗</i>
-            </span>
-          </div>
-        </article>
-
-        <!-- KAKS VÄIKSEMAT UUDIST -->
-        <div class="home-news-side">
-
-          <article
-            class="home-news-card home-news-card-small"
-            data-reveal
-            data-reveal-delay="100"
-            data-tilt
-          >
-            <div class="home-news-small-media" data-placeholder="Foto 02">
-              <img
-                src="/assets/news/news-02.jpg"
-                alt="Noortealgatuste Tugi sündmuse foto"
-                loading="lazy"
-                onerror="this.remove()"
-              >
-            </div>
-
-            <div class="home-news-small-content">
-              <div class="home-news-meta">
-                <span class="home-news-category">SÜNDMUSED</span>
-                <time>Peagi</time>
-              </div>
-
-              <h3>Sündmuste kokkuvõtted ja eredamad hetked</h3>
-
-              <p>
-                Siin saab jagada toimunud sündmuste tulemusi, fotosid
-                ja osalejate kogemusi.
-              </p>
-
-              <span class="home-news-card-link">
-                Uudis ilmub peagi
-                <i aria-hidden="true">↗</i>
-              </span>
-            </div>
-          </article>
-
-          <article
-            class="home-news-card home-news-card-small"
-            data-reveal
-            data-reveal-delay="180"
-            data-tilt
-          >
-            <div class="home-news-small-media" data-placeholder="Foto 03">
-              <img
-                src="/assets/news/news-03.jpg"
-                alt="Ida-Virumaa noortealgatuse foto"
-                loading="lazy"
-                onerror="this.remove()"
-              >
-            </div>
-
-            <div class="home-news-small-content">
-              <div class="home-news-meta">
-                <span class="home-news-category">NOORTEALGATUSED</span>
-                <time>Peagi</time>
-              </div>
-
-              <h3>Uued ideed, võimalused ja koostööd</h3>
-
-              <p>
-                Lisa siia info uutest projektidest, partneritest,
-                taotlusvoorudest või noortele mõeldud võimalustest.
-              </p>
-
-              <span class="home-news-card-link">
-                Uudis ilmub peagi
-                <i aria-hidden="true">↗</i>
-              </span>
-            </div>
-          </article>
-
-        </div>
-      </div>
-
-      <div class="home-news-note" data-reveal data-reveal-delay="220">
-        <span aria-hidden="true">✦</span>
-        <p>
-          Fotode lisamiseks loo kaust <strong>assets/news</strong> ja kasuta
-          failinimesid <strong>news-01.jpg</strong>, <strong>news-02.jpg</strong>
-          ja <strong>news-03.jpg</strong>.
-        </p>
+        </noscript>
       </div>
     </div>
   </section>
@@ -835,7 +779,7 @@
       <a href="index.html">Avaleht</a>
       <a href="index.html#about">Meist</a>
       <a href="index.html#projects">Projektid</a>
-      <a href="index.html#news">Uudised</a>
+      <a href="/uudised.html">Uudised</a>
       <a href="index.html#newsletter">Infokiri</a>
       <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
     </div>
@@ -846,7 +790,7 @@
 
       <a href="tunnustusgala.html">noorte tunnustusgala</a>
       <a href="laager.html">Projektikirjutamise laager</a>
-      <a href="index.html#news">Uudised ja saavutused</a>
+      <a href="/uudised.html">Uudised ja saavutused</a>
       <a href="index.html#projects">Noorteprojektid</a>
       <a href="mailto:juhatus@noortetugi.ee">Koostöö</a>
     </div>
@@ -873,7 +817,7 @@
     </p>
 
     <nav class="footer-bottom-links">
-      <a href="index.html#news">
+      <a href="/uudised.html">
         Uudised
       </a>
 
@@ -888,6 +832,8 @@
   </div>
 </footer>
 
+<script src="/news-data.js"></script>
+<script src="/news-home.js"></script>
 <script src="/script.js"></script>
 
 <script>
@@ -965,5 +911,57 @@
     }
   })();
 </script>
+
+<script>
+  (() => {
+    const modal = document.getElementById("photoModal");
+    const modalImage = document.getElementById("photoModalImage");
+    const closeButton = document.querySelector(".photo-modal-close");
+    const photos = document.querySelectorAll(".team-photo-clickable");
+
+    if (!modal || !modalImage || !closeButton || !photos.length) return;
+
+    let lastFocused = null;
+
+    const openModal = (photo) => {
+      lastFocused = photo;
+      modalImage.src = photo.dataset.full || photo.currentSrc || photo.src;
+      modalImage.alt = photo.alt;
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("photo-modal-open");
+      closeButton.focus();
+    };
+
+    const closeModal = () => {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("photo-modal-open");
+      modalImage.src = "";
+      if (lastFocused) lastFocused.focus();
+    };
+
+    photos.forEach((photo) => {
+      photo.addEventListener("click", () => openModal(photo));
+      photo.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openModal(photo);
+        }
+      });
+    });
+
+    closeButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modal.classList.contains("open")) {
+        closeModal();
+      }
+    });
+  })();
+</script>
+
 </body>
 </html>
