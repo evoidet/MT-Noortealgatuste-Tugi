@@ -78,13 +78,6 @@ body.privacy-page .nav a:hover::after {
   transform: scaleX(1);
 }
 
-body.privacy-page .menu-toggle {
-  border: 1px solid rgba(37, 75, 16, 0.26);
-  border-radius: 14px;
-  background: rgba(92, 228, 19, 0.08);
-  color: var(--privacy-dark);
-}
-
 /* =========================================================
    SCROLL PROGRESS
    ========================================================= */
@@ -1067,13 +1060,7 @@ body.privacy-page .privacy-tilt {
    ========================================================= */
 
 @media (max-width: 1050px) {
-  body.privacy-page .header-inner {
-    position: relative;
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 74px 12px 5%;
-  }
-  
+
 body.privacy-page .nav {
   border-color: rgba(37, 75, 16, 0.18);
   background: #fbfdf4;
