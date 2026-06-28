@@ -307,18 +307,24 @@ a:hover {
   }
 
   .nav {
-    width: 100%;
+    grid-area: navigation;
 
+    width: 100%;
     display: none;
+
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     gap: 3px;
 
     margin-top: 8px;
-    padding: 10px 0 5px;
+    padding: 10px;
 
-    border-top: 1px solid rgba(14, 59, 3, 0.13);
+    border: 1px solid rgba(14, 59, 3, 0.15);
+    border-radius: 14px;
+
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(14, 59, 3, 0.16);
   }
 
   /*
@@ -340,6 +346,8 @@ a:hover {
     padding: 11px 12px;
 
     border-radius: 8px;
+    background: #ffffff;
+    color: var(--dark);
 
     font-size: 15px;
     white-space: normal;
@@ -1579,18 +1587,10 @@ font-size: 14px;
    ========================================================= */
 
 @media (max-width: 1050px) {
-  .header-inner,
   .header:not(:has(.header-inner)) {
     flex-direction: column;
     align-items: flex-start;
     padding: 20px 5%;
-  }
-
-  .nav {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    white-space: normal;
-    gap: 14px 20px;
   }
 
   .leadership-grid,

@@ -42,10 +42,8 @@ body.home-page .home-container {
    ------------------------- */
 
 body.home-page .header {
-  background: rgba(255, 255, 255, 0.9);
+  background: #ffffff;
   border-bottom-color: rgba(14, 59, 3, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 
 body.home-page .nav a {
@@ -1987,7 +1985,7 @@ body.home-page .home-news-note strong {
   }
 
   body.home-page .home-news-card-featured {
-    min-height: 520px;
+    min-height: 460px;
   }
 
   body.home-page .home-news-featured-overlay {
@@ -1998,12 +1996,19 @@ body.home-page .home-news-note strong {
     font-size: 33px;
   }
 
+  body.home-page .home-news-card-featured p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
   body.home-page .home-news-card-small {
     min-height: auto;
   }
 
   body.home-page .home-news-small-media {
-    min-height: 235px;
+    min-height: 190px;
   }
 
   body.home-page .home-news-note {
@@ -2022,7 +2027,7 @@ body.home-page .home-news-note strong {
   }
 
   body.home-page .home-news-card-featured {
-    min-height: 545px;
+    min-height: 420px;
   }
 
   body.home-page .home-news-featured-overlay {
@@ -2031,6 +2036,17 @@ body.home-page .home-news-note strong {
 
   body.home-page .home-news-card-featured h3 {
     font-size: 29px;
+  }
+
+  body.home-page .home-news-card-featured p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  body.home-page .home-news-small-media {
+    min-height: 170px;
   }
 
   body.home-page .home-news-small-content {
@@ -2430,13 +2446,6 @@ body.home-page [data-reveal].is-visible {
    ========================================================= */
 
 @media (max-width: 1080px) {
-  body.home-page .header-inner {
-    position: relative;
-    padding: 12px 74px 12px 5%;
-    flex-direction: row;
-    align-items: center;
-  }
-
   body.home-page .home-hero {
     min-height: auto;
     padding: 80px 0 105px;
@@ -2552,32 +2561,6 @@ body.home-page [data-reveal].is-visible {
    ========================================================= */
 
 @media (max-width: 640px) {
-  body.home-page .header-inner {
-    padding: 12px 72px 12px 18px;
-    flex-direction: row;
-    align-items: center;
-  }
-
-  body.home-page .header .logo-img {
-    width: 95px;
-    height: 52px;
-  }
-
-  body.home-page .header .menu-toggle {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    display: flex;
-    transform: translateY(-50%);
-  }
-
-  body.home-page .header .nav {
-    position: absolute;
-    top: calc(100% + 1px);
-    right: 5%;
-    left: 5%;
-    width: auto;
-  }
 
   body.home-page .home-container {
     width: min(100% - 28px, 1220px);
