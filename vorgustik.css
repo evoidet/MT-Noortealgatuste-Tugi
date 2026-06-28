@@ -1,0 +1,2958 @@
+/* =========================================================
+   VORGUSTIK.CSS — AINULT VÕRGUSTIKU LEHT
+   Laadida vorgustik.html lehel pärast /style.css faili.
+   Kõik reeglid on piiratud body.network-page klassiga.
+   ========================================================= */
+
+/* =========================================================
+   1. LEHE MUUTUJAD + PÕHISEADED
+   ========================================================= */
+
+body.network-page {
+  --network-bg: #edf5dc;
+  --network-bg-soft: #f8fff1;
+  --network-cream: #fbfff6;
+  --network-white: #ffffff;
+
+  --network-dark: #071f18;
+  --network-dark-2: #0a2e24;
+  --network-forest: #0e3b03;
+  --network-green: #25653f;
+  --network-green-2: #3a8a58;
+  --network-lime: #7ef04a;
+  --network-lime-soft: #c9f6a6;
+  --network-mint: #78e4cf;
+  --network-cyan: #4dc7dd;
+  --network-blue: #23608b;
+
+  --network-text: #102f24;
+  --network-text-soft: rgba(16, 47, 36, 0.72);
+  --network-border: rgba(7, 31, 24, 0.13);
+
+  --network-shadow:
+    0 24px 70px rgba(7, 31, 24, 0.12);
+
+  --network-shadow-strong:
+    0 38px 100px rgba(4, 24, 18, 0.26);
+
+  --network-radius-small: 14px;
+  --network-radius-medium: 24px;
+  --network-radius-large: 34px;
+
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--network-bg);
+  color: var(--network-text);
+}
+
+body.network-page .network-main {
+  position: relative;
+  overflow: clip;
+  background: var(--network-bg);
+}
+
+body.network-page .network-container {
+  width: min(1220px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+/* =========================================================
+   2. HEADER — AINULT VÕRGUSTIKU LEHEL
+   Üldise /style.css paigutust ei muudeta.
+   ========================================================= */
+
+body.network-page .header {
+  border-bottom: 1px solid rgba(120, 228, 207, 0.26);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(251, 255, 246, 0.96),
+      rgba(238, 250, 225, 0.94)
+    );
+  box-shadow:
+    0 10px 36px rgba(7, 31, 24, 0.09);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+body.network-page .nav a {
+  color: var(--network-dark);
+}
+
+body.network-page .nav a:hover,
+body.network-page .nav a[aria-current="page"] {
+  color: var(--network-green);
+}
+
+body.network-page .nav a::after {
+  background:
+    linear-gradient(
+      90deg,
+      var(--network-lime),
+      var(--network-mint)
+    );
+}
+
+body.network-page .lang-button {
+  border-color: rgba(7, 31, 24, 0.18);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--network-dark);
+}
+
+body.network-page .lang-button:hover {
+  border-color: var(--network-green);
+  background: rgba(120, 228, 207, 0.12);
+}
+
+body.network-page .lang-button.is-active {
+  border-color: var(--network-dark);
+  background:
+    linear-gradient(
+      145deg,
+      var(--network-dark),
+      var(--network-green)
+    );
+  color: var(--network-white);
+  box-shadow:
+    0 7px 18px rgba(7, 31, 24, 0.18);
+}
+
+body.network-page .menu-toggle {
+  border: 1px solid rgba(126, 240, 74, 0.55);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      145deg,
+      var(--network-dark),
+      var(--network-green)
+    );
+  color: var(--network-lime);
+  box-shadow:
+    0 9px 22px rgba(7, 31, 24, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease,
+    color 0.22s ease;
+}
+
+body.network-page .menu-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 30px rgba(7, 31, 24, 0.26),
+    0 0 20px rgba(126, 240, 74, 0.18);
+}
+
+body.network-page .menu-toggle[aria-expanded="true"] {
+  background: var(--network-lime);
+  color: var(--network-dark);
+}
+
+/* Mobiilne avatud menüü — ainult värvid, paigutus tuleb style.css failist */
+
+@media (max-width: 1200px) {
+  body.network-page .nav {
+    border-color: rgba(7, 31, 24, 0.15);
+    background:
+      radial-gradient(
+        circle at top right,
+        rgba(120, 228, 207, 0.13),
+        transparent 34%
+      ),
+      linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #f6fce9 100%
+      );
+    box-shadow:
+      0 20px 48px rgba(7, 31, 24, 0.17);
+  }
+
+  body.network-page .nav a {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--network-dark);
+  }
+
+  body.network-page .nav a:hover,
+  body.network-page .nav a[aria-current="page"] {
+    border-color: rgba(126, 240, 74, 0.35);
+    background: #ffffff;
+    color: var(--network-green);
+  }
+}
+
+/* =========================================================
+   3. SCROLL PROGRESS
+   ========================================================= */
+
+body.network-page .network-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 15000;
+
+  width: 0;
+  height: 4px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--network-lime),
+      var(--network-mint),
+      var(--network-cyan),
+      var(--network-lime)
+    );
+
+  box-shadow:
+    0 0 18px rgba(126, 240, 74, 0.65),
+    0 0 28px rgba(77, 199, 221, 0.3);
+
+  transition: width 0.08s linear;
+}
+
+/* =========================================================
+   4. HERO
+   ========================================================= */
+
+body.network-page .network-hero {
+  --network-pointer-x: 50%;
+  --network-pointer-y: 42%;
+
+  position: relative;
+  isolation: isolate;
+
+  min-height: 780px;
+  padding: 112px 0 148px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at var(--network-pointer-x) var(--network-pointer-y),
+      rgba(120, 228, 207, 0.22),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 10% 16%,
+      rgba(126, 240, 74, 0.18),
+      transparent 29%
+    ),
+    radial-gradient(
+      circle at 90% 82%,
+      rgba(77, 199, 221, 0.15),
+      transparent 29%
+    ),
+    linear-gradient(
+      138deg,
+      #061d17 0%,
+      #0b3529 50%,
+      #164c39 100%
+    );
+
+  color: var(--network-white);
+}
+
+body.network-page .network-hero::before {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  z-index: -5;
+
+  opacity: 0.1;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.16) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.16) 1px,
+      transparent 1px
+    );
+
+  background-size: 62px 62px;
+
+  transform:
+    perspective(700px)
+    rotateX(58deg)
+    translateY(-11%);
+
+  transform-origin: center bottom;
+
+  animation:
+    networkHeroGrid 18s linear infinite;
+}
+
+body.network-page .network-hero::after {
+  content: "VÕRGUSTIK";
+  position: absolute;
+  right: -55px;
+  bottom: 20px;
+  z-index: -4;
+
+  color: rgba(255, 255, 255, 0.033);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: clamp(90px, 14vw, 220px);
+  font-weight: 900;
+  line-height: 0.78;
+  letter-spacing: -0.065em;
+
+  white-space: nowrap;
+  pointer-events: none;
+
+  animation:
+    networkGhostText 11s ease-in-out infinite alternate;
+}
+
+body.network-page .network-hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+
+  opacity: 0.11;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.75) 1px,
+      transparent 1.5px
+    );
+
+  background-size: 31px 31px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      #000 0%,
+      transparent 88%
+    );
+
+  animation:
+    networkDotsMove 20s linear infinite;
+}
+
+body.network-page .network-hero-glow {
+  position: absolute;
+  z-index: -2;
+
+  border-radius: 50%;
+  filter: blur(13px);
+
+  pointer-events: none;
+}
+
+body.network-page .network-hero-glow-one {
+  top: 7%;
+  left: -90px;
+
+  width: 310px;
+  height: 310px;
+
+  background: rgba(126, 240, 74, 0.15);
+
+  animation:
+    networkGlowOne 8s ease-in-out infinite;
+}
+
+body.network-page .network-hero-glow-two {
+  right: -100px;
+  bottom: 5%;
+
+  width: 380px;
+  height: 380px;
+
+  background: rgba(77, 199, 221, 0.14);
+
+  animation:
+    networkGlowTwo 9.5s ease-in-out infinite;
+}
+
+body.network-page .network-hero-layout {
+  position: relative;
+  z-index: 4;
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.04fr)
+    minmax(430px, 0.96fr);
+
+  gap: 78px;
+  align-items: center;
+}
+
+body.network-page .network-hero-content {
+  max-width: 730px;
+}
+
+body.network-page .network-eyebrow {
+  display: inline-flex;
+  margin-bottom: 29px;
+  padding: 10px 17px;
+
+  align-items: center;
+  gap: 10px;
+
+  border: 1px solid rgba(201, 246, 166, 0.37);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--network-lime-soft);
+
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.2);
+
+  backdrop-filter: blur(11px);
+
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+body.network-page .network-eyebrow i {
+  color: var(--network-lime);
+  font-style: normal;
+
+  animation:
+    networkSparkleSpin 5s linear infinite;
+}
+
+body.network-page .network-hero h1 {
+  max-width: 820px;
+  margin: 0 0 27px;
+
+  color: var(--network-white);
+
+  font-size: clamp(54px, 6.8vw, 94px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.058em;
+
+  text-wrap: balance;
+
+  text-shadow:
+    0 23px 65px rgba(0, 0, 0, 0.32);
+
+  animation:
+    networkHeroCopy 0.95s cubic-bezier(0.18, 0.8, 0.2, 1) both;
+}
+
+body.network-page .network-hero h1 span {
+  display: block;
+
+  color: var(--network-lime);
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent 66%,
+      rgba(120, 228, 207, 0.25) 66%
+    );
+
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+body.network-page .network-hero-content > p {
+  max-width: 700px;
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.74);
+
+  font-size: 19px;
+  line-height: 1.78;
+}
+
+body.network-page .network-hero-actions {
+  display: flex;
+  margin-top: 38px;
+
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+body.network-page .network-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  display: inline-flex;
+  min-height: 56px;
+  padding: 15px 25px;
+
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  border: 1px solid transparent;
+  border-radius: 16px;
+
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.025em;
+
+  text-decoration: none;
+
+  transition:
+    transform 0.27s ease,
+    box-shadow 0.27s ease,
+    background 0.27s ease,
+    color 0.27s ease,
+    border-color 0.27s ease;
+}
+
+body.network-page .network-button::before {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -42%;
+  z-index: -1;
+
+  width: 34%;
+  height: 350%;
+
+  background: rgba(255, 255, 255, 0.38);
+
+  transform: rotate(24deg);
+
+  transition: left 0.58s ease;
+}
+
+body.network-page .network-button:hover::before {
+  left: 120%;
+}
+
+body.network-page .network-button:hover {
+  transform: translateY(-4px);
+}
+
+body.network-page .network-button-primary {
+  border-color: var(--network-lime);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--network-lime),
+      var(--network-mint)
+    );
+
+  color: var(--network-dark);
+
+  box-shadow:
+    0 16px 38px rgba(126, 240, 74, 0.23),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+body.network-page .network-button-primary:hover {
+  color: var(--network-dark);
+
+  box-shadow:
+    0 23px 50px rgba(126, 240, 74, 0.29),
+    0 0 28px rgba(120, 228, 207, 0.15);
+}
+
+body.network-page .network-button-primary span,
+body.network-page .network-button-accent span {
+  font-size: 20px;
+
+  transition: transform 0.28s ease;
+}
+
+body.network-page .network-button-primary:hover span,
+body.network-page .network-button-accent:hover span {
+  transform: rotate(45deg);
+}
+
+body.network-page .network-button-secondary {
+  border-color: rgba(255, 255, 255, 0.3);
+
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--network-white);
+
+  backdrop-filter: blur(12px);
+}
+
+body.network-page .network-button-secondary:hover {
+  border-color: rgba(201, 246, 166, 0.62);
+
+  background: rgba(201, 246, 166, 0.1);
+  color: var(--network-lime-soft);
+}
+
+body.network-page .network-button-accent {
+  border-color: var(--network-lime);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--network-lime),
+      var(--network-mint)
+    );
+
+  color: var(--network-dark);
+
+  box-shadow:
+    0 16px 38px rgba(126, 240, 74, 0.23);
+}
+
+body.network-page .network-button-accent:hover {
+  color: var(--network-dark);
+
+  box-shadow:
+    0 22px 50px rgba(126, 240, 74, 0.3);
+}
+
+body.network-page .network-hero-note {
+  display: flex;
+  margin-top: 31px;
+
+  align-items: center;
+  gap: 10px;
+
+  color: rgba(255, 255, 255, 0.57);
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+}
+
+body.network-page .network-hero-note span {
+  color: var(--network-lime);
+
+  font-size: 15px;
+
+  animation:
+    networkNotePulse 2.3s ease-in-out infinite;
+}
+
+/* =========================================================
+   5. HERO ORBIT
+   ========================================================= */
+
+body.network-page .network-hero-visual {
+  position: relative;
+
+  min-height: 570px;
+
+  display: grid;
+  place-items: center;
+
+  animation:
+    networkVisualEntrance 1s 0.12s
+    cubic-bezier(0.18, 0.8, 0.2, 1) both;
+}
+
+body.network-page .network-orbit {
+  position: relative;
+
+  width: min(520px, 100%);
+  aspect-ratio: 1;
+
+  display: grid;
+  place-items: center;
+}
+
+body.network-page .network-orbit::before,
+body.network-page .network-orbit::after {
+  content: "";
+  position: absolute;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+body.network-page .network-orbit::before {
+  inset: 4%;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow:
+    inset 0 0 80px rgba(120, 228, 207, 0.08),
+    0 0 80px rgba(0, 0, 0, 0.16);
+}
+
+body.network-page .network-orbit::after {
+  inset: 14%;
+
+  border: 1px dashed rgba(201, 246, 166, 0.28);
+
+  animation:
+    networkOrbitRotate 30s linear infinite;
+}
+
+body.network-page .network-orbit-ring {
+  position: absolute;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+body.network-page .network-orbit-ring-one {
+  inset: 23%;
+
+  border: 2px solid rgba(126, 240, 74, 0.29);
+
+  animation:
+    networkOrbitBreath 5.4s ease-in-out infinite;
+}
+
+body.network-page .network-orbit-ring-two {
+  inset: 32%;
+
+  border: 1px solid rgba(120, 228, 207, 0.3);
+
+  animation:
+    networkOrbitBreath 6.2s 0.8s
+    ease-in-out infinite reverse;
+}
+
+body.network-page .network-orbit-ring-three {
+  inset: 42%;
+
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+
+  animation:
+    networkOrbitRotate 18s linear infinite reverse;
+}
+
+body.network-page .network-orbit-center {
+  position: relative;
+  z-index: 5;
+
+  width: 245px;
+  min-height: 245px;
+  padding: 28px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(201, 246, 166, 0.34);
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 30% 20%,
+      rgba(126, 240, 74, 0.25),
+      transparent 35%
+    ),
+    rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 33px 80px rgba(0, 0, 0, 0.31),
+    inset 0 1px 0 rgba(255, 255, 255, 0.19),
+    0 0 0 12px rgba(120, 228, 207, 0.045);
+
+  text-align: center;
+
+  backdrop-filter: blur(18px);
+
+  animation:
+    networkCenterFloat 6s ease-in-out infinite;
+}
+
+body.network-page .network-orbit-logo {
+  width: 128px;
+  height: 86px;
+  margin-bottom: 15px;
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(0 10px 25px rgba(0, 0, 0, 0.2));
+}
+
+body.network-page .network-orbit-center strong {
+  color: var(--network-white);
+
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+body.network-page .network-orbit-center span {
+  margin-top: 7px;
+
+  color: var(--network-lime-soft);
+
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+body.network-page .network-node {
+  position: absolute;
+  z-index: 6;
+
+  display: grid;
+  width: 47px;
+  height: 47px;
+
+  place-items: center;
+
+  border: 1px solid rgba(201, 246, 166, 0.48);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.16),
+      rgba(120, 228, 207, 0.07)
+    );
+
+  color: var(--network-white);
+
+  box-shadow:
+    0 13px 28px rgba(0, 0, 0, 0.25),
+    0 0 18px rgba(126, 240, 74, 0.12);
+
+  font-size: 11px;
+  font-weight: 900;
+
+  backdrop-filter: blur(12px);
+
+  animation:
+    networkNodeFloat 5.5s ease-in-out infinite;
+
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease,
+    color 0.3s ease;
+}
+
+body.network-page .network-node:hover {
+  background: var(--network-lime);
+  color: var(--network-dark);
+
+  transform: scale(1.12);
+}
+
+body.network-page .network-node-01 {
+  top: 2%;
+  left: 44%;
+
+  animation-delay: -0.2s;
+}
+
+body.network-page .network-node-02 {
+  top: 10%;
+  right: 18%;
+
+  animation-delay: -0.7s;
+}
+
+body.network-page .network-node-03 {
+  top: 30%;
+  right: 2%;
+
+  animation-delay: -1.2s;
+}
+
+body.network-page .network-node-04 {
+  right: 6%;
+  bottom: 24%;
+
+  animation-delay: -1.7s;
+}
+
+body.network-page .network-node-05 {
+  right: 28%;
+  bottom: 2%;
+
+  animation-delay: -2.2s;
+}
+
+body.network-page .network-node-06 {
+  bottom: 2%;
+  left: 28%;
+
+  animation-delay: -2.7s;
+}
+
+body.network-page .network-node-07 {
+  bottom: 24%;
+  left: 6%;
+
+  animation-delay: -3.2s;
+}
+
+body.network-page .network-node-08 {
+  top: 30%;
+  left: 2%;
+
+  animation-delay: -3.7s;
+}
+
+body.network-page .network-node-09 {
+  top: 10%;
+  left: 18%;
+
+  animation-delay: -4.2s;
+}
+
+body.network-page .network-node-10 {
+  top: 44%;
+  left: 44%;
+
+  opacity: 0.28;
+
+  animation-delay: -4.7s;
+}
+
+body.network-page .network-floating-card {
+  position: absolute;
+  z-index: 8;
+
+  display: flex;
+  max-width: 190px;
+  padding: 13px 16px;
+
+  align-items: center;
+  gap: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--network-white);
+
+  box-shadow:
+    0 17px 38px rgba(0, 0, 0, 0.24);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  backdrop-filter: blur(15px);
+}
+
+body.network-page .network-floating-card span {
+  color: var(--network-lime);
+
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+body.network-page .network-floating-card-one {
+  top: 5%;
+  left: -3%;
+
+  animation:
+    networkFloatingCard 6.2s ease-in-out infinite;
+}
+
+body.network-page .network-floating-card-two {
+  top: 48%;
+  right: -8%;
+
+  animation:
+    networkFloatingCard 7s 0.8s
+    ease-in-out infinite reverse;
+}
+
+body.network-page .network-floating-card-three {
+  bottom: 5%;
+  left: 5%;
+
+  animation:
+    networkFloatingCard 7.8s 1.3s
+    ease-in-out infinite;
+}
+
+/* =========================================================
+   6. STATS
+   ========================================================= */
+
+body.network-page .network-stats {
+  position: relative;
+  z-index: 10;
+
+  margin-top: -72px;
+  padding-bottom: 42px;
+}
+
+body.network-page .network-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+}
+
+body.network-page .network-stat-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  min-height: 165px;
+  padding: 28px 30px;
+
+  border: 1px solid rgba(7, 31, 24, 0.13);
+  border-radius: 24px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(120, 228, 207, 0.17),
+      transparent 36%
+    ),
+    rgba(255, 255, 255, 0.94);
+
+  box-shadow:
+    0 24px 60px rgba(7, 31, 24, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  backdrop-filter: blur(18px);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+body.network-page .network-stat-card::before {
+  content: "";
+  position: absolute;
+  right: -38px;
+  bottom: -45px;
+  z-index: -1;
+
+  width: 145px;
+  height: 145px;
+
+  border: 25px solid rgba(126, 240, 74, 0.1);
+  border-radius: 50%;
+
+  transition: transform 0.4s ease;
+}
+
+body.network-page .network-stat-card:hover {
+  border-color: rgba(126, 240, 74, 0.46);
+
+  transform: translateY(-7px);
+
+  box-shadow:
+    0 32px 75px rgba(7, 31, 24, 0.18),
+    0 0 28px rgba(120, 228, 207, 0.1);
+}
+
+body.network-page .network-stat-card:hover::before {
+  transform: rotate(28deg) scale(1.12);
+}
+
+body.network-page .network-stat-card > span {
+  position: absolute;
+  top: 20px;
+  right: 23px;
+
+  color: rgba(7, 31, 24, 0.17);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: 31px;
+  font-weight: 900;
+}
+
+body.network-page .network-stat-card strong {
+  display: block;
+  margin-bottom: 10px;
+
+  color: var(--network-dark);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: 52px;
+  line-height: 0.95;
+}
+
+body.network-page .network-stat-card p {
+  max-width: 260px;
+  margin: 0;
+
+  color: var(--network-text-soft);
+
+  font-size: 14px;
+  line-height: 1.58;
+}
+
+/* =========================================================
+   7. ÜLDISED SEKTSIOONID
+   ========================================================= */
+
+body.network-page .network-section {
+  position: relative;
+
+  padding: 112px 0;
+}
+
+body.network-page .network-section-heading {
+  max-width: 880px;
+  margin-bottom: 49px;
+}
+
+body.network-page .network-section-heading-split {
+  max-width: none;
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(380px, 0.74fr);
+
+  gap: 72px;
+  align-items: end;
+}
+
+body.network-page .network-section-label {
+  display: inline-flex;
+  margin-bottom: 18px;
+
+  align-items: center;
+  gap: 11px;
+
+  color: var(--network-green);
+
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+body.network-page .network-section-label::before {
+  content: "";
+
+  width: 38px;
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--network-lime),
+      transparent
+    );
+}
+
+body.network-page .network-section-heading h2,
+body.network-page .network-join-card h2 {
+  margin: 0;
+
+  color: var(--network-dark);
+
+  font-size: clamp(40px, 5vw, 66px);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.047em;
+
+  text-wrap: balance;
+}
+
+body.network-page .network-section-heading > p,
+body.network-page .network-section-heading-split > p {
+  margin: 18px 0 0;
+
+  color: var(--network-text-soft);
+
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+body.network-page .network-section-heading-split > p {
+  margin: 0;
+}
+
+/* =========================================================
+   8. ABOUT + VALUES
+   ========================================================= */
+
+body.network-page .network-about {
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 92% 12%,
+      rgba(120, 228, 207, 0.13),
+      transparent 29%
+    ),
+    linear-gradient(
+      180deg,
+      var(--network-bg) 0%,
+      #f9fff2 100%
+    );
+}
+
+body.network-page .network-about::before {
+  content: "10";
+  position: absolute;
+  right: -25px;
+  bottom: 10px;
+
+  color: rgba(7, 31, 24, 0.035);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: clamp(160px, 23vw, 340px);
+  font-weight: 900;
+  line-height: 0.8;
+
+  pointer-events: none;
+}
+
+body.network-page .network-values-grid {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+body.network-page .network-value-card {
+  --network-rotate-x: 0deg;
+  --network-rotate-y: 0deg;
+  --network-shine-x: 50%;
+  --network-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  min-height: 360px;
+  padding: 35px;
+
+  border: 1px solid var(--network-border);
+  border-radius: 29px;
+
+  background:
+    radial-gradient(
+      circle at var(--network-shine-x) var(--network-shine-y),
+      rgba(120, 228, 207, 0.16),
+      transparent 31%
+    ),
+    rgba(255, 255, 255, 0.77);
+
+  box-shadow:
+    0 20px 52px rgba(7, 31, 24, 0.09);
+
+  transform:
+    perspective(950px)
+    rotateX(var(--network-rotate-x))
+    rotateY(var(--network-rotate-y));
+
+  transform-style: preserve-3d;
+
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+body.network-page .network-value-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--network-lime),
+      var(--network-mint),
+      var(--network-cyan)
+    );
+
+  transform: scaleX(0.22);
+  transform-origin: left;
+
+  transition: transform 0.38s ease;
+}
+
+body.network-page .network-value-card::after {
+  content: "";
+  position: absolute;
+  right: -55px;
+  bottom: -60px;
+  z-index: -1;
+
+  width: 180px;
+  height: 180px;
+
+  border-radius: 50%;
+
+  background: rgba(126, 240, 74, 0.09);
+
+  transition: transform 0.45s ease;
+}
+
+body.network-page .network-value-card:hover {
+  border-color: rgba(126, 240, 74, 0.48);
+
+  box-shadow:
+    0 33px 76px rgba(7, 31, 24, 0.15),
+    0 0 30px rgba(120, 228, 207, 0.09);
+}
+
+body.network-page .network-value-card:hover::before {
+  transform: scaleX(1);
+}
+
+body.network-page .network-value-card:hover::after {
+  transform: scale(1.22) rotate(20deg);
+}
+
+body.network-page .network-value-card-featured {
+  background:
+    radial-gradient(
+      circle at var(--network-shine-x) var(--network-shine-y),
+      rgba(126, 240, 74, 0.16),
+      transparent 31%
+    ),
+    linear-gradient(
+      145deg,
+      var(--network-dark),
+      var(--network-green)
+    );
+
+  color: var(--network-white);
+
+  box-shadow:
+    var(--network-shadow-strong);
+}
+
+body.network-page .network-value-card-featured::after {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+body.network-page .network-value-number {
+  position: absolute;
+  top: 28px;
+  right: 30px;
+
+  color: rgba(7, 31, 24, 0.15);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: 47px;
+  font-weight: 900;
+}
+
+body.network-page .network-value-card-featured .network-value-number {
+  color: rgba(255, 255, 255, 0.12);
+}
+
+body.network-page .network-value-icon {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+  width: 62px;
+  height: 62px;
+  margin-bottom: 56px;
+
+  place-items: center;
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--network-lime),
+      var(--network-mint)
+    );
+
+  color: var(--network-dark);
+
+  box-shadow:
+    0 13px 30px rgba(126, 240, 74, 0.25);
+
+  font-size: 27px;
+  font-weight: 900;
+
+  transition: transform 0.35s ease;
+}
+
+body.network-page .network-value-card:hover .network-value-icon {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+body.network-page .network-value-card h3 {
+  position: relative;
+  z-index: 2;
+
+  margin: 0 0 15px;
+
+  color: var(--network-dark);
+
+  font-size: 29px;
+  line-height: 1.1;
+}
+
+body.network-page .network-value-card p {
+  position: relative;
+  z-index: 2;
+
+  margin: 0;
+
+  color: var(--network-text-soft);
+
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+body.network-page .network-value-card-featured h3 {
+  color: var(--network-white);
+}
+
+body.network-page .network-value-card-featured p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* =========================================================
+   9. MARQUEE
+   ========================================================= */
+
+body.network-page .network-marquee {
+  overflow: hidden;
+
+  padding: 24px 0;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  background:
+    radial-gradient(
+      circle at 15% 50%,
+      rgba(126, 240, 74, 0.14),
+      transparent 23%
+    ),
+    linear-gradient(
+      90deg,
+      var(--network-dark),
+      #124c39,
+      var(--network-dark)
+    );
+
+  color: var(--network-white);
+}
+
+body.network-page .network-marquee-track {
+  display: flex;
+  width: max-content;
+
+  align-items: center;
+  gap: 29px;
+
+  animation:
+    networkMarquee 29s linear infinite;
+}
+
+body.network-page .network-marquee-track span {
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: clamp(25px, 3vw, 43px);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+
+  white-space: nowrap;
+}
+
+body.network-page .network-marquee-track i {
+  color: var(--network-lime);
+
+  font-style: normal;
+  font-size: 22px;
+}
+
+/* =========================================================
+   10. MEMBERS
+   ========================================================= */
+
+body.network-page .network-members {
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 8% 7%,
+      rgba(126, 240, 74, 0.11),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 92% 92%,
+      rgba(77, 199, 221, 0.1),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #f9fff2 0%,
+      var(--network-bg) 100%
+    );
+}
+
+body.network-page .network-members-header {
+  display: flex;
+  margin-bottom: 33px;
+
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 38px;
+}
+
+body.network-page .network-members-header .network-section-heading {
+  margin-bottom: 0;
+}
+
+body.network-page .network-result-box {
+  flex: 0 0 225px;
+
+  padding: 22px 24px;
+
+  border: 1px solid rgba(7, 31, 24, 0.13);
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(238, 249, 222, 0.86)
+    );
+
+  box-shadow:
+    0 18px 46px rgba(7, 31, 24, 0.09);
+}
+
+body.network-page .network-result-box strong {
+  display: block;
+  margin-bottom: 4px;
+
+  color: var(--network-dark);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: 37px;
+  line-height: 1;
+}
+
+body.network-page .network-result-box span {
+  color: var(--network-text-soft);
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Toolbar */
+
+body.network-page .network-toolbar {
+  display: flex;
+  margin-bottom: 34px;
+  padding: 18px;
+
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  border: 1px solid rgba(7, 31, 24, 0.12);
+  border-radius: 25px;
+
+  background:
+    rgba(255, 255, 255, 0.82);
+
+  box-shadow:
+    0 21px 58px rgba(7, 31, 24, 0.09);
+
+  backdrop-filter: blur(14px);
+}
+
+body.network-page .network-search {
+  flex: 1;
+
+  display: flex;
+  min-width: 260px;
+  min-height: 50px;
+  padding: 0 16px;
+
+  align-items: center;
+  gap: 11px;
+
+  border: 1px solid rgba(7, 31, 24, 0.13);
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #fbfff6
+    );
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+body.network-page .network-search:focus-within {
+  border-color: var(--network-mint);
+
+  box-shadow:
+    0 0 0 4px rgba(120, 228, 207, 0.16);
+}
+
+body.network-page .network-search > span {
+  color: var(--network-green);
+
+  font-size: 25px;
+  line-height: 1;
+}
+
+body.network-page .network-search input {
+  width: 100%;
+  min-width: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+  color: var(--network-dark);
+
+  font: inherit;
+  font-size: 15px;
+}
+
+body.network-page .network-search input::placeholder {
+  color: rgba(16, 47, 36, 0.45);
+}
+
+body.network-page .network-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.network-page .network-filter {
+  min-height: 42px;
+  padding: 10px 15px;
+
+  border: 1px solid rgba(7, 31, 24, 0.13);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--network-dark);
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.22s ease,
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+body.network-page .network-filter:hover {
+  border-color: rgba(126, 240, 74, 0.48);
+
+  transform: translateY(-2px);
+}
+
+body.network-page .network-filter.is-active {
+  border-color: var(--network-dark);
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--network-dark),
+      var(--network-green)
+    );
+
+  color: var(--network-white);
+
+  box-shadow:
+    0 10px 24px rgba(7, 31, 24, 0.18);
+}
+
+/* Kaardid */
+
+body.network-page .network-members-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+body.network-page .network-member-card {
+  --network-rotate-x: 0deg;
+  --network-rotate-y: 0deg;
+  --network-shine-x: 50%;
+  --network-shine-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  min-height: 400px;
+  padding: 25px;
+
+  display: flex;
+  flex-direction: column;
+
+  border: 1px solid rgba(7, 31, 24, 0.13);
+  border-radius: 28px;
+
+  background:
+    radial-gradient(
+      circle at var(--network-shine-x) var(--network-shine-y),
+      rgba(120, 228, 207, 0.17),
+      transparent 30%
+    ),
+    rgba(255, 255, 255, 0.81);
+
+  box-shadow:
+    0 20px 54px rgba(7, 31, 24, 0.09);
+
+  transform:
+    perspective(950px)
+    rotateX(var(--network-rotate-x))
+    rotateY(var(--network-rotate-y));
+
+  transform-style: preserve-3d;
+
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.34s ease,
+    border-color 0.34s ease,
+    opacity 0.25s ease;
+}
+
+body.network-page .network-member-card::before {
+  content: "";
+  position: absolute;
+  top: -58px;
+  right: -55px;
+  z-index: -1;
+
+  width: 190px;
+  height: 190px;
+
+  border: 34px solid rgba(126, 240, 74, 0.085);
+  border-radius: 50%;
+
+  transition: transform 0.5s ease;
+}
+
+body.network-page .network-member-card::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  bottom: 0;
+  left: 28px;
+
+  height: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--network-lime),
+      var(--network-mint),
+      transparent
+    );
+
+  transform: scaleX(0.17);
+
+  transition: transform 0.4s ease;
+}
+
+body.network-page .network-member-card:hover {
+  z-index: 4;
+
+  border-color: rgba(126, 240, 74, 0.48);
+
+  box-shadow:
+    0 34px 80px rgba(7, 31, 24, 0.17),
+    0 0 30px rgba(120, 228, 207, 0.1);
+}
+
+body.network-page .network-member-card:hover::before {
+  transform: rotate(42deg) scale(1.15);
+}
+
+body.network-page .network-member-card:hover::after {
+  transform: scaleX(1);
+}
+
+body.network-page .network-member-card-featured {
+  background:
+    radial-gradient(
+      circle at var(--network-shine-x) var(--network-shine-y),
+      rgba(126, 240, 74, 0.18),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      var(--network-dark),
+      var(--network-green)
+    );
+
+  color: var(--network-white);
+
+  box-shadow:
+    0 27px 70px rgba(7, 31, 24, 0.23);
+}
+
+body.network-page .network-member-card[hidden] {
+  display: none !important;
+}
+
+body.network-page .network-member-top {
+  display: flex;
+  margin-bottom: 31px;
+
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+body.network-page .network-member-logo {
+  display: grid;
+  width: 76px;
+  height: 76px;
+
+  place-items: center;
+  overflow: hidden;
+
+  border: 1px solid rgba(7, 31, 24, 0.12);
+  border-radius: 21px;
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--network-lime),
+      var(--network-mint)
+    );
+
+  color: var(--network-dark);
+
+  box-shadow:
+    0 15px 32px rgba(126, 240, 74, 0.19);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: 23px;
+  font-weight: 900;
+
+  transition:
+    transform 0.35s ease,
+    border-radius 0.35s ease;
+}
+
+body.network-page .network-member-card:hover .network-member-logo {
+  border-radius: 50%;
+
+  transform: rotate(-7deg) scale(1.05);
+}
+
+body.network-page .network-member-logo img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  padding: 9px;
+
+  background: var(--network-white);
+}
+
+body.network-page .network-member-type {
+  padding: 8px 12px;
+
+  border: 1px solid rgba(37, 101, 63, 0.16);
+  border-radius: 999px;
+
+  background: rgba(120, 228, 207, 0.11);
+  color: var(--network-green);
+
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+body.network-page .network-member-card-featured .network-member-type {
+  border-color: rgba(201, 246, 166, 0.27);
+
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--network-lime-soft);
+}
+
+body.network-page .network-member-content {
+  position: relative;
+  z-index: 2;
+}
+
+body.network-page .network-member-content h3 {
+  margin: 0 0 14px;
+
+  color: var(--network-dark);
+
+  font-size: 25px;
+  line-height: 1.13;
+}
+
+body.network-page .network-member-content p {
+  margin: 0;
+
+  color: var(--network-text-soft);
+
+  font-size: 15px;
+  line-height: 1.72;
+}
+
+body.network-page .network-member-card-featured .network-member-content h3 {
+  color: var(--network-white);
+}
+
+body.network-page .network-member-card-featured .network-member-content p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.network-page .network-member-tags {
+  display: flex;
+  margin-top: 22px;
+
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.network-page .network-member-tags span {
+  padding: 7px 10px;
+
+  border: 1px solid rgba(7, 31, 24, 0.1);
+  border-radius: 999px;
+
+  background: rgba(237, 245, 220, 0.75);
+  color: var(--network-green);
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+body.network-page .network-member-card-featured .network-member-tags span {
+  border-color: rgba(255, 255, 255, 0.12);
+
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--network-lime-soft);
+}
+
+body.network-page .network-member-footer {
+  display: flex;
+  margin-top: auto;
+  padding-top: 27px;
+
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  border-top: 1px solid rgba(7, 31, 24, 0.1);
+}
+
+body.network-page .network-member-card-featured .network-member-footer {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+body.network-page .network-member-footer a {
+  display: inline-flex;
+
+  align-items: center;
+  gap: 7px;
+
+  color: var(--network-green);
+
+  font-size: 13px;
+  font-weight: 900;
+
+  text-decoration: none;
+
+  transition:
+    color 0.22s ease,
+    transform 0.22s ease;
+}
+
+body.network-page .network-member-footer a:hover {
+  color: var(--network-dark);
+
+  transform: translateY(-2px);
+}
+
+body.network-page .network-member-footer a:last-child span {
+  transition: transform 0.25s ease;
+}
+
+body.network-page .network-member-footer a:last-child:hover span {
+  transform: rotate(45deg);
+}
+
+body.network-page .network-member-card-featured .network-member-footer a {
+  color: var(--network-lime-soft);
+}
+
+body.network-page .network-member-card-featured .network-member-footer a:hover {
+  color: var(--network-white);
+}
+
+body.network-page .network-empty-state {
+  margin: 28px 0 0;
+  padding: 34px;
+
+  border: 1px dashed rgba(7, 31, 24, 0.18);
+  border-radius: 22px;
+
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--network-text-soft);
+
+  text-align: center;
+}
+
+/* =========================================================
+   11. PROCESS
+   ========================================================= */
+
+body.network-page .network-process {
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 8% 22%,
+      rgba(126, 240, 74, 0.14),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 92% 80%,
+      rgba(77, 199, 221, 0.12),
+      transparent 29%
+    ),
+    linear-gradient(
+      145deg,
+      #061d17,
+      #0b3b2d
+    );
+
+  color: var(--network-white);
+}
+
+body.network-page .network-process::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  opacity: 0.075;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 54px,
+      rgba(255, 255, 255, 0.14) 54px 55px
+    );
+
+  animation:
+    networkProcessLines 18s linear infinite;
+}
+
+body.network-page .network-process .network-container {
+  position: relative;
+  z-index: 2;
+}
+
+body.network-page .network-section-heading-light h2 {
+  color: var(--network-white);
+}
+
+body.network-page .network-section-heading-light > p {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+body.network-page .network-section-heading-light .network-section-label {
+  color: var(--network-lime-soft);
+}
+
+body.network-page .network-process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 21px;
+}
+
+body.network-page .network-process-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  min-height: 310px;
+  padding: 34px;
+
+  border: 1px solid rgba(201, 246, 166, 0.18);
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.085),
+      rgba(255, 255, 255, 0.035)
+    );
+
+  box-shadow:
+    0 25px 65px rgba(0, 0, 0, 0.23);
+
+  backdrop-filter: blur(14px);
+
+  transition:
+    transform 0.33s ease,
+    border-color 0.33s ease,
+    box-shadow 0.33s ease;
+}
+
+body.network-page .network-process-card::before {
+  content: "";
+  position: absolute;
+  top: -55px;
+  right: -45px;
+  z-index: -1;
+
+  width: 180px;
+  height: 180px;
+
+  border: 31px solid rgba(126, 240, 74, 0.07);
+  border-radius: 50%;
+
+  transition: transform 0.45s ease;
+}
+
+body.network-page .network-process-card::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  bottom: 0;
+  left: 28px;
+
+  height: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--network-lime),
+      var(--network-mint),
+      transparent
+    );
+
+  transform: scaleX(0.22);
+
+  transition: transform 0.36s ease;
+}
+
+body.network-page .network-process-card:hover {
+  border-color: rgba(201, 246, 166, 0.48);
+
+  transform: translateY(-9px);
+
+  box-shadow:
+    0 36px 82px rgba(0, 0, 0, 0.33),
+    0 0 30px rgba(126, 240, 74, 0.08);
+}
+
+body.network-page .network-process-card:hover::before {
+  transform: rotate(40deg) scale(1.14);
+}
+
+body.network-page .network-process-card:hover::after {
+  transform: scaleX(1);
+}
+
+body.network-page .network-process-card > span {
+  display: block;
+  margin-bottom: 67px;
+
+  color: var(--network-lime);
+
+  font-family: "Arial Black", Inter, Arial, sans-serif;
+  font-size: 50px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.network-page .network-process-card h3 {
+  margin: 0 0 15px;
+
+  color: var(--network-white);
+
+  font-size: 29px;
+  line-height: 1.12;
+}
+
+body.network-page .network-process-card p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.66);
+
+  font-size: 15px;
+  line-height: 1.72;
+}
+
+/* =========================================================
+   12. JOIN CTA
+   ========================================================= */
+
+body.network-page .network-join {
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 88% 10%,
+      rgba(120, 228, 207, 0.15),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      var(--network-bg),
+      #f9fff2
+    );
+}
+
+body.network-page .network-join-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.25fr)
+    minmax(300px, 0.75fr);
+
+  gap: 58px;
+  padding: 54px;
+
+  align-items: center;
+
+  border: 1px solid rgba(120, 228, 207, 0.24);
+  border-radius: 36px;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(126, 240, 74, 0.16),
+      transparent 31%
+    ),
+    linear-gradient(
+      145deg,
+      var(--network-dark),
+      #114936
+    );
+
+  color: var(--network-white);
+
+  box-shadow:
+    var(--network-shadow-strong);
+}
+
+body.network-page .network-join-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  opacity: 0.1;
+
+  background:
+    repeating-linear-gradient(
+      -35deg,
+      transparent 0 22px,
+      rgba(255, 255, 255, 0.14) 22px 23px
+    );
+
+  animation:
+    networkJoinStripes 15s linear infinite;
+}
+
+body.network-page .network-join-card::after {
+  content: "✦";
+  position: absolute;
+  top: -75px;
+  right: 4%;
+  z-index: -1;
+
+  color: rgba(126, 240, 74, 0.075);
+
+  font-family: Georgia, serif;
+  font-size: 310px;
+  line-height: 1;
+
+  animation:
+    networkSparkleSpin 24s linear infinite;
+}
+
+body.network-page .network-join-card .network-section-label {
+  color: var(--network-lime-soft);
+}
+
+body.network-page .network-join-card h2 {
+  color: var(--network-white);
+}
+
+body.network-page .network-join-copy > p {
+  max-width: 740px;
+  margin: 20px 0 0;
+
+  color: rgba(255, 255, 255, 0.69);
+
+  font-size: 17px;
+  line-height: 1.76;
+}
+
+body.network-page .network-join-actions {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 17px;
+}
+
+body.network-page .network-text-link {
+  color: var(--network-lime-soft);
+
+  font-size: 14px;
+  font-weight: 900;
+
+  text-decoration: none;
+
+  transition:
+    color 0.22s ease,
+    transform 0.22s ease;
+}
+
+body.network-page .network-text-link:hover {
+  color: var(--network-white);
+
+  transform: translateX(4px);
+}
+
+/* =========================================================
+   13. FOOTER
+   ========================================================= */
+
+body.network-page .site-footer {
+  border-top: 1px solid rgba(120, 228, 207, 0.14);
+
+  background:
+    radial-gradient(
+      circle at 90% 8%,
+      rgba(77, 199, 221, 0.15),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 8% 88%,
+      rgba(126, 240, 74, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      #041a14 0%,
+      #0a3a2b 100%
+    );
+}
+
+body.network-page .footer-socials a:hover {
+  background:
+    linear-gradient(
+      145deg,
+      var(--network-lime),
+      var(--network-mint)
+    );
+
+  color: var(--network-dark);
+}
+
+/* =========================================================
+   14. REVEAL + TILT
+   ========================================================= */
+
+body.network-page .network-reveal {
+  opacity: 0;
+
+  transform:
+    translateY(44px)
+    scale(0.985);
+
+  transition:
+    opacity 0.78s ease var(--network-delay, 0ms),
+    transform 0.78s
+      cubic-bezier(0.18, 0.8, 0.24, 1)
+      var(--network-delay, 0ms);
+}
+
+body.network-page .network-reveal.is-visible {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+body.network-page .network-tilt {
+  will-change: transform;
+}
+
+/* =========================================================
+   15. ANIMATSIOONID
+   ========================================================= */
+
+@keyframes networkHeroGrid {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 62px 62px, 62px 62px;
+  }
+}
+
+@keyframes networkGhostText {
+  from {
+    transform:
+      rotate(-4deg)
+      translateX(-25px);
+  }
+
+  to {
+    transform:
+      rotate(-2deg)
+      translateX(30px);
+  }
+}
+
+@keyframes networkDotsMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 124px 124px;
+  }
+}
+
+@keyframes networkGlowOne {
+  0%,
+  100% {
+    transform:
+      translate(0, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate(42px, 30px)
+      scale(1.15);
+  }
+}
+
+@keyframes networkGlowTwo {
+  0%,
+  100% {
+    transform:
+      translate(0, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate(-34px, -25px)
+      scale(1.12);
+  }
+}
+
+@keyframes networkHeroCopy {
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(-45px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(0);
+  }
+}
+
+@keyframes networkVisualEntrance {
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(55px)
+      scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(0)
+      scale(1);
+  }
+}
+
+@keyframes networkSparkleSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes networkNotePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes networkOrbitRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes networkOrbitBreath {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+}
+
+@keyframes networkCenterFloat {
+  0%,
+  100% {
+    transform:
+      translateY(0)
+      rotate(-1deg);
+  }
+
+  50% {
+    transform:
+      translateY(-10px)
+      rotate(1deg);
+  }
+}
+
+@keyframes networkNodeFloat {
+  0%,
+  100% {
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translateY(-8px)
+      scale(1.04);
+  }
+}
+
+@keyframes networkFloatingCard {
+  0%,
+  100% {
+    transform:
+      translateY(0)
+      rotate(-1deg);
+  }
+
+  50% {
+    transform:
+      translateY(-10px)
+      rotate(1deg);
+  }
+}
+
+@keyframes networkMarquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes networkProcessLines {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 220px 0;
+  }
+}
+
+@keyframes networkJoinStripes {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 180px 0;
+  }
+}
+
+/* =========================================================
+   16. TAHVEL
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  body.network-page .network-hero {
+    min-height: auto;
+    padding: 96px 0 135px;
+  }
+
+  body.network-page .network-hero-layout {
+    grid-template-columns: 1fr;
+    gap: 55px;
+  }
+
+  body.network-page .network-hero-content {
+    max-width: 850px;
+  }
+
+  body.network-page .network-hero-visual {
+    min-height: 520px;
+  }
+
+  body.network-page .network-floating-card-one {
+    left: 3%;
+  }
+
+  body.network-page .network-floating-card-two {
+    right: 2%;
+  }
+
+  body.network-page .network-values-grid,
+  body.network-page .network-process-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  body.network-page .network-members-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  body.network-page .network-section-heading-split,
+  body.network-page .network-join-card {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+
+  body.network-page .network-section-heading-split > p {
+    max-width: 760px;
+  }
+
+  body.network-page .network-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.network-page .network-search {
+    width: 100%;
+  }
+
+  body.network-page .network-filters {
+    justify-content: flex-start;
+  }
+
+  body.network-page .network-join-actions {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* =========================================================
+   17. TELEFON / VÄIKE TAHVEL
+   ========================================================= */
+
+@media (max-width: 760px) {
+  body.network-page .network-container {
+    width: min(100% - 30px, 1220px);
+  }
+
+  body.network-page .network-hero {
+    padding: 78px 0 112px;
+  }
+
+  body.network-page .network-hero h1 {
+    font-size: clamp(44px, 13vw, 64px);
+  }
+
+  body.network-page .network-hero-content > p {
+    font-size: 17px;
+  }
+
+  body.network-page .network-eyebrow {
+    flex-wrap: wrap;
+    border-radius: 18px;
+  }
+
+  body.network-page .network-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body.network-page .network-button {
+    width: 100%;
+  }
+
+  body.network-page .network-hero-visual {
+    min-height: 440px;
+  }
+
+  body.network-page .network-orbit {
+    width: min(430px, 100%);
+  }
+
+  body.network-page .network-orbit-center {
+    width: 200px;
+    min-height: 200px;
+    padding: 23px;
+  }
+
+  body.network-page .network-orbit-logo {
+    width: 110px;
+    height: 72px;
+  }
+
+  body.network-page .network-node {
+    width: 40px;
+    height: 40px;
+    font-size: 9px;
+  }
+
+  body.network-page .network-floating-card {
+    display: none;
+  }
+
+  body.network-page .network-stats {
+    margin-top: -55px;
+  }
+
+  body.network-page .network-stats-grid,
+  body.network-page .network-values-grid,
+  body.network-page .network-process-grid,
+  body.network-page .network-members-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.network-page .network-section {
+    padding: 82px 0;
+  }
+
+  body.network-page .network-section-heading {
+    margin-bottom: 36px;
+  }
+
+  body.network-page .network-section-heading h2,
+  body.network-page .network-join-card h2 {
+    font-size: clamp(36px, 10vw, 49px);
+  }
+
+  body.network-page .network-section-heading > p,
+  body.network-page .network-section-heading-split > p {
+    font-size: 16px;
+  }
+
+  body.network-page .network-value-card {
+    min-height: 320px;
+  }
+
+  body.network-page .network-members-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.network-page .network-result-box {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  body.network-page .network-toolbar {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  body.network-page .network-search {
+    min-width: 0;
+  }
+
+  body.network-page .network-filters {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  body.network-page .network-filter {
+    width: 100%;
+  }
+
+  body.network-page .network-member-card {
+    min-height: 370px;
+  }
+
+  body.network-page .network-join-card {
+    padding: 36px 27px;
+    border-radius: 28px;
+  }
+
+  body.network-page .network-join-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body.network-page .network-text-link {
+    text-align: center;
+  }
+}
+
+/* =========================================================
+   18. VÄIKE TELEFON
+   ========================================================= */
+
+@media (max-width: 480px) {
+  body.network-page .network-container {
+    width: min(100% - 22px, 1220px);
+  }
+
+  body.network-page .network-hero {
+    padding-top: 64px;
+  }
+
+  body.network-page .network-hero h1 {
+    font-size: clamp(40px, 12.5vw, 54px);
+  }
+
+  body.network-page .network-hero-note {
+    align-items: flex-start;
+  }
+
+  body.network-page .network-hero-visual {
+    min-height: 365px;
+  }
+
+  body.network-page .network-orbit-center {
+    width: 164px;
+    min-height: 164px;
+    padding: 18px;
+  }
+
+  body.network-page .network-orbit-logo {
+    width: 90px;
+    height: 58px;
+    margin-bottom: 10px;
+  }
+
+  body.network-page .network-orbit-center strong {
+    font-size: 17px;
+  }
+
+  body.network-page .network-orbit-center span {
+    font-size: 9px;
+  }
+
+  body.network-page .network-node {
+    width: 34px;
+    height: 34px;
+    font-size: 8px;
+  }
+
+  body.network-page .network-stats {
+    margin-top: -38px;
+  }
+
+  body.network-page .network-stat-card,
+  body.network-page .network-value-card,
+  body.network-page .network-process-card,
+  body.network-page .network-member-card {
+    padding: 24px;
+    border-radius: 23px;
+  }
+
+  body.network-page .network-value-icon {
+    margin-bottom: 42px;
+  }
+
+  body.network-page .network-marquee {
+    padding: 19px 0;
+  }
+
+  body.network-page .network-toolbar {
+    gap: 13px;
+  }
+
+  body.network-page .network-filters {
+    grid-template-columns: 1fr;
+  }
+
+  body.network-page .network-member-top {
+    align-items: flex-start;
+  }
+
+  body.network-page .network-member-logo {
+    width: 66px;
+    height: 66px;
+    border-radius: 18px;
+  }
+
+  body.network-page .network-member-type {
+    max-width: 150px;
+    text-align: center;
+  }
+
+  body.network-page .network-member-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body.network-page .network-join-card {
+    padding: 31px 22px;
+  }
+}
+
+/* =========================================================
+   19. VÄHENDATUD LIIKUMINE
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  body.network-page *,
+  body.network-page *::before,
+  body.network-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  body.network-page .network-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

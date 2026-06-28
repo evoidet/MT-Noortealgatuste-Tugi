@@ -97,9 +97,9 @@ a:hover {
   box-sizing: border-box;
 
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    "logo languages navigation";
+    "logo navigation languages";
 
   align-items: center;
   column-gap: clamp(16px, 2vw, 32px);

@@ -4,233 +4,597 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>noorte tunnustusgala 2026 | MTÜ Noortealgatuste Tugi</title>
+  <title>Võrgustik | MTÜ Noortealgatuste Tugi</title>
 
-  <!-- Favicon -->
+  <meta
+    name="description"
+    content="Tutvu MTÜ Noortealgatuste Tugi võrgustikku kuuluvate organisatsioonidega ning leia uusi koostöövõimalusi Ida-Virumaal."
+  >
+
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="shortcut icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/vorgustik.css">
 </head>
 
+<body class="network-page">
 
-<body>
+  <div
+    class="network-scroll-progress"
+    id="networkScrollProgress"
+    aria-hidden="true"
+  ></div>
 
-<!-- ================= MAIN HEADER ================= -->
+  <!-- ================= MAIN HEADER ================= -->
 
-<header class="header">
-  <div class="header-inner">
+  <header class="header">
+    <div class="header-inner">
 
-    <!-- Большой прозрачный логотип -->
-    <a
-      href="/"
-      class="logo"
-      aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
-      <img
-        src="/assets/logo-header.png"
-        alt="MTÜ Noortealgatuste Tugi"
-        class="logo-img"
-        width="1000"
-        height="405"
+      <a
+        href="/"
+        class="logo"
+        aria-label="MTÜ Noortealgatuste Tugi avaleht"
       >
-    </a>
-
-    <!-- Переключатель языков -->
-    <div
-      class="language-switcher"
-      aria-label="Keele valik"
-    >
-      <button
-        class="lang-button is-active"
-        type="button"
-        data-lang="et"
-        aria-pressed="true"
-      >
-        ET
-      </button>
-
-      <button
-        class="lang-button"
-        type="button"
-        data-lang="ru"
-        aria-pressed="false"
-      >
-        RU
-      </button>
-
-      <button
-        class="lang-button"
-        type="button"
-        data-lang="en"
-        aria-pressed="false"
-      >
-        EN
-      </button>
-    </div>
-
-    <!-- Кнопка мобильного меню -->
-    <button
-      class="menu-toggle"
-      id="menuToggle"
-      type="button"
-      aria-label="Ava menüü"
-      aria-expanded="false"
-      aria-controls="mainNav"
-    >
-      ⋮
-    </button>
-
-    <!-- Навигация -->
-    <nav class="nav" id="mainNav">
-      <a href="/">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
-      <a href="/tunnustusgala.html">Noorte tunnustusgala</a>
-      <a href="/laager.html">Projektikirjutamise laager</a>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
-    </nav>
-
-  </div>
-</header>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <!-- ================= FOOTER ================= -->
-
-<footer class="site-footer">
-  <div class="footer-main">
-
-    <!-- Organisatsioon -->
-    <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
-
-      <p>
-        Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
-        Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
-      </p>
-
-      <div class="footer-socials">
-        <a
-          class="social-text"
-          href="..."
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Facebook"
-          title="Facebook"
+        <img
+          src="/assets/logo-header.png"
+          alt="MTÜ Noortealgatuste Tugi"
+          class="logo-img"
+          width="1000"
+          height="405"
         >
-          f
-        </a>
+      </a>
 
-        <a
-        href="https://www.instagram.com/noortealgatuste_tugi/"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Instagram"
-        title="Instagram"
->
-      <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <rect x="3" y="3" width="18" height="18" rx="5"></rect>
-        <circle cx="12" cy="12" r="4"></circle>
-        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle>
-      </svg>
-    </a>
-
-        <a
-          class="social-text"
-          href="https://www.linkedin.com/company/mtu-noortelgatuse-tugi/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="LinkedIn"
-          title="LinkedIn"
+      <div class="language-switcher" aria-label="Keele valik">
+        <button
+          class="lang-button is-active"
+          type="button"
+          data-lang="et"
+          aria-pressed="true"
         >
-          in
-        </a>
+          ET
+        </button>
+
+        <button
+          class="lang-button"
+          type="button"
+          data-lang="ru"
+          aria-pressed="false"
+        >
+          RU
+        </button>
+
+        <button
+          class="lang-button"
+          type="button"
+          data-lang="en"
+          aria-pressed="false"
+        >
+          EN
+        </button>
       </div>
+
+      <button
+        class="menu-toggle"
+        id="menuToggle"
+        type="button"
+        aria-label="Ava menüü"
+        aria-expanded="false"
+        aria-controls="mainNav"
+      >
+        ⋮
+      </button>
+
+      <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
+        <a href="/">Avaleht</a>
+        <a href="/uudised.html">Uudised</a>
+        <a href="/tunnustusgala.html">Noorte tunnustusgala</a>
+        <a href="/laager.html">Projektikirjutamise laager</a>
+        <a href="/vorgustik.html" aria-current="page">Võrgustik</a>
+        <a href="/#contact">Kontakt</a>
+        <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+      </nav>
+
     </div>
+  </header>
 
-    <!-- Kiirlingid -->
-    <div class="footer-column">
-      <h4>Kiirlingid</h4>
+  <main class="network-main">
 
-      <a href="index.html">Avaleht</a>
-      <a href="index.html#about">Meist</a>
-      <a href="index.html#projects">Projektid</a>
-      <a href="index.html#news">Uudised</a>
-      <a href="index.html#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
-    </div>
+    <!-- ================= HERO ================= -->
 
-    <!-- Tegevused -->
-    <div class="footer-column">
-      <h4>Tegevused</h4>
+    <section class="network-hero" id="top">
+      <div class="network-hero-grid" aria-hidden="true"></div>
+      <div class="network-hero-glow network-hero-glow-one" aria-hidden="true"></div>
+      <div class="network-hero-glow network-hero-glow-two" aria-hidden="true"></div>
 
-      <a href="tunnustusgala.html">noorte tunnustusgala</a>
-      <a href="laager.html">Projektikirjutamise laager</a>
-      <a href="index.html#projects">Noorteprojektid</a>
-      <a href="mailto:juhatus@noortetugi.ee">Koostöö</a>
-    </div>
+      <div class="network-container network-hero-layout">
 
-    <!-- Kontakt -->
-    <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
+        <div class="network-hero-content network-reveal">
+          <div class="network-eyebrow">
+            <span>10 organisatsiooni</span>
+            <i aria-hidden="true">✦</i>
+            <span>üks tugev võrgustik</span>
+          </div>
 
-      <p>📍 Ida-Virumaa, Eesti</p>
+          <h1>
+            Koos sünnivad
+            <span>suuremad ideed</span>
+          </h1>
 
-      <a href="mailto:juhatus@noortetugi.ee">
-        ✉️ juhatus@noortetugi.ee
-      </a>
+          <p>
+            MTÜ Noortealgatuste Tugi võrgustik ühendab Ida-Virumaa
+            organisatsioone, kes loovad noortele võimalusi, arendavad
+            kogukonda ja viivad ellu tähenduslikke algatusi.
+          </p>
 
-      <a href="mailto:info@noortetugi.ee">
-        ✉️ info@noortetugi.ee
-      </a>
-    </div>
+          <div class="network-hero-actions">
+            <a class="network-button network-button-primary" href="#members">
+              Tutvu võrgustikuga
+              <span aria-hidden="true">↘</span>
+            </a>
+
+            <a
+              class="network-button network-button-secondary"
+              href="mailto:juhatus@noortetugi.ee?subject=Soovin%20liituda%20võrgustikuga"
+            >
+              Soovin liituda
+            </a>
+          </div>
+
+          <div class="network-hero-note">
+            <span aria-hidden="true">●</span>
+            Koostöö, kogemuste jagamine ja ühine mõju Ida-Virumaal
+          </div>
+        </div>
+
+        <div
+          class="network-hero-visual network-reveal"
+          style="--network-delay: 120ms"
+        >
+          <div class="network-orbit" aria-hidden="true">
+            <div class="network-orbit-ring network-orbit-ring-one"></div>
+            <div class="network-orbit-ring network-orbit-ring-two"></div>
+            <div class="network-orbit-ring network-orbit-ring-three"></div>
+
+            <div class="network-orbit-center">
+              <img
+                src="/assets/logo-header.png"
+                alt=""
+                class="network-orbit-logo"
+                width="500"
+                height="500"
+              >
+              <strong>Meie võrgustik</strong>
+              <span>Ida-Virumaa</span>
+            </div>
+
+            <span class="network-node network-node-01">01</span>
+            <span class="network-node network-node-02">02</span>
+            <span class="network-node network-node-03">03</span>
+            <span class="network-node network-node-04">04</span>
+            <span class="network-node network-node-05">05</span>
+            <span class="network-node network-node-06">06</span>
+            <span class="network-node network-node-07">07</span>
+            <span class="network-node network-node-08">08</span>
+            <span class="network-node network-node-09">09</span>
+            <span class="network-node network-node-10">10</span>
+          </div>
+
+          <div class="network-floating-card network-floating-card-one">
+            <span>01</span>
+            Koostöö
+          </div>
+
+          <div class="network-floating-card network-floating-card-two">
+            <span>02</span>
+            Uued võimalused
+          </div>
+
+          <div class="network-floating-card network-floating-card-three">
+            <span>03</span>
+            Ühine mõju
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= STATS ================= -->
+
+    <section class="network-stats" aria-label="Võrgustiku näitajad">
+      <div class="network-container network-stats-grid">
+
+        <article class="network-stat-card network-reveal">
+          <span>01</span>
+          <strong>10</strong>
+          <p>võrgustikku kuuluvat organisatsiooni</p>
+        </article>
+
+        <article
+          class="network-stat-card network-reveal"
+          style="--network-delay: 90ms"
+        >
+          <span>02</span>
+          <strong>1</strong>
+          <p>ühine piirkond – Ida-Virumaa</p>
+        </article>
+
+        <article
+          class="network-stat-card network-reveal"
+          style="--network-delay: 180ms"
+        >
+          <span>03</span>
+          <strong>∞</strong>
+          <p>võimalusi koostööks ja arenguks</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= ABOUT ================= -->
+
+    <section class="network-section network-about" id="about">
+      <div class="network-container">
+
+        <div
+          class="network-section-heading network-section-heading-split network-reveal"
+        >
+          <div>
+            <span class="network-section-label">Miks võrgustik?</span>
+            <h2>Ühendame inimesed, teadmised ja võimalused</h2>
+          </div>
+
+          <p>
+            Võrgustik aitab organisatsioonidel üksteist leida, kogemusi jagada,
+            ühiseid projekte algatada ning noorte häält piirkonnas tugevamalt
+            esile tuua.
+          </p>
+        </div>
+
+        <div class="network-values-grid">
+
+          <article class="network-value-card network-tilt network-reveal">
+            <span class="network-value-number">01</span>
+            <div class="network-value-icon" aria-hidden="true">↗</div>
+            <h3>Koostöö</h3>
+            <p>
+              Leiame ühised eesmärgid ja loome algatusi, mida üksi oleks
+              keerulisem ellu viia.
+            </p>
+          </article>
+
+          <article
+            class="network-value-card network-value-card-featured network-tilt network-reveal"
+            style="--network-delay: 100ms"
+          >
+            <span class="network-value-number">02</span>
+            <div class="network-value-icon" aria-hidden="true">✦</div>
+            <h3>Kogemuste jagamine</h3>
+            <p>
+              Jagame teadmisi projektidest, rahastusest, kommunikatsioonist ja
+              organisatsioonide arendamisest.
+            </p>
+          </article>
+
+          <article
+            class="network-value-card network-tilt network-reveal"
+            style="--network-delay: 200ms"
+          >
+            <span class="network-value-number">03</span>
+            <div class="network-value-icon" aria-hidden="true">◎</div>
+            <h3>Suurem mõju</h3>
+            <p>
+              Koos jõuame rohkemate noorteni ning muudame piirkonna võimalused
+              nähtavamaks ja kättesaadavamaks.
+            </p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MARQUEE ================= -->
+
+    <section class="network-marquee" aria-label="Võrgustiku märksõnad">
+      <div class="network-marquee-track" aria-hidden="true">
+        <span>KOOSTÖÖ</span><i>✦</i>
+        <span>NOORTE IDEED</span><i>✦</i>
+        <span>IDA-VIRUMAA</span><i>✦</i>
+        <span>ÜHINE MÕJU</span><i>✦</i>
+        <span>ARENG</span><i>✦</i>
+        <span>KOOSTÖÖ</span><i>✦</i>
+        <span>NOORTE IDEED</span><i>✦</i>
+        <span>IDA-VIRUMAA</span><i>✦</i>
+        <span>ÜHINE MÕJU</span><i>✦</i>
+        <span>ARENG</span><i>✦</i>
+      </div>
+    </section>
+
+    <!-- ================= MEMBERS ================= -->
+
+    <section class="network-section network-members" id="members">
+      <div class="network-container">
+
+        <div class="network-members-header">
+          <div class="network-section-heading network-reveal">
+            <span class="network-section-label">Meie liikmed</span>
+            <h2>Organisatsioonid meie võrgustikus</h2>
+            <p>
+              Kasuta otsingut või filtreid ning leia organisatsioon, kellega
+              soovid tutvuda või koostööd alustada.
+            </p>
+          </div>
+
+          <div
+            class="network-result-box network-reveal"
+            style="--network-delay: 120ms"
+          >
+            <strong id="networkVisibleCount">10</strong>
+            <span>organisatsiooni nähtaval</span>
+          </div>
+        </div>
+
+        <div class="network-toolbar network-reveal">
+
+          <label class="network-search" for="networkSearch">
+            <span aria-hidden="true">⌕</span>
+            <input
+              id="networkSearch"
+              type="search"
+              placeholder="Otsi organisatsiooni..."
+              autocomplete="off"
+            >
+          </label>
+
+          <div
+            class="network-filters"
+            role="group"
+            aria-label="Filtreeri organisatsioone"
+          >
+            <button
+              class="network-filter is-active"
+              type="button"
+              data-filter="all"
+              aria-pressed="true"
+            >
+              Kõik
+            </button>
+
+            <button
+              class="network-filter"
+              type="button"
+              data-filter="noorteuhendus"
+              aria-pressed="false"
+            >
+              Noorteühendused
+            </button>
+
+            <button
+              class="network-filter"
+              type="button"
+              data-filter="osaluskogu"
+              aria-pressed="false"
+            >
+              Osaluskogud
+            </button>
+
+            <button
+              class="network-filter"
+              type="button"
+              data-filter="partner"
+              aria-pressed="false"
+            >
+              Partnerid
+            </button>
+          </div>
+
+        </div>
+
+        <div class="network-members-grid" id="networkMembersGrid">
+
+<article
+  class="network-member-card network-tilt network-reveal"
+  data-category="noorteuhendus"
+  data-name="organisatsiooni nimi 01"
+  data-region="ida-virumaa"
+  style="--network-delay: 0ms"
+>
+  <div class="network-member-top">
+    <div class="network-member-logo">01</div>
+    <span class="network-member-type">Noorteühendus</span>
   </div>
 
-  <div class="footer-bottom">
+  <div class="network-member-content">
+    <h3>Organisatsiooni nimi 01</h3>
     <p>
-      © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
+      Lisa siia organisatsiooni lühike, 2–3 lausest koosnev kirjeldus.
     </p>
 
-    <nav class="footer-bottom-links">
-      <a href="privaatsuspoliitika.html">
-        Privaatsuspoliitika
-      </a>
-
-      <a href="mailto:juhatus@noortetugi.ee">
-        Kontakt
-      </a>
-    </nav>
+    <div class="network-member-tags">
+      <span>Ida-Virumaa</span>
+      <span>Noored</span>
+    </div>
   </div>
-</footer>
 
-<script src="/script.js"></script>
-</body>
-</html>
+  <div class="network-member-footer">
+    <a href="mailto:organisatsioon01@example.ee">Kirjuta</a>
+    <a href="#" target="_blank" rel="noopener noreferrer">
+      Koduleht <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+</article>
+
+<article
+  class="network-member-card network-tilt network-reveal"
+  data-category="osaluskogu"
+  data-name="organisatsiooni nimi 02"
+  data-region="narva"
+  style="--network-delay: 70ms"
+>
+  <div class="network-member-top">
+    <div class="network-member-logo">02</div>
+    <span class="network-member-type">Osaluskogu</span>
+  </div>
+
+  <div class="network-member-content">
+    <h3>Organisatsiooni nimi 02</h3>
+    <p>
+      Lisa siia organisatsiooni lühike, 2–3 lausest koosnev kirjeldus.
+    </p>
+
+    <div class="network-member-tags">
+      <span>Narva</span>
+      <span>Osalus</span>
+    </div>
+  </div>
+
+  <div class="network-member-footer">
+    <a href="mailto:organisatsioon02@example.ee">Kirjuta</a>
+    <a href="#" target="_blank" rel="noopener noreferrer">
+      Koduleht <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+</article>
+
+<article
+  class="network-member-card network-tilt network-reveal"
+  data-category="partner"
+  data-name="organisatsiooni nimi 03"
+  data-region="jõhvi"
+  style="--network-delay: 140ms"
+>
+  <div class="network-member-top">
+    <div class="network-member-logo">03</div>
+    <span class="network-member-type">Partner</span>
+  </div>
+
+  <div class="network-member-content">
+    <h3>Organisatsiooni nimi 03</h3>
+    <p>
+      Lisa siia organisatsiooni lühike, 2–3 lausest koosnev kirjeldus.
+    </p>
+
+    <div class="network-member-tags">
+      <span>Jõhvi</span>
+      <span>Koostöö</span>
+    </div>
+  </div>
+
+  <div class="network-member-footer">
+    <a href="mailto:organisatsioon03@example.ee">Kirjuta</a>
+    <a href="#" target="_blank" rel="noopener noreferrer">
+      Koduleht <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+</article>
+
+<article
+  class="network-member-card network-tilt network-reveal"
+  data-category="noorteuhendus"
+  data-name="organisatsiooni nimi 04"
+  data-region="kohtla-järve"
+  style="--network-delay: 0ms"
+>
+  <div class="network-member-top">
+    <div class="network-member-logo">04</div>
+    <span class="network-member-type">Noorteühendus</span>
+  </div>
+
+  <div class="network-member-content">
+    <h3>Organisatsiooni nimi 04</h3>
+    <p>
+      Lisa siia organisatsiooni lühike, 2–3 lausest koosnev kirjeldus.
+    </p>
+
+    <div class="network-member-tags">
+      <span>Kohtla-Järve</span>
+      <span>Algatused</span>
+    </div>
+  </div>
+
+  <div class="network-member-footer">
+    <a href="mailto:organisatsioon04@example.ee">Kirjuta</a>
+    <a href="#" target="_blank" rel="noopener noreferrer">
+      Koduleht <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+</article>
+
+<article
+  class="network-member-card network-tilt network-reveal"
+  data-category="osaluskogu"
+  data-name="organisatsiooni nimi 05"
+  data-region="sillamäe"
+  style="--network-delay: 70ms"
+>
+  <div class="network-member-top">
+    <div class="network-member-logo">05</div>
+    <span class="network-member-type">Osaluskogu</span>
+  </div>
+
+  <div class="network-member-content">
+    <h3>Organisatsiooni nimi 05</h3>
+    <p>
+      Lisa siia organisatsiooni lühike, 2–3 lausest koosnev kirjeldus.
+    </p>
+
+    <div class="network-member-tags">
+      <span>Sillamäe</span>
+      <span>Noorte hääl</span>
+    </div>
+  </div>
+
+  <div class="network-member-footer">
+    <a href="mailto:organisatsioon05@example.ee">Kirjuta</a>
+    <a href="#" target="_blank" rel="noopener noreferrer">
+      Koduleht <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+</article>
+
+<article
+  class="network-member-card network-tilt network-reveal"
+  data-category="partner"
+  data-name="organisatsiooni nimi 06"
+  data-region="alutaguse"
+  style="--network-delay: 140ms"
+>
+  <div class="network-member-top">
+    <div class="network-member-logo">06</div>
+    <span class="network-member-type">Partner</span>
+  </div>
+
+  <div class="network-member-content">
+    <h3>Organisatsiooni nimi 06</h3>
+    <p>
+      Lisa siia organisatsiooni lühike, 2–3 lausest koosnev kirjeldus.
+    </p>
+
+    <div class="network-member-tags">
+      <span>Alutaguse</span>
+      <span>Kogukond</span>
+    </div>
+  </div>
+
+  <div class="network-member-footer">
+    <a href="mailto:organisatsioon06@example.ee">Kirjuta</a>
+    <a href="#" target="_blank" rel="noopener noreferrer">
+      Koduleht <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+</article>
+
+<article
+  class="network-member-card network-tilt network-reveal"
+  data-category="noorteuhendus"
+  data-name="organisatsiooni nimi 07"
+  data-region="toila"
+  style="--network-delay: 0ms"
+>
+  <div class="network-member-top">
+    <div class="network-member-logo">07</div>
+    <span class="network-member-type">Noorteühendus</span>
+  </div>
+
+  <div class="n
