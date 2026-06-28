@@ -81,31 +81,54 @@ body.news-page .news-hero {
 
   position: relative;
   isolation: isolate;
-  min-height: 720px;
-  padding: 108px 0 132px;
+
+  min-height: 460px;
+  padding: 65px 0 75px;
+
   display: grid;
   align-items: center;
   overflow: hidden;
+
   background:
-    radial-gradient(circle at var(--news-pointer-x) var(--news-pointer-y), rgba(92, 228, 19, 0.18), transparent 24%),
-    radial-gradient(circle at 9% 16%, rgba(200, 246, 158, 0.16), transparent 29%),
-    radial-gradient(circle at 90% 80%, rgba(92, 228, 19, 0.13), transparent 29%),
-    linear-gradient(138deg, #071f02 0%, #0e3b03 48%, #254b10 100%);
+    radial-gradient(
+      circle at var(--news-pointer-x) var(--news-pointer-y),
+      rgba(92, 228, 19, 0.18),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 9% 16%,
+      rgba(200, 246, 158, 0.16),
+      transparent 29%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(92, 228, 19, 0.13),
+      transparent 29%
+    ),
+    linear-gradient(
+      138deg,
+      #071f02 0%,
+      #0e3b03 48%,
+      #254b10 100%
+    );
+
   color: var(--news-white);
 }
 
 body.news-page .news-hero::after {
   content: "UUDISED";
   position: absolute;
-  right: -30px;
-  bottom: -30px;
+  right: -20px;
+  bottom: -12px;
   z-index: -3;
+
   color: rgba(255, 255, 255, 0.035);
   font-family: "Arial Black", Inter, Arial, sans-serif;
-  font-size: clamp(120px, 20vw, 310px);
+  font-size: clamp(80px, 13vw, 190px);
   font-weight: 900;
   line-height: 0.78;
   letter-spacing: -0.07em;
+
   pointer-events: none;
   animation: newsGhostText 11s ease-in-out infinite alternate;
 }
@@ -285,7 +308,7 @@ body.news-page .news-hero-visual {
   --news-shine-y: 50%;
 
   position: relative;
-  min-height: 500px;
+  min-height: 360px;
   transform: perspective(1100px) rotateX(var(--news-rotate-x)) rotateY(var(--news-rotate-y));
   transform-style: preserve-3d;
   transition: transform 0.18s ease-out;
@@ -318,20 +341,20 @@ body.news-page .news-radar-ring {
 }
 
 body.news-page .news-radar-ring-one {
-  width: 420px;
-  height: 420px;
+  width: 330px;
+  height: 330px;
   animation: newsRotate 22s linear infinite;
 }
 
 body.news-page .news-radar-ring-two {
-  width: 315px;
-  height: 315px;
+  width: 245px;
+  height: 245px;
   animation: newsRotateReverse 17s linear infinite;
 }
 
 body.news-page .news-radar-ring-three {
-  width: 205px;
-  height: 205px;
+  width: 165px;
+  height: 165px;
   border-style: solid;
   border-color: rgba(92, 228, 19, 0.3);
   animation: newsRadarPulse 3.5s ease-in-out infinite;
@@ -399,7 +422,7 @@ body.news-page .news-hero-dashboard > span {
 body.news-page .news-hero-dashboard > strong {
   margin: 13px 0 2px;
   color: var(--news-accent);
-  font-size: 84px;
+  font-size: 68px;
   font-weight: 900;
   line-height: 0.9;
 }
@@ -923,8 +946,9 @@ body.news-page .news-article-heading h1 {
   color: var(--news-dark);
   font-size: clamp(48px, 7vw, 88px);
   font-weight: 900;
-  line-height: 0.98;
-  letter-spacing: -0.055em;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  word-spacing: 0.12em;
 }
 
 body.news-page .news-article-heading > p {
@@ -1468,4 +1492,14 @@ body.news-page [data-news-reveal].is-visible {
     opacity: 1;
     transform: none;
   }
+}
+
+
+/* HERO sisu peab olema nähtav ka siis,
+   kui JavaScripti reveal-animatsioon ei käivitu */
+
+body.news-page .news-hero [data-news-reveal] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
 }
