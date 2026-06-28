@@ -1,0 +1,11 @@
+# Локальная программа управления новостями
+admin-local/
+
+# Секретные настройки
+.env
+.env.*
+!.env.example
+
+# Node.js
+node_modules/
+*.log
