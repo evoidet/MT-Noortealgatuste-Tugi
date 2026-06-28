@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html lang="et">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>MTÜ Noortealgatuste Tugi</title>
 
-<link
-  rel="icon"
-  type="image/png"
-  sizes="96x96"
-  href="/favicon.png"
->
+  <!-- Favicon для браузеров и Google -->
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="96x96"
+    href="/favicon.png"
+  >
 
-<link
-  rel="shortcut icon"
-  type="image/png"
-  href="/favicon.png"
->
+  <!-- Иконка для iPhone и iPad -->
+  <link
+    rel="apple-touch-icon"
+    sizes="180x180"
+    href="/apple-touch-icon.png"
+  >
 
-<link
-  rel="apple-touch-icon"
-  sizes="180x180"
-  href="/favicon.png"
->
-
-  <!-- Общие стили всего сайта -->
+  <!-- Общие стили сайта -->
   <link rel="stylesheet" href="/style.css">
 
-  <!-- Стили только главной страницы -->
+  <!-- Стили главной страницы -->
   <link rel="stylesheet" href="/home.css">
 </head>
 
@@ -38,19 +40,58 @@
     <img class="photo-modal-image" id="photoModalImage" src="" alt="">
   </div>
 
-  <!-- ================= MAIN HEADER ================= -->
+<!-- ================= MAIN HEADER ================= -->
 
 <header class="header">
   <div class="header-inner">
 
-    <a href="/" class="logo">
+    <!-- Большой прозрачный логотип -->
+    <a
+      href="/"
+      class="logo"
+      aria-label="MTÜ Noortealgatuste Tugi avaleht"
+    >
       <img
-        src="assets/logo.png"
-        alt="Noortealgatuste Tugi logo"
+        src="/assets/logo-header.png"
+        alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
+        width="1000"
+        height="405"
       >
-      <span>Noortealgatuste Tugi</span>
     </a>
+
+    <!-- Переключатель языков -->
+    <div
+      class="language-switcher"
+      aria-label="Keele valik"
+    >
+      <button
+        class="lang-button is-active"
+        type="button"
+        data-lang="et"
+        aria-pressed="true"
+      >
+        ET
+      </button>
+
+      <button
+        class="lang-button"
+        type="button"
+        data-lang="ru"
+        aria-pressed="false"
+      >
+        RU
+      </button>
+
+      <button
+        class="lang-button"
+        type="button"
+        data-lang="en"
+        aria-pressed="false"
+      >
+        EN
+      </button>
+    </div>
 
     <!-- Кнопка мобильного меню -->
     <button
@@ -64,10 +105,11 @@
       ⋮
     </button>
 
+    <!-- Навигация -->
     <nav class="nav" id="mainNav">
       <a href="/">Avaleht</a>
       <a href="/uudised.html">Uudised</a>
-      <a href="/tunnustusgala.html">noorte tunnustusgala</a>
+      <a href="/tunnustusgala.html">Noorte tunnustusgala</a>
       <a href="/laager.html">Projektikirjutamise laager</a>
       <a href="/vorgustik.html">Võrgustik</a>
       <a href="/#contact">Kontakt</a>

@@ -17,19 +17,58 @@
 
 <body>
 
-  <!-- ================= MAIN HEADER ================= -->
+<!-- ================= MAIN HEADER ================= -->
 
 <header class="header">
   <div class="header-inner">
 
-    <a href="/" class="logo">
+    <!-- Большой прозрачный логотип -->
+    <a
+      href="/"
+      class="logo"
+      aria-label="MTÜ Noortealgatuste Tugi avaleht"
+    >
       <img
-        src="assets/logo.png"
-        alt="Noortealgatuste Tugi logo"
+        src="/assets/logo-header.png"
+        alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
+        width="1000"
+        height="405"
       >
-      <span>Noortealgatuste Tugi</span>
     </a>
+
+    <!-- Переключатель языков -->
+    <div
+      class="language-switcher"
+      aria-label="Keele valik"
+    >
+      <button
+        class="lang-button is-active"
+        type="button"
+        data-lang="et"
+        aria-pressed="true"
+      >
+        ET
+      </button>
+
+      <button
+        class="lang-button"
+        type="button"
+        data-lang="ru"
+        aria-pressed="false"
+      >
+        RU
+      </button>
+
+      <button
+        class="lang-button"
+        type="button"
+        data-lang="en"
+        aria-pressed="false"
+      >
+        EN
+      </button>
+    </div>
 
     <!-- Кнопка мобильного меню -->
     <button
@@ -43,10 +82,11 @@
       ⋮
     </button>
 
+    <!-- Навигация -->
     <nav class="nav" id="mainNav">
       <a href="/">Avaleht</a>
-      <a href="index.html#news">Uudised</a>
-      <a href="/tunnustusgala.html">noorte tunnustusgala</a>
+      <a href="/uudised.html">Uudised</a>
+      <a href="/tunnustusgala.html">Noorte tunnustusgala</a>
       <a href="/laager.html">Projektikirjutamise laager</a>
       <a href="/vorgustik.html">Võrgustik</a>
       <a href="/#contact">Kontakt</a>
