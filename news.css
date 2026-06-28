@@ -1503,3 +1503,88 @@ body.news-page .news-hero [data-news-reveal] {
   visibility: visible;
   transform: none;
 }
+
+/* =========================================================
+   MOBILE — исправление слишком длинных новостных карточек
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* Главная большая новость на странице uudised.html */
+
+  body.news-page .news-featured-card {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  body.news-page .news-featured-media {
+    height: 230px;
+    min-height: 230px;
+  }
+
+  body.news-page .news-featured-content {
+    padding: 25px;
+    justify-content: flex-start;
+  }
+
+  body.news-page .news-featured-content h2 {
+    font-size: 30px;
+  }
+
+  body.news-page .news-featured-content > p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  body.news-page .news-featured-action {
+    padding-top: 20px;
+  }
+
+
+  /* Фотография после открытия отдельной новости */
+
+  body.news-page .news-article-hero {
+    padding: 8px;
+    border-radius: 24px;
+  }
+
+  body.news-page .news-article-image {
+    height: 240px;
+    min-height: 0;
+    border-radius: 18px;
+  }
+
+  body.news-page .news-article-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+
+@media (max-width: 470px) {
+
+  body.news-page .news-featured-media {
+    height: 200px;
+    min-height: 200px;
+  }
+
+  body.news-page .news-featured-content {
+    padding: 22px;
+  }
+
+  body.news-page .news-featured-content h2 {
+    font-size: 27px;
+  }
+
+  body.news-page .news-featured-content > p {
+    -webkit-line-clamp: 2;
+  }
+
+  body.news-page .news-article-image {
+    height: 210px;
+    min-height: 0;
+  }
+}
