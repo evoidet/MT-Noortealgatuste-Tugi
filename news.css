@@ -1273,25 +1273,24 @@ body.news-page [data-news-reveal].is-visible {
     padding: 12px 74px 12px 5%;
   }
 
-  body.news-page .nav {
-    position: absolute;
-    top: calc(100% + 1px);
-    left: 5%;
-    right: 5%;
-    display: none;
-    padding: 12px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    border: 1px solid rgba(14, 59, 3, 0.15);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 20px 55px rgba(14, 59, 3, 0.18);
-  }
+body.news-page .nav {
+  border-color: rgba(14, 59, 3, 0.15);
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(14, 59, 3, 0.16);
+}
 
-  body.news-page .nav.open { display: flex; }
-  body.news-page .nav a { padding: 13px 14px; }
-  body.news-page .nav a::after { display: none; }
+body.news-page .nav a {
+  color: var(--news-dark);
+}
+
+body.news-page .nav a:hover {
+  background: rgba(14, 59, 3, 0.07);
+  color: var(--news-green);
+}
+
+body.news-page .nav a::after {
+  display: none;
+}
 
   body.news-page .news-hero-layout {
     grid-template-columns: minmax(0, 1fr) minmax(330px, 0.75fr);

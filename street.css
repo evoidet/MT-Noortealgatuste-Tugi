@@ -45,16 +45,31 @@ body.street-page .sdj-container {
    ========================================================= */
 
 body.street-page .header {
-  border-bottom: 1px solid rgba(223, 255, 53, 0.17);
-  background: rgba(6, 6, 6, 0.88);
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid var(--sdj-lime);
+
+  background:
+    linear-gradient(
+      135deg,
+      #f7f7f2 0%,
+      #f5ffd0 100%
+    );
+
+  box-shadow:
+    0 10px 34px rgba(0, 0, 0, 0.16),
+    0 0 24px rgba(223, 255, 53, 0.12);
+
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 body.street-page .logo,
 body.street-page .logo span,
 body.street-page .nav a {
-  color: var(--sdj-white);
+  color: var(--sdj-black);
+}
+
+body.street-page .logo-img {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.16));
 }
 
 body.street-page .nav a {
@@ -67,26 +82,95 @@ body.street-page .nav a::after {
   right: 0;
   bottom: -8px;
   left: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--sdj-purple), var(--sdj-lime));
+
+  height: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--sdj-purple),
+      var(--sdj-lime)
+    );
+
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.25s ease;
 }
 
 body.street-page .nav a:hover {
-  color: var(--sdj-lime);
+  color: var(--sdj-purple-deep);
 }
 
 body.street-page .nav a:hover::after {
   transform: scaleX(1);
 }
 
-body.street-page .menu-toggle {
-  border: 1px solid rgba(223, 255, 53, 0.35);
-  border-radius: 14px;
-  background: rgba(223, 255, 53, 0.08);
+
+/* Keelevalik */
+
+body.street-page .lang-button {
+  border: 1px solid var(--sdj-black);
+  border-radius: 8px;
+
+  background: var(--sdj-lime);
+  color: var(--sdj-black);
+
+  box-shadow: 3px 3px 0 rgba(182, 124, 255, 0.35);
+}
+
+body.street-page .lang-button:hover {
+  border-color: var(--sdj-purple-deep);
+  background: #efff8a;
+  color: var(--sdj-black);
+}
+
+body.street-page .lang-button.is-active {
+  border-color: var(--sdj-black);
+  background: var(--sdj-black);
   color: var(--sdj-lime);
+
+  box-shadow: 3px 3px 0 var(--sdj-purple);
+}
+
+
+/* Kolme punktiga nupp */
+
+body.street-page .menu-toggle {
+  border: 1px solid var(--sdj-black);
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #060606,
+      #1b1b1d
+    );
+
+  color: var(--sdj-lime);
+
+  box-shadow:
+    4px 4px 0 var(--sdj-purple),
+    0 8px 20px rgba(0, 0, 0, 0.2);
+
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+body.street-page .menu-toggle:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    6px 6px 0 var(--sdj-pink),
+    0 12px 25px rgba(0, 0, 0, 0.24);
+}
+
+body.street-page .menu-toggle[aria-expanded="true"] {
+  background: var(--sdj-lime);
+  color: var(--sdj-black);
+
+  box-shadow:
+    4px 4px 0 var(--sdj-purple);
 }
 
 /* =========================================================
@@ -1944,33 +2028,24 @@ body.street-page .footer-socials a:hover {
     padding: 12px 74px 12px 5%;
   }
 
-  body.street-page .nav {
-    position: absolute;
-    top: calc(100% + 1px);
-    left: 5%;
-    right: 5%;
-    display: none;
-    padding: 12px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    border: 1px solid rgba(223, 255, 53, 0.2);
-    border-radius: 18px;
-    background: rgba(10, 10, 11, 0.98);
-    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
-  }
+body.street-page .nav {
+  border-color: rgba(223, 255, 53, 0.24);
+  background: #0a0a0b;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+}
 
-  body.street-page .nav.open {
-    display: flex;
-  }
+body.street-page .nav a {
+  color: var(--sdj-white);
+}
 
-  body.street-page .nav a {
-    padding: 13px 14px;
-  }
+body.street-page .nav a:hover {
+  background: rgba(223, 255, 53, 0.1);
+  color: var(--sdj-lime);
+}
 
-  body.street-page .nav a::after {
-    display: none;
-  }
+body.street-page .nav a::after {
+  display: none;
+}
 
   body.street-page .sdj-hero-grid {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 0.7fr);

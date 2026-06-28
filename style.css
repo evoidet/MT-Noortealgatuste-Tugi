@@ -125,7 +125,7 @@ a:hover {
 .logo-img {
   display: block;
 
-  width: clamp(240px, 20vw, 320px);
+  width: clamp(190px, 16vw, 250px);
   height: auto;
 
   object-fit: contain;

@@ -2459,33 +2459,24 @@ body.camp-page .camp-tilt {
     padding: 12px 74px 12px 5%;
   }
 
-  body.camp-page .nav {
-    position: absolute;
-    top: calc(100% + 1px);
-    left: 5%;
-    right: 5%;
-    display: none;
-    padding: 12px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    border: 1px solid rgba(22, 138, 112, 0.2);
-    border-radius: 18px;
-    background: rgba(247, 245, 234, 0.98);
-    box-shadow: 0 20px 55px rgba(8, 47, 39, 0.2);
-  }
+body.camp-page .nav {
+  border-color: rgba(22, 138, 112, 0.2);
+  background: #f7f5ea;
+  box-shadow: 0 16px 40px rgba(8, 47, 39, 0.16);
+}
 
-  body.camp-page .nav.open {
-    display: flex;
-  }
+body.camp-page .nav a {
+  color: var(--camp-forest);
+}
 
-  body.camp-page .nav a {
-    padding: 13px 14px;
-  }
+body.camp-page .nav a:hover {
+  background: rgba(47, 195, 154, 0.1);
+  color: var(--camp-green);
+}
 
-  body.camp-page .nav a::after {
-    display: none;
-  }
+body.camp-page .nav a::after {
+  display: none;
+}
 
   body.camp-page .camp-hero-inner {
     grid-template-columns: minmax(0, 1fr) minmax(330px, 0.8fr);

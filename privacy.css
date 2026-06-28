@@ -1073,34 +1073,25 @@ body.privacy-page .privacy-tilt {
     align-items: center;
     padding: 12px 74px 12px 5%;
   }
+  
+body.privacy-page .nav {
+  border-color: rgba(37, 75, 16, 0.18);
+  background: #fbfdf4;
+  box-shadow: 0 16px 40px rgba(14, 59, 3, 0.16);
+}
 
-  body.privacy-page .nav {
-    position: absolute;
-    top: calc(100% + 1px);
-    left: 5%;
-    right: 5%;
-    display: none;
-    padding: 12px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    border: 1px solid rgba(37, 75, 16, 0.18);
-    border-radius: 18px;
-    background: rgba(251, 253, 244, 0.98);
-    box-shadow: 0 20px 55px rgba(14, 59, 3, 0.18);
-  }
+body.privacy-page .nav a {
+  color: var(--privacy-dark);
+}
 
-  body.privacy-page .nav.open {
-    display: flex;
-  }
+body.privacy-page .nav a:hover {
+  background: rgba(92, 228, 19, 0.1);
+  color: var(--privacy-green);
+}
 
-  body.privacy-page .nav a {
-    padding: 13px 14px;
-  }
-
-  body.privacy-page .nav a::after {
-    display: none;
-  }
+body.privacy-page .nav a::after {
+  display: none;
+}
 
   body.privacy-page .privacy-new-meta {
     grid-template-columns: 1fr;

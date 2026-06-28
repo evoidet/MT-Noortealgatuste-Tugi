@@ -44,6 +44,51 @@ body.home-page .home-container {
 body.home-page .header {
   background: #ffffff;
   border-bottom-color: rgba(14, 59, 3, 0.1);
+  box-shadow: 0 8px 28px rgba(14, 59, 3, 0.1);
+}
+
+@media (max-width: 1200px) {
+
+  body.home-page .menu-toggle {
+    border: 1px solid rgba(92, 228, 19, 0.55);
+    border-radius: 14px;
+
+    background:
+      linear-gradient(
+        145deg,
+        var(--home-dark),
+        var(--home-green)
+      );
+
+    color: var(--home-accent);
+
+    box-shadow:
+      0 8px 20px rgba(14, 59, 3, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.13);
+
+    transition:
+      transform 0.22s ease,
+      box-shadow 0.22s ease,
+      background 0.22s ease,
+      color 0.22s ease;
+  }
+
+  body.home-page .menu-toggle:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+      0 12px 28px rgba(14, 59, 3, 0.28),
+      0 0 18px rgba(92, 228, 19, 0.2);
+  }
+
+  body.home-page .menu-toggle[aria-expanded="true"] {
+    background: var(--home-accent);
+    color: var(--home-dark);
+
+    box-shadow:
+      0 10px 26px rgba(92, 228, 19, 0.3),
+      0 0 20px rgba(92, 228, 19, 0.22);
+  }
 }
 
 body.home-page .nav a {
