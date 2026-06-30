@@ -2256,7 +2256,7 @@ body.street-page .nav a::after {
   }
 
   body.street-page .sdj-impact-numbers article {
-    grid-template-columns: 82px 1fr;
+    grid-template-columns: max-content minmax(0, 1fr);
     padding: 21px;
   }
 
@@ -2286,5 +2286,22 @@ body.street-page .nav a::after {
   body.street-page .sdj-reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Исправление блока 100% на телефоне */
+@media (max-width: 760px) {
+  body.street-page .sdj-impact-numbers article {
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 18px;
+  }
+
+  body.street-page .sdj-impact-numbers strong {
+    white-space: nowrap;
+  }
+
+  body.street-page .sdj-impact-numbers span {
+    min-width: 0;
+    overflow-wrap: break-word;
   }
 }
