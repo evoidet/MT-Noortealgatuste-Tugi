@@ -2375,7 +2375,14 @@ body.network-page .footer-socials a:hover {
    14. REVEAL + TILT
    ========================================================= */
 
+/* Reveal on vaikimisi nähtav.
+   Animatsioon lülitatakse sisse ainult siis, kui lehe JS töötab. */
 body.network-page .network-reveal {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+body.network-page.network-animations-ready .network-reveal {
   opacity: 0;
 
   transform:
@@ -2389,7 +2396,7 @@ body.network-page .network-reveal {
       var(--network-delay, 0ms);
 }
 
-body.network-page .network-reveal.is-visible {
+body.network-page.network-animations-ready .network-reveal.is-visible {
   opacity: 1;
 
   transform:
@@ -3179,7 +3186,7 @@ body.network-page .network-introduction-join > a:hover {
   box-shadow: 0 18px 36px rgba(7, 31, 24, 0.23);
 }
 
-/* Nelja detailse profiili puhul on kaks veergu loetavamad */
+/* Detailsed profiilid kuvatakse kahel veerul, et info jääks loetav */
 body.network-page .network-members-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
@@ -3467,6 +3474,21 @@ body.network-page .network-member-card-featured .network-member-logo-fallback {
   }
 }
 
+
+
+/* Alutaguse valla noortevolikogu logo */
+body.network-page .network-member-logo--alutaguse {
+  overflow: hidden;
+  background: #ffffff;
+}
+
+body.network-page .network-member-logo--alutaguse img {
+  padding: 6px;
+  object-fit: contain;
+  transform: scale(1.03);
+  transform-origin: center;
+}
+
 body.network-page .network-member-logo--volunteezy {
   overflow: hidden;
   background: #ffffff;
@@ -3476,4 +3498,549 @@ body.network-page .network-member-logo--volunteezy img {
   padding: 0;
   transform: scale(1.85);
   transform-origin: center;
+}
+
+/* =========================================================
+   22. ORGANISATSIOONIDE LOGODE AVAMINE
+   Olemasolevat kaardistiili ei muudeta.
+   ========================================================= */
+
+body.network-page.network-logo-lightbox-open {
+  overflow: hidden;
+}
+
+/* Klikitav logo */
+
+body.network-page .network-member-logo {
+  position: relative;
+  cursor: zoom-in;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.network-page .network-member-logo::after {
+  content: "+";
+
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 8;
+
+  display: grid;
+  width: 27px;
+  height: 27px;
+
+  place-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--network-dark),
+      var(--network-green)
+    );
+
+  color: var(--network-lime);
+
+  box-shadow:
+    0 8px 20px rgba(7, 31, 24, 0.28),
+    0 0 0 4px rgba(126, 240, 74, 0.08);
+
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transform:
+    scale(0.65)
+    rotate(-24deg);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.32s
+      cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.network-page .network-member-logo:hover::after,
+body.network-page .network-member-logo:focus-visible::after {
+  opacity: 1;
+
+  transform:
+    scale(1)
+    rotate(0deg);
+}
+
+body.network-page .network-member-logo:focus-visible {
+  outline: 4px solid rgba(126, 240, 74, 0.38);
+  outline-offset: 5px;
+}
+
+/* Lightbox */
+
+body.network-page .network-logo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 25000;
+
+  display: grid;
+  padding: 28px;
+
+  place-items: center;
+  overflow: auto;
+
+  background:
+    radial-gradient(
+      circle at 13% 14%,
+      rgba(126, 240, 74, 0.17),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 88% 84%,
+      rgba(77, 199, 221, 0.14),
+      transparent 31%
+    ),
+    rgba(2, 18, 14, 0.92);
+
+  opacity: 0;
+  visibility: hidden;
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  transition:
+    opacity 0.36s ease,
+    visibility 0.36s ease;
+}
+
+body.network-page .network-logo-lightbox[hidden] {
+  display: none;
+}
+
+body.network-page .network-logo-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hõljuv valgus taustal */
+
+body.network-page .network-logo-lightbox::before {
+  content: "";
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+
+  width: min(760px, 82vw);
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(126, 240, 74, 0.13),
+      rgba(120, 228, 207, 0.025),
+      rgba(77, 199, 221, 0.14),
+      rgba(126, 240, 74, 0.13)
+    );
+
+  filter: blur(48px);
+
+  transform: translate(-50%, -50%);
+
+  animation:
+    networkLogoLightboxGlow 12s linear infinite;
+}
+
+/* Suur logo kaart */
+
+body.network-page .network-logo-lightbox-card {
+  position: relative;
+  isolation: isolate;
+
+  width: min(720px, 92vw);
+  padding: 32px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(201, 246, 166, 0.32);
+  border-radius: 36px;
+
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(126, 240, 74, 0.17),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 91% 88%,
+      rgba(77, 199, 221, 0.12),
+      transparent 31%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(9, 47, 36, 0.985),
+      rgba(4, 28, 22, 0.985)
+    );
+
+  box-shadow:
+    0 45px 130px rgba(0, 0, 0, 0.6),
+    0 0 0 12px rgba(120, 228, 207, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+  opacity: 0;
+
+  transform:
+    translateY(32px)
+    scale(0.88)
+    rotateX(8deg);
+
+  transform-origin: center;
+
+  transition:
+    opacity 0.36s ease,
+    transform 0.56s
+      cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.network-page
+.network-logo-lightbox.is-open
+.network-logo-lightbox-card {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1)
+    rotateX(0deg);
+}
+
+body.network-page .network-logo-lightbox-card::before {
+  content: "";
+
+  position: absolute;
+  inset: 16px;
+  z-index: -1;
+
+  border: 1px dashed rgba(201, 246, 166, 0.19);
+  border-radius: 28px;
+
+  pointer-events: none;
+
+  animation:
+    networkLogoLightboxBorder 3.4s ease-in-out infinite;
+}
+
+/* Valge logoala */
+
+body.network-page .network-logo-lightbox-image-wrap {
+  position: relative;
+
+  display: grid;
+  min-height: clamp(300px, 54vh, 520px);
+  padding: clamp(25px, 5vw, 56px);
+
+  place-items: center;
+  overflow: hidden;
+
+  border: 1px solid rgba(7, 31, 24, 0.11);
+  border-radius: 27px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.99),
+      rgba(244, 255, 237, 0.97)
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 0 -25px 70px rgba(120, 228, 207, 0.08),
+    0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+body.network-page
+.network-logo-lightbox-image-wrap::before,
+body.network-page
+.network-logo-lightbox-image-wrap::after {
+  content: "";
+
+  position: absolute;
+
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+body.network-page
+.network-logo-lightbox-image-wrap::before {
+  top: -95px;
+  right: -90px;
+
+  width: 260px;
+  height: 260px;
+
+  border: 42px solid rgba(126, 240, 74, 0.11);
+
+  animation:
+    networkLogoLightboxRing 13s linear infinite;
+}
+
+body.network-page
+.network-logo-lightbox-image-wrap::after {
+  bottom: -100px;
+  left: -75px;
+
+  width: 230px;
+  height: 230px;
+
+  border: 34px solid rgba(77, 199, 221, 0.09);
+
+  animation:
+    networkLogoLightboxRing 16s linear infinite reverse;
+}
+
+/* Suur logo ise */
+
+body.network-page .network-logo-lightbox-image-wrap img {
+  position: relative;
+  z-index: 2;
+
+  display: block;
+
+  width: auto;
+  max-width: min(100%, 520px);
+  height: auto;
+  max-height: min(49vh, 470px);
+
+  object-fit: contain;
+
+  opacity: 0;
+
+  filter:
+    drop-shadow(0 24px 38px rgba(7, 31, 24, 0.18));
+
+  transform:
+    scale(0.78)
+    rotate(-4deg);
+
+  transition:
+    opacity 0.38s ease 0.08s,
+    transform 0.64s
+      cubic-bezier(0.18, 0.8, 0.2, 1)
+      0.04s;
+}
+
+body.network-page
+.network-logo-lightbox.is-open
+.network-logo-lightbox-image-wrap img {
+  opacity: 1;
+
+  transform:
+    scale(1)
+    rotate(0deg);
+}
+
+/* Pealkiri */
+
+body.network-page .network-logo-lightbox-caption {
+  display: flex;
+  padding: 24px 6px 3px;
+
+  flex-direction: column;
+  align-items: center;
+
+  color: var(--network-white);
+  text-align: center;
+}
+
+body.network-page .network-logo-lightbox-caption > span {
+  margin-bottom: 8px;
+
+  color: var(--network-lime);
+
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+body.network-page .network-logo-lightbox-caption strong {
+  color: var(--network-white);
+
+  font-size: clamp(24px, 4vw, 38px);
+  line-height: 1.08;
+}
+
+body.network-page .network-logo-lightbox-caption small {
+  margin-top: 10px;
+
+  color: rgba(255, 255, 255, 0.52);
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+/* Sulgemisnupp */
+
+body.network-page .network-logo-lightbox-close {
+  position: fixed;
+  top: 24px;
+  right: 25px;
+  z-index: 4;
+
+  display: grid;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+
+  place-items: center;
+
+  border: 1px solid rgba(201, 246, 166, 0.35);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.13),
+      rgba(120, 228, 207, 0.08)
+    );
+
+  color: var(--network-white);
+
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.34);
+
+  font-family: inherit;
+  font-size: 39px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  transition:
+    transform 0.28s ease,
+    background 0.28s ease,
+    color 0.28s ease,
+    border-color 0.28s ease;
+}
+
+body.network-page .network-logo-lightbox-close span {
+  display: block;
+  transform: translateY(-2px);
+}
+
+body.network-page .network-logo-lightbox-close:hover,
+body.network-page .network-logo-lightbox-close:focus-visible {
+  border-color: var(--network-lime);
+
+  background: var(--network-lime);
+  color: var(--network-dark);
+
+  outline: none;
+
+  transform:
+    rotate(90deg)
+    scale(1.06);
+}
+
+@keyframes networkLogoLightboxGlow {
+  to {
+    transform:
+      translate(-50%, -50%)
+      rotate(360deg);
+  }
+}
+
+@keyframes networkLogoLightboxBorder {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes networkLogoLightboxRing {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 620px) {
+  body.network-page .network-logo-lightbox {
+    padding: 16px;
+  }
+
+  body.network-page .network-logo-lightbox-card {
+    width: min(100%, 520px);
+    padding: 18px;
+    border-radius: 27px;
+  }
+
+  body.network-page .network-logo-lightbox-card::before {
+    inset: 9px;
+    border-radius: 21px;
+  }
+
+  body.network-page .network-logo-lightbox-image-wrap {
+    min-height: min(58vh, 410px);
+    padding: 24px;
+    border-radius: 20px;
+  }
+
+  body.network-page .network-logo-lightbox-image-wrap img {
+    max-height: 48vh;
+  }
+
+  body.network-page .network-logo-lightbox-caption {
+    padding-top: 20px;
+  }
+
+  body.network-page .network-logo-lightbox-caption strong {
+    font-size: clamp(22px, 7vw, 31px);
+  }
+
+  body.network-page .network-logo-lightbox-close {
+    top: 12px;
+    right: 12px;
+
+    width: 50px;
+    height: 50px;
+
+    font-size: 34px;
+  }
+
+  body.network-page .network-member-logo::after {
+    opacity: 1;
+
+    transform:
+      scale(0.9)
+      rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.network-page .network-logo-lightbox::before,
+  body.network-page .network-logo-lightbox-card::before,
+  body.network-page .network-logo-lightbox-image-wrap::before,
+  body.network-page .network-logo-lightbox-image-wrap::after {
+    animation: none !important;
+  }
+
+  body.network-page .network-logo-lightbox,
+  body.network-page .network-logo-lightbox-card,
+  body.network-page .network-logo-lightbox-image-wrap img,
+  body.network-page .network-member-logo::after,
+  body.network-page .network-logo-lightbox-close {
+    transition: none !important;
+  }
 }
