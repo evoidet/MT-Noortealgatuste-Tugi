@@ -47,9 +47,18 @@
   if (/^https?:\/\/\S+$/i.test(text)) {
     const previousText = String(content[index - 1] || "").toLowerCase();
 
-    const linkText = previousText.includes("registreer")
-      ? "Registreeru siin"
-      : "Ava link";
+    let linkText = "Ava link";
+
+    if (previousText.includes("registreer")) {
+      linkText = "Registreeru siin";
+    }
+
+    if (
+      previousText.includes("kandidaadi") ||
+      previousText.includes("kandidaate")
+    ) {
+      linkText = "Esita kandidaat";
+    }
 
     return `
       <a

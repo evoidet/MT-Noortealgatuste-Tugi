@@ -46,23 +46,29 @@ window.NEWS_ITEMS = [
     published: true,
 
     content: [
-      "17. oktoobril 2026 toimub Jõhvi Kontserdimajas taas Ida-Virumaa Noorte Tunnustusgala - pidulik sündmus, mille eesmärk on märgata ja tunnustada piirkonna aktiivseid, ettevõtlikke ning silmapaistvaid noori.",
+      "17. oktoobril 2026 toimub Jõhvi Kontserdimajas taas Ida-Virumaa Noorte Tunnustusgala – pidulik sündmus, mille eesmärk on märgata ja tunnustada piirkonna aktiivseid, ettevõtlikke ning silmapaistvaid noori.",
 
-      "Tunnustusgala toob kokku noored, noorte toetajad, organisatsioonid ja kogukonna esindajad. Sündmuse keskmes on Ida-Virumaa noorte saavutused, julgus, loovus ning panus kohaliku elu arendamisse.",
+      "Tunnustusgala toob kokku noored, noorte toetajad, organisatsioonid ja kogukonna esindajad. Õhtu keskmes on Ida-Virumaa noorte saavutused, julgus, loovus ja panus kohaliku elu arengusse.",
 
-      "Gala kaudu soovitakse tuua esile häid eeskujusid, tutvustada noorte saavutusi ning innustada ka teisi noori oma ideid ellu viima ja kogukonnaelus aktiivselt osalema.",
+      "Gala kaudu soovime tuua esile inspireerivaid eeskujusid, tutvustada noorte saavutusi ning innustada ka teisi noori oma ideid ellu viima ja kogukonnaelus aktiivselt osalema.",
 
-      "2026. aastal saab kandidaate esitada kaheteistkümnes kategoorias, mis kajastavad noorte mitmekülgset tegevust kultuuri, spordi, hariduse, vabatahtliku töö ja kogukonna arendamise valdkonnas.",
+      "Tunnustuskategooriad:",
 
-      "Tunnustuskategooriad on aasta noormuusik, aasta noorvabatahtlik, aasta noorsportlane, aasta noorkunstnik, aasta noor visuaalne looja, aasta noortantsija, aasta noornäitleja, aasta noorjuht, aasta noor loodushoidja, aasta noor õppur, aasta noorte tegu ning aasta noor Euroopa väärtuste kandja.",
+      "2026. aastal saab kandidaate esitada kaheteistkümnes kategoorias: aasta noormuusik, aasta noorvabatahtlik, aasta noorsportlane, aasta noorkunstnik, aasta noor visuaalne looja, aasta noortantsija, aasta noornäitleja, aasta noorjuht, aasta noor loodushoidja, aasta noor õppur, aasta noorte tegu ning aasta noor Euroopa väärtuste kandja.",
 
-      "Kandidaadiks võib esitada noore, kes on oma tegevuse, saavutuste või algatustega silma paistnud ning andnud positiivse panuse Ida-Virumaa noorte või kogukonna arengusse.",
+      "Keda saab kandidaadiks esitada?",
 
-      "Kategoorias „Aasta noorte tegu“ saab tunnustamiseks esitada ka noortegrupi, kes on algatanud ja ellu viinud mõjuka projekti, sündmuse või muu ettevõtmise.",
+      "Kandidaadiks võib esitada noore, kes on oma tegevuse, saavutuste või algatustega silma paistnud ning andnud positiivse panuse Ida-Virumaa noorte või kohaliku kogukonna arengusse.",
 
-      "Noorte tunnustusgala ei ole üksnes auhindade üleandmine. See on ühine pidulik õhtu, kus noorte lood, saavutused ja tulevikuideed saavad tähelepanu, mida need väärivad.",
+      "Kategoorias „Aasta noorte tegu“ võib tunnustamiseks esitada ka noorterühma, kes on algatanud ja ellu viinud mõjuka projekti, sündmuse või muu olulise ettevõtmise.",
 
-      "Kandidaate saab esitada MTÜ Noortealgatuste Tugi veebilehel. Kohtume 17. oktoobril 2026 Jõhvi Kontserdimajas, et üheskoos tunnustada Ida-Virumaa silmapaistvaid noori."
+      "Noorte Tunnustusgala ei ole üksnes auhindade üleandmine. See on ühine pidulik õhtu, kus noorte lood, saavutused ja tulevikuideed saavad tähelepanu, mida need väärivad.",
+
+      "Kandidaadi esitamine:",
+
+      "Esita kandidaat ning aita meil märgata Ida-Virumaa silmapaistvaid noori. Kohtume 17. oktoobril 2026 Jõhvi Kontserdimajas!",
+
+      "https://docs.google.com/forms/d/e/1FAIpQLSeJxa0RjIKa-miMDRpP4hx5gI6USiVyNYKo6N9B6dXmEahfLw/viewform"
     ]
   },
 
