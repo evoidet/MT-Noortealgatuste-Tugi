@@ -2165,3 +2165,65 @@ body.news-page .news-photo-lightbox-close:focus-visible {
     transition: none !important;
   }
 }
+
+/* Более тёмный и читаемый текст открытой новости */
+
+body.news-page .news-article-text > p {
+  color: rgba(14, 59, 3, 0.9);
+}
+
+
+/* Подзаголовки внутри новости:
+   Ürituse info:, Registreerimislink: и другие */
+
+body.news-page .news-article-subheading {
+  margin: 36px 0 8px;
+  color: var(--news-dark);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+body.news-page .news-article-subheading:first-child {
+  margin-top: 0;
+}
+
+
+/* Автоматическая кнопка для ссылок */
+
+body.news-page .news-article-link {
+  display: inline-flex;
+  margin-top: 14px;
+  padding: 14px 20px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  background: var(--news-accent);
+  color: var(--news-dark);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 12px 30px rgba(14, 59, 3, 0.14);
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+body.news-page .news-article-link:hover {
+  background: var(--news-dark);
+  color: var(--news-white);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(14, 59, 3, 0.22);
+}
+
+body.news-page .news-article-link span {
+  font-size: 18px;
+  transition: transform 0.25s ease;
+}
+
+body.news-page .news-article-link:hover span {
+  transform: translate(2px, -2px);
+}

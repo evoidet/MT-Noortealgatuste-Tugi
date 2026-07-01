@@ -38,6 +38,45 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+    const renderArticleParagraph = (paragraph, index, content) => {
+  const text = String(paragraph || "").trim();
+
+  if (!text) return "";
+
+  /* Отдельная ссылка превращается в красивую кнопку */
+  if (/^https?:\/\/\S+$/i.test(text)) {
+    const previousText = String(content[index - 1] || "").toLowerCase();
+
+    const linkText = previousText.includes("registreer")
+      ? "Registreeru siin"
+      : "Ava link";
+
+    return `
+      <a
+        class="news-article-link"
+        href="${escapeHtml(text)}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        ${linkText}
+        <span aria-hidden="true">↗</span>
+      </a>
+    `;
+  }
+
+  /* Короткие строки с двоеточием становятся подзаголовками */
+  if (text.length <= 70 && text.endsWith(":")) {
+    return `
+      <h3 class="news-article-subheading">
+        ${escapeHtml(text.slice(0, -1))}
+      </h3>
+    `;
+  }
+
+  return `<p>${escapeHtml(text)}</p>`;
+};
+
+
     const formatDate = (item) => {
       if (item.displayDate) return item.displayDate;
       if (!item.date) return "Peagi";
@@ -381,9 +420,11 @@
 
         <div class="news-article-layout">
           <article class="news-article-text" data-news-reveal>
-            ${content
-              .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
-              .join("")}
+           ${content
+            .map((paragraph, index) =>
+              renderArticleParagraph(paragraph, index, content)
+            )
+            .join("")}
 
             ${item.placeholder ? `
               <div class="news-article-placeholder-note">
