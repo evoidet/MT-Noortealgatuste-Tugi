@@ -511,6 +511,135 @@ body.gala-page .gala-hero-caption strong {
   font-size: 20px;
 }
 
+/* =========================================================
+   HERO FOTO GALA-00 — AVAMINE SUURELT
+   Ülejäänud hero kujundust ei muudeta.
+   ========================================================= */
+
+body.gala-page .gala-hero-clickable {
+  cursor: zoom-in;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.gala-page .gala-hero-clickable:focus-visible {
+  outline: 4px solid rgba(242, 212, 123, 0.58);
+  outline-offset: 10px;
+
+  box-shadow:
+    var(--gala-shadow-dark),
+    0 0 0 12px rgba(242, 212, 123, 0.08),
+    0 0 34px rgba(242, 212, 123, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Väike plussmärk, mis näitab, et foto avaneb */
+
+body.gala-page .gala-hero-zoom-hint {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  z-index: 7;
+
+  display: grid;
+  width: 39px;
+  height: 39px;
+
+  place-items: center;
+
+  border: 1px solid rgba(242, 212, 123, 0.66);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7, 24, 51, 0.94),
+      rgba(24, 62, 118, 0.92)
+    );
+
+  color: var(--gala-gold-light);
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.34),
+    0 0 0 6px rgba(242, 212, 123, 0.07);
+
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transform:
+    translateZ(72px)
+    scale(0.62)
+    rotate(-30deg);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.38s cubic-bezier(0.18, 0.8, 0.2, 1),
+    background 0.28s ease,
+    color 0.28s ease;
+}
+
+body.gala-page .gala-hero-clickable:hover .gala-hero-zoom-hint,
+body.gala-page .gala-hero-clickable:focus-visible .gala-hero-zoom-hint {
+  opacity: 1;
+
+  transform:
+    translateZ(72px)
+    scale(1)
+    rotate(0deg);
+}
+
+/* Foto reageerib õrnalt, kuid olemasolev 3D-animatsioon jääb alles */
+
+body.gala-page .gala-hero-clickable img {
+  transition:
+    filter 0.35s ease,
+    transform 0.42s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.gala-page .gala-hero-clickable:hover img,
+body.gala-page .gala-hero-clickable:focus-visible img {
+  filter:
+    saturate(1.04)
+    contrast(1.05)
+    brightness(1.02)
+    drop-shadow(0 18px 32px rgba(0, 0, 0, 0.28));
+
+  transform:
+    translateZ(28px)
+    scale(1.012);
+}
+
+@media (max-width: 760px) {
+  body.gala-page .gala-hero-zoom-hint {
+    top: 16px;
+    left: 16px;
+
+    width: 35px;
+    height: 35px;
+
+    font-size: 21px;
+
+    opacity: 1;
+
+    transform:
+      translateZ(72px)
+      scale(0.9)
+      rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.gala-page .gala-hero-zoom-hint,
+  body.gala-page .gala-hero-clickable img {
+    transition: none !important;
+  }
+}
+
+
 /* Hero hõljuvad valgused */
 
 body.gala-page .gala-hero-glow {
@@ -1579,6 +1708,173 @@ body.gala-page .gala-gallery-item:hover img {
 body.gala-page .gala-gallery-item:hover > span {
   transform: translateY(0);
 }
+
+
+
+/* =========================================================
+   GALERII FOTOD — SAMA AVAMISE VIHJE NAGU HERO FOTOL
+   Galerii mõõte ja paigutust ei muudeta.
+   ========================================================= */
+
+body.gala-page .gala-gallery-item {
+  cursor: zoom-in;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.gala-page .gala-gallery-item:focus-visible {
+  z-index: 6;
+
+  outline: 3px solid rgba(242, 212, 123, 0.72);
+  outline-offset: 5px;
+
+  border-color: rgba(242, 212, 123, 0.78);
+
+  box-shadow:
+    0 25px 65px rgba(0, 0, 0, 0.46),
+    0 0 0 8px rgba(242, 212, 123, 0.08),
+    0 0 30px rgba(242, 212, 123, 0.18);
+}
+
+/* Väike plussmärk foto nurgas */
+
+body.gala-page .gala-gallery-zoom-hint {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+
+  display: grid;
+  width: 36px;
+  height: 36px;
+
+  place-items: center;
+
+  border: 1px solid rgba(242, 212, 123, 0.68);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7, 24, 51, 0.94),
+      rgba(24, 62, 118, 0.92)
+    );
+
+  color: var(--gala-gold-light);
+
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.34),
+    0 0 0 5px rgba(242, 212, 123, 0.07);
+
+  font-family: Arial, sans-serif;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transform:
+    scale(0.62)
+    rotate(-30deg);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.38s cubic-bezier(0.18, 0.8, 0.2, 1),
+    background 0.28s ease,
+    color 0.28s ease;
+}
+
+body.gala-page .gala-gallery-item:hover .gala-gallery-zoom-hint,
+body.gala-page .gala-gallery-item:focus-visible .gala-gallery-zoom-hint {
+  opacity: 1;
+
+  transform:
+    scale(1)
+    rotate(0deg);
+}
+
+/* Sama pehme reaktsioon nagu hero fotol */
+
+body.gala-page .gala-gallery-item:focus-visible img {
+  transform: scale(1.035);
+
+  filter:
+    saturate(1.06)
+    contrast(1.04)
+    brightness(1);
+}
+
+/* Lightbox'i avanemine on veidi pidulikum,
+   kuid kehtib võrdselt hero ja galerii fotodele. */
+
+body.gala-page .gala-lightbox-frame {
+  opacity: 0;
+
+  transform:
+    translateY(24px)
+    scale(0.9)
+    rotateX(5deg);
+
+  transform-origin: center;
+
+  transition:
+    opacity 0.32s ease,
+    transform 0.48s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.gala-page .gala-lightbox.is-open .gala-lightbox-frame {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1)
+    rotateX(0deg);
+}
+
+body.gala-page .gala-lightbox-frame img {
+  opacity: 0;
+
+  transform:
+    scale(0.92);
+
+  transition:
+    opacity 0.32s ease 0.05s,
+    transform 0.52s cubic-bezier(0.18, 0.8, 0.2, 1) 0.03s;
+}
+
+body.gala-page .gala-lightbox.is-open .gala-lightbox-frame img {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (max-width: 760px) {
+  body.gala-page .gala-gallery-zoom-hint {
+    top: 11px;
+    right: 11px;
+
+    width: 33px;
+    height: 33px;
+
+    font-size: 20px;
+
+    opacity: 1;
+
+    transform:
+      scale(0.9)
+      rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.gala-page .gala-gallery-zoom-hint,
+  body.gala-page .gala-lightbox-frame,
+  body.gala-page .gala-lightbox-frame img {
+    transition: none !important;
+  }
+}
+
 
 /* Lightbox */
 

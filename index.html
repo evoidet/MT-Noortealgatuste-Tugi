@@ -49,14 +49,14 @@
     <button
       class="photo-modal-close"
       type="button"
-      aria-label="Sulge meeskonnaliikme profiil"
+      aria-label="Sulge fotoaken"
     >
       <span aria-hidden="true">×</span>
     </button>
 
     <div class="photo-modal-card" role="document">
       <div class="photo-modal-visual">
-        <span class="photo-modal-kicker">MEIE MEESKOND</span>
+        <span class="photo-modal-kicker" id="photoModalKicker">MEIE MEESKOND</span>
 
         <img
           class="photo-modal-image"
@@ -210,8 +210,16 @@
           <div class="home-orbit-ring home-orbit-ring-one"></div>
           <div class="home-orbit-ring home-orbit-ring-two"></div>
 
-          <div class="home-logo-stage">
+          <div
+            class="home-logo-stage home-logo-stage-clickable"
+            tabindex="0"
+            role="button"
+            aria-haspopup="dialog"
+            aria-label="Ava MTÜ Noortealgatuste Tugi logo suurelt"
+          >
             <span class="home-logo-stage-label">MTÜ</span>
+            <span class="home-logo-open-icon" aria-hidden="true">+</span>
+
             <img
               src="assets/logo-header.png"
               alt="MTÜ Noortealgatuste Tugi logo"
@@ -1012,22 +1020,37 @@
   (() => {
     const modal = document.getElementById("photoModal");
     const modalImage = document.getElementById("photoModalImage");
+    const modalKicker = document.getElementById("photoModalKicker");
     const modalRole = document.getElementById("photoModalRole");
     const modalName = document.getElementById("photoModalName");
     const modalDescription = document.getElementById(
       "photoModalDescription"
     );
     const closeButton = modal?.querySelector(".photo-modal-close");
-    const photos = document.querySelectorAll(".team-photo-clickable");
+
+    const teamPhotos = document.querySelectorAll(
+      ".team-photo-clickable"
+    );
+
+    const heroLogoStage = document.querySelector(
+      ".home-logo-stage-clickable"
+    );
+
+    const newsList = document.getElementById("homeNewsList");
+
+    const NEWS_MEDIA_SELECTOR = [
+      ".home-news-media",
+      ".home-news-small-media"
+    ].join(", ");
 
     if (
       !modal ||
       !modalImage ||
+      !modalKicker ||
       !modalRole ||
       !modalName ||
       !modalDescription ||
-      !closeButton ||
-      !photos.length
+      !closeButton
     ) {
       return;
     }
@@ -1036,23 +1059,38 @@
     let closeTimer = null;
     let fallbackSource = "";
 
-    const getProfileData = (photo) => {
+    const normalizeText = (value) => {
+      return value
+        ?.replace(/\s+/g, " ")
+        .trim() || "";
+    };
+
+    const getTeamProfileData = (photo) => {
       const card = photo.closest(".home-person-card");
 
       return {
+        type: "person",
+        source:
+          photo.dataset.full ||
+          photo.currentSrc ||
+          photo.src,
+        fallback:
+          photo.currentSrc ||
+          photo.src,
+        imageAlt:
+          `${photo.alt || "Meeskonnaliige"} foto`,
+        kicker: "MEIE MEESKOND",
         name:
           card?.querySelector(".home-person-info h3")
             ?.textContent
             ?.trim() ||
           photo.alt ||
           "Meeskonnaliige",
-
         role:
           card?.querySelector(".home-person-role")
             ?.textContent
             ?.trim() ||
           "Meeskonnaliige",
-
         description:
           card?.querySelector(
             ".home-person-info > p:last-child"
@@ -1063,19 +1101,101 @@
       };
     };
 
-    const openModal = (photo) => {
+    const getOrganizationProfileData = (stage) => {
+      const logo = stage.querySelector(".home-hero-logo");
+
+      return {
+        type: "logo",
+        source:
+          logo?.currentSrc ||
+          logo?.src ||
+          "assets/logo-header.png",
+        fallback:
+          logo?.currentSrc ||
+          logo?.src ||
+          "assets/logo-header.png",
+        imageAlt: "MTÜ Noortealgatuste Tugi logo",
+        kicker: "MEIE ORGANISATSIOON",
+        role: "IDA-VIRUMAA NOORTE IDEEDE KASVULAVA",
+        name: "MTÜ Noortealgatuste Tugi",
+        description:
+          "Loome Ida-Virumaa noortele võimalusi, toetame julgeid algatusi ning aitame ideedel kasvada päriselt teostatavateks projektideks."
+      };
+    };
+
+    const getNewsProfileData = (media) => {
+      const card = media.closest(".home-news-card");
+      const image = media.querySelector("img");
+
+      const category = normalizeText(
+        card?.querySelector(".home-news-category")
+          ?.textContent
+      );
+
+      const date = normalizeText(
+        card?.querySelector("time")
+          ?.textContent
+      );
+
+      return {
+        type: "news",
+        source:
+          image?.dataset.full ||
+          image?.currentSrc ||
+          image?.src ||
+          "",
+        fallback:
+          image?.currentSrc ||
+          image?.src ||
+          "",
+        imageAlt:
+          image?.alt ||
+          "Uudise foto",
+        kicker: "UUDISE FOTO",
+        role:
+          [category, date]
+            .filter(Boolean)
+            .join(" · ") ||
+          "MTÜ NOORTEALGATUSTE TUGI",
+        name:
+          normalizeText(
+            card?.querySelector("h3")
+              ?.textContent
+          ) ||
+          image?.alt ||
+          "Uudise foto",
+        description:
+          normalizeText(
+            card?.querySelector(
+              ".home-news-featured-overlay > p, .home-news-small-content > p"
+            )?.textContent
+          )
+      };
+    };
+
+    const setModalType = (type) => {
+      modal.classList.toggle(
+        "is-logo",
+        type === "logo"
+      );
+
+      modal.classList.toggle(
+        "is-news",
+        type === "news"
+      );
+    };
+
+    const openModal = (trigger, profile) => {
       window.clearTimeout(closeTimer);
 
-      const profile = getProfileData(photo);
+      lastFocused = trigger;
+      fallbackSource = profile.fallback;
 
-      lastFocused = photo;
-      fallbackSource = photo.currentSrc || photo.src;
+      setModalType(profile.type);
 
-      modalImage.src =
-        photo.dataset.full ||
-        fallbackSource;
-
-      modalImage.alt = `${profile.name} foto`;
+      modalImage.src = profile.source;
+      modalImage.alt = profile.imageAlt;
+      modalKicker.textContent = profile.kicker;
       modalRole.textContent = profile.role;
       modalName.textContent = profile.name;
       modalDescription.textContent = profile.description;
@@ -1110,8 +1230,14 @@
         }
 
         modal.hidden = true;
+        modal.classList.remove(
+          "is-logo",
+          "is-news"
+        );
+
         modalImage.removeAttribute("src");
         modalImage.alt = "";
+        modalKicker.textContent = "MEIE MEESKOND";
         modalRole.textContent = "";
         modalName.textContent = "Meeskonnaliige";
         modalDescription.textContent = "";
@@ -1131,22 +1257,192 @@
       }
     });
 
-    photos.forEach((photo) => {
+    teamPhotos.forEach((photo) => {
       photo.setAttribute("aria-haspopup", "dialog");
 
       photo.addEventListener("click", () => {
-        openModal(photo);
+        openModal(
+          photo,
+          getTeamProfileData(photo)
+        );
       });
 
       photo.addEventListener("keydown", (event) => {
         if (
+          event.key !== "Enter" &&
+          event.key !== " "
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+
+        openModal(
+          photo,
+          getTeamProfileData(photo)
+        );
+      });
+    });
+
+    if (heroLogoStage) {
+      heroLogoStage.addEventListener("click", () => {
+        openModal(
+          heroLogoStage,
+          getOrganizationProfileData(heroLogoStage)
+        );
+      });
+
+      heroLogoStage.addEventListener(
+        "keydown",
+        (event) => {
+          if (
+            event.key !== "Enter" &&
+            event.key !== " "
+          ) {
+            return;
+          }
+
+          event.preventDefault();
+
+          openModal(
+            heroLogoStage,
+            getOrganizationProfileData(heroLogoStage)
+          );
+        }
+      );
+    }
+
+    const enhanceNewsMedia = (root = document) => {
+      const mediaItems = [];
+
+      if (
+        root instanceof Element &&
+        root.matches(NEWS_MEDIA_SELECTOR)
+      ) {
+        mediaItems.push(root);
+      }
+
+      if (
+        root instanceof Document ||
+        root instanceof DocumentFragment ||
+        root instanceof Element
+      ) {
+        mediaItems.push(
+          ...root.querySelectorAll(
+            NEWS_MEDIA_SELECTOR
+          )
+        );
+      }
+
+      mediaItems.forEach((media) => {
+        if (
+          media.dataset.homeNewsPhotoReady === "true" ||
+          !media.querySelector("img")
+        ) {
+          return;
+        }
+
+        media.dataset.homeNewsPhotoReady = "true";
+        media.classList.add(
+          "home-news-photo-openable"
+        );
+
+        media.setAttribute("role", "button");
+        media.setAttribute("tabindex", "0");
+        media.setAttribute("aria-haspopup", "dialog");
+        media.setAttribute(
+          "aria-label",
+          "Ava uudise foto suurelt"
+        );
+
+        const zoomIcon = document.createElement("span");
+        zoomIcon.className = "home-news-photo-zoom";
+        zoomIcon.setAttribute("aria-hidden", "true");
+        zoomIcon.textContent = "+";
+
+        media.appendChild(zoomIcon);
+      });
+    };
+
+    enhanceNewsMedia();
+
+    if (newsList) {
+      const newsObserver = new MutationObserver(
+        (mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (
+                node instanceof Element ||
+                node instanceof DocumentFragment
+              ) {
+                enhanceNewsMedia(node);
+              }
+            });
+          });
+        }
+      );
+
+      newsObserver.observe(newsList, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      const media = event.target.closest?.(
+        NEWS_MEDIA_SELECTOR
+      );
+
+      if (
+        !media ||
+        !media.classList.contains(
+          "home-news-photo-openable"
+        )
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      openModal(
+        media,
+        getNewsProfileData(media)
+      );
+    });
+
+    document.addEventListener("keydown", (event) => {
+      const media = event.target.closest?.(
+        NEWS_MEDIA_SELECTOR
+      );
+
+      if (
+        media &&
+        media.classList.contains(
+          "home-news-photo-openable"
+        ) &&
+        (
           event.key === "Enter" ||
           event.key === " "
-        ) {
-          event.preventDefault();
-          openModal(photo);
-        }
-      });
+        )
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        openModal(
+          media,
+          getNewsProfileData(media)
+        );
+
+        return;
+      }
+
+      if (
+        event.key === "Escape" &&
+        modal.classList.contains("open")
+      ) {
+        closeModal();
+      }
     });
 
     closeButton.addEventListener(
@@ -1156,15 +1452,6 @@
 
     modal.addEventListener("click", (event) => {
       if (event.target === modal) {
-        closeModal();
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (
-        event.key === "Escape" &&
-        modal.classList.contains("open")
-      ) {
         closeModal();
       }
     });
