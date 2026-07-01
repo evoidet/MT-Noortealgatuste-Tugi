@@ -35,9 +35,47 @@
 
 <body class="home-page">
 
-  <div class="photo-modal" id="photoModal" aria-hidden="true">
-    <button class="photo-modal-close" type="button" aria-label="Sulge">×</button>
-    <img class="photo-modal-image" id="photoModalImage" src="" alt="">
+  <!-- ================= TEAM PROFILE LIGHTBOX ================= -->
+
+  <div
+    class="photo-modal"
+    id="photoModal"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+    aria-labelledby="photoModalName"
+    hidden
+  >
+    <button
+      class="photo-modal-close"
+      type="button"
+      aria-label="Sulge meeskonnaliikme profiil"
+    >
+      <span aria-hidden="true">×</span>
+    </button>
+
+    <div class="photo-modal-card" role="document">
+      <div class="photo-modal-visual">
+        <span class="photo-modal-kicker">MEIE MEESKOND</span>
+
+        <img
+          class="photo-modal-image"
+          id="photoModalImage"
+          src=""
+          alt=""
+        >
+      </div>
+
+      <div class="photo-modal-info">
+        <p class="photo-modal-role" id="photoModalRole"></p>
+        <h2 id="photoModalName">Meeskonnaliige</h2>
+        <p class="photo-modal-description" id="photoModalDescription"></p>
+
+        <span class="photo-modal-hint">
+          Sulgemiseks vajuta ristile, taustale või klahvile Esc
+        </span>
+      </div>
+    </div>
   </div>
 
 <!-- ================= MAIN HEADER ================= -->
@@ -974,47 +1012,159 @@
   (() => {
     const modal = document.getElementById("photoModal");
     const modalImage = document.getElementById("photoModalImage");
-    const closeButton = document.querySelector(".photo-modal-close");
+    const modalRole = document.getElementById("photoModalRole");
+    const modalName = document.getElementById("photoModalName");
+    const modalDescription = document.getElementById(
+      "photoModalDescription"
+    );
+    const closeButton = modal?.querySelector(".photo-modal-close");
     const photos = document.querySelectorAll(".team-photo-clickable");
 
-    if (!modal || !modalImage || !closeButton || !photos.length) return;
+    if (
+      !modal ||
+      !modalImage ||
+      !modalRole ||
+      !modalName ||
+      !modalDescription ||
+      !closeButton ||
+      !photos.length
+    ) {
+      return;
+    }
 
     let lastFocused = null;
+    let closeTimer = null;
+    let fallbackSource = "";
+
+    const getProfileData = (photo) => {
+      const card = photo.closest(".home-person-card");
+
+      return {
+        name:
+          card?.querySelector(".home-person-info h3")
+            ?.textContent
+            ?.trim() ||
+          photo.alt ||
+          "Meeskonnaliige",
+
+        role:
+          card?.querySelector(".home-person-role")
+            ?.textContent
+            ?.trim() ||
+          "Meeskonnaliige",
+
+        description:
+          card?.querySelector(
+            ".home-person-info > p:last-child"
+          )
+            ?.textContent
+            ?.trim() ||
+          ""
+      };
+    };
 
     const openModal = (photo) => {
+      window.clearTimeout(closeTimer);
+
+      const profile = getProfileData(photo);
+
       lastFocused = photo;
-      modalImage.src = photo.dataset.full || photo.currentSrc || photo.src;
-      modalImage.alt = photo.alt;
-      modal.classList.add("open");
-      modal.setAttribute("aria-hidden", "false");
-      document.body.classList.add("photo-modal-open");
-      closeButton.focus();
+      fallbackSource = photo.currentSrc || photo.src;
+
+      modalImage.src =
+        photo.dataset.full ||
+        fallbackSource;
+
+      modalImage.alt = `${profile.name} foto`;
+      modalRole.textContent = profile.role;
+      modalName.textContent = profile.name;
+      modalDescription.textContent = profile.description;
+
+      modal.hidden = false;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          modal.classList.add("open");
+          modal.setAttribute("aria-hidden", "false");
+          document.body.classList.add("photo-modal-open");
+
+          closeButton.focus({
+            preventScroll: true
+          });
+        });
+      });
     };
 
     const closeModal = () => {
+      if (!modal.classList.contains("open")) {
+        return;
+      }
+
       modal.classList.remove("open");
       modal.setAttribute("aria-hidden", "true");
       document.body.classList.remove("photo-modal-open");
-      modalImage.src = "";
-      if (lastFocused) lastFocused.focus();
+
+      closeTimer = window.setTimeout(() => {
+        if (modal.classList.contains("open")) {
+          return;
+        }
+
+        modal.hidden = true;
+        modalImage.removeAttribute("src");
+        modalImage.alt = "";
+        modalRole.textContent = "";
+        modalName.textContent = "Meeskonnaliige";
+        modalDescription.textContent = "";
+
+        lastFocused?.focus({
+          preventScroll: true
+        });
+      }, 420);
     };
 
+    modalImage.addEventListener("error", () => {
+      if (
+        fallbackSource &&
+        modalImage.src !== fallbackSource
+      ) {
+        modalImage.src = fallbackSource;
+      }
+    });
+
     photos.forEach((photo) => {
-      photo.addEventListener("click", () => openModal(photo));
+      photo.setAttribute("aria-haspopup", "dialog");
+
+      photo.addEventListener("click", () => {
+        openModal(photo);
+      });
+
       photo.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
+        if (
+          event.key === "Enter" ||
+          event.key === " "
+        ) {
           event.preventDefault();
           openModal(photo);
         }
       });
     });
 
-    closeButton.addEventListener("click", closeModal);
+    closeButton.addEventListener(
+      "click",
+      closeModal
+    );
+
     modal.addEventListener("click", (event) => {
-      if (event.target === modal) closeModal();
+      if (event.target === modal) {
+        closeModal();
+      }
     });
+
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && modal.classList.contains("open")) {
+      if (
+        event.key === "Escape" &&
+        modal.classList.contains("open")
+      ) {
         closeModal();
       }
     });

@@ -1086,49 +1086,578 @@ body.home-page .home-person-card-lead .team-photo.loaded {
 }
 
 .team-photo {
-  cursor: pointer;
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.photo-modal {
+/* Väike suurendamise märk foto kohal */
+
+body.home-page .home-person-photo-wrap::after {
+  content: "+";
+
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+
+  display: grid;
+  width: 30px;
+  height: 30px;
+
+  place-items: center;
+
+  border: 2px solid rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--home-dark),
+      var(--home-green)
+    );
+
+  color: var(--home-accent);
+
+  box-shadow:
+    0 9px 24px rgba(14, 59, 3, 0.3),
+    0 0 0 5px rgba(92, 228, 19, 0.08);
+
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transform:
+    scale(0.62)
+    rotate(-28deg);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.home-page .home-person-photo-wrap:hover::after,
+body.home-page .home-person-photo-wrap:focus-within::after {
+  opacity: 1;
+
+  transform:
+    scale(1)
+    rotate(0deg);
+}
+
+/* Kui profiiliaken on avatud, ei kerita tausta */
+
+body.home-page.photo-modal-open {
+  overflow: hidden;
+}
+
+/* Täisekraani taust */
+
+body.home-page .photo-modal {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 30000;
 
+  display: grid;
+  padding: 28px;
+
+  place-items: center;
+  overflow-y: auto;
+
+  background:
+    radial-gradient(
+      circle at 14% 14%,
+      rgba(92, 228, 19, 0.18),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 86% 84%,
+      rgba(255, 255, 255, 0.09),
+      transparent 29%
+    ),
+    rgba(5, 26, 2, 0.91);
+
+  opacity: 0;
+  visibility: hidden;
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  transition:
+    opacity 0.34s ease,
+    visibility 0.34s ease;
+}
+
+body.home-page .photo-modal[hidden] {
   display: none;
-  align-items: center;
-  justify-content: center;
+}
 
+body.home-page .photo-modal.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hõljuv dekoratiivne valgusring */
+
+body.home-page .photo-modal::before {
+  content: "";
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+
+  width: min(760px, 82vw);
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(92, 228, 19, 0.16),
+      rgba(255, 255, 255, 0.025),
+      rgba(37, 75, 16, 0.18),
+      rgba(92, 228, 19, 0.16)
+    );
+
+  filter: blur(50px);
+
+  transform: translate(-50%, -50%);
+
+  animation:
+    homeProfileModalGlow 13s linear infinite;
+}
+
+/* Põhikaart */
+
+body.home-page .photo-modal-card {
+  position: relative;
+  isolation: isolate;
+
+  width: min(780px, 94vw);
+  max-height: calc(100vh - 56px);
   padding: 30px;
-  background: rgba(0, 0, 0, 0.85);
+
+  overflow-y: auto;
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 38px;
+
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(92, 228, 19, 0.18),
+      transparent 31%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(14, 59, 3, 0.985),
+      rgba(37, 75, 16, 0.985)
+    );
+
+  box-shadow:
+    0 48px 140px rgba(0, 0, 0, 0.58),
+    0 0 0 12px rgba(92, 228, 19, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13);
+
+  opacity: 0;
+
+  transform:
+    translateY(34px)
+    scale(0.88)
+    rotateX(8deg);
+
+  transform-origin: center;
+
+  transition:
+    opacity 0.35s ease,
+    transform 0.58s cubic-bezier(0.18, 0.8, 0.2, 1);
 }
 
-.photo-modal.open {
-  display: flex;
+body.home-page .photo-modal.open .photo-modal-card {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1)
+    rotateX(0deg);
 }
 
-.photo-modal-image {
-  max-width: 90vw;
-  max-height: 90vh;
+body.home-page .photo-modal-card::before {
+  content: "";
+
+  position: absolute;
+  inset: 15px;
+  z-index: -1;
+
+  border: 1px dashed rgba(92, 228, 19, 0.24);
+  border-radius: 29px;
+
+  pointer-events: none;
+
+  animation:
+    homeProfileModalBorder 3.6s ease-in-out infinite;
+}
+
+/* Fotoala */
+
+body.home-page .photo-modal-visual {
+  position: relative;
+
+  display: grid;
+  min-height: clamp(340px, 56vh, 570px);
+  padding: clamp(26px, 5vw, 58px);
+
+  place-items: center;
+  overflow: hidden;
+
+  border: 1px solid rgba(14, 59, 3, 0.12);
+  border-radius: 28px;
+
+  background:
+    radial-gradient(
+      circle at 87% 10%,
+      rgba(92, 228, 19, 0.16),
+      transparent 27%
+    ),
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #f3fadd
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 0 -30px 80px rgba(92, 228, 19, 0.08),
+    0 26px 72px rgba(0, 0, 0, 0.25);
+}
+
+body.home-page .photo-modal-visual::before,
+body.home-page .photo-modal-visual::after {
+  content: "";
+
+  position: absolute;
+
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+body.home-page .photo-modal-visual::before {
+  top: -115px;
+  right: -100px;
+
+  width: 290px;
+  height: 290px;
+
+  border: 48px solid rgba(92, 228, 19, 0.1);
+
+  animation:
+    homeProfileModalRing 14s linear infinite;
+}
+
+body.home-page .photo-modal-visual::after {
+  bottom: -120px;
+  left: -90px;
+
+  width: 270px;
+  height: 270px;
+
+  border: 40px solid rgba(37, 75, 16, 0.07);
+
+  animation:
+    homeProfileModalRing 18s linear infinite reverse;
+}
+
+body.home-page .photo-modal-kicker {
+  position: absolute;
+  top: 22px;
+  left: 25px;
+  z-index: 3;
+
+  padding: 8px 12px;
+
+  border: 1px solid rgba(14, 59, 3, 0.14);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--home-green);
+
+  box-shadow:
+    0 10px 28px rgba(14, 59, 3, 0.09);
+
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+
+  backdrop-filter: blur(10px);
+}
+
+/* Suur foto */
+
+body.home-page .photo-modal-image {
+  position: relative;
+  z-index: 2;
+
+  display: block;
 
   width: auto;
+  max-width: min(100%, 560px);
   height: auto;
+  max-height: min(51vh, 500px);
 
   object-fit: contain;
-  border-radius: 16px;
+  border-radius: 24px;
+
+  opacity: 0;
+
+  filter:
+    drop-shadow(0 28px 42px rgba(14, 59, 3, 0.2));
+
+  transform:
+    scale(0.76)
+    translateY(18px)
+    rotate(-3deg);
+
+  transition:
+    opacity 0.38s ease 0.08s,
+    transform 0.66s
+      cubic-bezier(0.18, 0.8, 0.2, 1)
+      0.04s;
 }
 
-.photo-modal-close {
-  position: absolute;
-  top: 18px;
+body.home-page .photo-modal.open .photo-modal-image {
+  opacity: 1;
+
+  transform:
+    scale(1)
+    translateY(0)
+    rotate(0deg);
+}
+
+/* Nimi, roll ja kirjeldus foto all */
+
+body.home-page .photo-modal-info {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  padding: 27px 16px 5px;
+
+  flex-direction: column;
+  align-items: center;
+
+  color: var(--home-white);
+  text-align: center;
+}
+
+body.home-page .photo-modal-role {
+  margin: 0 0 9px;
+
+  color: var(--home-accent);
+
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+body.home-page .photo-modal-info h2 {
+  margin: 0;
+
+  color: var(--home-white);
+
+  font-size: clamp(28px, 5vw, 45px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+}
+
+body.home-page .photo-modal-description {
+  max-width: 620px;
+  margin: 15px 0 0;
+
+  color: rgba(255, 255, 255, 0.74);
+
+  font-size: clamp(14px, 1.8vw, 17px);
+  line-height: 1.7;
+}
+
+body.home-page .photo-modal-hint {
+  margin-top: 17px;
+
+  color: rgba(255, 255, 255, 0.42);
+
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* Sulgemisnupp */
+
+body.home-page .photo-modal-close {
+  position: fixed;
+  top: 23px;
   right: 25px;
+  z-index: 5;
 
-  border: none;
-  background: transparent;
-  color: white;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  padding: 0;
 
-  font-size: 48px;
+  place-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.31);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.15),
+      rgba(92, 228, 19, 0.09)
+    );
+
+  color: var(--home-white);
+
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.35);
+
+  font-family: inherit;
+  font-size: 39px;
   line-height: 1;
+
   cursor: pointer;
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  transition:
+    transform 0.28s ease,
+    background 0.28s ease,
+    color 0.28s ease,
+    border-color 0.28s ease;
+}
+
+body.home-page .photo-modal-close span {
+  display: block;
+  transform: translateY(-2px);
+}
+
+body.home-page .photo-modal-close:hover,
+body.home-page .photo-modal-close:focus-visible {
+  border-color: var(--home-accent);
+
+  background: var(--home-accent);
+  color: var(--home-dark);
+
+  outline: none;
+
+  transform:
+    rotate(90deg)
+    scale(1.06);
+}
+
+@keyframes homeProfileModalGlow {
+  to {
+    transform:
+      translate(-50%, -50%)
+      rotate(360deg);
+  }
+}
+
+@keyframes homeProfileModalBorder {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes homeProfileModalRing {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 680px) {
+  body.home-page .photo-modal {
+    padding: 15px;
+  }
+
+  body.home-page .photo-modal-card {
+    width: min(100%, 540px);
+    max-height: calc(100vh - 30px);
+    padding: 17px;
+    border-radius: 27px;
+  }
+
+  body.home-page .photo-modal-card::before {
+    inset: 8px;
+    border-radius: 21px;
+  }
+
+  body.home-page .photo-modal-visual {
+    min-height: min(52vh, 430px);
+    padding: 50px 20px 24px;
+    border-radius: 20px;
+  }
+
+  body.home-page .photo-modal-image {
+    max-height: 43vh;
+    border-radius: 18px;
+  }
+
+  body.home-page .photo-modal-info {
+    padding: 22px 8px 3px;
+  }
+
+  body.home-page .photo-modal-info h2 {
+    font-size: clamp(27px, 8vw, 37px);
+  }
+
+  body.home-page .photo-modal-description {
+    font-size: 14px;
+  }
+
+  body.home-page .photo-modal-close {
+    top: 11px;
+    right: 11px;
+
+    width: 50px;
+    height: 50px;
+
+    font-size: 34px;
+  }
+
+  body.home-page .home-person-photo-wrap::after {
+    opacity: 1;
+
+    transform:
+      scale(0.9)
+      rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.home-page .photo-modal::before,
+  body.home-page .photo-modal-card::before,
+  body.home-page .photo-modal-visual::before,
+  body.home-page .photo-modal-visual::after {
+    animation: none !important;
+  }
+
+  body.home-page .photo-modal,
+  body.home-page .photo-modal-card,
+  body.home-page .photo-modal-image,
+  body.home-page .photo-modal-close,
+  body.home-page .home-person-photo-wrap::after {
+    transition: none !important;
+  }
 }
 
 body.home-page .home-person-card:hover .team-photo {
