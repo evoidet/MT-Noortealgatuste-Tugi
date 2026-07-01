@@ -2524,12 +2524,10 @@ body.street-page .footer-socials a:hover {
    ========================================================= */
 
 @media (max-width: 1050px) {
-  body.street-page .header-inner {
-    position: relative;
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 74px 12px 5%;
-  }
+body.street-page .header-inner {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
 
 body.street-page .nav {
   border-color: rgba(223, 255, 53, 0.24);

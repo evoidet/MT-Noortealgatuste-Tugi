@@ -2542,12 +2542,10 @@ body.gala-page .gala-tilt {
    ========================================================= */
 
 @media (max-width: 1050px) {
-  body.gala-page .header-inner {
-    position: relative;
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 74px 12px 5%;
-  }
+body.gala-page .header-inner {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
 
 body.gala-page .nav {
   border-color: rgba(200, 155, 50, 0.23);

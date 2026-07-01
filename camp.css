@@ -2452,13 +2452,10 @@ body.camp-page .camp-tilt {
    ========================================================= */
 
 @media (max-width: 1050px) {
-  body.camp-page .header-inner {
-    position: relative;
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 74px 12px 5%;
-  }
-
+body.camp-page .header-inner {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
 body.camp-page .nav {
   border-color: rgba(22, 138, 112, 0.2);
   background: #f7f5ea;

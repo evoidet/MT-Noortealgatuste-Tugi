@@ -1266,12 +1266,10 @@ body.news-page [data-news-reveal].is-visible {
 /* Responsive */
 
 @media (max-width: 1050px) {
-  body.news-page .header-inner {
-    position: relative;
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 74px 12px 5%;
-  }
+body.news-page .header-inner {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
 
 body.news-page .nav {
   border-color: rgba(14, 59, 3, 0.15);
