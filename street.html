@@ -118,11 +118,22 @@
           NOORTELT NOORTELE
         </span>
 
-        <img
-          src="assets/street-dance-jam/street-dance-jam-logo.jpg"
-          alt="Street Dance Jam 2025 logo"
-          class="sdj-event-logo"
+        <div
+          class="sdj-event-logo-wrap sdj-lightbox-trigger"
+          tabindex="0"
+          role="button"
+          aria-haspopup="dialog"
+          aria-label="Ava Street Dance Jam 2025 logo suurelt"
+          data-lightbox-type="logo"
+          data-lightbox-kicker="SÜNDMUSE LOGO"
+          data-lightbox-caption="Street Dance Jam 2025"
         >
+          <img
+            src="assets/street-dance-jam/street-dance-jam-logo.jpg"
+            alt="Street Dance Jam 2025 logo"
+            class="sdj-event-logo"
+          >
+        </div>
 
         <h1>
           Tänavatants, energia ja noorte omaalgatus
@@ -145,7 +156,16 @@
         </div>
       </div>
 
-      <div class="sdj-poster-wrap">
+      <div
+        class="sdj-poster-wrap sdj-lightbox-trigger"
+        tabindex="0"
+        role="button"
+        aria-haspopup="dialog"
+        aria-label="Ava Street Dance Jam 2025 plakat suurelt"
+        data-lightbox-type="poster"
+        data-lightbox-kicker="ÜRITUSE PLAKAT"
+        data-lightbox-caption="Street Dance Jam 2025 ürituse plakat"
+      >
         <div class="sdj-poster-background"></div>
 
         <img
@@ -844,69 +864,195 @@
       });
     }
 
-    /* Gallery lightbox */
-    const galleryImages = document.querySelectorAll(".sdj-gallery-item img");
+    /* Logo, poster and gallery shared lightbox */
+    const lightboxTriggers = document.querySelectorAll(
+      ".sdj-lightbox-trigger, .sdj-gallery-item"
+    );
 
-    if (galleryImages.length) {
+    if (lightboxTriggers.length) {
       const lightbox = document.createElement("div");
       lightbox.className = "sdj-lightbox";
+      lightbox.hidden = true;
+      lightbox.setAttribute("role", "dialog");
+      lightbox.setAttribute("aria-modal", "true");
       lightbox.setAttribute("aria-hidden", "true");
+      lightbox.setAttribute("aria-labelledby", "sdjLightboxTitle");
 
       lightbox.innerHTML = `
-        <button class="sdj-lightbox-close" type="button" aria-label="Sulge foto">
-          ×
+        <button
+          class="sdj-lightbox-close"
+          type="button"
+          aria-label="Sulge suur foto"
+        >
+          <span aria-hidden="true">×</span>
         </button>
-        <img src="" alt="">
-        <p></p>
+
+        <div class="sdj-lightbox-card" role="document">
+          <div class="sdj-lightbox-visual">
+            <span class="sdj-lightbox-kicker">STREET DANCE JAM</span>
+            <img src="" alt="">
+          </div>
+
+          <div class="sdj-lightbox-info">
+            <p class="sdj-lightbox-type"></p>
+            <h2 id="sdjLightboxTitle">Street Dance Jam 2025</h2>
+            <span class="sdj-lightbox-hint">
+              Sulgemiseks vajuta ristile, taustale või klahvile Esc
+            </span>
+          </div>
+        </div>
       `;
 
       document.body.appendChild(lightbox);
 
-      const lightboxImage = lightbox.querySelector("img");
-      const lightboxCaption = lightbox.querySelector("p");
+      const lightboxImage = lightbox.querySelector(".sdj-lightbox-visual img");
+      const lightboxKicker = lightbox.querySelector(".sdj-lightbox-kicker");
+      const lightboxType = lightbox.querySelector(".sdj-lightbox-type");
+      const lightboxTitle = lightbox.querySelector("#sdjLightboxTitle");
       const closeButton = lightbox.querySelector(".sdj-lightbox-close");
 
+      let lastFocused = null;
+      let closeTimer = null;
+
+      const getTriggerData = (trigger) => {
+        const image = trigger.matches("img")
+          ? trigger
+          : trigger.querySelector("img");
+
+        const type =
+          trigger.dataset.lightboxType ||
+          (trigger.classList.contains("sdj-gallery-item")
+            ? "gallery"
+            : "image");
+
+        const galleryCaption = trigger.querySelector("figcaption");
+
+        return {
+          image,
+          type,
+          kicker:
+            trigger.dataset.lightboxKicker ||
+            (type === "gallery" ? "GALERII" : "STREET DANCE JAM"),
+          title:
+            trigger.dataset.lightboxCaption ||
+            galleryCaption?.textContent?.trim() ||
+            image?.alt ||
+            "Street Dance Jam 2025"
+        };
+      };
+
+      const setLightboxType = (type) => {
+        lightbox.classList.remove(
+          "is-logo",
+          "is-poster",
+          "is-gallery"
+        );
+
+        lightbox.classList.add(`is-${type}`);
+      };
+
+      const openLightbox = (trigger) => {
+        const data = getTriggerData(trigger);
+        if (!data.image) return;
+
+        window.clearTimeout(closeTimer);
+
+        lastFocused = trigger;
+        setLightboxType(data.type);
+
+        lightboxImage.src =
+          data.image.dataset.full ||
+          data.image.currentSrc ||
+          data.image.src;
+
+        lightboxImage.alt = data.image.alt || data.title;
+        lightboxKicker.textContent = data.kicker;
+        lightboxType.textContent =
+          data.type === "logo"
+            ? "Sündmuse visuaalne identiteet"
+            : data.type === "poster"
+              ? "Street Dance Jam 2025"
+              : "Hetk sündmuselt";
+        lightboxTitle.textContent = data.title;
+
+        lightbox.hidden = false;
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            lightbox.classList.add("is-open");
+            lightbox.setAttribute("aria-hidden", "false");
+            document.body.classList.add("sdj-lightbox-open");
+
+            closeButton.focus({ preventScroll: true });
+          });
+        });
+      };
+
       const closeLightbox = () => {
+        if (!lightbox.classList.contains("is-open")) return;
+
         lightbox.classList.remove("is-open");
         lightbox.setAttribute("aria-hidden", "true");
         document.body.classList.remove("sdj-lightbox-open");
+
+        closeTimer = window.setTimeout(() => {
+          if (lightbox.classList.contains("is-open")) return;
+
+          lightbox.hidden = true;
+          lightbox.classList.remove(
+            "is-logo",
+            "is-poster",
+            "is-gallery",
+            "is-image"
+          );
+          lightboxImage.removeAttribute("src");
+          lightboxImage.alt = "";
+
+          lastFocused?.focus({ preventScroll: true });
+        }, 430);
       };
 
-      galleryImages.forEach((image) => {
-        image.closest(".sdj-gallery-item").tabIndex = 0;
+      lightboxTriggers.forEach((trigger) => {
+        trigger.classList.add("sdj-image-openable");
+        trigger.setAttribute("role", "button");
+        trigger.setAttribute("tabindex", "0");
+        trigger.setAttribute("aria-haspopup", "dialog");
 
-        const openLightbox = () => {
-          lightboxImage.src = image.currentSrc || image.src;
-          lightboxImage.alt = image.alt;
+        if (!trigger.querySelector(".sdj-image-zoom-hint")) {
+          const zoomHint = document.createElement("span");
+          zoomHint.className = "sdj-image-zoom-hint";
+          zoomHint.setAttribute("aria-hidden", "true");
+          zoomHint.textContent = "+";
+          trigger.appendChild(zoomHint);
+        }
 
-          const caption = image
-            .closest(".sdj-gallery-item")
-            .querySelector("figcaption");
+        trigger.addEventListener("click", () => {
+          openLightbox(trigger);
+        });
 
-          lightboxCaption.textContent = caption ? caption.textContent : "";
-          lightbox.classList.add("is-open");
-          lightbox.setAttribute("aria-hidden", "false");
-          document.body.classList.add("sdj-lightbox-open");
-          closeButton.focus();
-        };
+        trigger.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
 
-        image.closest(".sdj-gallery-item").addEventListener("click", openLightbox);
-        image.closest(".sdj-gallery-item").addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            openLightbox();
-          }
+          event.preventDefault();
+          openLightbox(trigger);
         });
       });
 
       closeButton.addEventListener("click", closeLightbox);
 
       lightbox.addEventListener("click", (event) => {
-        if (event.target === lightbox) closeLightbox();
+        if (event.target === lightbox) {
+          closeLightbox();
+        }
       });
 
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeLightbox();
+        if (
+          event.key === "Escape" &&
+          lightbox.classList.contains("is-open")
+        ) {
+          closeLightbox();
+        }
       });
     }
   })();

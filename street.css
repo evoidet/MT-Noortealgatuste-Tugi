@@ -1472,101 +1472,604 @@ body.street-page .sdj-gallery-item:hover figcaption {
   transform: translateY(0);
 }
 
-/* Lightbox */
+/* =========================================================
+   LOGO, PLAKAT JA GALERII — ÜHINE AVAMISANIMATSIOON
+   Olemasolevaid mõõte ja paigutust ei muudeta.
+   ========================================================= */
+
+body.street-page .sdj-event-logo-wrap {
+  position: relative;
+  display: block;
+  width: min(440px, 100%);
+  margin-bottom: 22px;
+}
+
+body.street-page .sdj-event-logo-wrap .sdj-event-logo {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  margin-bottom: 0;
+}
+
+body.street-page .sdj-image-openable {
+  cursor: zoom-in;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.street-page .sdj-image-openable:focus-visible {
+  outline: 4px solid rgba(223, 255, 53, 0.7);
+  outline-offset: 7px;
+}
+
+body.street-page .sdj-image-zoom-hint {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 10;
+
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+
+  border: 1px solid rgba(223, 255, 53, 0.72);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(6, 6, 6, 0.96),
+      rgba(23, 23, 25, 0.94)
+    );
+
+  color: var(--sdj-lime);
+
+  box-shadow:
+    5px 5px 0 rgba(182, 124, 255, 0.72),
+    0 12px 30px rgba(0, 0, 0, 0.42),
+    0 0 22px rgba(223, 255, 53, 0.12);
+
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transform:
+    scale(0.62)
+    rotate(-32deg);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.4s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.street-page .sdj-image-openable:hover .sdj-image-zoom-hint,
+body.street-page .sdj-image-openable:focus-visible .sdj-image-zoom-hint {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+body.street-page .sdj-event-logo-wrap .sdj-image-zoom-hint {
+  top: 8px;
+  right: 5px;
+}
+
+body.street-page .sdj-poster-wrap .sdj-image-zoom-hint {
+  top: 18px;
+  right: 18px;
+  transform: translateZ(70px) scale(0.62) rotate(-32deg);
+}
+
+body.street-page .sdj-poster-wrap:hover .sdj-image-zoom-hint,
+body.street-page .sdj-poster-wrap:focus-visible .sdj-image-zoom-hint {
+  transform: translateZ(70px) scale(1) rotate(0deg);
+}
+
+body.street-page .sdj-gallery-item .sdj-image-zoom-hint {
+  z-index: 5;
+}
+
+/* Lightbox taust */
 
 body.street-page .sdj-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 12000;
-  display: flex;
+  z-index: 30000;
+
+  display: grid;
   padding: 28px;
-  align-items: center;
-  justify-content: center;
-  visibility: hidden;
+  place-items: center;
+  overflow-y: auto;
+
+  background:
+    radial-gradient(
+      circle at 14% 14%,
+      rgba(182, 124, 255, 0.22),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 86% 84%,
+      rgba(223, 255, 53, 0.13),
+      transparent 29%
+    ),
+    rgba(3, 3, 3, 0.93);
+
   opacity: 0;
-  background: rgba(3, 3, 3, 0.92);
-  backdrop-filter: blur(18px);
+  visibility: hidden;
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
   transition:
-    opacity 0.28s ease,
-    visibility 0.28s ease;
+    opacity 0.35s ease,
+    visibility 0.35s ease;
+}
+
+body.street-page .sdj-lightbox[hidden] {
+  display: none;
+}
+
+body.street-page .sdj-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
 }
 
 body.street-page .sdj-lightbox::before {
   content: "";
-  position: absolute;
-  inset: 0;
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+
+  width: min(900px, 84vw);
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
   background:
-    radial-gradient(circle at 20% 20%, rgba(182, 124, 255, 0.2), transparent 28%),
-    radial-gradient(circle at 80% 80%, rgba(223, 255, 53, 0.12), transparent 25%);
+    conic-gradient(
+      from 0deg,
+      rgba(182, 124, 255, 0.2),
+      rgba(255, 79, 200, 0.05),
+      rgba(223, 255, 53, 0.15),
+      rgba(84, 239, 255, 0.08),
+      rgba(182, 124, 255, 0.2)
+    );
+
+  filter: blur(58px);
+  transform: translate(-50%, -50%);
+
+  animation: sdjLightboxGlow 13s linear infinite;
+}
+
+/* Lightbox kaart */
+
+body.street-page .sdj-lightbox-card {
+  position: relative;
+  isolation: isolate;
+
+  width: min(1120px, 94vw);
+  max-height: calc(100vh - 56px);
+  padding: 28px;
+  overflow-y: auto;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  background:
+    radial-gradient(
+      circle at 10% 8%,
+      rgba(182, 124, 255, 0.2),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(6, 6, 6, 0.99),
+      rgba(23, 19, 28, 0.99)
+    );
+
+  box-shadow:
+    13px 13px 0 rgba(182, 124, 255, 0.72),
+    -8px -8px 0 rgba(223, 255, 53, 0.12),
+    0 48px 145px rgba(0, 0, 0, 0.68),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  opacity: 0;
+
+  transform:
+    translateY(34px)
+    scale(0.86)
+    rotateX(8deg)
+    rotate(-1deg);
+
+  transform-origin: center;
+
+  transition:
+    opacity 0.36s ease,
+    transform 0.6s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.street-page .sdj-lightbox.is-open .sdj-lightbox-card {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1)
+    rotateX(0deg)
+    rotate(0deg);
+}
+
+body.street-page .sdj-lightbox-card::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  z-index: -1;
+  border: 1px dashed rgba(223, 255, 53, 0.22);
+  pointer-events: none;
+  animation: sdjLightboxBorder 3.5s ease-in-out infinite;
+}
+
+/* Fotoala */
+
+body.street-page .sdj-lightbox-visual {
+  position: relative;
+
+  display: grid;
+  min-height: min(68vh, 690px);
+  padding: 52px 30px 28px;
+  place-items: center;
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.13);
+
+  background:
+    radial-gradient(
+      circle at 84% 12%,
+      rgba(223, 255, 53, 0.11),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 13% 87%,
+      rgba(182, 124, 255, 0.15),
+      transparent 30%
+    ),
+    linear-gradient(145deg, #111113, #050506);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    inset 0 -35px 90px rgba(0, 0, 0, 0.3),
+    0 26px 72px rgba(0, 0, 0, 0.38);
+}
+
+body.street-page .sdj-lightbox-visual::before,
+body.street-page .sdj-lightbox-visual::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
   pointer-events: none;
 }
 
-body.street-page .sdj-lightbox.is-open {
-  visibility: visible;
-  opacity: 1;
+body.street-page .sdj-lightbox-visual::before {
+  top: -120px;
+  right: -105px;
+  width: 310px;
+  height: 310px;
+  border: 50px solid rgba(182, 124, 255, 0.09);
+  animation: sdjLightboxRing 14s linear infinite;
 }
 
-body.street-page .sdj-lightbox img {
+body.street-page .sdj-lightbox-visual::after {
+  bottom: -125px;
+  left: -95px;
+  width: 285px;
+  height: 285px;
+  border: 42px solid rgba(223, 255, 53, 0.055);
+  animation: sdjLightboxRing 18s linear infinite reverse;
+}
+
+body.street-page .sdj-lightbox-kicker {
+  position: absolute;
+  top: 18px;
+  left: 21px;
+  z-index: 4;
+
+  padding: 8px 12px;
+
+  border: 1px solid rgba(223, 255, 53, 0.34);
+
+  background: rgba(6, 6, 6, 0.76);
+  color: var(--sdj-lime);
+
+  box-shadow:
+    5px 5px 0 rgba(182, 124, 255, 0.5),
+    0 10px 28px rgba(0, 0, 0, 0.3);
+
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  backdrop-filter: blur(11px);
+}
+
+body.street-page .sdj-lightbox-visual img {
   position: relative;
   z-index: 2;
+
+  display: block;
   width: auto;
-  max-width: min(1100px, 92vw);
+  max-width: 100%;
   height: auto;
-  max-height: 82vh;
+  max-height: min(61vh, 620px);
+
   object-fit: contain;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow:
-    13px 13px 0 var(--sdj-purple),
-    0 30px 90px rgba(0, 0, 0, 0.7);
-  transform: scale(0.93) rotate(-1deg);
-  transition: transform 0.35s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  opacity: 0;
+
+  filter:
+    drop-shadow(0 30px 48px rgba(0, 0, 0, 0.5));
+
+  transform:
+    scale(0.8)
+    translateY(20px)
+    rotate(-3deg);
+
+  transition:
+    opacity 0.37s ease 0.07s,
+    transform 0.66s cubic-bezier(0.18, 0.8, 0.2, 1) 0.03s;
 }
 
-body.street-page .sdj-lightbox.is-open img {
-  transform: scale(1) rotate(0deg);
+body.street-page .sdj-lightbox.is-open .sdj-lightbox-visual img {
+  opacity: 1;
+
+  transform:
+    scale(1)
+    translateY(0)
+    rotate(0deg);
 }
 
-body.street-page .sdj-lightbox p {
-  position: absolute;
-  z-index: 3;
-  bottom: 22px;
-  left: 50%;
-  margin: 0;
-  padding: 10px 16px;
-  background: var(--sdj-lime);
-  color: var(--sdj-black);
-  font-family: Impact, "Arial Black", Arial, sans-serif;
-  font-size: 17px;
-  letter-spacing: 0.05em;
+/* Logo erirežiim */
+
+body.street-page .sdj-lightbox.is-logo .sdj-lightbox-visual {
+  min-height: min(54vh, 520px);
+  background:
+    radial-gradient(circle at 80% 15%, rgba(223, 255, 53, 0.14), transparent 28%),
+    linear-gradient(145deg, #171719, #050506);
+}
+
+body.street-page .sdj-lightbox.is-logo .sdj-lightbox-visual img {
+  width: min(92%, 760px);
+  max-height: min(42vh, 410px);
+  border: 0;
+}
+
+/* Plakati erirežiim */
+
+body.street-page .sdj-lightbox.is-poster .sdj-lightbox-card {
+  width: min(760px, 94vw);
+}
+
+body.street-page .sdj-lightbox.is-poster .sdj-lightbox-visual {
+  min-height: min(72vh, 760px);
+}
+
+body.street-page .sdj-lightbox.is-poster .sdj-lightbox-visual img {
+  max-height: min(67vh, 700px);
+}
+
+/* Allkiri */
+
+body.street-page .sdj-lightbox-info {
+  display: flex;
+  padding: 25px 14px 4px;
+  flex-direction: column;
+  align-items: center;
+  color: var(--sdj-white);
+  text-align: center;
+}
+
+body.street-page .sdj-lightbox-type {
+  margin: 0 0 8px;
+  color: var(--sdj-lime);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  line-height: 1.5;
   text-transform: uppercase;
-  transform: translateX(-50%) rotate(-1deg);
-  box-shadow: 6px 6px 0 var(--sdj-purple);
 }
+
+body.street-page .sdj-lightbox-info h2 {
+  max-width: 900px;
+  margin: 0;
+  color: var(--sdj-white);
+  font-family: Impact, "Arial Black", Arial, sans-serif;
+  font-size: clamp(27px, 4.6vw, 50px);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+body.street-page .sdj-lightbox-hint {
+  margin-top: 14px;
+  color: rgba(247, 247, 242, 0.42);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* Sulgemisnupp */
 
 body.street-page .sdj-lightbox-close {
-  position: absolute;
+  position: fixed;
   top: 22px;
   right: 24px;
-  z-index: 4;
-  width: 52px;
-  height: 52px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  z-index: 6;
+
+  display: grid;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  place-items: center;
+
+  border: 1px solid rgba(223, 255, 53, 0.38);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.13),
+      rgba(182, 124, 255, 0.11)
+    );
+
   color: var(--sdj-white);
-  font-size: 34px;
+
+  box-shadow:
+    5px 5px 0 rgba(182, 124, 255, 0.52),
+    0 18px 44px rgba(0, 0, 0, 0.4);
+
+  font-family: inherit;
+  font-size: 39px;
   line-height: 1;
   cursor: pointer;
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
   transition:
-    transform 0.25s ease,
-    background 0.25s ease,
-    color 0.25s ease;
+    transform 0.28s ease,
+    background 0.28s ease,
+    color 0.28s ease,
+    border-color 0.28s ease;
 }
 
-body.street-page .sdj-lightbox-close:hover {
+body.street-page .sdj-lightbox-close span {
+  display: block;
+  transform: translateY(-2px);
+}
+
+body.street-page .sdj-lightbox-close:hover,
+body.street-page .sdj-lightbox-close:focus-visible {
+  border-color: var(--sdj-lime);
   background: var(--sdj-lime);
   color: var(--sdj-black);
-  transform: rotate(90deg);
+  outline: none;
+  transform: rotate(90deg) scale(1.06);
+}
+
+@keyframes sdjLightboxGlow {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes sdjLightboxBorder {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes sdjLightboxRing {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 760px) {
+  body.street-page .sdj-image-zoom-hint {
+    top: 11px;
+    right: 11px;
+    width: 34px;
+    height: 34px;
+    font-size: 21px;
+    opacity: 1;
+    transform: scale(0.9) rotate(0deg);
+  }
+
+  body.street-page .sdj-poster-wrap .sdj-image-zoom-hint {
+    transform: translateZ(70px) scale(0.9) rotate(0deg);
+  }
+
+  body.street-page .sdj-lightbox {
+    padding: 15px;
+  }
+
+  body.street-page .sdj-lightbox-card {
+    width: min(100%, 680px);
+    max-height: calc(100vh - 30px);
+    padding: 16px;
+  }
+
+  body.street-page .sdj-lightbox-card::before {
+    inset: 8px;
+  }
+
+  body.street-page .sdj-lightbox-visual {
+    min-height: min(54vh, 470px);
+    padding: 48px 16px 20px;
+  }
+
+  body.street-page .sdj-lightbox-visual img {
+    max-height: 46vh;
+  }
+
+  body.street-page .sdj-lightbox.is-logo .sdj-lightbox-visual {
+    min-height: min(44vh, 390px);
+  }
+
+  body.street-page .sdj-lightbox.is-logo .sdj-lightbox-visual img {
+    max-height: 31vh;
+  }
+
+  body.street-page .sdj-lightbox.is-poster .sdj-lightbox-visual {
+    min-height: min(66vh, 620px);
+  }
+
+  body.street-page .sdj-lightbox.is-poster .sdj-lightbox-visual img {
+    max-height: 58vh;
+  }
+
+  body.street-page .sdj-lightbox-info {
+    padding: 21px 7px 3px;
+  }
+
+  body.street-page .sdj-lightbox-info h2 {
+    font-size: clamp(25px, 8vw, 38px);
+  }
+
+  body.street-page .sdj-lightbox-close {
+    top: 10px;
+    right: 10px;
+    width: 50px;
+    height: 50px;
+    font-size: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.street-page .sdj-lightbox::before,
+  body.street-page .sdj-lightbox-card::before,
+  body.street-page .sdj-lightbox-visual::before,
+  body.street-page .sdj-lightbox-visual::after {
+    animation: none !important;
+  }
+
+  body.street-page .sdj-image-zoom-hint,
+  body.street-page .sdj-lightbox,
+  body.street-page .sdj-lightbox-card,
+  body.street-page .sdj-lightbox-visual img,
+  body.street-page .sdj-lightbox-close {
+    transition: none !important;
+  }
 }
 
 /* =========================================================
@@ -2303,5 +2806,505 @@ body.street-page .nav a::after {
   body.street-page .sdj-impact-numbers span {
     min-width: 0;
     overflow-wrap: break-word;
+  }
+}
+
+/* =========================================================
+   STREET DANCE JAM — VISUAALSED PARANDUSED
+   1) sirge ja puhas lightbox;
+   2) ristkülikukujuline logoala;
+   3) suurendamise märk jääb alati foto sisse;
+   4) suurtel pealkirjadel on rohkem õhku.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. HERO LOGO — kindel ristkülikukujuline raam
+   --------------------------------------------------------- */
+
+body.street-page .sdj-event-logo-wrap {
+  position: relative;
+  isolation: isolate;
+
+  display: block;
+  width: min(460px, 100%);
+  aspect-ratio: 16 / 9;
+  margin-bottom: 26px;
+
+  overflow: hidden;
+
+  border: 3px solid rgba(223, 255, 53, 0.92);
+  border-radius: 2px;
+
+  background:
+    radial-gradient(
+      circle at 82% 18%,
+      rgba(182, 124, 255, 0.19),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #09090a,
+      #141017
+    );
+
+  box-shadow:
+    8px 8px 0 rgba(182, 124, 255, 0.64),
+    0 22px 54px rgba(0, 0, 0, 0.4);
+
+  animation: sdjLogoFloat 4.6s ease-in-out infinite;
+}
+
+body.street-page .sdj-event-logo-wrap .sdj-event-logo {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+
+  object-fit: contain;
+  object-position: center;
+
+  background: #070708;
+
+  filter:
+    drop-shadow(0 0 16px rgba(182, 124, 255, 0.2));
+
+  mix-blend-mode: normal;
+  animation: none;
+  transform: none;
+}
+
+/* Pluss jääb logo tegeliku raami sisse */
+
+body.street-page
+.sdj-event-logo-wrap
+.sdj-image-zoom-hint {
+  top: 16px;
+  right: 16px;
+  z-index: 12;
+}
+
+/* Kõigi avatavate piltide pluss jääb konteineri sisse */
+
+body.street-page .sdj-image-openable {
+  position: relative;
+}
+
+body.street-page .sdj-image-zoom-hint {
+  top: 14px;
+  right: 14px;
+}
+
+/* ---------------------------------------------------------
+   2. LIGHTBOX — sirge raam ilma topeltkihtideta
+   --------------------------------------------------------- */
+
+body.street-page .sdj-lightbox {
+  padding: 28px;
+
+  background:
+    radial-gradient(
+      circle at 16% 14%,
+      rgba(182, 124, 255, 0.18),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 86% 84%,
+      rgba(223, 255, 53, 0.1),
+      transparent 30%
+    ),
+    rgba(3, 3, 4, 0.95);
+}
+
+/* Eemaldame suure uduse rõnga,
+   mis jättis mulje, et foto kohal on veel üks kiht. */
+
+body.street-page .sdj-lightbox::before {
+  display: none;
+}
+
+body.street-page .sdj-lightbox-card {
+  width: min(1120px, 94vw);
+  max-height: calc(100vh - 56px);
+  padding: 22px;
+
+  overflow-y: auto;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(12, 12, 14, 0.99),
+      rgba(20, 17, 24, 0.99)
+    );
+
+  box-shadow:
+    0 45px 130px rgba(0, 0, 0, 0.72),
+    0 0 0 2px rgba(182, 124, 255, 0.24),
+    0 0 42px rgba(223, 255, 53, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  opacity: 0;
+
+  transform:
+    translateY(30px)
+    scale(0.9);
+
+  transform-origin: center;
+
+  transition:
+    opacity 0.34s ease,
+    transform 0.55s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.street-page
+.sdj-lightbox.is-open
+.sdj-lightbox-card {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+/* Убираем кривую пунктирную рамку внутри */
+
+body.street-page .sdj-lightbox-card::before {
+  display: none;
+}
+
+body.street-page .sdj-lightbox-visual {
+  position: relative;
+  isolation: isolate;
+
+  min-height: min(68vh, 690px);
+  padding: 54px 30px 30px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 21px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #101012,
+      #050506
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+    0 18px 55px rgba(0, 0, 0, 0.34);
+}
+
+/* Убираем кольца, которые визуально накладывались на фото */
+
+body.street-page .sdj-lightbox-visual::before,
+body.street-page .sdj-lightbox-visual::after {
+  display: none;
+}
+
+body.street-page .sdj-lightbox-visual img {
+  position: relative;
+  z-index: 2;
+
+  max-width: 100%;
+  max-height: min(61vh, 620px);
+
+  border: 0;
+  border-radius: 14px;
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(0 28px 45px rgba(0, 0, 0, 0.5));
+
+  transform:
+    scale(0.88)
+    translateY(18px);
+
+  transition:
+    opacity 0.34s ease 0.05s,
+    transform 0.58s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.street-page
+.sdj-lightbox.is-open
+.sdj-lightbox-visual img {
+  transform:
+    scale(1)
+    translateY(0);
+}
+
+/* Logo avaneb laias puhtas alas */
+
+body.street-page
+.sdj-lightbox.is-logo
+.sdj-lightbox-card {
+  width: min(980px, 94vw);
+}
+
+body.street-page
+.sdj-lightbox.is-logo
+.sdj-lightbox-visual {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  padding: 54px 34px 28px;
+
+  background:
+    radial-gradient(
+      circle at 82% 17%,
+      rgba(223, 255, 53, 0.09),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #101012,
+      #050506
+    );
+}
+
+body.street-page
+.sdj-lightbox.is-logo
+.sdj-lightbox-visual img {
+  width: 100%;
+  height: 100%;
+  max-width: 820px;
+  max-height: calc(100% - 10px);
+
+  object-fit: contain;
+  border-radius: 10px;
+
+  background: #070708;
+}
+
+/* Poster jääb vertikaalseks, kuid raam on sirge */
+
+body.street-page
+.sdj-lightbox.is-poster
+.sdj-lightbox-card {
+  width: min(720px, 94vw);
+}
+
+body.street-page
+.sdj-lightbox.is-poster
+.sdj-lightbox-visual {
+  min-height: min(72vh, 760px);
+}
+
+body.street-page
+.sdj-lightbox.is-poster
+.sdj-lightbox-visual img {
+  max-height: min(66vh, 690px);
+  border-radius: 10px;
+}
+
+/* Galerii fotod avanevad ilma topeltraamita */
+
+body.street-page
+.sdj-lightbox.is-gallery
+.sdj-lightbox-visual img {
+  max-width: 100%;
+  max-height: min(62vh, 640px);
+}
+
+/* ---------------------------------------------------------
+   3. SUURED PEALKIRJAD — rohkem vahet tähtede ja ridade vahel
+   --------------------------------------------------------- */
+
+body.street-page .sdj-hero h1 {
+  line-height: 1.07;
+  letter-spacing: 0.035em;
+  word-spacing: 0.06em;
+
+  text-rendering: optimizeLegibility;
+}
+
+body.street-page .sdj-section-heading h2,
+body.street-page .sdj-impact-content h2,
+body.street-page .sdj-thanks-content h2 {
+  line-height: 1.1;
+  letter-spacing: 0.035em;
+  word-spacing: 0.06em;
+
+  text-rendering: optimizeLegibility;
+}
+
+body.street-page .sdj-final h2 {
+  line-height: 1.08;
+  letter-spacing: 0.035em;
+  word-spacing: 0.06em;
+
+  text-rendering: optimizeLegibility;
+}
+
+body.street-page .sdj-lightbox-info h2 {
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  word-spacing: 0.06em;
+}
+
+body.street-page .sdj-program-card h3,
+body.street-page .sdj-battle-card h3,
+body.street-page .sdj-quote-card blockquote {
+  line-height: 1.15;
+  letter-spacing: 0.025em;
+  word-spacing: 0.04em;
+}
+
+/* ---------------------------------------------------------
+   4. MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  body.street-page .sdj-event-logo-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 24px;
+
+    box-shadow:
+      6px 6px 0 rgba(182, 124, 255, 0.58),
+      0 18px 40px rgba(0, 0, 0, 0.36);
+  }
+
+  body.street-page
+  .sdj-event-logo-wrap
+  .sdj-image-zoom-hint {
+    top: 11px;
+    right: 11px;
+  }
+
+  body.street-page .sdj-lightbox {
+    padding: 14px;
+  }
+
+  body.street-page .sdj-lightbox-card {
+    width: min(100%, 680px);
+    max-height: calc(100vh - 28px);
+    padding: 12px;
+    border-radius: 21px;
+  }
+
+  body.street-page .sdj-lightbox-visual {
+    min-height: min(54vh, 470px);
+    padding: 48px 14px 18px;
+    border-radius: 16px;
+  }
+
+  body.street-page
+  .sdj-lightbox.is-logo
+  .sdj-lightbox-visual {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    padding: 46px 12px 14px;
+  }
+
+  body.street-page
+  .sdj-lightbox.is-logo
+  .sdj-lightbox-visual img {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  body.street-page .sdj-hero h1 {
+    line-height: 1.08;
+    letter-spacing: 0.028em;
+    word-spacing: 0.04em;
+  }
+
+  body.street-page .sdj-section-heading h2,
+  body.street-page .sdj-impact-content h2,
+  body.street-page .sdj-thanks-content h2,
+  body.street-page .sdj-final h2 {
+    line-height: 1.11;
+    letter-spacing: 0.028em;
+    word-spacing: 0.04em;
+  }
+
+  body.street-page .sdj-lightbox-info h2 {
+    line-height: 1.12;
+    letter-spacing: 0.03em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.street-page .sdj-event-logo-wrap {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   FIX — квадратный логотип целиком в lightbox
+   ========================================================= */
+
+body.street-page
+.sdj-lightbox.is-logo
+.sdj-lightbox-card {
+  width: min(760px, 94vw);
+}
+
+body.street-page
+.sdj-lightbox.is-logo
+.sdj-lightbox-visual {
+  display: flex;
+  min-height: 0;
+  aspect-ratio: auto;
+  padding: 54px 30px 30px;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+body.street-page
+.sdj-lightbox.is-logo
+.sdj-lightbox-visual img {
+  display: block;
+
+  width: min(100%, 620px);
+  height: auto;
+
+  max-width: 100%;
+  max-height: min(68vh, 620px);
+
+  object-fit: contain;
+  object-position: center;
+
+  border-radius: 10px;
+  background: #070708;
+}
+
+@media (max-width: 760px) {
+  body.street-page
+  .sdj-lightbox.is-logo
+  .sdj-lightbox-card {
+    width: min(100%, 580px);
+  }
+
+  body.street-page
+  .sdj-lightbox.is-logo
+  .sdj-lightbox-visual {
+    min-height: 0;
+    aspect-ratio: auto;
+    padding: 48px 12px 16px;
+  }
+
+  body.street-page
+  .sdj-lightbox.is-logo
+  .sdj-lightbox-visual img {
+    width: min(100%, 500px);
+    height: auto;
+
+    max-width: 100%;
+    max-height: 68vh;
+
+    object-fit: contain;
   }
 }
