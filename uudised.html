@@ -20,17 +20,10 @@
 
 <body class="news-page">
 
-<!-- ================= MAIN HEADER ================= -->
-
 <header class="header">
   <div class="header-inner">
 
-    <!-- Большой прозрачный логотип -->
-    <a
-      href="/"
-      class="logo"
-      aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
+    <a href="/" class="logo" aria-label="MTÜ Noortealgatuste Tugi avaleht">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
@@ -40,40 +33,12 @@
       >
     </a>
 
-    <!-- Переключатель языков -->
-    <div
-      class="language-switcher"
-      aria-label="Keele valik"
-    >
-      <button
-        class="lang-button is-active"
-        type="button"
-        data-lang="et"
-        aria-pressed="true"
-      >
-        ET
-      </button>
-
-      <button
-        class="lang-button"
-        type="button"
-        data-lang="ru"
-        aria-pressed="false"
-      >
-        RU
-      </button>
-
-      <button
-        class="lang-button"
-        type="button"
-        data-lang="en"
-        aria-pressed="false"
-      >
-        EN
-      </button>
+    <div class="language-switcher" aria-label="Keele valik">
+      <button class="lang-button is-active" type="button" data-lang="et" aria-pressed="true">ET</button>
+      <button class="lang-button" type="button" data-lang="ru" aria-pressed="false">RU</button>
+      <button class="lang-button" type="button" data-lang="en" aria-pressed="false">EN</button>
     </div>
 
-    <!-- Кнопка мобильного меню -->
     <button
       class="menu-toggle"
       id="menuToggle"
@@ -85,10 +50,9 @@
       ⋮
     </button>
 
-    <!-- Навигация -->
     <nav class="nav" id="mainNav">
       <a href="/">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
+      <a href="/uudised.html" aria-current="page">Uudised</a>
       <a href="/tunnustusgala.html">Ida-Viru Noorte Tunnustusgala</a>
       <a href="/laager.html">Projektikirjutamise laager</a>
       <a href="/vorgustik.html">Võrgustik</a>
@@ -189,7 +153,7 @@
   </section>
 
   <section class="news-story-cta">
-    <div class="news-container news-story-cta-card" data-news-reveal>
+    <div class="news-container news-story-cta-card">
       <div>
         <span>KAS SUL ON UUDIS?</span>
         <h2>Aitame noorte tegemised nähtavaks muuta</h2>

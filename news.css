@@ -2227,3 +2227,42 @@ body.news-page .news-article-link span {
 body.news-page .news-article-link:hover span {
   transform: translate(2px, -2px);
 }
+
+/* =========================================================
+   COMPACT NEWS ENDING
+   Убирает ощущение большого пустого прямоугольника после карточек.
+   CTA остаётся полезным, но становится компактнее и всегда видимым.
+   ========================================================= */
+
+body.news-page .news-content-section {
+  padding-bottom: 78px;
+}
+
+body.news-page .news-story-cta {
+  padding: 0 0 72px;
+}
+
+body.news-page .news-story-cta-card {
+  padding: 38px 44px;
+}
+
+/* CTA не должен исчезать, даже если reveal-анимация не запустилась */
+body.news-page .news-story-cta [data-news-reveal] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+@media (max-width: 760px) {
+  body.news-page .news-content-section {
+    padding-bottom: 58px;
+  }
+
+  body.news-page .news-story-cta {
+    padding-bottom: 58px;
+  }
+
+  body.news-page .news-story-cta-card {
+    padding: 28px;
+  }
+}
