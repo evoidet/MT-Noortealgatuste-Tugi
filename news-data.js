@@ -103,6 +103,46 @@ window.NEWS_ITEMS = [
 
       "Lisateavet laagri programmi, osalemise ja registreerimise kohta saab MTÜ Noortealgatuste Tugi projektikirjutamise laagri veebilehelt."
     ]
+  },
+
+  {
+    id: "avasta-erasmus-voimalused-vitatiimis",
+
+    category: "opportunities",
+    categoryLabel: "Võimalused",
+
+    date: "2026-07-01",
+    displayDate: "1. juuli 2026",
+
+    title: "Avasta Erasmus+ võimalused VitaTiimis",
+
+    excerpt:
+      "8. juulil toimub Narvas VitaTiimis tasuta infokohtumine, kus 15–30-aastased Ida-Virumaa noored saavad tutvuda Erasmus+ programmi võimalustega.",
+
+    image: "assets/news/erasmus-vitatiim/erasmus-vitatiim.jpg",
+    imageAlt: "Erasmus+ võimalusi tutvustav noorteüritus VitaTiimis Narvas",
+
+    featured: false,
+    placeholder: false,
+    published: true,
+
+    content: [
+      "Maailm on täis võimalusi ning mõned neist võivad olla mõeldud just sulle.",
+      "8. juulil kell 12.00 toimub Narvas VitaTiimis infokohtumine, kus Ida-Virumaa noored saavad tutvuda Erasmus+ programmi pakutavate võimalustega.",
+      "Kohtumise käigus saad teada, millised rahvusvahelised noorteprojektid, noortevahetused, koolitused, vabatahtliku tegevuse võimalused ja teised Erasmus+ programmi tegevused sind ootavad.",
+      "Üritus on tasuta ja mõeldud kõigile 15–30-aastastele Ida-Virumaa noortele. Varasem rahvusvahelistes projektides osalemise kogemus ei ole vajalik.",
+      "Ürituse info:",
+      "Kuupäev: 8. juuli 2026",
+      "Kellaaeg: 12.00",
+      "Asukoht: VitaTiim, Tuleviku tn 7, Narva",
+      "Osalemine: tasuta",
+      "Vanus: 15–30 aastat",
+      "Kohapeal pakutakse osalejatele suupisteid.",
+      "Kui soovid osaleda, kuid elad teises Ida-Virumaa linnas, on vajaduse korral võimalik katta ka transpordikulud.",
+      "Registreerimislink:",
+      "https://docs.google.com/forms/d/e/1FAIpQLScLBHt-C4bzJBltpdP1iwX7Aqv6BTwgzOP_uRXw8rNMB3NQpg/viewform",
+      "Noortealgatust toetavad Erasmus+ ja Euroopa Solidaarsuskorpuse Agentuur koostöös EuroPeers Eesti võrgustikuga Euroopa noortenädala 2026 tegevuste raames."
+    ]
   }
 ];
 
