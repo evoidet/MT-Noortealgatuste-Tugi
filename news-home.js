@@ -89,6 +89,7 @@
           src="${escapeHtml(item.image || "")}"
           alt="${escapeHtml(item.imageAlt || item.title || "Uudise foto")}"
           loading="lazy"
+          decoding="async"
         >
       </div>
     `;

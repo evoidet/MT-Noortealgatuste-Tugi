@@ -10,6 +10,24 @@
     name="description"
     content="Tutvu Ida-Virumaa noorteühenduste võrgustikku kuuluvate organisatsioonidega ning leia uusi koostöövõimalusi."
   >
+  <meta name="theme-color" content="#0e3b03">
+  <link rel="canonical" href="https://www.noortetugi.ee/vorgustik.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="et_EE">
+  <meta
+    property="og:title"
+    content="Võrgustik | MTÜ Noortealgatuste Tugi"
+  >
+  <meta
+    property="og:description"
+    content="Tutvu Ida-Virumaa noorteühendustega ja leia uusi koostöövõimalusi."
+  >
+  <meta property="og:url" content="https://www.noortetugi.ee/vorgustik.html">
+  <meta
+    property="og:image"
+    content="https://www.noortetugi.ee/assets/logo-header.png"
+  >
+  <meta name="twitter:card" content="summary_large_image">
 
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
@@ -377,7 +395,7 @@
 
         <div class="network-members-grid" id="networkMembersGrid">
 
-          <!-- Logo fail: /assets/vorgustik/sillamae-noortenoukogu.png -->
+          <!-- Logo puudub; kasutatakse tekstilist varumärki. -->
           <article
             class="network-member-card network-member-card-detailed network-tilt network-reveal"
             data-category="osaluskogu"
@@ -388,14 +406,6 @@
             <div class="network-member-top">
               <div class="network-member-logo">
                 <span class="network-member-logo-fallback" aria-hidden="true">SN</span>
-                <img
-                  src="/assets/vorgustik/sillamae-noortenoukogu.png"
-                  alt="Sillamäe Noortenõukogu logo"
-                  width="180"
-                  height="180"
-                  loading="lazy"
-                  onerror="this.remove()"
-                >
               </div>
               <span class="network-member-type">Osaluskogu</span>
             </div>
@@ -948,7 +958,9 @@
         <div class="footer-socials">
           <a
             class="social-text"
-            href="https://www.facebook.com/profile.php?id=61577836850124"
+            data-config-group="socialUrls"
+            data-config-link="facebook"
+            hidden
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Facebook"
@@ -1093,6 +1105,7 @@
     </div>
   </div>
 
+  <script src="/site-config.js"></script>
   <script src="/script.js"></script>
 
   <script>

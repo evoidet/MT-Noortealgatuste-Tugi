@@ -10,6 +10,23 @@
     name="description"
     content="MTÜ Noortealgatuste Tugi uudised, saavutused, sündmused ja noortealgatused Ida-Virumaal."
   >
+  <link rel="canonical" href="https://www.noortetugi.ee/uudised.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="et_EE">
+  <meta
+    property="og:title"
+    content="Uudised ja saavutused | MTÜ Noortealgatuste Tugi"
+  >
+  <meta
+    property="og:description"
+    content="Uudised, saavutused, sündmused ja noortealgatused Ida-Virumaal."
+  >
+  <meta property="og:url" content="https://www.noortetugi.ee/uudised.html">
+  <meta
+    property="og:image"
+    content="https://www.noortetugi.ee/assets/logo-header.png"
+  >
+  <meta name="twitter:card" content="summary_large_image">
 
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="shortcut icon" href="/favicon.png">
@@ -50,7 +67,7 @@
       ⋮
     </button>
 
-    <nav class="nav" id="mainNav">
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
       <a href="/">Avaleht</a>
       <a href="/uudised.html" aria-current="page">Uudised</a>
       <a href="/tunnustusgala.html">Ida-Viru Noorte Tunnustusgala</a>
@@ -182,14 +199,41 @@
       </p>
     </div>
 
-    <form class="newsletter-form">
+    <form
+      class="newsletter-form"
+      id="bottomNewsletterForm"
+      action="https://noortetugi.sendsmaily.net/api/opt-in/"
+      method="post"
+      accept-charset="UTF-8"
+    >
+      <div hidden>
+        <input type="hidden" name="source" value="noortetugi_news_bottom">
+        <input
+          type="hidden"
+          name="success_url"
+          value="https://www.noortetugi.ee/uudised.html?newsletter=success&amp;form=bottom#newsletter"
+        >
+        <input
+          type="hidden"
+          name="failure_url"
+          value="https://www.noortetugi.ee/uudised.html?newsletter=error&amp;form=bottom#newsletter"
+        >
+        <input type="text" name="re-email" value="" tabindex="-1" autocomplete="off">
+      </div>
       <div class="newsletter-input-row">
-        <input type="email" placeholder="Sinu e-posti aadress" required>
+        <input
+          type="email"
+          id="bottomNewsletterEmail"
+          name="email"
+          placeholder="Sinu e-posti aadress"
+          autocomplete="email"
+          required
+        >
         <button type="submit">Liitun</button>
       </div>
 
       <label class="newsletter-consent">
-        <input type="checkbox" required>
+        <input type="checkbox" id="bottomNewsletterConsent" required>
         <span>
           Olen nõus, et MTÜ Noortealgatuste Tugi töötleb minu e-posti aadressi
           infokirja saatmise eesmärgil. Olen tutvunud
@@ -200,6 +244,13 @@
       <p class="newsletter-note">
         Saadame infot ainult oluliste sündmuste, projektide ja võimaluste kohta.
       </p>
+
+      <p
+        class="newsletter-note"
+        id="bottomNewsletterMessage"
+        role="status"
+        aria-live="polite"
+      ></p>
     </form>
   </div>
 </section>
@@ -214,7 +265,15 @@
       </p>
 
       <div class="footer-socials">
-        <a class="social-text" href="..." target="_blank" rel="noopener noreferrer" aria-label="Facebook">f</a>
+        <a
+          class="social-text"
+          data-config-group="socialUrls"
+          data-config-link="facebook"
+          hidden
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Facebook"
+        >f</a>
         <a href="https://www.instagram.com/noortealgatuste_tugi/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="5"></rect>
@@ -255,7 +314,7 @@
 
   <div class="footer-bottom">
     <p>© 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.</p>
-    <nav class="footer-bottom-links">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
       <a href="/uudised.html">Uudised</a>
       <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
       <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
@@ -264,6 +323,7 @@
 </footer>
 
 <script src="/news-data.js"></script>
+<script src="/site-config.js"></script>
 <script src="/script.js"></script>
 <script src="/news.js"></script>
 <script src="/news-photo-lightbox.js"></script>

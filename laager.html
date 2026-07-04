@@ -6,6 +6,27 @@
   <meta name="theme-color" content="#082f27">
 
   <title>Projektikirjutamise laager 2026 | MTÜ Noortealgatuste Tugi</title>
+  <meta
+    name="description"
+    content="Projektikirjutamise laager aitab Ida-Virumaa noortel muuta ideed selgeteks, teostatavateks ja mõjusateks projektideks."
+  >
+  <link rel="canonical" href="https://www.noortetugi.ee/laager.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="et_EE">
+  <meta
+    property="og:title"
+    content="Projektikirjutamise laager 2026 | MTÜ Noortealgatuste Tugi"
+  >
+  <meta
+    property="og:description"
+    content="Kahepäevane laager aitab noortel muuta ideed selgeteks ja teostatavateks projektideks."
+  >
+  <meta property="og:url" content="https://www.noortetugi.ee/laager.html">
+  <meta
+    property="og:image"
+    content="https://www.noortetugi.ee/assets/logo-header.png"
+  >
+  <meta name="twitter:card" content="summary_large_image">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/favicon.png">
@@ -84,11 +105,11 @@
     </button>
 
     <!-- Навигация -->
-    <nav class="nav" id="mainNav">
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
       <a href="/">Avaleht</a>
       <a href="/uudised.html">Uudised</a>
       <a href="/tunnustusgala.html">Ida-Viru Noorte Tunnustusgala</a>
-      <a href="/laager.html">Projektikirjutamise laager</a>
+      <a href="/laager.html" aria-current="page">Projektikirjutamise laager</a>
       <a href="/vorgustik.html">Võrgustik</a>
       <a href="/#contact">Kontakt</a>
       <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
@@ -537,7 +558,7 @@
 
     <!-- ================= NEWSLETTER ================= -->
 
-    <section class="bottom-newsletter">
+    <section class="bottom-newsletter" id="newsletter">
       <div class="bottom-newsletter-card">
 
         <div class="bottom-newsletter-content">
@@ -551,12 +572,34 @@
           </p>
         </div>
 
-        <form class="bottom-newsletter-form" id="bottomNewsletterForm">
+        <form
+          class="bottom-newsletter-form"
+          id="bottomNewsletterForm"
+          action="https://noortetugi.sendsmaily.net/api/opt-in/"
+          method="post"
+          accept-charset="UTF-8"
+        >
+          <div hidden>
+            <input type="hidden" name="source" value="noortetugi_camp_bottom">
+            <input
+              type="hidden"
+              name="success_url"
+              value="https://www.noortetugi.ee/laager.html?newsletter=success&amp;form=bottom#newsletter"
+            >
+            <input
+              type="hidden"
+              name="failure_url"
+              value="https://www.noortetugi.ee/laager.html?newsletter=error&amp;form=bottom#newsletter"
+            >
+            <input type="text" name="re-email" value="" tabindex="-1" autocomplete="off">
+          </div>
           <div class="bottom-newsletter-row">
             <input
               type="email"
               id="bottomNewsletterEmail"
+              name="email"
               placeholder="Sinu e-posti aadress"
+              autocomplete="email"
               required
             >
 
@@ -584,6 +627,8 @@
           <p
             class="bottom-newsletter-message"
             id="bottomNewsletterMessage"
+            role="status"
+            aria-live="polite"
           ></p>
         </form>
       </div>
@@ -607,7 +652,9 @@
       <div class="footer-socials">
         <a
           class="social-text"
-          href="..."
+          data-config-group="socialUrls"
+          data-config-link="facebook"
+          hidden
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Facebook"
@@ -694,7 +741,7 @@
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
       <a href="privaatsuspoliitika.html">
         Privaatsuspoliitika
       </a>
@@ -707,6 +754,7 @@
 </footer>
 
 
+<script src="/site-config.js"></script>
 <script src="/script.js"></script>
 
 <script>

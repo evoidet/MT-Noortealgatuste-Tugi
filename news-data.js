@@ -38,7 +38,7 @@ window.NEWS_ITEMS = [
     excerpt:
       "17. oktoobril 2026 toimub Jõhvi Kontserdimajas taas Ida-Virumaa Noorte Tunnustusgala, kus tunnustatakse piirkonna aktiivseid, ettevõtlikke ja silmapaistvaid noori.",
 
-    image: "/assets/news/tunnustusgala/tunnustusgala-2026.jpg",
+    image: "/assets/news/tunnustusgala/tunnustusgala-2026.webp",
     imageAlt: "Ida-Virumaa Noorte Tunnustusgala",
 
     featured: true,
@@ -87,7 +87,7 @@ window.NEWS_ITEMS = [
     excerpt:
       "19.-20. septembril 2026 toimub Toila SPAs esmakordselt projektikirjutamise laager, mis aitab noortel arendada oma ideid ja õppida neid toimivateks projektideks kujundama.",
 
-    image: "/assets/news/laager/projektikirjutamise-laager-2026.jpg",
+    image: "/assets/logo-header.png",
     imageAlt: "Projektikirjutamise laager Toilas",
 
     featured: false,
@@ -125,7 +125,7 @@ window.NEWS_ITEMS = [
     excerpt:
       "8. juulil toimub Narvas VitaTiimis tasuta infokohtumine, kus 15–30-aastased Ida-Virumaa noored saavad tutvuda Erasmus+ programmi võimalustega.",
 
-    image: "assets/news/erasmus-vitatiim/erasmus-vitatiim.jpg",
+    image: "/assets/news/erasmus-vitatiim/erasmus-vitatiim.webp",
     imageAlt: "Erasmus+ võimalusi tutvustav noorteüritus VitaTiimis Narvas",
 
     featured: false,
@@ -151,64 +151,3 @@ window.NEWS_ITEMS = [
     ]
   }
 ];
-
-
-/*
-  
-  {
-    id: "saavutused-peagi",
-    category: "achievements",
-    categoryLabel: "Saavutused",
-    date: "",
-    displayDate: "Peagi",
-    title: "Siin hakkame jagama meie suuremaid saavutusi",
-    excerpt: "Organisatsiooni ja noorte tunnustused, koostööd ning olulised hetked saavad siin nähtavaks.",
-    image: "/assets/news/news-01.jpg",
-    imageAlt: "MTÜ Noortealgatuste Tugi saavutuse foto",
-    featured: true,
-    placeholder: true,
-    published: true,
-    content: [
-      "See on ajutine näidis. Lisa esimene päris uudis faili news-data.js.",
-      "Uudise juurde saad lisada pealkirja, kuupäeva, kategooria, foto, lühikirjelduse ja pikema teksti."
-    ]
-  },
-  {
-    id: "sundmused-peagi",
-    category: "events",
-    categoryLabel: "Sündmused",
-    date: "",
-    displayDate: "Peagi",
-    title: "Sündmuste kokkuvõtted ja eredamad hetked",
-    excerpt: "Jagame toimunud sündmuste tulemusi, fotosid ja osalejate kogemusi.",
-    image: "/assets/news/news-02.jpg",
-    imageAlt: "Noortealgatuste Tugi sündmuse foto",
-    featured: false,
-    placeholder: true,
-    published: true,
-    content: [
-      "Siia saad hiljem lisada sündmuse põhjaliku kokkuvõtte.",
-      "Kirjelda, mis toimus, kes osalesid, millised olid tulemused ja mida sellest õpiti."
-    ]
-  },
-  {
-    id: "noortealgatused-peagi",
-    category: "initiatives",
-    categoryLabel: "Noortealgatused",
-    date: "",
-    displayDate: "Peagi",
-    title: "Uued ideed, võimalused ja koostööd",
-    excerpt: "Uued projektid, partnerid, rahastusvõimalused ja noorte enda algatused.",
-    image: "/assets/news/news-03.jpg",
-    imageAlt: "Ida-Virumaa noortealgatuse foto",
-    featured: false,
-    placeholder: true,
-    published: true,
-    content: [
-      "See koht sobib noorte uute ideede, koostööde ja võimaluste tutvustamiseks.",
-      "Lisa uudis news-data.js faili ning avaleht ja uudiste leht uuenevad korraga."
-    ]
-  }
-];
-
-*/

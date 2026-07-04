@@ -10,6 +10,25 @@
   >
 
   <title>MTÜ Noortealgatuste Tugi</title>
+  <meta
+    name="description"
+    content="MTÜ Noortealgatuste Tugi aitab Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu."
+  >
+  <meta name="theme-color" content="#0e3b03">
+  <link rel="canonical" href="https://www.noortetugi.ee/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="et_EE">
+  <meta property="og:title" content="MTÜ Noortealgatuste Tugi">
+  <meta
+    property="og:description"
+    content="Aitame Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu."
+  >
+  <meta property="og:url" content="https://www.noortetugi.ee/">
+  <meta
+    property="og:image"
+    content="https://www.noortetugi.ee/assets/logo-header.png"
+  >
+  <meta name="twitter:card" content="summary_large_image">
 
   <!-- Favicon для браузеров и Google -->
   <link
@@ -144,8 +163,8 @@
     </button>
 
     <!-- Навигация -->
-    <nav class="nav" id="mainNav">
-      <a href="/">Avaleht</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
+      <a href="/" aria-current="page">Avaleht</a>
       <a href="/uudised.html">Uudised</a>
       <a href="/tunnustusgala.html">Ida-Viru Noorte Tunnustusgala</a>
       <a href="/laager.html">Projektikirjutamise laager</a>
@@ -224,6 +243,10 @@
               src="assets/logo-header.png"
               alt="MTÜ Noortealgatuste Tugi logo"
               class="home-hero-logo"
+              width="1000"
+              height="405"
+              decoding="async"
+              fetchpriority="high"
             >
             <strong>Noortealgatuste Tugi</strong>
             <p>Ida-Virumaa noorte ideede kasvulava</p>
@@ -382,10 +405,19 @@
           <article class="home-person-card home-person-card-lead" data-reveal data-tilt>
             <div class="home-person-photo-wrap">
               <img
-                src="assets/team/mario.png"
-                data-full="assets/team/full/mario.jpg"
+                src="assets/team/optimized/mario-480.webp"
+                srcset="
+                  assets/team/optimized/mario-480.webp 480w,
+                  assets/team/optimized/mario-960.webp 960w
+                "
+                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
+                data-full="assets/team/optimized/mario-960.webp"
                 alt="Mario Polshin"
                 class="team-photo team-photo-clickable"
+                width="480"
+                height="640"
+                loading="lazy"
+                decoding="async"
                 tabindex="0"
                 role="button"
                 aria-label="Ava Mario Polshini täispikk foto"
@@ -405,10 +437,19 @@
           <article class="home-person-card home-person-card-lead" data-reveal data-reveal-delay="100" data-tilt>
             <div class="home-person-photo-wrap">
               <img
-                src="assets/team/mihhail.png"
-                data-full="assets/team/full/mihhail.jpg"
+                src="assets/team/optimized/mihhail-480.webp"
+                srcset="
+                  assets/team/optimized/mihhail-480.webp 480w,
+                  assets/team/optimized/mihhail-960.webp 960w
+                "
+                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
+                data-full="assets/team/optimized/mihhail-960.webp"
                 alt="Mihhail Semiyanov"
                 class="team-photo team-photo-clickable"
+                width="480"
+                height="640"
+                loading="lazy"
+                decoding="async"
                 tabindex="0"
                 role="button"
                 aria-label="Ava Mihhail Semiyanovi täispikk foto"
@@ -438,10 +479,19 @@
           <article class="home-person-card" data-reveal data-tilt>
             <div class="home-person-photo-wrap">
               <img
-                src="assets/team/egor.png"
-                data-full="assets/team/full/egor.jpg"
+                src="assets/team/optimized/egor-480.webp"
+                srcset="
+                  assets/team/optimized/egor-480.webp 480w,
+                  assets/team/optimized/egor-960.webp 960w
+                "
+                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
+                data-full="assets/team/optimized/egor-960.webp"
                 alt="Egor Stepanov"
                 class="team-photo team-photo-clickable"
+                width="480"
+                height="640"
+                loading="lazy"
+                decoding="async"
                 tabindex="0"
                 role="button"
                 aria-label="Ava Egor Stepanovi täispikk foto"
@@ -461,10 +511,19 @@
           <article class="home-person-card" data-reveal data-reveal-delay="70" data-tilt>
             <div class="home-person-photo-wrap">
               <img
-                src="assets/team/sofia.png"
-                data-full="assets/team/full/sofia.jpg"
+                src="assets/team/optimized/sofia-480.webp"
+                srcset="
+                  assets/team/optimized/sofia-480.webp 480w,
+                  assets/team/optimized/sofia-960.webp 960w
+                "
+                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
+                data-full="assets/team/optimized/sofia-960.webp"
                 alt="Sofia Germ"
                 class="team-photo team-photo-clickable"
+                width="480"
+                height="640"
+                loading="lazy"
+                decoding="async"
                 tabindex="0"
                 role="button"
                 aria-label="Ava Sofia Germi täispikk foto"
@@ -484,10 +543,19 @@
           <article class="home-person-card" data-reveal data-reveal-delay="140" data-tilt>
             <div class="home-person-photo-wrap">
               <img
-                src="assets/team/jekaterina.png"
-                data-full="assets/team/full/jekaterina.jpg"
+                src="assets/team/optimized/jekaterina-480.webp"
+                srcset="
+                  assets/team/optimized/jekaterina-480.webp 480w,
+                  assets/team/optimized/jekaterina-960.webp 960w
+                "
+                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
+                data-full="assets/team/optimized/jekaterina-960.webp"
                 alt="Jekaterina Rogožina"
                 class="team-photo team-photo-clickable"
+                width="480"
+                height="640"
+                loading="lazy"
+                decoding="async"
                 tabindex="0"
                 role="button"
                 aria-label="Ava Jekaterina Rogožini täispikk foto"
@@ -507,10 +575,19 @@
           <article class="home-person-card" data-reveal data-reveal-delay="210" data-tilt>
             <div class="home-person-photo-wrap">
               <img
-                src="assets/team/andrei.png"
-                data-full="assets/team/full/andrei.jpg"
+                src="assets/team/optimized/andrei-480.webp"
+                srcset="
+                  assets/team/optimized/andrei-480.webp 480w,
+                  assets/team/optimized/andrei-960.webp 960w
+                "
+                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
+                data-full="assets/team/optimized/andrei-960.webp"
                 alt="Andrei Ostretsov"
                 class="team-photo team-photo-clickable"
+                width="480"
+                height="640"
+                loading="lazy"
+                decoding="async"
                 tabindex="0"
                 role="button"
                 aria-label="Ava Andrei Ostretsovi täispikk foto"
@@ -688,40 +765,83 @@
           <h3>Räägi meile oma ideest</h3>
         </div>
 
-        <form class="home-contact-form">
+        <form
+          class="home-contact-form"
+          id="contactForm"
+          method="post"
+        >
           <div class="home-form-row">
-            <label>
+            <label for="contactName">
               Teie nimi *
-              <input type="text" placeholder="Maria Tamm" required>
+              <input
+                type="text"
+                id="contactName"
+                name="name"
+                placeholder="Maria Tamm"
+                autocomplete="name"
+                required
+              >
             </label>
 
-            <label>
+            <label for="contactEmail">
               E-posti aadress *
-              <input type="email" placeholder="maria@example.ee" required>
+              <input
+                type="email"
+                id="contactEmail"
+                name="email"
+                placeholder="maria@example.ee"
+                autocomplete="email"
+                required
+              >
             </label>
           </div>
 
           <div class="home-form-row">
-            <label>
+            <label for="contactPhone">
               Telefon
-              <input type="tel" placeholder="+372 ...">
+              <input
+                type="tel"
+                id="contactPhone"
+                name="phone"
+                placeholder="+372 ..."
+                autocomplete="tel"
+              >
             </label>
 
-            <label>
+            <label for="contactSubject">
               Teema *
-              <input type="text" placeholder="Minu idee" required>
+              <input
+                type="text"
+                id="contactSubject"
+                name="subject"
+                placeholder="Minu idee"
+                required
+              >
             </label>
           </div>
 
-          <label>
+          <label for="contactMessage">
             Sõnum *
-            <textarea placeholder="Kirjelda lühidalt oma ideed või küsimust..." required></textarea>
+            <textarea
+              id="contactMessage"
+              name="message"
+              placeholder="Kirjelda lühidalt oma ideed või küsimust..."
+              required
+            ></textarea>
           </label>
 
           <button type="submit" class="home-contact-submit">
             Saada sõnum
-            <span aria-hidden="true">→</span>
+              <span aria-hidden="true">→</span>
           </button>
+
+          <p
+            class="form-status"
+            id="contactFormStatus"
+            role="status"
+            aria-live="polite"
+            tabindex="-1"
+          ></p>
         </form>
       </div>
 
@@ -733,17 +853,32 @@
 
 <!-- ================= POPUP NEWSLETTER ================= -->
 
-  <div class="newsletter-overlay" id="newsletterOverlay">
-    <div class="newsletter-popup">
-      <button class="newsletter-close" id="newsletterClose" aria-label="Sulge aken">
+  <div
+    class="newsletter-overlay"
+    id="newsletterOverlay"
+    aria-hidden="true"
+  >
+    <div
+      class="newsletter-popup"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="newsletterTitle"
+      aria-describedby="newsletterDescription"
+    >
+      <button
+        class="newsletter-close"
+        id="newsletterClose"
+        type="button"
+        aria-label="Sulge aken"
+      >
         ×   
       </button>
 
       <div class="newsletter-badge">INFOKIRI</div>
 
-      <h2>Liitu meie infokirjaga</h2>
+      <h2 id="newsletterTitle">Liitu meie infokirjaga</h2>
 
-      <p>
+      <p id="newsletterDescription">
         Soovid saada teavet meie sündmuste, projektide, noortealgatuste ja
         võimaluste kohta? Sisesta oma e-posti aadress ning liitu infokirjaga.
       </p>
@@ -791,7 +926,12 @@
           </span>
         </label>
 
-        <p class="newsletter-error" id="newsletterError"></p>
+        <p
+          class="newsletter-error"
+          id="newsletterError"
+          role="alert"
+          aria-live="assertive"
+        ></p>
 
         <button type="submit" class="newsletter-submit">
           Liitun infokirjaga
@@ -888,7 +1028,9 @@
       <div class="footer-socials">
         <a
           class="social-text"
-          href="..."
+          data-config-group="socialUrls"
+          data-config-link="facebook"
+          hidden
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Facebook"
@@ -976,7 +1118,7 @@
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
       <a href="/uudised.html">
         Uudised
       </a>
@@ -994,6 +1136,7 @@
 
 <script src="/news-data.js"></script>
 <script src="/news-home.js"></script>
+<script src="/site-config.js"></script>
 <script src="/script.js"></script>
 
 <script>

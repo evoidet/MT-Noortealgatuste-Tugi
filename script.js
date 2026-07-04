@@ -1,11 +1,11 @@
-console.log("Website is working");
-
 document.addEventListener("DOMContentLoaded", function () {
   "use strict";
 
   /* =========================================================
      ÜLDISED ABIFUNKTSIOONID
      ========================================================= */
+
+  const siteConfig = window.SITE_CONFIG || {};
 
   function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -16,6 +16,191 @@ document.addEventListener("DOMContentLoaded", function () {
       element.textContent = message;
     }
   }
+
+  function safeStorage(action, key, value) {
+    try {
+      if (action === "get") {
+        return window.localStorage.getItem(key);
+      }
+
+      if (action === "set") {
+        window.localStorage.setItem(key, value);
+      } else if (action === "remove") {
+        window.localStorage.removeItem(key);
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  }
+
+  function getFocusableElements(container) {
+    if (!container) {
+      return [];
+    }
+
+    return Array.from(
+      container.querySelectorAll(
+        [
+          "a[href]",
+          "button:not([disabled])",
+          "input:not([disabled])",
+          "select:not([disabled])",
+          "textarea:not([disabled])",
+          '[tabindex]:not([tabindex="-1"])'
+        ].join(",")
+      )
+    ).filter(function (element) {
+      return !element.hidden && element.getAttribute("aria-hidden") !== "true";
+    });
+  }
+
+  function keepFocusInside(event, container) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusable = getFocusableElements(container);
+
+    if (!focusable.length) {
+      event.preventDefault();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const visibleDialogs = Array.from(
+      document.querySelectorAll('[role="dialog"]')
+    ).filter(function (dialog) {
+      return (
+        dialog.getAttribute("aria-hidden") !== "true" &&
+        dialog.offsetParent !== null
+      );
+    });
+
+    const activeDialog = visibleDialogs[visibleDialogs.length - 1];
+
+    if (activeDialog) {
+      keepFocusInside(event, activeDialog);
+    }
+  });
+
+  /* =========================================================
+     VÄLISED LINGID JA KEELEVALIK
+     ========================================================= */
+
+  (function initConfiguredLinks() {
+    document.querySelectorAll("[data-config-link]").forEach(function (link) {
+      const group = link.dataset.configGroup || "socialUrls";
+      const key = link.dataset.configLink;
+      const groupConfig = siteConfig[group] || {};
+      const url = groupConfig[key];
+
+      if (typeof url === "string" && url.trim()) {
+        link.href = url.trim();
+        link.hidden = false;
+      } else {
+        link.hidden = true;
+        link.removeAttribute("href");
+      }
+    });
+  })();
+
+  (function initLanguageSwitcher() {
+    const languageUrls = siteConfig.languageUrls || {};
+
+    document.querySelectorAll(".lang-button").forEach(function (button) {
+      const language = button.dataset.lang;
+      const isCurrent = button.classList.contains("is-active");
+      const url = languageUrls[language];
+
+      if (isCurrent) {
+        button.disabled = false;
+        return;
+      }
+
+      if (typeof url !== "string" || !url.trim()) {
+        button.disabled = true;
+        button.setAttribute("aria-disabled", "true");
+        button.title = "Tõlge lisatakse peagi";
+        return;
+      }
+
+      button.disabled = false;
+      button.removeAttribute("aria-disabled");
+      button.addEventListener("click", function () {
+        window.location.assign(url.trim());
+      });
+    });
+  })();
+
+  /* =========================================================
+     KONTAKTVORMI INTEGRATSIOONIPUNKT
+     ========================================================= */
+
+  (function initContactForm() {
+    const form = document.getElementById("contactForm");
+    const status = document.getElementById("contactFormStatus");
+
+    if (!form) {
+      return;
+    }
+
+    const configuredAction =
+      typeof siteConfig.contactFormAction === "string"
+        ? siteConfig.contactFormAction.trim()
+        : "";
+
+    if (configuredAction) {
+      form.action = configuredAction;
+
+      if (siteConfig.contactSuccessUrl) {
+        const successInput = document.createElement("input");
+        successInput.type = "hidden";
+        successInput.name = "_next";
+        successInput.value = siteConfig.contactSuccessUrl;
+        form.appendChild(successInput);
+      }
+    }
+
+    function showUnconfiguredMessage(event) {
+      event.preventDefault();
+      setText(
+        status,
+        "Kontaktvorm ei ole veel teenusega ühendatud. Palun kirjuta aadressile juhatus@noortetugi.ee."
+      );
+
+      status?.focus();
+    }
+
+    if (!configuredAction) {
+      form.addEventListener("submit", showUnconfiguredMessage);
+
+      const submitButton = form.querySelector('[type="submit"]');
+
+      submitButton?.addEventListener("click", function (event) {
+        if (form.checkValidity()) {
+          showUnconfiguredMessage(event);
+        }
+      });
+    }
+  })();
 
   function getNewsletterStatus() {
     const params = new URLSearchParams(window.location.search);
@@ -79,7 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      localStorage.setItem("newsletterSubmissionPending", "true");
+      safeStorage("set", "newsletterSubmissionPending", "true");
 
       const submitButton = form.querySelector(
         'button[type="submit"], input[type="submit"]'
@@ -114,6 +299,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const popupEmail = document.getElementById("newsletterEmail");
   const popupConsent = document.getElementById("newsletterConsent");
   const popupError = document.getElementById("newsletterError");
+  let popupLastFocused = null;
 
   function showPopupError(message) {
     if (!popupError) {
@@ -134,12 +320,35 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function closeNewsletterPopup() {
-    if (!overlay) {
+    if (!overlay || !overlay.classList.contains("active")) {
       return;
     }
 
     overlay.classList.remove("active");
-    localStorage.setItem("newsletterPopupClosed", "true");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("newsletter-popup-open");
+    safeStorage("set", "newsletterPopupClosed", "true");
+
+    popupLastFocused?.focus({
+      preventScroll: true
+    });
+  }
+
+  function openNewsletterPopup() {
+    if (!overlay) {
+      return;
+    }
+
+    popupLastFocused = document.activeElement;
+    overlay.classList.add("active");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("newsletter-popup-open");
+
+    window.requestAnimationFrame(function () {
+      closeButton?.focus({
+        preventScroll: true
+      });
+    });
   }
 
   const newsletterReturn = getNewsletterStatus();
@@ -152,12 +361,12 @@ document.addEventListener("DOMContentLoaded", function () {
     popupConsent &&
     popupError
   ) {
-    const popupWasClosed = localStorage.getItem("newsletterPopupClosed");
-    const userSubscribed = localStorage.getItem("newsletterSubscribed");
+    const popupWasClosed = safeStorage("get", "newsletterPopupClosed");
+    const userSubscribed = safeStorage("get", "newsletterSubscribed");
 
     if (!popupWasClosed && !userSubscribed && !newsletterReturn.status) {
       window.setTimeout(function () {
-        overlay.classList.add("active");
+        openNewsletterPopup();
       }, 2000);
     }
 
@@ -170,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && overlay.classList.contains("active")) {
         closeNewsletterPopup();
       }
     });
@@ -218,11 +427,11 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    localStorage.removeItem("newsletterSubmissionPending");
+    safeStorage("remove", "newsletterSubmissionPending");
 
     if (status === "success") {
-      localStorage.setItem("newsletterSubscribed", "true");
-      localStorage.removeItem("newsletterPopupClosed");
+      safeStorage("set", "newsletterSubscribed", "true");
+      safeStorage("remove", "newsletterPopupClosed");
 
       if (bottomEmail) {
         bottomEmail.value = "";
@@ -238,7 +447,7 @@ document.addEventListener("DOMContentLoaded", function () {
       );
 
       if (form === "popup" && overlay && popupForm) {
-        overlay.classList.add("active");
+        openNewsletterPopup();
         popupForm.innerHTML = `
           <div class="newsletter-success">
             <h3>Aitäh!</h3>
@@ -247,11 +456,11 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         window.setTimeout(function () {
-          overlay.classList.remove("active");
+          closeNewsletterPopup();
         }, 3000);
       }
     } else if (status === "error") {
-      localStorage.removeItem("newsletterSubscribed");
+      safeStorage("remove", "newsletterSubscribed");
 
       const errorMessage =
         "Liitumine ebaõnnestus. Palun kontrollige aadressi ja proovige uuesti.";
@@ -262,7 +471,7 @@ document.addEventListener("DOMContentLoaded", function () {
         showPopupError(errorMessage);
 
         if (overlay) {
-          overlay.classList.add("active");
+          openNewsletterPopup();
         }
       }
     }
@@ -438,18 +647,13 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    const mobileQuery = window.matchMedia("(max-width: 1200px)");
     let menuIsOpen = false;
 
     function showMenu() {
       menuIsOpen = true;
       navigation.classList.add("open");
       menuButton.classList.add("active");
-
-      navigation.style.setProperty("display", "flex", "important");
-      navigation.style.setProperty("visibility", "visible", "important");
-      navigation.style.setProperty("opacity", "1", "important");
-      navigation.style.setProperty("pointer-events", "auto", "important");
-
       menuButton.setAttribute("aria-expanded", "true");
     }
 
@@ -457,14 +661,6 @@ document.addEventListener("DOMContentLoaded", function () {
       menuIsOpen = false;
       navigation.classList.remove("open");
       menuButton.classList.remove("active");
-
-      if (window.innerWidth <= 1100) {
-        navigation.style.setProperty("display", "none", "important");
-        navigation.style.setProperty("visibility", "hidden", "important");
-        navigation.style.setProperty("opacity", "0", "important");
-        navigation.style.setProperty("pointer-events", "none", "important");
-      }
-
       menuButton.setAttribute("aria-expanded", "false");
     }
 
@@ -499,24 +695,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    window.addEventListener("resize", function () {
-      if (window.innerWidth > 1100) {
-        menuIsOpen = false;
-        navigation.classList.remove("open");
-        navigation.style.removeProperty("display");
-        navigation.style.removeProperty("visibility");
-        navigation.style.removeProperty("opacity");
-        navigation.style.removeProperty("pointer-events");
-        menuButton.classList.remove("active");
-        menuButton.setAttribute("aria-expanded", "false");
-      } else {
-        hideMenu();
-      }
-    });
-
-    if (window.innerWidth <= 1100) {
-      hideMenu();
-    }
+    mobileQuery.addEventListener("change", hideMenu);
+    hideMenu();
   })();
 
   /* =========================================================
