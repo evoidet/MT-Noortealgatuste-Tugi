@@ -309,6 +309,54 @@
     </div>
   </section>
 
+  <!-- ================= NEWS & ACHIEVEMENTS ================= -->
+
+  <section id="news" class="home-section home-news-section">
+    <div class="home-news-glow home-news-glow-one" aria-hidden="true"></div>
+    <div class="home-news-glow home-news-glow-two" aria-hidden="true"></div>
+
+    <div class="home-container">
+      <div class="home-news-heading" data-reveal>
+        <div>
+          <span class="home-section-label">UUDISED JA SAAVUTUSED</span>
+          <h2>Meie tegemised, hetked ja järgmised sammud</h2>
+        </div>
+
+        <div class="home-news-heading-side">
+          <p>
+            Organisatsiooni uudised, sündmuste kokkuvõtted, noorte saavutused
+            ja uued võimalused Ida-Virumaal.
+          </p>
+
+          <a class="home-news-all" href="/uudised.html">
+            Vaata kõiki uudiseid
+            <i aria-hidden="true">→</i>
+          </a>
+        </div>
+      </div>
+
+      <nav
+        class="home-news-filters"
+        data-reveal
+        data-reveal-delay="80"
+        aria-label="Uudiste teemad"
+      >
+        <a class="is-active" href="/uudised.html">Kõik</a>
+        <a href="/uudised.html?category=achievements">Saavutused</a>
+        <a href="/uudised.html?category=events">Sündmused</a>
+        <a href="/uudised.html?category=initiatives">Noortealgatused</a>
+      </nav>
+
+      <!-- Kolm uusimat uudist lisatakse automaatselt news-data.js failist. -->
+      <div id="homeNewsList" class="home-news-layout" aria-live="polite">
+        <noscript>
+          <div class="home-news-empty">
+            Uudiste kuvamiseks peab JavaScript olema lubatud.
+          </div>
+        </noscript>
+      </div>
+    </div>
+  </section>
 
   <!-- ================= ABOUT ================= -->
 
@@ -668,57 +716,6 @@
           </span>
         </a>
 
-      </div>
-    </div>
-  </section>
-
-
-
-  <!-- ================= NEWS & ACHIEVEMENTS ================= -->
-
-  <section id="news" class="home-section home-news-section">
-    <div class="home-news-glow home-news-glow-one" aria-hidden="true"></div>
-    <div class="home-news-glow home-news-glow-two" aria-hidden="true"></div>
-
-    <div class="home-container">
-      <div class="home-news-heading" data-reveal>
-        <div>
-          <span class="home-section-label">UUDISED JA SAAVUTUSED</span>
-          <h2>Meie tegemised, hetked ja järgmised sammud</h2>
-        </div>
-
-        <div class="home-news-heading-side">
-          <p>
-            Organisatsiooni uudised, sündmuste kokkuvõtted, noorte saavutused
-            ja uued võimalused Ida-Virumaal.
-          </p>
-
-          <a class="home-news-all" href="/uudised.html">
-            Vaata kõiki uudiseid
-            <i aria-hidden="true">→</i>
-          </a>
-        </div>
-      </div>
-
-      <nav
-        class="home-news-filters"
-        data-reveal
-        data-reveal-delay="80"
-        aria-label="Uudiste teemad"
-      >
-        <a class="is-active" href="/uudised.html">Kõik</a>
-        <a href="/uudised.html?category=achievements">Saavutused</a>
-        <a href="/uudised.html?category=events">Sündmused</a>
-        <a href="/uudised.html?category=initiatives">Noortealgatused</a>
-      </nav>
-
-      <!-- Kolm uusimat uudist lisatakse automaatselt news-data.js failist. -->
-      <div id="homeNewsList" class="home-news-layout" aria-live="polite">
-        <noscript>
-          <div class="home-news-empty">
-            Uudiste kuvamiseks peab JavaScript olema lubatud.
-          </div>
-        </noscript>
       </div>
     </div>
   </section>
