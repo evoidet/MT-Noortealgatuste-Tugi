@@ -3306,3 +3306,50 @@ body.street-page
     object-fit: contain;
   }
 }
+
+/* =========================================================
+   MOBILE POSTER — preserve the original 4:5 proportions
+   ========================================================= */
+
+@media (max-width: 760px) {
+  body.street-page .sdj-poster-wrap {
+    width: min(360px, calc(100% - 28px));
+    aspect-ratio: 4 / 5;
+    margin: 34px auto 0;
+
+    animation: none;
+    transform: none;
+    transform-style: flat;
+  }
+
+  body.street-page .sdj-poster {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+
+    object-fit: contain;
+    object-position: center;
+
+    transform: none;
+  }
+
+  body.street-page
+  .sdj-lightbox.is-poster
+  .sdj-lightbox-visual {
+    min-height: 0;
+  }
+
+  body.street-page
+  .sdj-lightbox.is-poster
+  .sdj-lightbox-visual img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 58vh;
+    aspect-ratio: auto;
+
+    object-fit: contain;
+    object-position: center;
+  }
+}
