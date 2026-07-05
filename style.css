@@ -1467,7 +1467,10 @@ body.newsletter-popup-open {
 
 .bottom-newsletter-content,
 .newsletter-text {
-  align-self: center;
+  display: flex;
+  align-self: stretch;
+  flex-direction: column;
+  padding-block: clamp(18px, 2.6vw, 36px);
 }
 
 .bottom-newsletter-label,
@@ -1494,6 +1497,7 @@ body.newsletter-popup-open {
 
 .bottom-newsletter-content p,
 .newsletter-text p {
+  margin-top: auto;
   max-width: 560px;
   color: var(--text-light);
   font-size: 18px;

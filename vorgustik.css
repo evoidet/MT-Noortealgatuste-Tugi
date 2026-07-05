@@ -3401,6 +3401,100 @@ body.network-page .network-member-card-featured .network-member-logo-fallback {
   color: var(--network-dark);
 }
 
+body.network-page
+  .network-member-card-featured
+  .network-member-site-status {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* Osaluskogud saavad noorteühendustest eristuva sinakasrohelise aktsendi. */
+body.network-page .network-member-card[data-category="osaluskogu"] {
+  border-color: rgba(39, 132, 162, 0.24);
+  background:
+    radial-gradient(
+      circle at var(--network-shine-x) var(--network-shine-y),
+      rgba(96, 194, 218, 0.2),
+      transparent 31%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(231, 248, 250, 0.88)
+    );
+}
+
+body.network-page
+  .network-member-card[data-category="osaluskogu"]::before {
+  border-color: rgba(67, 166, 197, 0.12);
+}
+
+body.network-page
+  .network-member-card[data-category="osaluskogu"]::after {
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #4aa9c7,
+      var(--network-mint),
+      transparent
+    );
+}
+
+body.network-page
+  .network-member-card[data-category="osaluskogu"]:hover {
+  border-color: rgba(39, 132, 162, 0.52);
+  box-shadow:
+    0 34px 80px rgba(7, 31, 24, 0.15),
+    0 0 30px rgba(74, 169, 199, 0.14);
+}
+
+body.network-page
+  .network-member-card[data-category="osaluskogu"]
+  .network-member-logo {
+  background:
+    linear-gradient(
+      145deg,
+      #b8e8f4,
+      var(--network-mint)
+    );
+  box-shadow: 0 15px 32px rgba(74, 169, 199, 0.18);
+}
+
+body.network-page
+  .network-member-card[data-category="osaluskogu"]
+  .network-member-type {
+  border-color: rgba(39, 132, 162, 0.2);
+  background: rgba(74, 169, 199, 0.11);
+  color: #17677f;
+}
+
+body.network-page
+  .network-member-card[data-category="osaluskogu"]
+  .network-member-tags
+  span {
+  border-color: rgba(39, 132, 162, 0.14);
+  background: rgba(221, 244, 249, 0.82);
+  color: #17677f;
+}
+
+body.network-page
+  .network-member-card[data-category="osaluskogu"]
+  .network-member-details
+  dt {
+  color: #17677f;
+}
+
+body.network-page
+  .network-filter[data-filter="osaluskogu"].is-active {
+  border-color: #17677f;
+  background:
+    linear-gradient(
+      145deg,
+      #104c60,
+      #2589a1
+    );
+}
+
 /* =========================================================
    21. UUED RESPONSIVE-REEGLID
    ========================================================= */
@@ -3498,6 +3592,16 @@ body.network-page .network-member-logo--volunteezy img {
   padding: 0;
   transform: scale(1.85);
   transform-origin: center;
+}
+
+body.network-page .network-member-logo--vaba-algatus {
+  overflow: hidden;
+  background: #ffffff;
+}
+
+body.network-page .network-member-logo--vaba-algatus img {
+  padding: 0;
+  object-fit: contain;
 }
 
 /* =========================================================
