@@ -10,6 +10,7 @@ const htmlFiles = fs
   .sort();
 
 const failures = [];
+const senderFormId = "azpjE7";
 
 function report(file, message) {
   failures.push(`${file}: ${message}`);
@@ -36,6 +37,10 @@ function localTarget(reference) {
 for (const file of htmlFiles) {
   const source = fs.readFileSync(path.join(root, file), "utf8");
 
+  if (/sendsmaily|smaily/i.test(source)) {
+    report(file, "legacy Smaily integration is still present");
+  }
+
   if (!/<meta\s+name=["']description["']/i.test(source)) {
     report(file, "missing meta description");
   }
@@ -54,6 +59,25 @@ for (const file of htmlFiles) {
       source.indexOf('/site-config.js"') > source.indexOf('/script.js"'))
   ) {
     report(file, "site-config.js must load before script.js");
+  }
+
+  const senderForms = [
+    ...source.matchAll(/\bdata-sender-form-id=["']([^"']+)["']/gi),
+  ];
+
+  if (senderForms.length) {
+    const senderLoaderIndex = source.indexOf('/sender-init.js"');
+    const headEndIndex = source.toLowerCase().indexOf("</head>");
+
+    if (senderLoaderIndex === -1 || senderLoaderIndex > headEndIndex) {
+      report(file, "sender-init.js must load inside <head>");
+    }
+
+    for (const match of senderForms) {
+      if (match[1] !== senderFormId) {
+        report(file, `unexpected Sender form id "${match[1]}"`);
+      }
+    }
   }
 
   for (const match of source.matchAll(
@@ -116,6 +140,10 @@ const sourceFiles = fs
 
 for (const file of sourceFiles) {
   const source = fs.readFileSync(path.join(root, file), "utf8");
+
+  if (/sendsmaily|smaily/i.test(source)) {
+    report(file, "legacy Smaily integration is still present");
+  }
 
   for (const match of source.matchAll(
     /["'](\/?assets\/[^"'?#)\s]+)["']|url\(["']?(\/?assets\/[^)"'?#\s]+)/gi,

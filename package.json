@@ -2,6 +2,6 @@
   "name": "noortealgatuste-tugi-website",
   "private": true,
   "scripts": {
-    "check": "node tools/check-site.mjs && node --check script.js && node --check site-config.js && node --check news-data.js && node --check news-home.js && node --check news.js && node --check news-photo-lightbox.js"
+    "check": "node tools/check-site.mjs && node --check sender-init.js && node --check script.js && node --check site-config.js && node --check news-data.js && node --check news-home.js && node --check news.js && node --check news-photo-lightbox.js"
   }
 }

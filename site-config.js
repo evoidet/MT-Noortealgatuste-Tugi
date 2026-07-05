@@ -3,7 +3,7 @@
  * the shared site logic.
  */
 window.SITE_CONFIG = {
-  contactFormAction: "",
+  contactFormAction: "https://formspree.io/f/xeebnrje",
   contactSuccessUrl: "",
 
   socialUrls: {

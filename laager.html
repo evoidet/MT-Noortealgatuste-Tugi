@@ -35,6 +35,7 @@
   <!-- CSS -->
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/camp.css">
+  <script src="/sender-init.js"></script>
 </head>
 
 <body class="camp-page">
@@ -572,65 +573,17 @@
           </p>
         </div>
 
-        <form
-          class="bottom-newsletter-form"
-          id="bottomNewsletterForm"
-          action="https://noortetugi.sendsmaily.net/api/opt-in/"
-          method="post"
-          accept-charset="UTF-8"
-        >
-          <div hidden>
-            <input type="hidden" name="source" value="noortetugi_camp_bottom">
-            <input
-              type="hidden"
-              name="success_url"
-              value="https://www.noortetugi.ee/laager.html?newsletter=success&amp;form=bottom#newsletter"
-            >
-            <input
-              type="hidden"
-              name="failure_url"
-              value="https://www.noortetugi.ee/laager.html?newsletter=error&amp;form=bottom#newsletter"
-            >
-            <input type="text" name="re-email" value="" tabindex="-1" autocomplete="off">
-          </div>
-          <div class="bottom-newsletter-row">
-            <input
-              type="email"
-              id="bottomNewsletterEmail"
-              name="email"
-              placeholder="Sinu e-posti aadress"
-              autocomplete="email"
-              required
-            >
-
-            <button type="submit">
-              Liitun
-            </button>
-          </div>
-
-          <label class="bottom-newsletter-consent">
-            <input
-              type="checkbox"
-              id="bottomNewsletterConsent"
-              required
-            >
-
-            <span>
-              Olen nõus, et <strong>MTÜ Noortealgatuste Tugi</strong> töötleb
-              minu e-posti aadressi infokirja saatmiseks. Olen tutvunud
-              <a href="privaatsuspoliitika.html">
-                privaatsuspoliitikaga
-              </a>.
-            </span>
-          </label>
-
-          <p
-            class="bottom-newsletter-message"
-            id="bottomNewsletterMessage"
-            role="status"
-            aria-live="polite"
-          ></p>
-        </form>
+        <div class="sender-form-host">
+          <div
+            class="sender-form-field"
+            data-sender-form-id="azpjE7"
+          ></div>
+          <noscript>
+            <a href="https://stats.sender.net/forms/azpjE7/view">
+              Liitu infokirjaga
+            </a>
+          </noscript>
+        </div>
       </div>
     </section>
   </main>

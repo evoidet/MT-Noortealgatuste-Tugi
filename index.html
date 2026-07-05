@@ -50,6 +50,7 @@
 
   <!-- Стили главной страницы -->
   <link rel="stylesheet" href="/home.css">
+  <script src="/sender-init.js"></script>
 </head>
 
 <body class="home-page">
@@ -848,96 +849,7 @@
 </main>
 
 
-<!-- ================= POPUP NEWSLETTER ================= -->
-
-  <div
-    class="newsletter-overlay"
-    id="newsletterOverlay"
-    aria-hidden="true"
-  >
-    <div
-      class="newsletter-popup"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="newsletterTitle"
-      aria-describedby="newsletterDescription"
-    >
-      <button
-        class="newsletter-close"
-        id="newsletterClose"
-        type="button"
-        aria-label="Sulge aken"
-      >
-        ×   
-      </button>
-
-      <div class="newsletter-badge">INFOKIRI</div>
-
-      <h2 id="newsletterTitle">Liitu meie infokirjaga</h2>
-
-      <p id="newsletterDescription">
-        Soovid saada teavet meie sündmuste, projektide, noortealgatuste ja
-        võimaluste kohta? Sisesta oma e-posti aadress ning liitu infokirjaga.
-      </p>
-
-      <form
-        id="newsletterForm"
-        class="newsletter-form"
-        action="https://noortetugi.sendsmaily.net/api/opt-in/"
-        method="post"
-        accept-charset="UTF-8"
-        autocomplete="off"
-      >
-        <div hidden>
-          <input type="hidden" name="source" value="noortetugi_website_popup">
-          <input
-            type="hidden"
-            name="success_url"
-            value="https://www.noortetugi.ee/?newsletter=success&amp;form=popup"
-          >
-          <input
-            type="hidden"
-            name="failure_url"
-            value="https://www.noortetugi.ee/?newsletter=error&amp;form=popup"
-          >
-          <input type="text" name="re-email" value="" tabindex="-1" autocomplete="off">
-        </div>
-        <label for="newsletterEmail">E-posti aadress</label>
-
-        <input
-          type="email"
-          id="newsletterEmail"
-          name="email"
-          placeholder="sinu@email.ee"
-          autocomplete="email"
-          required
-        />
-
-        <label class="newsletter-consent">
-          <input type="checkbox" id="newsletterConsent" required />
-          <span>
-            Olen nõus, et <strong>MTÜ Noortealgatuste Tugi</strong> töötleb minu
-            e-posti aadressi infokirja saatmise eesmärgil. Saan nõusoleku igal
-            ajal tagasi võtta. Olen tutvunud
-            <a href="/privaatsuspoliitika.html">privaatsuspoliitikaga</a>.
-          </span>
-        </label>
-
-        <p
-          class="newsletter-error"
-          id="newsletterError"
-          role="alert"
-          aria-live="assertive"
-        ></p>
-
-        <button type="submit" class="newsletter-submit">
-          Liitun infokirjaga
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ================= BOTTOM NEWSLETTER ================= -->
+<!-- ================= NEWSLETTER ================= -->
 
 <section id="newsletter" class="newsletter-section">
   <div class="newsletter-content">
@@ -952,59 +864,17 @@
       </p>
     </div>
 
-    <form
-      id="bottomNewsletterForm"
-      class="newsletter-form"
-      action="https://noortetugi.sendsmaily.net/api/opt-in/"
-      method="post"
-      accept-charset="UTF-8"
-      autocomplete="off"
-    >
-      <div hidden>
-        <input type="hidden" name="source" value="noortetugi_website_bottom">
-        <input
-          type="hidden"
-          name="success_url"
-          value="https://www.noortetugi.ee/?newsletter=success&amp;form=bottom#newsletter"
-        >
-        <input
-          type="hidden"
-          name="failure_url"
-          value="https://www.noortetugi.ee/?newsletter=error&amp;form=bottom#newsletter"
-        >
-        <input type="text" name="re-email" value="" tabindex="-1" autocomplete="off">
-      </div>
-      <div class="newsletter-input-row">
-        <input
-          type="email"
-          id="bottomNewsletterEmail"
-          name="email"
-          placeholder="Sinu e-posti aadress"
-          autocomplete="email"
-          required
-        >
-        <button type="submit">Liitun</button>
-      </div>
-
-      <label class="newsletter-consent">
-        <input type="checkbox" id="bottomNewsletterConsent" required>
-        <span>
-          Olen nõus, et MTÜ Noortealgatuste Tugi töötleb minu e-posti aadressi
-          infokirja saatmise eesmärgil. Olen tutvunud
-          <a href="/privaatsuspoliitika.html">privaatsuspoliitikaga</a>
-        </span>
-      </label>
-
-      <p
-        class="newsletter-note"
-        id="bottomNewsletterMessage"
-        aria-live="polite"
-      ></p>
-
-      <p class="newsletter-note">
-        Saadame infot ainult oluliste sündmuste, projektide ja võimaluste kohta.
-      </p>
-    </form>
+    <div class="sender-form-host">
+      <div
+        class="sender-form-field"
+        data-sender-form-id="azpjE7"
+      ></div>
+      <noscript>
+        <a href="https://stats.sender.net/forms/azpjE7/view">
+          Liitu infokirjaga
+        </a>
+      </noscript>
+    </div>
   </div>
 </section>
 
