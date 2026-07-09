@@ -1816,6 +1816,34 @@ body.newsletter-popup-open {
   color: var(--white);
 }
 
+.footer-legal {
+  max-width: var(--container);
+  margin: 24px auto 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.70);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.footer-legal p {
+  margin: 0;
+}
+
+.footer-legal strong {
+  color: var(--white);
+}
+
+.footer-legal a {
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.footer-legal a:hover {
+  color: var(--white);
+}
+
 /* Vana lihtne footer, kui mõnel lehel on .footer-container */
 .footer-container {
   max-width: var(--container);
@@ -1962,6 +1990,11 @@ body.newsletter-popup-open {
   .footer-bottom-links {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .footer-legal {
+    margin-top: 22px;
+    font-size: 12.5px;
   }
 
   .logo,
