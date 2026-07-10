@@ -87,7 +87,7 @@ window.NEWS_ITEMS = [
     excerpt:
       "19.-20. septembril 2026 toimub Toila SPAs esmakordselt projektikirjutamise laager, mis aitab noortel arendada oma ideid ja õppida neid toimivateks projektideks kujundama.",
 
-    image: "/assets/logo-header.png",
+    image: "/assets/news/laager/laager.jpg",
     imageAlt: "Projektikirjutamise laager Toilas",
 
     featured: false,
