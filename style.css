@@ -210,7 +210,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: clamp(8px, 0.7vw, 12px);
+  gap: clamp(10px, calc(0.7vw + 2px), 14px);
 }
 
 .nav a {
@@ -263,7 +263,7 @@ a:hover {
 
 @media (min-width: 1201px) {
   .nav {
-    gap: clamp(8px, 0.7vw, 12px);
+    gap: clamp(10px, calc(0.7vw + 2px), 14px);
   }
 
   .nav a {
