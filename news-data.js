@@ -151,5 +151,35 @@ window.NEWS_ITEMS = [
       "https://docs.google.com/forms/d/e/1FAIpQLScLBHt-C4bzJBltpdP1iwX7Aqv6BTwgzOP_uRXw8rNMB3NQpg/viewform",
       "Noortealgatust toetavad Erasmus+ ja Euroopa Solidaarsuskorpuse Agentuur koostöös EuroPeers Eesti võrgustikuga Euroopa noortenädala 2026 tegevuste raames."
     ]
+  },
+
+  {
+    id: "narvas-toimus-koolitus-erasmus-ja-rohkem-avasta-mis-euroopa-sulle-pakub",
+
+    category: "events",
+    categoryLabel: "Sündmused",
+
+    date: "2026-07-16",
+    displayDate: "16. juuli 2026",
+
+    title: "Narvas toimus koolitus „Erasmus+ ja rohkem: avasta, mis Euroopa sulle pakub",
+
+    excerpt:
+      "Narvas toimunud koolitusel tutvustati noortele Erasmus+ programmi ja teisi Euroopa Liidu võimalusi õppimiseks, reisimiseks ning rahvusvahelistes projektides osalemiseks.",
+
+    image: "assets/news/erasmus-vitatiim/erasmus-koolitus.jpg",
+    imageAlt: "Erasmus+ võimalusi tutvustav noorteüritus VitaTiimis Narvas",
+
+    featured: false,
+    placeholder: false,
+    published: true,
+
+    content: [
+      "8. juulil toimus Narvas VitaTiimis koolitus „Erasmus+ ja rohkem: avasta, mis Euroopa sulle pakub“, mis oli suunatud Ida-Virumaa noortele.",
+      "Koolitusel rääkis Erasmus+ ja Euroopa Solidaarsuskorpuse Eurodeski ja EuroPeersi koordinaator Natalja Klimenkova Erasmus+ ja Euroopa Solidaarsuskorpuse pakutavatest võimalustest ning sellest, kuidas noored saavad nendes programmides osaleda. Oma inspireerivat kogemuslugu jagas Marika Karnetova, kes on mitmes noorteprogrammis osalenud.",
+      "Suur aitäh kõigile koolitusel osalenud noortele ning meie suurepärastele esinejatele!",
+      "Koolitus toimus Ida-Virumaa noorteühenduste koolitusprogrammi raames. Järgmiste koolituste ja teiste tegevuste kohta leiad infot MTÜ Noortealgatuste Tugi sotsiaalmeediakanalitest.",
+      "Noortealgatust toetab Erasmus+ ja Euroopa Solidaarsuskorpuse Agentuur koostöös EuroPeers Eesti võrgustikuga Euroopa noortenädala 2026 tegevuste raames."
+    ]
   }
 ];
