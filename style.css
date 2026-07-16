@@ -102,7 +102,7 @@ a:hover {
     "logo navigation languages";
 
   align-items: center;
-  column-gap: clamp(16px, 2vw, 32px);
+  column-gap: clamp(22px, 2.4vw, 38px);
 }
 
 /* =========================================================
@@ -125,7 +125,7 @@ a:hover {
 .logo-img {
   display: block;
 
-  width: clamp(175px, 14vw, 225px);
+  width: clamp(170px, 12.5vw, 205px);
   height: auto;
 
   object-fit: contain;
@@ -210,7 +210,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: clamp(10px, 1.1vw, 18px);
+  gap: clamp(8px, 0.7vw, 12px);
 }
 
 .nav a {
@@ -223,7 +223,10 @@ a:hover {
   font-weight: 600;
   line-height: 1.25;
 
-  white-space: nowrap;
+  min-width: 0;
+  text-align: center;
+  text-wrap: balance;
+  white-space: normal;
 
   transition:
     color 0.2s ease,
@@ -260,11 +263,11 @@ a:hover {
 
 @media (min-width: 1201px) {
   .nav {
-    gap: clamp(9px, 0.85vw, 14px);
+    gap: clamp(8px, 0.7vw, 12px);
   }
 
   .nav a {
-    font-size: clamp(14px, 1.15vw, 18px);
+    font-size: clamp(13px, 0.9vw, 15px);
     font-weight: 700;
   }
 
@@ -1855,6 +1858,47 @@ body.newsletter-popup-open {
   color: var(--white);
 }
 
+.footer-donation {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.footer-donation h5 {
+  margin: 0 0 9px;
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.footer-donation-details {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 7px;
+  margin: 0 !important;
+}
+
+.footer-donation-recipient {
+  color: var(--white);
+}
+
+.footer-donation-separator {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.footer-donation-iban {
+  color: rgba(255, 255, 255, 0.94);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 /* Vana lihtne footer, kui mõnel lehel on .footer-container */
 .footer-container {
   max-width: var(--container);
@@ -2006,6 +2050,16 @@ body.newsletter-popup-open {
   .footer-legal {
     margin-top: 0;
     font-size: 12.5px;
+  }
+
+  .footer-donation-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .footer-donation-separator {
+    display: none;
   }
 
   .logo,

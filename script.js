@@ -180,8 +180,32 @@ document.addEventListener("DOMContentLoaded", function () {
         details.append("Registrikood: 80652930", document.createElement("br"));
         details.append("E-post: ", email);
 
-        // TODO: Lisa annetuse saaja ja IBAN alles pärast pangarekvisiitide kontrollimist.
-        legal.replaceChildren(heading, details);
+        const donation = document.createElement("div");
+        const donationHeading = document.createElement("h5");
+        const donationDetails = document.createElement("p");
+        const donationRecipient = document.createElement("strong");
+        const donationSeparator = document.createElement("span");
+        const donationIban = document.createElement("span");
+
+        donation.className = "footer-donation";
+        donationHeading.textContent = "Annetused";
+        donationDetails.className = "footer-donation-details";
+        donationRecipient.className = "footer-donation-recipient";
+        donationRecipient.textContent = "MTÜ Noortealgatuste Tugi";
+        donationSeparator.className = "footer-donation-separator";
+        donationSeparator.setAttribute("aria-hidden", "true");
+        donationSeparator.textContent = "•";
+        donationIban.className = "footer-donation-iban";
+        donationIban.textContent = "EE077700771011606476";
+
+        donationDetails.append(
+          donationRecipient,
+          donationSeparator,
+          donationIban
+        );
+        donation.append(donationHeading, donationDetails);
+
+        legal.replaceChildren(heading, details, donation);
         legal.classList.add("footer-column", "footer-official");
         main.appendChild(legal);
       }

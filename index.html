@@ -227,88 +227,125 @@
       </div>
 
       <div class="home-hero-visual" data-reveal data-reveal-delay="140">
-        <div class="home-orbit" aria-hidden="true">
-          <div class="home-orbit-ring home-orbit-ring-one"></div>
-          <div class="home-orbit-ring home-orbit-ring-two"></div>
+        <div class="home-orbit">
+          <div class="home-orbit-art" aria-hidden="true">
+            <div class="home-orbit-ring home-orbit-ring-one"></div>
+            <div class="home-orbit-ring home-orbit-ring-two"></div>
+          </div>
 
-          <div
-            class="home-logo-stage home-logo-stage-clickable"
-            tabindex="0"
-            role="button"
-            aria-haspopup="dialog"
-            aria-label="Ava MTÜ Noortealgatuste Tugi logo suurelt"
-          >
+          <div class="home-logo-stage">
             <span class="home-logo-stage-label">MTÜ</span>
-            <span class="home-logo-open-icon" aria-hidden="true">+</span>
 
-            <img
-              src="assets/logo-header.png"
-              alt="MTÜ Noortealgatuste Tugi logo"
-              class="home-hero-logo"
-              width="1000"
-              height="405"
-              decoding="async"
-              fetchpriority="high"
+            <button
+              class="home-logo-trigger home-logo-stage-clickable"
+              type="button"
+              aria-haspopup="dialog"
+              aria-label="Ava MTÜ Noortealgatuste Tugi logo suurelt"
             >
-            <strong>Noortealgatuste Tugi</strong>
-            <p>Ida-Virumaa noorte ideede kasvulava</p>
+              <span class="home-logo-open-icon" aria-hidden="true">+</span>
+
+              <img
+                src="assets/logo-header.png"
+                alt="MTÜ Noortealgatuste Tugi logo"
+                class="home-hero-logo"
+                width="1000"
+                height="405"
+                decoding="async"
+                fetchpriority="high"
+              >
+            </button>
+
+            <strong class="home-organization-name">Noortealgatuste Tugi</strong>
+
+            <div class="home-value-panels">
+              <div
+                class="home-value-panel"
+                id="home-value-panel-1"
+                role="tabpanel"
+                aria-labelledby="home-value-tab-1"
+                tabindex="0"
+              >
+                <span class="home-value-panel-title">Noortelt noortele</span>
+                <p>Noored ei ole ainult osalejad, vaid ka ideede autorid ja eestvedajad.</p>
+              </div>
+
+              <div
+                class="home-value-panel"
+                id="home-value-panel-2"
+                role="tabpanel"
+                aria-labelledby="home-value-tab-2"
+                tabindex="0"
+                hidden
+              >
+                <span class="home-value-panel-title">Ideest teostuseni</span>
+                <p>Aitame planeerida, leida ressursse ja viia algatused päriselt ellu.</p>
+              </div>
+
+              <div
+                class="home-value-panel"
+                id="home-value-panel-3"
+                role="tabpanel"
+                aria-labelledby="home-value-tab-3"
+                tabindex="0"
+                hidden
+              >
+                <span class="home-value-panel-title">Kogukonnale kasulik</span>
+                <p>Loome võimalusi, mis lähtuvad kohalike noorte vajadustest ja unistustest.</p>
+              </div>
+            </div>
           </div>
 
-          <div class="home-floating-badge home-floating-badge-one">
-            <span>01</span>
-            Noortelt noortele
-          </div>
+          <div class="home-value-tabs" role="tablist" aria-label="Meie põhimõtted">
+            <button
+              class="home-floating-badge home-floating-badge-one is-active"
+              id="home-value-tab-1"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="home-value-panel-1"
+              tabindex="0"
+              data-home-value-tab
+            >
+              <span aria-hidden="true">01</span>
+              <span>Noortelt noortele</span>
+            </button>
 
-          <div class="home-floating-badge home-floating-badge-two">
-            <span>02</span>
-            Ideest teostuseni
-          </div>
+            <button
+              class="home-floating-badge home-floating-badge-two"
+              id="home-value-tab-2"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="home-value-panel-2"
+              tabindex="-1"
+              data-home-value-tab
+            >
+              <span aria-hidden="true">02</span>
+              <span>Ideest teostuseni</span>
+            </button>
 
-          <div class="home-floating-badge home-floating-badge-three">
-            <span>03</span>
-            Kogukonnale kasulik
+            <button
+              class="home-floating-badge home-floating-badge-three"
+              id="home-value-tab-3"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="home-value-panel-3"
+              tabindex="-1"
+              data-home-value-tab
+            >
+              <span aria-hidden="true">03</span>
+              <span>Kogukonnale kasulik</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <a href="#home-impact" class="home-scroll-cue" aria-label="Liigu järgmise sektsioonini">
+    <a href="#news" class="home-scroll-cue" aria-label="Liigu järgmise sektsioonini">
       <span>Avasta rohkem</span>
       <i aria-hidden="true"></i>
     </a>
-  </section>
-
-
-  <!-- ================= IMPACT STRIP ================= -->
-
-  <section class="home-impact-strip" id="home-impact">
-    <div class="home-container home-impact-grid">
-
-      <article class="home-impact-item" data-reveal>
-        <span class="home-impact-number">01</span>
-        <div>
-          <strong>Noortelt noortele</strong>
-          <p>Noored ei ole ainult osalejad, vaid ka ideede autorid ja eestvedajad.</p>
-        </div>
-      </article>
-
-      <article class="home-impact-item" data-reveal data-reveal-delay="100">
-        <span class="home-impact-number">02</span>
-        <div>
-          <strong>Ideest teostuseni</strong>
-          <p>Aitame planeerida, leida ressursse ja viia algatused päriselt ellu.</p>
-        </div>
-      </article>
-
-      <article class="home-impact-item" data-reveal data-reveal-delay="200">
-        <span class="home-impact-number">03</span>
-        <div>
-          <strong>Kogukonnale kasulik</strong>
-          <p>Loome võimalusi, mis lähtuvad kohalike noorte vajadustest ja unistustest.</p>
-        </div>
-      </article>
-
-    </div>
   </section>
 
   <!-- ================= NEWS & ACHIEVEMENTS ================= -->
@@ -1042,6 +1079,59 @@
       });
     }
 
+    const valueTabs = Array.from(
+      document.querySelectorAll("[data-home-value-tab]")
+    );
+    const valuePanels = Array.from(
+      document.querySelectorAll(".home-value-panel")
+    );
+
+    const activateValueTab = (nextTab, moveFocus = false) => {
+      const panelId = nextTab?.getAttribute("aria-controls");
+
+      if (!panelId) return;
+
+      valueTabs.forEach((tab) => {
+        const isActive = tab === nextTab;
+        tab.setAttribute("aria-selected", String(isActive));
+        tab.tabIndex = isActive ? 0 : -1;
+        tab.classList.toggle("is-active", isActive);
+      });
+
+      valuePanels.forEach((panel) => {
+        panel.hidden = panel.id !== panelId;
+      });
+
+      if (moveFocus) {
+        nextTab.focus();
+      }
+    };
+
+    valueTabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => {
+        activateValueTab(tab);
+      });
+
+      tab.addEventListener("keydown", (event) => {
+        let nextIndex = null;
+
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+          nextIndex = (index + 1) % valueTabs.length;
+        } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+          nextIndex = (index - 1 + valueTabs.length) % valueTabs.length;
+        } else if (event.key === "Home") {
+          nextIndex = 0;
+        } else if (event.key === "End") {
+          nextIndex = valueTabs.length - 1;
+        }
+
+        if (nextIndex === null) return;
+
+        event.preventDefault();
+        activateValueTab(valueTabs[nextIndex], true);
+      });
+    });
+
     if (
       !prefersReducedMotion &&
       window.matchMedia("(hover: hover) and (pointer: fine)").matches
@@ -1344,25 +1434,6 @@
           getOrganizationProfileData(heroLogoStage)
         );
       });
-
-      heroLogoStage.addEventListener(
-        "keydown",
-        (event) => {
-          if (
-            event.key !== "Enter" &&
-            event.key !== " "
-          ) {
-            return;
-          }
-
-          event.preventDefault();
-
-          openModal(
-            heroLogoStage,
-            getOrganizationProfileData(heroLogoStage)
-          );
-        }
-      );
     }
 
     const enhanceNewsMedia = (root = document) => {

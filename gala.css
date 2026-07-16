@@ -193,9 +193,11 @@ body.gala-page .gala-hero-content {
 
 body.gala-page .gala-label {
   display: inline-flex;
+  max-width: 100%;
   margin-bottom: 28px;
   padding: 11px 18px;
   align-items: center;
+  flex-wrap: wrap;
   gap: 13px;
   border: 1px solid rgba(242, 212, 123, 0.52);
   border-radius: 999px;
@@ -203,6 +205,7 @@ body.gala-page .gala-label {
   color: var(--gala-gold-light);
   font-size: 13px;
   font-weight: 800;
+  line-height: 1.45;
   letter-spacing: 0.16em;
   text-transform: none;
   box-shadow:
@@ -2781,6 +2784,19 @@ body.gala-page .nav a::after {
 }
 
 @media (max-width: 460px) {
+  body.gala-page .gala-label {
+    gap: 4px 9px;
+    letter-spacing: 0.1em;
+  }
+
+  body.gala-page .gala-label-divider {
+    display: none;
+  }
+
+  body.gala-page .gala-label > span:last-child {
+    flex-basis: 100%;
+  }
+
   body.gala-page .gala-hero h1 {
     font-size: 43px;
   }
