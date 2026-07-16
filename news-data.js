@@ -33,20 +33,22 @@ window.NEWS_ITEMS = [
     date: "2026-06-28",
     displayDate: "28. juuni 2026",
 
-    title: "Ida-Virumaa Noorte Tunnustusgala toimub taas",
+    title: "Ida-Virumaa noorte tunnustusgala toimub taas",
 
     excerpt:
-      "17. oktoobril 2026 toimub Jõhvi Kontserdimajas taas Ida-Virumaa Noorte Tunnustusgala, kus tunnustatakse piirkonna aktiivseid, ettevõtlikke ja silmapaistvaid noori.",
+      "17. oktoobril 2026 toimub Jõhvi Kontserdimajas taas Ida-Virumaa noorte tunnustusgala, kus tunnustatakse piirkonna aktiivseid, ettevõtlikke ja silmapaistvaid noori.",
 
     image: "/assets/news/tunnustusgala/tunnustusgala-2026.webp",
-    imageAlt: "Ida-Virumaa Noorte Tunnustusgala",
+    imageAlt: "Ida-Virumaa noorte tunnustusgala",
+
+    // Optional: author: "Autori nimi",
 
     featured: true,
     placeholder: false,
     published: true,
 
     content: [
-      "17. oktoobril 2026 toimub Jõhvi Kontserdimajas taas Ida-Virumaa Noorte Tunnustusgala – pidulik sündmus, mille eesmärk on märgata ja tunnustada piirkonna aktiivseid, ettevõtlikke ning silmapaistvaid noori.",
+      "17. oktoobril 2026 toimub Jõhvi Kontserdimajas taas Ida-Virumaa noorte tunnustusgala – pidulik sündmus, mille eesmärk on märgata ja tunnustada piirkonna aktiivseid, ettevõtlikke ning silmapaistvaid noori.",
 
       "Tunnustusgala toob kokku noored, noorte toetajad, organisatsioonid ja kogukonna esindajad. Õhtu keskmes on Ida-Virumaa noorte saavutused, julgus, loovus ja panus kohaliku elu arengusse.",
 
@@ -62,7 +64,7 @@ window.NEWS_ITEMS = [
 
       "Kategoorias „Aasta noorte tegu“ võib tunnustamiseks esitada ka noorterühma, kes on algatanud ja ellu viinud mõjuka projekti, sündmuse või muu olulise ettevõtmise.",
 
-      "Noorte Tunnustusgala ei ole üksnes auhindade üleandmine. See on ühine pidulik õhtu, kus noorte lood, saavutused ja tulevikuideed saavad tähelepanu, mida need väärivad.",
+      "Ida-Virumaa noorte tunnustusgala ei ole üksnes auhindade üleandmine. See on ühine pidulik õhtu, kus noorte lood, saavutused ja tulevikuideed saavad tähelepanu, mida need väärivad.",
 
       "Kandidaadi esitamine:",
 
@@ -82,20 +84,20 @@ window.NEWS_ITEMS = [
     date: "2026-06-28",
     displayDate: "28. juuni 2026",
 
-    title: "Ida-Virumaal toimub esmakordselt projektikirjutamise laager",
+    title: "Ida-Virumaa noorte projektikirjutamise laager toimub esmakordselt",
 
     excerpt:
-      "19.-20. septembril 2026 toimub Toila SPAs esmakordselt projektikirjutamise laager, mis aitab noortel arendada oma ideid ja õppida neid toimivateks projektideks kujundama.",
+      "19.–20. septembril 2026 toimub hotellis Toila SPA Hotell esmakordselt Ida-Virumaa noorte projektikirjutamise laager, mis aitab noortel arendada oma ideid ja õppida neid toimivateks projektideks kujundama.",
 
     image: "/assets/news/laager/laager.jpg",
-    imageAlt: "Projektikirjutamise laager Toilas",
+    imageAlt: "Ida-Virumaa noorte projektikirjutamise laager Toila SPA Hotellis",
 
     featured: false,
     placeholder: false,
     published: true,
 
     content: [
-      "19.-20. septembril 2026 toimub Toila SPAs esmakordselt projektikirjutamise laager, mille eesmärk on anda noortele praktilised teadmised ja oskused oma ideede arendamiseks ning projektide ettevalmistamiseks.",
+      "19.–20. septembril 2026 toimub hotellis Toila SPA Hotell esmakordselt Ida-Virumaa noorte projektikirjutamise laager, mille eesmärk on anda noortele praktilised teadmised ja oskused oma ideede arendamiseks ning projektide ettevalmistamiseks.",
 
       "Kahepäevane laager loob noortele võimaluse õppida, kuidas muuta esialgne idee selgeks ja teostatavaks projektiks. Osalejad saavad teadmisi projekti eesmärkide sõnastamisest, tegevuste planeerimisest, eelarve koostamisest ja tulemuste hindamisest.",
 
@@ -103,7 +105,7 @@ window.NEWS_ITEMS = [
 
       "Laagri oluline osa on kogemuste vahetamine. Osalejad saavad tutvustada oma mõtteid, kuulata teiste noorte ideid ning saada tagasisidet, mis aitab projekte sisukamaks ja realistlikumaks muuta.",
 
-      "Projektikirjutamise laager toimub sellisel kujul esimest korda. MTÜ Noortealgatuste Tugi soovib selle algatusega toetada Ida-Virumaa noorte ettevõtlikkust ning suurendada noorte valmisolekut ise projekte algatada ja kogukonna arengusse panustada.",
+      "Ida-Virumaa noorte projektikirjutamise laager toimub sellisel kujul esimest korda. MTÜ Noortealgatuste Tugi soovib selle algatusega toetada Ida-Virumaa noorte ettevõtlikkust ning suurendada noorte valmisolekut ise projekte algatada ja kogukonna arengusse panustada.",
 
       "Laager sobib noortele, kes soovivad ellu viia sündmust, koolitust, kogukondlikku algatust või mõnda muud ideed, kuid vajavad selle kavandamisel teadmisi, tuge ja inspiratsiooni.",
 

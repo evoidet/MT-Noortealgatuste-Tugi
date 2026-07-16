@@ -771,6 +771,26 @@ body.news-page .news-card-footer {
   gap: 20px;
 }
 
+body.news-page .news-author,
+body.news-page .news-featured-author,
+body.news-page .news-article-author {
+  display: block;
+  margin-top: 10px;
+  color: var(--news-text-soft);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+body.news-page .news-featured-author {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+body.news-page .news-article-author {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
 body.news-page .news-featured-action strong,
 body.news-page .news-card-footer strong {
   font-size: 13px;

@@ -147,6 +147,13 @@
       `/uudised.html?id=${encodeURIComponent(item.id)}`
     );
 
+    const authorHtml = (item, className = "news-author") => {
+      const author = typeof item.author === "string" ? item.author.trim() : "";
+      return author
+        ? `<span class="${className}">Autor: ${escapeHtml(author)}</span>`
+        : "";
+    };
+
     const imageHtml = (item, className, placeholderText) => `
       <div
         class="${className}"
@@ -180,6 +187,7 @@
 
           <h3>${escapeHtml(item.title)}</h3>
           <p>${escapeHtml(item.excerpt)}</p>
+          ${authorHtml(item)}
 
           <div class="news-card-footer">
             <strong>${item.placeholder ? "Uudis ilmub peagi" : "Loe edasi"}</strong>
@@ -207,6 +215,7 @@
 
           <h2>${escapeHtml(item.title)}</h2>
           <p>${escapeHtml(item.excerpt)}</p>
+          ${authorHtml(item, "news-featured-author")}
 
           <div class="news-featured-action">
             <strong>${item.placeholder ? "Uudis ilmub peagi" : "Ava uudis"}</strong>
@@ -227,6 +236,7 @@
       const haystack = [
         item.title,
         item.excerpt,
+        item.author,
         item.categoryLabel,
         ...(Array.isArray(item.content) ? item.content : [])
       ]
@@ -422,6 +432,7 @@
 
           <h1>${escapeHtml(item.title)}</h1>
           <p>${escapeHtml(item.excerpt)}</p>
+          ${authorHtml(item, "news-article-author")}
         </div>
 
         <div class="news-article-hero" data-news-reveal>

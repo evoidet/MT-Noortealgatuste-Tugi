@@ -2604,7 +2604,14 @@ body.street-page .nav a::after {
   }
 
   body.street-page .sdj-hero-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.street-page .sdj-hero-content {
+    min-width: 0;
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   body.street-page .sdj-event-logo {
@@ -2616,12 +2623,15 @@ body.street-page .nav a::after {
   }
 
   body.street-page .sdj-hero-buttons {
+    width: 100%;
+    max-width: 100%;
     flex-direction: column;
     align-items: stretch;
   }
 
   body.street-page .sdj-button {
     width: 100%;
+    max-width: 100%;
   }
 
   body.street-page .sdj-poster-wrap {

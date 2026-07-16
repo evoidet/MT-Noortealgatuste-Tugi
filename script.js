@@ -129,6 +129,104 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   /* =========================================================
+     ÜHINE JALUS
+     ========================================================= */
+
+  (function initSharedFooter() {
+    document.querySelectorAll(".site-footer").forEach(function (footer) {
+      const main = footer.querySelector(".footer-main");
+
+      if (!main) {
+        return;
+      }
+
+      Array.from(main.children).forEach(function (column) {
+        const heading = column.querySelector("h4");
+
+        if (heading?.textContent.trim() === "Tegevused") {
+          column.remove();
+        }
+      });
+
+      const socials = footer.querySelector(".footer-socials");
+
+      if (socials && !socials.querySelector('[href*="tiktok.com/@noortetugi"]')) {
+        const tiktok = document.createElement("a");
+        tiktok.className = "social-text";
+        tiktok.href = "https://www.tiktok.com/@noortetugi";
+        tiktok.target = "_blank";
+        tiktok.rel = "noopener noreferrer";
+        tiktok.setAttribute("aria-label", "TikTok");
+        tiktok.title = "TikTok";
+        tiktok.textContent = "♪";
+        socials.appendChild(tiktok);
+      }
+
+      const legal = footer.querySelector(".footer-legal");
+
+      if (legal) {
+        const heading = document.createElement("h4");
+        heading.textContent = "Ametlik info";
+
+        const details = document.createElement("p");
+        const name = document.createElement("strong");
+        const email = document.createElement("a");
+
+        name.textContent = "MTÜ Noortealgatuste Tugi";
+        email.href = "mailto:juhatus@noortetugi.ee";
+        email.textContent = "juhatus@noortetugi.ee";
+
+        details.append(name, document.createElement("br"));
+        details.append("Registrikood: 80652930", document.createElement("br"));
+        details.append("E-post: ", email);
+
+        // TODO: Lisa annetuse saaja ja IBAN alles pärast pangarekvisiitide kontrollimist.
+        legal.replaceChildren(heading, details);
+        legal.classList.add("footer-column", "footer-official");
+        main.appendChild(legal);
+      }
+
+      const bottomLinks = footer.querySelector(".footer-bottom-links");
+
+      bottomLinks?.querySelectorAll("a").forEach(function (link) {
+        if (link.textContent.trim() !== "Privaatsuspoliitika") {
+          link.remove();
+        }
+      });
+    });
+  })();
+
+  /* =========================================================
+     TAGASI LEHE ALGUSESSE
+     ========================================================= */
+
+  (function initBackToTop() {
+    const button = document.createElement("button");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    button.type = "button";
+    button.className = "back-to-top";
+    button.setAttribute("aria-label", "Tagasi lehe algusesse");
+    button.title = "Tagasi üles";
+    button.innerHTML = '<span aria-hidden="true">↑</span>';
+    document.body.appendChild(button);
+
+    function updateVisibility() {
+      button.classList.toggle("is-visible", window.scrollY > 560);
+    }
+
+    button.addEventListener("click", function () {
+      window.scrollTo({
+        top: 0,
+        behavior: reducedMotion.matches ? "auto" : "smooth"
+      });
+    });
+
+    window.addEventListener("scroll", updateVisibility, { passive: true });
+    updateVisibility();
+  })();
+
+  /* =========================================================
      KONTAKTVORMI INTEGRATSIOONIPUNKT
      ========================================================= */
 

@@ -80,6 +80,13 @@
       `/uudised.html?id=${encodeURIComponent(item.id)}`
     );
 
+    const authorHtml = (item) => {
+      const author = typeof item.author === "string" ? item.author.trim() : "";
+      return author
+        ? `<span class="home-news-author">Autor: ${escapeHtml(author)}</span>`
+        : "";
+    };
+
     const imageHtml = (item, className, placeholderText) => `
       <div
         class="${className}"
@@ -117,6 +124,7 @@
 
           <h3>${escapeHtml(featured.title)}</h3>
           <p>${escapeHtml(featured.excerpt)}</p>
+          ${authorHtml(featured)}
 
           <span class="home-news-card-link">
             ${featured.placeholder ? "Uudis ilmub peagi" : "Loe uudist"}
@@ -147,6 +155,7 @@
 
           <h3>${escapeHtml(item.title)}</h3>
           <p>${escapeHtml(item.excerpt)}</p>
+          ${authorHtml(item)}
 
           <span class="home-news-card-link">
             ${item.placeholder ? "Uudis ilmub peagi" : "Loe uudist"}

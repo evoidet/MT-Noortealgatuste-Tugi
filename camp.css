@@ -256,6 +256,23 @@ body.camp-page .camp-buttons {
   margin-top: 38px;
 }
 
+body.camp-page .camp-registration-status {
+  display: inline-flex;
+  min-height: 56px;
+  padding: 15px 22px;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(200, 244, 229, 0.46);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  cursor: default;
+}
+
 body.camp-page .camp-buttons a,
 body.camp-page .camp-registration .button {
   position: relative;
@@ -1221,9 +1238,10 @@ body.camp-page .camp-skill-card {
 
   position: relative;
   display: flex;
-  min-height: 205px;
-  padding: 29px;
-  gap: 22px;
+  min-height: 150px;
+  padding: 22px;
+  align-items: flex-start;
+  gap: 18px;
   overflow: hidden;
   border: 1px solid rgba(22, 138, 112, 0.15);
   border-radius: 24px;
@@ -1255,12 +1273,12 @@ body.camp-page .camp-skill-card:hover {
 
 body.camp-page .camp-skill-icon {
   display: flex;
-  flex: 0 0 64px;
-  width: 64px;
-  height: 64px;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
   align-items: center;
   justify-content: center;
-  border-radius: 19px;
+  border-radius: 17px;
   background:
     linear-gradient(
       145deg,
@@ -1268,7 +1286,7 @@ body.camp-page .camp-skill-icon {
       rgba(94, 184, 221, 0.14)
     );
   color: var(--camp-green);
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 900;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
@@ -2325,7 +2343,14 @@ body.camp-page .nav a::after {
   }
 
   body.camp-page .camp-hero-inner {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.camp-page .camp-hero-content {
+    min-width: 0;
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   body.camp-page .camp-hero-content > p {
@@ -2333,12 +2358,16 @@ body.camp-page .nav a::after {
   }
 
   body.camp-page .camp-buttons {
+    width: 100%;
+    max-width: 100%;
     flex-direction: column;
   }
 
   body.camp-page .camp-buttons a,
+  body.camp-page .camp-registration-status,
   body.camp-page .camp-registration .button {
     width: 100%;
+    max-width: 100%;
   }
 
   body.camp-page .camp-hero-visual {

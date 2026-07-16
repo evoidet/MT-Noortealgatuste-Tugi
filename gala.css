@@ -896,6 +896,7 @@ body.gala-page .gala-about-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.28fr) minmax(300px, 0.72fr);
   gap: 28px;
+  align-items: start;
   max-width: 1180px;
   margin: 0 auto;
 }
@@ -910,7 +911,7 @@ body.gala-page .gala-contact > * {
 
 body.gala-page .gala-about-text {
   position: relative;
-  padding: 47px;
+  padding: 42px;
   border: 1px solid rgba(200, 155, 50, 0.25);
   border-radius: var(--gala-radius);
   background: rgba(255, 255, 255, 0.74);
@@ -935,7 +936,7 @@ body.gala-page .gala-about-text p {
   margin: 0;
   color: var(--gala-text-soft);
   font-size: 18px;
-  line-height: 1.82;
+  line-height: 1.72;
 }
 
 body.gala-page .gala-about-text p + p {
@@ -2626,7 +2627,14 @@ body.gala-page .nav a::after {
   }
 
   body.gala-page .gala-hero-inner {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.gala-page .gala-hero-content {
+    min-width: 0;
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   body.gala-page .gala-hero-content > p {
@@ -2634,12 +2642,15 @@ body.gala-page .nav a::after {
   }
 
   body.gala-page .gala-buttons {
+    width: 100%;
+    max-width: 100%;
     flex-direction: column;
   }
 
   body.gala-page .gala-buttons a,
   body.gala-page .gala-button {
     width: 100%;
+    max-width: 100%;
   }
 
   body.gala-page .gala-hero-visual {
