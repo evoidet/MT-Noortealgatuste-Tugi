@@ -2523,29 +2523,40 @@ body.street-page .footer-socials a:hover {
    TAHVEL
    ========================================================= */
 
+@media (max-width: 1200px) {
+  body.street-page .nav {
+    border-color: rgba(223, 255, 53, 0.24);
+    background: #0a0a0b;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+  }
+
+  body.street-page .nav a {
+    border-color: rgba(223, 255, 53, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--sdj-white);
+  }
+
+  body.street-page .nav a::before {
+    background: var(--sdj-lime);
+    box-shadow: 0 0 0 4px rgba(223, 255, 53, 0.14);
+  }
+
+  body.street-page .nav a:hover,
+  body.street-page .nav a:focus-visible {
+    border-color: rgba(223, 255, 53, 0.38);
+    background: rgba(223, 255, 53, 0.1);
+    color: var(--sdj-lime);
+  }
+
+  body.street-page .nav a::after {
+    display: none;
+  }
+}
+
 @media (max-width: 1050px) {
 body.street-page .header-inner {
   padding-top: 12px;
   padding-bottom: 12px;
-}
-
-body.street-page .nav {
-  border-color: rgba(223, 255, 53, 0.24);
-  background: #0a0a0b;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
-}
-
-body.street-page .nav a {
-  color: var(--sdj-white);
-}
-
-body.street-page .nav a:hover {
-  background: rgba(223, 255, 53, 0.1);
-  color: var(--sdj-lime);
-}
-
-body.street-page .nav a::after {
-  display: none;
 }
 
   body.street-page .sdj-hero-grid {
