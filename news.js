@@ -160,6 +160,15 @@
         data-placeholder="${escapeHtml(placeholderText)}"
       >
         <img
+          class="news-image-backdrop"
+          src="${escapeHtml(item.image || "")}"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        >
+        <img
+          class="news-image-primary"
           src="${escapeHtml(item.image || "")}"
           alt="${escapeHtml(item.imageAlt || item.title || "Uudise foto")}"
           loading="lazy"

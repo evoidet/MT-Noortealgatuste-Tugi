@@ -471,6 +471,72 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   /* =========================================================
+     PROJECTS DROPDOWN
+     ========================================================= */
+
+  (function initProjectsDropdown() {
+    const projectsNavigation = document.querySelector(".nav-projects");
+    const toggle = projectsNavigation?.querySelector(".nav-projects-toggle");
+    const menu = projectsNavigation?.querySelector(".nav-projects-menu");
+
+    if (!projectsNavigation || !toggle || !menu) {
+      return;
+    }
+
+    function openProjectsMenu() {
+      projectsNavigation.classList.add("is-open");
+      toggle.setAttribute("aria-expanded", "true");
+    }
+
+    function closeProjectsMenu(options = {}) {
+      const wasOpen = projectsNavigation.classList.contains("is-open");
+
+      projectsNavigation.classList.remove("is-open");
+      toggle.setAttribute("aria-expanded", "false");
+
+      if (wasOpen && options.restoreFocus) {
+        toggle.focus({ preventScroll: true });
+      }
+    }
+
+    toggle.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (projectsNavigation.classList.contains("is-open")) {
+        closeProjectsMenu();
+      } else {
+        openProjectsMenu();
+      }
+    });
+
+    menu.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        closeProjectsMenu();
+      });
+    });
+
+    document.addEventListener("click", function (event) {
+      if (!projectsNavigation.contains(event.target)) {
+        closeProjectsMenu();
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (
+        event.key === "Escape" &&
+        projectsNavigation.classList.contains("is-open")
+      ) {
+        closeProjectsMenu({ restoreFocus: true });
+      }
+    });
+
+    document.addEventListener("navigation:close-projects", function () {
+      closeProjectsMenu();
+    });
+  })();
+
+  /* =========================================================
      MOBILE MENU
      ========================================================= */
 
@@ -502,6 +568,7 @@ document.addEventListener("DOMContentLoaded", function () {
       navigation.classList.remove("open");
       menuButton.classList.remove("active");
       menuButton.setAttribute("aria-expanded", "false");
+      document.dispatchEvent(new CustomEvent("navigation:close-projects"));
     }
 
     menuButton.addEventListener("click", function (event) {

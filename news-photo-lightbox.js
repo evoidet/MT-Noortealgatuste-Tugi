@@ -134,7 +134,7 @@
   };
 
   const openLightbox = (media) => {
-    const image = media.querySelector("img");
+    const image = media.querySelector(".news-image-primary, img");
 
     if (!image || !image.isConnected) {
       return;

@@ -113,7 +113,25 @@
     <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
       <a href="/">Avaleht</a>
       <a href="/uudised.html">Uudised</a>
-      <a href="/#projects">Projektid</a>
+      <div class="nav-projects">
+        <button
+          class="nav-projects-toggle"
+          id="projectsMenuToggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="projectsMenu"
+          aria-haspopup="true"
+          aria-current="page"
+        >
+          <span>Projektid</span>
+          <span class="nav-projects-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
+          <a href="/tunnustusgala.html" aria-current="page"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
+          <a href="/laager.html"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
+          <a href="/street.html"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        </div>
+      </div>
       <a href="/vorgustik.html">Võrgustik</a>
       <a href="/#contact">Kontakt</a>
       <a href="/dokumendid.html">Dokumendid</a>
