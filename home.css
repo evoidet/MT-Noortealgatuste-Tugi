@@ -2045,6 +2045,12 @@ body.home-page .home-project-card h3 {
   overflow-wrap: anywhere;
 }
 
+body.home-page
+  .home-project-card
+  h3[data-i18n="home.projects.campTitle"] {
+  font-size: clamp(28px, 2.55vw, 33px);
+}
+
 body.home-page .home-project-card p {
   position: relative;
   z-index: 1;
