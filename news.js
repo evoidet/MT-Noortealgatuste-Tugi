@@ -145,7 +145,12 @@
     }
 
     const articleUrl = (item) => (
-      `/uudised.html?id=${encodeURIComponent(item.id)}`
+      `/uudised.html?id=${encodeURIComponent(item.id)}` +
+      (
+        currentLanguage === "et"
+          ? ""
+          : `&lang=${encodeURIComponent(currentLanguage)}`
+      )
     );
 
     const authorHtml = (item, className = "news-author") => {
@@ -157,28 +162,62 @@
         : "";
     };
 
-    const imageHtml = (item, className, placeholderText) => `
+    const imageHtml = (
+      item,
+      className,
+      placeholderText,
+      options = {}
+    ) => `
       <div
         class="${className}"
         data-placeholder="${escapeHtml(placeholderText)}"
+        style="--news-image-position: ${escapeHtml(
+          item.imagePosition || "center center"
+        )}"
       >
-        <img
-          class="news-image-backdrop"
-          src="${escapeHtml(item.image || "")}"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          aria-hidden="true"
-        >
         <img
           class="news-image-primary"
           src="${escapeHtml(item.image || "")}"
           alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
-          loading="lazy"
+          width="1200"
+          height="750"
+          loading="${options.loading || "lazy"}"
           decoding="async"
+          ${options.fetchPriority
+            ? `fetchpriority="${escapeHtml(options.fetchPriority)}"`
+            : ""}
         >
       </div>
     `;
+
+    const originalImageHtml = (item) => {
+      if (!item.originalImage) return "";
+
+      const width = Number(item.originalImageWidth);
+      const height = Number(item.originalImageHeight);
+      const dimensions = (
+        Number.isFinite(width) &&
+        width > 0 &&
+        Number.isFinite(height) &&
+        height > 0
+      )
+        ? `width="${Math.round(width)}" height="${Math.round(height)}"`
+        : "";
+
+      return `
+        <figure class="news-article-original" data-news-reveal>
+          <img
+            src="${escapeHtml(item.originalImage)}"
+            alt="${escapeHtml(
+              item.imageAlt || item.title || t("news.ui.photo")
+            )}"
+            ${dimensions}
+            loading="lazy"
+            decoding="async"
+          >
+        </figure>
+      `;
+    };
 
     const cardHtml = (item, index = 0) => `
       <a
@@ -226,7 +265,11 @@
         ${imageHtml(
           item,
           "news-featured-media",
-          t("news.ui.addFeaturedPhoto")
+          t("news.ui.addFeaturedPhoto"),
+          {
+            loading: "eager",
+            fetchPriority: "high"
+          }
         )}
 
         <div class="news-featured-content">
@@ -272,6 +315,10 @@
 
     const updateUrl = () => {
       const next = new URLSearchParams();
+
+      if (currentLanguage !== "et") {
+        next.set("lang", currentLanguage);
+      }
 
       if (activeCategory !== "all") {
         next.set("category", activeCategory);
@@ -391,6 +438,16 @@
       articleView.hidden = true;
       document.title = t("newsPage.meta.title");
 
+      document
+        .querySelector('meta[name="description"]')
+        ?.setAttribute("content", t("newsPage.meta.description"));
+      document
+        .querySelector('meta[property="og:title"]')
+        ?.setAttribute("content", t("newsPage.meta.title"));
+      document
+        .querySelector('meta[property="og:description"]')
+        ?.setAttribute("content", t("newsPage.meta.ogDescription"));
+
       renderFilters();
 
       const items = getFilteredItems();
@@ -439,6 +496,16 @@
       articleView.hidden = false;
       document.title = `${item.title} | MTÜ Noortealgatuste Tugi`;
 
+      document
+        .querySelector('meta[name="description"]')
+        ?.setAttribute("content", item.excerpt);
+      document
+        .querySelector('meta[property="og:title"]')
+        ?.setAttribute("content", item.title);
+      document
+        .querySelector('meta[property="og:description"]')
+        ?.setAttribute("content", item.excerpt);
+
       const content = Array.isArray(item.content) && item.content.length
         ? item.content
         : [item.excerpt];
@@ -454,7 +521,12 @@
         .slice(0, 3);
 
       articleTarget.innerHTML = `
-        <a class="news-article-back" href="/uudised.html">
+        <a
+          class="news-article-back"
+          href="/uudised.html${currentLanguage === "et"
+            ? ""
+            : `?lang=${encodeURIComponent(currentLanguage)}`}"
+        >
           <span aria-hidden="true">←</span>
           ${escapeHtml(t("news.ui.back"))}
         </a>
@@ -471,7 +543,15 @@
         </div>
 
         <div class="news-article-hero" data-news-reveal>
-          ${imageHtml(item, "news-article-image", t("news.ui.addPhoto"))}
+          ${imageHtml(
+            item,
+            "news-article-image",
+            t("news.ui.addPhoto"),
+            {
+              loading: "eager",
+              fetchPriority: "high"
+            }
+          )}
         </div>
 
         <div class="news-article-layout">
@@ -490,6 +570,8 @@
                 </p>
               </div>
             ` : ""}
+
+            ${originalImageHtml(item)}
           </article>
 
           <aside class="news-article-aside" data-news-reveal>

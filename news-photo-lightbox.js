@@ -6,7 +6,8 @@
   const MEDIA_SELECTOR = [
     ".news-featured-media",
     ".news-card-media",
-    ".news-article-image"
+    ".news-article-image",
+    ".news-article-original"
   ].join(", ");
 
   const lightbox = document.createElement("div");

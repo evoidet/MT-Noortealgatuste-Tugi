@@ -33,6 +33,7 @@
       category: "events",
       date: "2026-06-28",
       image: "/assets/news/tunnustusgala/tunnustusgala-2026.webp",
+      imagePosition: "center center",
       featured: true,
       placeholder: false,
       published: true
@@ -42,6 +43,10 @@
       category: "events",
       date: "2026-06-28",
       image: "/assets/news/laager/laager.jpg",
+      imagePosition: "center 24%",
+      originalImage: "/assets/news/laager/laager.jpg",
+      originalImageWidth: 1080,
+      originalImageHeight: 1350,
       featured: false,
       placeholder: false,
       published: true
@@ -51,6 +56,10 @@
       category: "opportunities",
       date: "2026-07-01",
       image: "/assets/news/erasmus-vitatiim/erasmus-vitatiim.webp",
+      imagePosition: "center 30%",
+      originalImage: "/assets/news/erasmus-vitatiim/erasmus-vitatiim.jpg",
+      originalImageWidth: 1080,
+      originalImageHeight: 1350,
       featured: false,
       placeholder: false,
       published: true
@@ -60,6 +69,7 @@
       category: "events",
       date: "2026-07-16",
       image: "/assets/news/erasmus-vitatiim/erasmus-koolitus.jpg",
+      imagePosition: "center 62%",
       featured: false,
       placeholder: false,
       published: true

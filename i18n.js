@@ -11,6 +11,14 @@
   }
 
   function readStoredLanguage() {
+    const requestedLanguage = new URLSearchParams(
+      windowObject.location.search
+    ).get("lang");
+
+    if (isSupportedLanguage(requestedLanguage)) {
+      return requestedLanguage;
+    }
+
     try {
       const storedLanguage = windowObject.localStorage.getItem(STORAGE_KEY);
       return isSupportedLanguage(storedLanguage)
@@ -240,7 +248,15 @@
     );
 
     if (options.reload === true && languageChanged) {
-      windowObject.location.reload();
+      const nextUrl = new URL(windowObject.location.href);
+
+      if (currentLanguage === DEFAULT_LANGUAGE) {
+        nextUrl.searchParams.delete("lang");
+      } else {
+        nextUrl.searchParams.set("lang", currentLanguage);
+      }
+
+      windowObject.location.assign(nextUrl.toString());
     }
   }
 
@@ -279,6 +295,23 @@
     }[currentLanguage];
   }
 
+  function hasUsableNewsValue(value) {
+    if (typeof value === "string") {
+      return value.trim() !== "";
+    }
+
+    if (Array.isArray(value)) {
+      return (
+        value.length > 0 &&
+        value.every(function (entry) {
+          return typeof entry === "string" && entry.trim() !== "";
+        })
+      );
+    }
+
+    return value !== undefined && value !== null;
+  }
+
   function localizeNewsItems(items) {
     if (!Array.isArray(items)) {
       return [];
@@ -291,14 +324,23 @@
         DEFAULT_LANGUAGE
       );
 
+      const localizedFields = (
+        localizedContent &&
+        typeof localizedContent === "object"
+      )
+        ? Object.fromEntries(
+            Object.entries(localizedContent).filter(function (entry) {
+              return hasUsableNewsValue(entry[1]);
+            })
+          )
+        : {};
+
       return {
         ...item,
         ...(fallbackContent && typeof fallbackContent === "object"
           ? fallbackContent
           : {}),
-        ...(localizedContent && typeof localizedContent === "object"
-          ? localizedContent
-          : {})
+        ...localizedFields
       };
     });
   }
@@ -321,6 +363,7 @@
   documentObject.documentElement.lang = currentLanguage;
 
   function initialize() {
+    saveLanguage(currentLanguage);
     applyTranslations(documentObject);
     initLanguageSwitcher();
   }

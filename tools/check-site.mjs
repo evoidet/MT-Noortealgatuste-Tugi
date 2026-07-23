@@ -12,6 +12,18 @@ const htmlFiles = fs
 const failures = [];
 const senderFormId = "azpjE7";
 const supportedLanguages = ["et", "en", "ru"];
+const forbiddenEmail = ["info", "noortetugi.ee"].join("@");
+const ignoredDirectories = new Set([".git", "node_modules"]);
+const textFileExtensions = new Set([
+  ".css",
+  ".html",
+  ".js",
+  ".json",
+  ".md",
+  ".mjs",
+  ".txt",
+  ".xml",
+]);
 
 const translationContext = {
   window: {}
@@ -29,6 +41,33 @@ const translations = translationContext.window.SITE_TRANSLATIONS || {};
 
 function report(file, message) {
   failures.push(`${file}: ${message}`);
+}
+
+function collectTextFiles(directory, relativeDirectory = "") {
+  return fs
+    .readdirSync(directory, { withFileTypes: true })
+    .flatMap((entry) => {
+      const relativePath = path.join(relativeDirectory, entry.name);
+      const absolutePath = path.join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        return ignoredDirectories.has(entry.name)
+          ? []
+          : collectTextFiles(absolutePath, relativePath);
+      }
+
+      return textFileExtensions.has(path.extname(entry.name).toLowerCase())
+        ? [relativePath]
+        : [];
+    });
+}
+
+for (const file of collectTextFiles(root)) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+
+  if (source.toLowerCase().includes(forbiddenEmail)) {
+    report(file, `forbidden email "${forbiddenEmail}" is still present`);
+  }
 }
 
 const translationKeys = new Set(
@@ -95,8 +134,12 @@ for (const file of htmlFiles) {
     report(file, "site-config.js must load before script.js");
   }
 
-  const translationsIndex = source.indexOf('/translations.js"');
-  const i18nIndex = source.indexOf('/i18n.js"');
+  const translationsIndex = source.search(
+    /\/translations\.js(?:\?[^"']*)?["']/i,
+  );
+  const i18nIndex = source.search(
+    /\/i18n\.js(?:\?[^"']*)?["']/i,
+  );
   const headEndIndex = source.toLowerCase().indexOf("</head>");
 
   if (

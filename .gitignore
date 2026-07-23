@@ -1,6 +1,8 @@
 admin-local/
 node_modules/
 .env
+.env.local
+.env.*.local
 *.log
 .DS_Store
 *Zone.Identifier*

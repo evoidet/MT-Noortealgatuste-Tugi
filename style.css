@@ -1936,7 +1936,7 @@ body.newsletter-popup-open {
   max-width: var(--container);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(150px, 0.8fr) minmax(190px, 0.95fr) minmax(240px, 1.15fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(170px, 0.8fr) minmax(220px, 0.95fr);
   gap: clamp(28px, 3.5vw, 50px);
 }
 

@@ -79,7 +79,14 @@
     }
 
     const articleUrl = (item) => (
-      `/uudised.html?id=${encodeURIComponent(item.id)}`
+      `/uudised.html?id=${encodeURIComponent(item.id)}` +
+      (
+        (window.I18N?.getLanguage() || "et") === "et"
+          ? ""
+          : `&lang=${encodeURIComponent(
+              window.I18N?.getLanguage() || "et"
+            )}`
+      )
     );
 
     const authorHtml = (item) => {
@@ -95,19 +102,16 @@
       <div
         class="${className}"
         data-placeholder="${escapeHtml(placeholderText)}"
+        style="--news-image-position: ${escapeHtml(
+          item.imagePosition || "center center"
+        )}"
       >
-        <img
-          class="news-image-backdrop"
-          src="${escapeHtml(item.image || "")}"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          aria-hidden="true"
-        >
         <img
           class="news-image-primary"
           src="${escapeHtml(item.image || "")}"
           alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
+          width="1200"
+          height="750"
           loading="lazy"
           decoding="async"
         >
