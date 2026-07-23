@@ -2039,9 +2039,10 @@ body.home-page .home-project-card h3 {
   margin: 0 0 16px;
   min-height: 4.32em;
   color: var(--home-white);
-  font-size: clamp(28px, 2.8vw, 38px);
+  font-size: clamp(28px, 2.8vw, 36px);
   line-height: 1.08;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 body.home-page .home-project-card p {
