@@ -126,10 +126,19 @@ for (const file of htmlFiles) {
     report(file, "missing Open Graph image");
   }
 
+  const siteConfigIndex = source.search(
+    /\/site-config\.js(?:\?[^"']*)?["']/i,
+  );
+  const sharedScriptIndex = source.search(
+    /\/script\.js(?:\?[^"']*)?["']/i,
+  );
+
   if (
-    source.includes('/script.js"') &&
-    (!source.includes('/site-config.js"') ||
-      source.indexOf('/site-config.js"') > source.indexOf('/script.js"'))
+    sharedScriptIndex !== -1 &&
+    (
+      siteConfigIndex === -1 ||
+      siteConfigIndex > sharedScriptIndex
+    )
   ) {
     report(file, "site-config.js must load before script.js");
   }

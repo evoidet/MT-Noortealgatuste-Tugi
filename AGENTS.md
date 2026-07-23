@@ -1,0 +1,1 @@
+Before continuing, read and follow the security rules in `AGENTS.md`. Do not open, read, display, edit, or search inside `.env`, `.env.local`, or any other file containing secrets. Assume that all required environment variables are already configured correctly.

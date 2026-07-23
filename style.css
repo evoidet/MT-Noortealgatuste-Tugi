@@ -437,7 +437,7 @@ a:hover {
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
 
   font-family: inherit;
-  font-size: 29px;
+  font-size: 0;
   font-weight: 800;
   line-height: 1;
 
@@ -448,6 +448,17 @@ a:hover {
     box-shadow 0.22s ease,
     background 0.22s ease,
     color 0.22s ease;
+}
+
+.menu-toggle::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow:
+    0 -8px 0 currentColor,
+    0 8px 0 currentColor;
 }
 
 .menu-toggle:hover {
@@ -651,9 +662,10 @@ a:hover {
   min-height: 44px;
   padding: 11px 14px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 11px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 11px;
   background: rgba(255, 255, 255, 0.72);
   color: var(--dark);
   font-size: 16px;
@@ -663,6 +675,32 @@ a:hover {
     background 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease;
+}
+
+.nav-projects-toggle::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(92, 228, 19, 0.13);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.nav-projects-toggle:hover::before,
+.nav-projects-toggle[aria-expanded="true"]::before,
+.nav-projects-toggle[aria-current="page"]::before {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 5px rgba(92, 228, 19, 0.16),
+    0 0 14px rgba(92, 228, 19, 0.28);
+}
+
+.nav-projects-toggle .nav-projects-chevron {
+  margin-left: auto;
 }
 
 .nav-projects-toggle:hover,
@@ -770,7 +808,7 @@ a:hover {
     width: 38px;
     height: 38px;
 
-    font-size: 27px;
+    font-size: 0;
   }
 }
 
@@ -1936,7 +1974,7 @@ body.newsletter-popup-open {
   max-width: var(--container);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(170px, 0.8fr) minmax(220px, 0.95fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(150px, 0.8fr) minmax(190px, 0.95fr) minmax(240px, 1.15fr);
   gap: clamp(28px, 3.5vw, 50px);
 }
 
@@ -1979,15 +2017,15 @@ body.newsletter-popup-open {
 
 .footer-socials a svg,
 .footer-socials a img {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   display: block;
   object-fit: contain;
 }
 
 .footer-socials a .tiktok-icon {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
 }
 
 .footer-socials a:hover {
@@ -2015,6 +2053,28 @@ body.newsletter-popup-open {
 
 .footer-column a:hover {
   color: var(--white);
+}
+
+.footer-contact a,
+.footer-contact p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-contact-icon {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+  color: var(--accent);
+}
+
+.footer-contact-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .footer-bottom {

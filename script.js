@@ -109,6 +109,64 @@ document.addEventListener("DOMContentLoaded", function () {
      ========================================================= */
 
   (function initSharedFooter() {
+    const socialIconMarkup = {
+      facebook: [
+        '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">',
+        '<path fill="currentColor" d="M13.75 22v-8h2.75l.41-3.2h-3.16V8.76c0-.93.26-1.56 1.59-1.56H17V4.34c-.29-.04-1.28-.13-2.45-.13-2.43 0-4.1 1.48-4.1 4.21v2.38H7.7V14h2.75v8h3.3Z"></path>',
+        "</svg>"
+      ].join(""),
+      linkedin: [
+        '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">',
+        '<path fill="currentColor" d="M5.34 3.5a1.84 1.84 0 1 1 0 3.68 1.84 1.84 0 0 1 0-3.68ZM3.75 8.5h3.18V20H3.75V8.5ZM9 8.5h3.05v1.57h.04c.42-.8 1.46-1.65 3-1.65 3.21 0 3.8 2.11 3.8 4.86V20h-3.17v-5.96c0-1.42-.03-3.25-1.98-3.25-1.98 0-2.29 1.55-2.29 3.15V20H9V8.5Z"></path>',
+        "</svg>"
+      ].join(""),
+      tiktok: [
+        '<svg class="tiktok-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+        '<path d="M13 4v10.5a4.5 4.5 0 1 1-4-4.47"></path>',
+        '<path d="M13 4c.67 2.67 2.33 4.33 5 5"></path>',
+        "</svg>"
+      ].join("")
+    };
+    const contactIconMarkup = {
+      location: [
+        '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+        '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>',
+        '<circle cx="12" cy="10" r="2.5"></circle>',
+        "</svg>"
+      ].join(""),
+      email: [
+        '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+        '<rect x="3" y="5" width="18" height="14" rx="2"></rect>',
+        '<path d="m3 7 9 6 9-6"></path>',
+        "</svg>"
+      ].join("")
+    };
+
+    function setSocialIcon(link, iconName) {
+      if (!link || !socialIconMarkup[iconName]) {
+        return;
+      }
+
+      link.classList.remove("social-text");
+      link.innerHTML = socialIconMarkup[iconName];
+    }
+
+    function decorateContactItem(element, iconName, leadingIconPattern) {
+      if (!element || !contactIconMarkup[iconName]) {
+        return;
+      }
+
+      const label = element.textContent
+        .replace(leadingIconPattern, "")
+        .trim();
+      const icon = document.createElement("span");
+
+      icon.className = "footer-contact-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = contactIconMarkup[iconName];
+      element.replaceChildren(icon, document.createTextNode(label));
+    }
+
     document.querySelectorAll(".site-footer").forEach(function (footer) {
       const main = footer.querySelector(".footer-main");
 
@@ -126,32 +184,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const socials = footer.querySelector(".footer-socials");
 
-      if (socials && !socials.querySelector('[href*="tiktok.com/@noortetugi"]')) {
-        const tiktok = document.createElement("a");
-        const iconNamespace = "http://www.w3.org/2000/svg";
-        const tiktokIcon = document.createElementNS(iconNamespace, "svg");
-        const tiktokPath = document.createElementNS(iconNamespace, "path");
-
-        tiktok.className = "tiktok-link";
-        tiktok.href = "https://www.tiktok.com/@noortetugi";
-        tiktok.target = "_blank";
-        tiktok.rel = "noopener noreferrer";
-        tiktok.setAttribute("aria-label", "TikTok");
-        tiktok.title = "TikTok";
-
-        tiktokIcon.setAttribute("class", "tiktok-icon");
-        tiktokIcon.setAttribute("viewBox", "0 0 24 24");
-        tiktokIcon.setAttribute("aria-hidden", "true");
-        tiktokIcon.setAttribute("focusable", "false");
-        tiktokPath.setAttribute(
-          "d",
-          "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.72-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"
+      if (socials) {
+        setSocialIcon(
+          socials.querySelector('[data-config-link="facebook"]'),
+          "facebook"
         );
-        tiktokPath.setAttribute("fill", "currentColor");
-        tiktokIcon.appendChild(tiktokPath);
-        tiktok.appendChild(tiktokIcon);
-        socials.appendChild(tiktok);
+        setSocialIcon(
+          socials.querySelector('[href*="linkedin.com"]'),
+          "linkedin"
+        );
+
+        let tiktok = socials.querySelector(
+          '[href*="tiktok.com/@noortetugi"]'
+        );
+
+        if (!tiktok) {
+          tiktok = document.createElement("a");
+          tiktok.className = "tiktok-link";
+          tiktok.href = "https://www.tiktok.com/@noortetugi";
+          tiktok.target = "_blank";
+          tiktok.rel = "noopener noreferrer";
+          tiktok.setAttribute("aria-label", "TikTok");
+          tiktok.title = "TikTok";
+          socials.appendChild(tiktok);
+        }
+
+        setSocialIcon(tiktok, "tiktok");
       }
+
+      decorateContactItem(
+        footer.querySelector(".footer-contact p"),
+        "location",
+        /^\s*📍\s*/u
+      );
+      decorateContactItem(
+        footer.querySelector('.footer-contact a[href^="mailto:"]'),
+        "email",
+        /^\s*✉(?:️)?\s*/u
+      );
 
       const legal = footer.querySelector(".footer-legal");
 
