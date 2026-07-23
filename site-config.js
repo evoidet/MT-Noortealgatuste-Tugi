@@ -8,10 +8,5 @@ window.SITE_CONFIG = {
 
   socialUrls: {
     facebook: "https://www.facebook.com/profile.php?id=61577836850124"
-  },
-
-  languageUrls: {
-    ru: "",
-    en: ""
   }
 };

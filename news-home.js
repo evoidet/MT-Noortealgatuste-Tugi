@@ -10,6 +10,8 @@
 
   const initHomeNews = () => {
     const target = document.getElementById("homeNewsList");
+    const t = (key, variables) => window.I18N?.t(key, variables) || "";
+    const locale = window.I18N?.locale() || "et-EE";
     const allItems = Array.isArray(window.NEWS_ITEMS)
       ? window.NEWS_ITEMS.filter((item) => item && item.published !== false)
       : [];
@@ -25,12 +27,12 @@
 
     const formatDate = (item) => {
       if (item.displayDate) return item.displayDate;
-      if (!item.date) return "Peagi";
+      if (!item.date) return t("news.ui.soon");
 
       const date = new Date(`${item.date}T12:00:00`);
       if (Number.isNaN(date.getTime())) return item.date;
 
-      return new Intl.DateTimeFormat("et-EE", {
+      return new Intl.DateTimeFormat(locale, {
         day: "numeric",
         month: "short",
         year: "numeric"
@@ -69,8 +71,8 @@
       target.innerHTML = `
         <div class="home-news-empty" data-reveal>
           <span>✦</span>
-          <h3>Esimene uudis ilmub peagi</h3>
-          <p>Lisa esimene uudis faili <strong>news-data.js</strong>.</p>
+          <h3>${escapeHtml(t("news.ui.firstSoon"))}</h3>
+          <p>${escapeHtml(t("news.ui.firstSoonText"))}</p>
         </div>
       `;
       return;
@@ -83,7 +85,9 @@
     const authorHtml = (item) => {
       const author = typeof item.author === "string" ? item.author.trim() : "";
       return author
-        ? `<span class="home-news-author">Autor: ${escapeHtml(author)}</span>`
+        ? `<span class="home-news-author">${escapeHtml(
+            t("news.ui.author", { author })
+          )}</span>`
         : "";
     };
 
@@ -103,7 +107,7 @@
         <img
           class="news-image-primary"
           src="${escapeHtml(item.image || "")}"
-          alt="${escapeHtml(item.imageAlt || item.title || "Uudise foto")}"
+          alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
           loading="lazy"
           decoding="async"
         >
@@ -119,14 +123,16 @@
         href="${articleUrl(featured)}"
         data-reveal
         data-tilt
-        aria-label="Loe uudist: ${escapeHtml(featured.title)}"
+        aria-label="${escapeHtml(
+          t("news.ui.readLabel", { title: featured.title })
+        )}"
       >
-        ${imageHtml(featured, "home-news-media", "Lisa uudise foto")}
+        ${imageHtml(featured, "home-news-media", t("news.ui.addPhoto"))}
 
         <div class="home-news-featured-overlay">
           <div class="home-news-meta">
             <span class="home-news-category">
-              ${escapeHtml(featured.categoryLabel || "Uudised")}
+              ${escapeHtml(featured.categoryLabel || t("common.nav.news"))}
             </span>
             <time>${escapeHtml(formatDate(featured))}</time>
           </div>
@@ -136,7 +142,9 @@
           ${authorHtml(featured)}
 
           <span class="home-news-card-link">
-            ${featured.placeholder ? "Uudis ilmub peagi" : "Loe uudist"}
+            ${featured.placeholder
+              ? t("news.ui.comingSoon")
+              : t("news.ui.readNews")}
             <i aria-hidden="true">↗</i>
           </span>
         </div>
@@ -150,14 +158,20 @@
         data-reveal
         data-reveal-delay="${100 + index * 80}"
         data-tilt
-        aria-label="Loe uudist: ${escapeHtml(item.title)}"
+        aria-label="${escapeHtml(
+          t("news.ui.readLabel", { title: item.title })
+        )}"
       >
-        ${imageHtml(item, "home-news-small-media", `Foto ${index + 2}`)}
+        ${imageHtml(
+          item,
+          "home-news-small-media",
+          `${t("news.ui.photo")} ${index + 2}`
+        )}
 
         <div class="home-news-small-content">
           <div class="home-news-meta">
             <span class="home-news-category">
-              ${escapeHtml(item.categoryLabel || "Uudised")}
+              ${escapeHtml(item.categoryLabel || t("common.nav.news"))}
             </span>
             <time>${escapeHtml(formatDate(item))}</time>
           </div>
@@ -167,7 +181,9 @@
           ${authorHtml(item)}
 
           <span class="home-news-card-link">
-            ${item.placeholder ? "Uudis ilmub peagi" : "Loe uudist"}
+            ${item.placeholder
+              ? t("news.ui.comingSoon")
+              : t("news.ui.readNews")}
             <i aria-hidden="true">↗</i>
           </span>
         </div>

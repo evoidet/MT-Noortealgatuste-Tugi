@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#071833">
 
-  <title>Ida-Virumaa noorte tunnustusgala 2026 | MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="gala.meta.title">Ida-Virumaa noorte tunnustusgala 2026 | MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
     content="Ida-Virumaa noorte tunnustusgala annab piirkonna noortele võimaluse särada ning toob esile nende teod, ideed ja saavutused."
-  >
+   data-i18n-content="gala.meta.description">
   <link rel="canonical" href="https://www.noortetugi.ee/tunnustusgala.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="et_EE">
@@ -20,7 +20,7 @@
   <meta
     property="og:description"
     content="Tunnustame Ida-Virumaa aktiivseid, loovaid ja silmapaistvaid noori."
-  >
+   data-i18n-content="gala.meta.ogDescription">
   <meta
     property="og:url"
     content="https://www.noortetugi.ee/tunnustusgala.html"
@@ -37,7 +37,9 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/gala.css">
+  <link rel="stylesheet" href="/gala.css?v=20260723-4">
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/sender-init.js"></script>
 </head>
 
@@ -54,21 +56,21 @@
       href="/"
       class="logo"
       aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
+     data-i18n-aria-label="common.a11y.homeLink">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
         width="1000"
         height="405"
-      >
+       data-i18n-alt="home.meta.title">
     </a>
 
     <!-- Переключатель языков -->
     <div
       class="language-switcher"
       aria-label="Keele valik"
-    >
+     data-i18n-aria-label="common.a11y.languageSelection">
       <button
         class="lang-button is-active"
         type="button"
@@ -105,14 +107,14 @@
       aria-label="Ava menüü"
       aria-expanded="false"
       aria-controls="mainNav"
-    >
+     data-i18n-aria-label="common.a11y.openMenu">
       ⋮
     </button>
 
     <!-- Навигация -->
-    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-      <a href="/">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+      <a href="/" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -123,19 +125,19 @@
           aria-haspopup="true"
           aria-current="page"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
-          <a href="/tunnustusgala.html" aria-current="page"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
-          <a href="/laager.html"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
-          <a href="/street.html"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
+          <a href="/tunnustusgala.html" aria-current="page"><span class="nav-projects-number">01</span><span data-i18n="common.nav.gala">Noorte tunnustusgala</span></a>
+          <a href="/laager.html"><span class="nav-projects-number">02</span><span data-i18n="common.nav.camp">Projektikirjutamise laager</span></a>
+          <a href="/street.html"><span class="nav-projects-number">03</span><span data-i18n="common.nav.street">Street Dance Jam</span></a>
         </div>
       </div>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/dokumendid.html">Dokumendid</a>
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+      <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+      <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
+      <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
+      <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
 
   </div>
@@ -153,25 +155,25 @@
       <div class="gala-hero-inner">
         <div class="gala-hero-content">
           <span class="gala-label">
-            <span>17. oktoober 2026</span>
+            <span data-i18n="gala.hero.date">17. oktoober 2026</span>
             <span class="gala-label-divider" aria-hidden="true">·</span>
             <span>Jõhvi Kontserdimaja</span>
           </span>
 
-          <h1>Ida-Virumaa noorte tunnustusgala</h1>
+          <h1 data-i18n="gala.hero.title">Ida-Virumaa noorte tunnustusgala</h1>
 
-          <p>
+          <p data-i18n="gala.hero.description">
             Ida-Virumaa noorte tunnustusgala toob kokku aktiivsed noored, noorte toetajad,
             organisatsioonid ja kogukonna esindajad, et märgata ning tunnustada
             noorte panust Ida-Virumaa arengusse.
           </p>
 
           <div class="gala-buttons">
-            <a href="#nomination" class="button gala-primary-button">
+            <a href="#nomination" class="button gala-primary-button" data-i18n="gala.hero.nominate">
               Esita kandidaat
             </a>
 
-            <a href="#gala-about" class="gala-secondary-button">
+            <a href="#gala-about" class="gala-secondary-button" data-i18n="gala.hero.read">
               Loe sündmusest
             </a>
           </div>
@@ -181,11 +183,12 @@
           class="gala-hero-visual gala-hero-clickable"
           data-label="Lisa gala peafoto"
           data-lightbox-caption="Ida-Virumaa noorte tunnustusgala – ühispilt"
+          data-photo-credit="Foto: Alissa Linter"
           tabindex="0"
           role="button"
           aria-haspopup="dialog"
           aria-label="Ava Ida-Virumaa noorte tunnustusgala ühispilt suurelt"
-        >
+         data-i18n-aria-label="gala.hero.openPhoto" data-i18n-data-label="gala.hero.addPhoto" data-i18n-data-lightbox-caption="gala.hero.photoCaption" data-i18n-data-photo-credit="gala.hero.photoCredit">
           <img
             src="assets/tunnustusgala/optimized/gala-00.webp"
             alt="Ida-Virumaa noorte tunnustusgala ühispilt"
@@ -194,7 +197,7 @@
             decoding="async"
             fetchpriority="high"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.hero.photoAlt">
 
           <span class="gala-hero-zoom-hint" aria-hidden="true">+</span>
 
@@ -204,8 +207,9 @@
           </div>
 
           <div class="gala-hero-caption">
-            <span>Pidulik tunnustusõhtu</span>
+            <span data-i18n="gala.hero.celebration">Pidulik tunnustusõhtu</span>
             <strong>Jõhvi Kontserdimaja</strong>
+            <small class="gala-hero-photo-credit" data-i18n="gala.hero.photoCredit">Foto: Alissa Linter</small>
           </div>
         </div>
       </div>
@@ -213,20 +217,20 @@
 
     <!-- ================= INFO ================= -->
 
-    <section class="gala-information" aria-label="Sündmuse põhiinfo">
+    <section class="gala-information" aria-label="Sündmuse põhiinfo" data-i18n-aria-label="gala.info.label">
       <div class="gala-information-card">
-        <span>Kuupäev</span>
-        <strong>17. oktoober 2026</strong>
+        <span data-i18n="gala.info.date">Kuupäev</span>
+        <strong data-i18n="gala.hero.date">17. oktoober 2026</strong>
       </div>
 
       <div class="gala-information-card">
-        <span>Asukoht</span>
+        <span data-i18n="gala.info.location">Asukoht</span>
         <strong>Jõhvi Kontserdimaja</strong>
       </div>
 
       <div class="gala-information-card">
-        <span>Korraldaja</span>
-        <strong>MTÜ Noortealgatuste Tugi</strong>
+        <span data-i18n="gala.info.organiser">Korraldaja</span>
+        <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong>
       </div>
     </section>
 
@@ -234,9 +238,9 @@
 
     <section id="gala-about" class="gala-section gala-about-section">
       <div class="gala-section-heading">
-        <span class="gala-section-label">SÜNDMUSEST</span>
-        <h2>Mis on noorte tunnustusgala?</h2>
-        <p>
+        <span class="gala-section-label" data-i18n="gala.about.label">SÜNDMUSEST</span>
+        <h2 data-i18n="gala.about.title">Mis on noorte tunnustusgala?</h2>
+        <p data-i18n="gala.about.lead">
           Gala on õhtu, kus noorte saavutused, julgus, loovus ja panus
           kogukonda saavad tähelepanu, mida need väärivad.
         </p>
@@ -244,20 +248,20 @@
 
       <div class="gala-about-grid">
         <div class="gala-about-text">
-          <p>
+          <p data-i18n="gala.about.text1">
             Ida-Virumaal on nii palju noori, kelle tegudest, ideedest ja
             saavutustest võiks rääkida palju rohkem, kui seni räägitakse.
             Sageli jäävad just need lood varju ja meie tahame seda muuta.
           </p>
 
-          <p>
+          <p data-i18n="gala.about.text2">
             Ida-Virumaa noorte tunnustusgala annab Ida-Virumaa noortele
             võimaluse särada. Tunnustame aktiivseid, ettevõtlikke ja
             silmapaistvaid noori, aga ka inimesi, kes seisavad nende kõrval ja
             toetavad nende arengut ning algatusi.
           </p>
 
-          <p>
+          <p data-i18n="gala.about.text3">
             Gala kaudu tahame tuua nähtavale head eeskujud, jagada noorte
             saavutuste lugusid ning innustada veel rohkemaid noori julgelt
             kogukonnaelus kaasa lööma. Sest iga tunnustatud noor on ka väike samm
@@ -266,19 +270,19 @@
           </p>
 
           <div class="gala-about-signature">
-            <span>Tunnustame. Inspireerime. Ühendame.</span>
+            <span data-i18n="gala.about.slogan">Tunnustame. Inspireerime. Ühendame.</span>
           </div>
         </div>
 
         <div class="gala-highlight-stack">
           <article class="gala-highlight-card gala-highlight-main">
             <strong>12</strong>
-            <span>tunnustuskategooriat</span>
+            <span data-i18n="gala.about.categoriesStat">tunnustuskategooriat</span>
           </article>
 
           <article class="gala-highlight-card">
             <strong>2026</strong>
-            <span>noorte saavutuste aasta</span>
+            <span data-i18n="gala.about.yearStat">noorte saavutuste aasta</span>
           </article>
         </div>
       </div>
@@ -291,29 +295,29 @@
         data-event-date="2026-08-02T23:59:59+03:00"
       >
         <div class="gala-countdown-heading">
-          <span>Kandidaatide esitamiseks on jäänud</span>
-          <h3>Kohtume 17. oktoobril 2026</h3>
+          <span data-i18n="gala.countdown.label">Kandidaatide esitamiseks on jäänud</span>
+          <h3 data-i18n="gala.countdown.meet">Kohtume 17. oktoobril 2026</h3>
         </div>
 
         <div class="gala-countdown-grid">
           <div class="gala-countdown-item">
             <strong id="countdownDays">00</strong>
-            <span>Päeva</span>
+            <span data-i18n="common.countdown.days">Päeva</span>
           </div>
 
           <div class="gala-countdown-item">
             <strong id="countdownHours">00</strong>
-            <span>Tundi</span>
+            <span data-i18n="common.countdown.hours">Tundi</span>
           </div>
 
           <div class="gala-countdown-item">
             <strong id="countdownMinutes">00</strong>
-            <span>Minutit</span>
+            <span data-i18n="common.countdown.minutes">Minutit</span>
           </div>
 
           <div class="gala-countdown-item">
             <strong id="countdownSeconds">00</strong>
-            <span>Sekundit</span>
+            <span data-i18n="common.countdown.seconds">Sekundit</span>
           </div>
         </div>
 
@@ -326,9 +330,9 @@
     <section class="gala-experience">
       <div class="gala-experience-inner">
         <div class="gala-section-heading gala-section-heading-light">
-          <span class="gala-section-label">GALAÕHTU</span>
-          <h2>Rohkem kui auhindade üleandmine</h2>
-          <p>
+          <span class="gala-section-label" data-i18n="gala.evening.label">GALAÕHTU</span>
+          <h2 data-i18n="gala.evening.title">Rohkem kui auhindade üleandmine</h2>
+          <p data-i18n="gala.evening.description">
             See on pidulik kohtumine, kus noorte lood, saavutused ja tulevikuideed
             saavad üheks inspireerivaks õhtuks.
           </p>
@@ -337,20 +341,20 @@
         <div class="gala-experience-grid">
           <article class="gala-experience-card">
             <span>01</span>
-            <h3>Tunnustamine</h3>
-            <p>Toome lavale noored, kelle tegevus ja saavutused väärivad märkamist.</p>
+            <h3 data-i18n="gala.evening.recognitionTitle">Tunnustamine</h3>
+            <p data-i18n="gala.evening.recognitionText">Toome lavale noored, kelle tegevus ja saavutused väärivad märkamist.</p>
           </article>
 
           <article class="gala-experience-card">
             <span>02</span>
-            <h3>Inspiratsioon</h3>
-            <p>Jagame lugusid, mis julgustavad teisi noori oma ideid ellu viima.</p>
+            <h3 data-i18n="gala.evening.inspirationTitle">Inspiratsioon</h3>
+            <p data-i18n="gala.evening.inspirationText">Jagame lugusid, mis julgustavad teisi noori oma ideid ellu viima.</p>
           </article>
 
           <article class="gala-experience-card">
             <span>03</span>
-            <h3>Ühine õhtu</h3>
-            <p>Ühendame noored, kogukonnad ja toetajad pidulikus ning soojas õhkkonnas.</p>
+            <h3 data-i18n="gala.evening.togetherTitle">Ühine õhtu</h3>
+            <p data-i18n="gala.evening.togetherText">Ühendame noored, kogukonnad ja toetajad pidulikus ning soojas õhkkonnas.</p>
           </article>
         </div>
       </div>
@@ -360,10 +364,10 @@
 
     <section class="gala-section gala-categories-section">
       <div class="gala-section-heading">
-        <span class="gala-section-label">KATEGOORIAD</span>
-        <h2>Tunnustuskategooriad</h2>
+        <span class="gala-section-label" data-i18n="gala.categories.label">KATEGOORIAD</span>
+        <h2 data-i18n="gala.categories.title">Tunnustuskategooriad</h2>
 
-        <p>
+        <p data-i18n="gala.categories.description">
           Kandidaate saab esitada kaheteistkümnes kategoorias, mis toovad esile
           noorte mitmekülgse panuse kultuuri, spordi, hariduse ja kogukonna arengusse.
         </p>
@@ -372,83 +376,88 @@
       <div class="gala-categories">
         <article class="gala-category-card">
           <span>01</span>
-          <h3>Aasta noormuusik</h3>
-          <p>Noor, kes on silma paistnud muusika loomise, esitamise või arendamisega ning rikastanud kultuurielu oma loomingulisuse ja tegevusega.</p>
+          <h3 data-i18n="gala.categories.musicianTitle">Aasta noormuusik</h3>
+          <p data-i18n="gala.categories.musicianText">Noor, kes on silma paistnud muusika loomise, esitamise või arendamisega ning rikastanud kultuurielu oma loomingulisuse ja tegevusega.</p>
         </article>
         <article class="gala-category-card">
           <span>02</span>
-          <h3>Aasta noorvabatahtlik</h3>
-          <p>Noor, kes on vabatahtliku tegevusega panustanud kogukonda, aidanud teisi või algatanud ühiskondlikult olulisi tegevusi.</p>
+          <h3 data-i18n="gala.categories.volunteerTitle">Aasta noorvabatahtlik</h3>
+          <p data-i18n="gala.categories.volunteerText">Noor, kes on vabatahtliku tegevusega panustanud kogukonda, aidanud teisi või algatanud ühiskondlikult olulisi tegevusi.</p>
         </article>
         <article class="gala-category-card">
           <span>03</span>
-          <h3>Aasta noorsportlane</h3>
-          <p>Noor, kes on saavutanud silmapaistvaid tulemusi spordis ja olnud eeskujuks aktiivse ning pühendunud sportliku tegevusega.</p>
+          <h3 data-i18n="gala.categories.athleteTitle">Aasta noorsportlane</h3>
+          <p data-i18n="gala.categories.athleteText">Noor, kes on saavutanud silmapaistvaid tulemusi spordis ja olnud eeskujuks aktiivse ning pühendunud sportliku tegevusega.</p>
         </article>
         <article class="gala-category-card">
           <span>04</span>
-          <h3>Aasta noorkunstnik</h3>
-          <p>Noor, kes on silma paistnud visuaalse, kaasaegse või muu loomingulise kunstilise tegevusega ning väljendanud end omanäoliselt ja loovalt.</p>
+          <h3 data-i18n="gala.categories.artistTitle">Aasta noorkunstnik</h3>
+          <p data-i18n="gala.categories.artistText">Noor, kes on silma paistnud visuaalse, kaasaegse või muu loomingulise kunstilise tegevusega ning väljendanud end omanäoliselt ja loovalt.</p>
         </article>
         <article class="gala-category-card">
           <span>05</span>
-          <h3>Aasta noor visuaalne looja</h3>
-          <p>Noor, kes on silma paistnud fotograafia, video- või filmiloominguga ning kelle visuaalsed tööd on pälvinud tähelepanu või inspireerinud teisi.</p>
+          <h3 data-i18n="gala.categories.visualTitle">Aasta noor visuaalne looja</h3>
+          <p data-i18n="gala.categories.visualText">Noor, kes on silma paistnud fotograafia, video- või filmiloominguga ning kelle visuaalsed tööd on pälvinud tähelepanu või inspireerinud teisi.</p>
         </article>
         <article class="gala-category-card">
           <span>06</span>
-          <h3>Aasta noortantsija</h3>
-          <p>Noor, kes on silma paistnud tantsuvaldkonnas oma pühendumuse, loomingulisuse või esinemistegevusega.</p>
+          <h3 data-i18n="gala.categories.dancerTitle">Aasta noortantsija</h3>
+          <p data-i18n="gala.categories.dancerText">Noor, kes on silma paistnud tantsuvaldkonnas oma pühendumuse, loomingulisuse või esinemistegevusega.</p>
         </article>
         <article class="gala-category-card">
           <span>07</span>
-          <h3>Aasta noornäitleja</h3>
-          <p>Noor, kes on silma paistnud näitlemise, lavalise tegevuse või etenduskunstiga ning panustanud kultuuri- või teatrivaldkonda.</p>
+          <h3 data-i18n="gala.categories.actorTitle">Aasta noornäitleja</h3>
+          <p data-i18n="gala.categories.actorText">Noor, kes on silma paistnud näitlemise, lavalise tegevuse või etenduskunstiga ning panustanud kultuuri- või teatrivaldkonda.</p>
         </article>
         <article class="gala-category-card">
           <span>08</span>
-          <h3>Aasta noorjuht</h3>
-          <p>Noor, kes on oma eestvedamise ja juhtimisoskustega panustanud kogukonna või organisatsiooni arengusse.</p>
+          <h3 data-i18n="gala.categories.leaderTitle">Aasta noorjuht</h3>
+          <p data-i18n="gala.categories.leaderText">Noor, kes on oma eestvedamise ja juhtimisoskustega panustanud kogukonna või organisatsiooni arengusse.</p>
         </article>
         <article class="gala-category-card">
           <span>09</span>
-          <h3>Aasta noor loodushoidja</h3>
-          <p>Noor, kes on panustanud keskkonna, kliima, kestliku eluviisi ja maailmahariduse kaudu planeedi ning inimeste heaolu loomisesse.</p>
+          <h3 data-i18n="gala.categories.environmentTitle">Aasta noor loodushoidja</h3>
+          <p data-i18n="gala.categories.environmentText">Noor, kes on panustanud keskkonna, kliima, kestliku eluviisi ja maailmahariduse kaudu planeedi ning inimeste heaolu loomisesse.</p>
         </article>
         <article class="gala-category-card">
           <span>10</span>
-          <h3>Aasta noor õppur</h3>
-          <p>Noor, kes on silma paistnud õppeedukuse, teadmishimu, enesearengu või aktiivse osalemisega haridus- ja teadustegevustes.</p>
+          <h3 data-i18n="gala.categories.studentTitle">Aasta noor õppur</h3>
+          <p data-i18n="gala.categories.studentText">Noor, kes on silma paistnud õppeedukuse, teadmishimu, enesearengu või aktiivse osalemisega haridus- ja teadustegevustes.</p>
         </article>
         <article class="gala-category-card">
           <span>11</span>
-          <h3>Aasta noorte tegu</h3>
-          <p>Noor või noortegrupp, kes on algatanud ja ellu viinud silmapaistva ettevõtmise, projekti või tegevuse, millel on olnud positiivne mõju kogukonnale või noortele.</p>
+          <h3 data-i18n="gala.categories.actionTitle">Aasta noorte tegu</h3>
+          <p data-i18n="gala.categories.actionText">Noor või noortegrupp, kes on algatanud ja ellu viinud silmapaistva ettevõtmise, projekti või tegevuse, millel on olnud positiivne mõju kogukonnale või noortele.</p>
         </article>
         <article class="gala-category-card">
           <span>12</span>
-          <h3>Aasta noor Euroopa väärtuste kandja</h3>
-          <p>Noor, kes seisab oma tegude ja hoiakutega Euroopa väärtuste eest – demokraatia, inimõigused, võrdsus ja solidaarsus – ning innustab ka teisi neid järgima.</p>
+          <h3 data-i18n="gala.categories.europeTitle">Aasta noor Euroopa väärtuste kandja</h3>
+          <p data-i18n="gala.categories.europeText">Noor, kes seisab oma tegude ja hoiakutega Euroopa väärtuste eest – demokraatia, inimõigused, võrdsus ja solidaarsus – ning innustab ka teisi neid järgima.</p>
         </article>
       </div>
     </section>
 
     <!-- ================= GALLERY ================= -->
 
-    <section class="gala-gallery-section" id="gala-gallery">
+    <section
+      class="gala-gallery-section"
+      id="gala-gallery"
+      data-photo-credit="Foto: Alissa Linter"
+     data-i18n-data-photo-credit="gala.hero.photoCredit">
       <div class="gala-gallery-header">
         <div class="gala-section-heading">
-          <span class="gala-section-label">FOTOGALERII</span>
-          <h2>Hetked, mis jäävad meelde</h2>
-          <p>
-            Lisa siia eelmise gala parimad fotod: laureaadid, esinejad,
-            külalised, lavaprogramm ja kõige emotsionaalsemad hetked.
+          <span class="gala-section-label" data-i18n="gala.gallery.label">FOTOGALERII</span>
+          <h2 data-i18n="gala.gallery.title">Hetked, mis jäävad meelde</h2>
+
+          <p class="gala-gallery-credit">
+            <span data-i18n="gala.gallery.photos">Fotod:</span>
+            <strong>Alissa Linter</strong>
           </p>
         </div>
 
         <div class="gala-gallery-note">
-          <strong>12 fotokohta</strong>
-          <span>Klõpsa fotol, et avada see täissuuruses.</span>
+          <strong data-i18n="gala.gallery.count">12 fotokohta</strong>
+          <span data-i18n="gala.gallery.note">Klõpsa fotol, et avada see täissuuruses.</span>
         </div>
       </div>
 
@@ -459,20 +468,20 @@
           target="_blank"
           rel="noopener noreferrer"
           data-label="Lisa foto 01"
-          aria-label="Ava foto: noorte tunnustusgala"
+          aria-label="Ava foto: Ida-Virumaa noorte tunnustusgala"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item01Open" data-i18n-data-label="gala.gallery.item01Add">
           <img
             src="assets/tunnustusgala/optimized/gala-01.webp"
-            alt="noorte tunnustusgala"
+            alt="Ida-Virumaa noorte tunnustusgala"
             width="1200"
             height="800"
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.hero.title">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>noorte tunnustusgala</span>
+          <span data-i18n="gala.gallery.gala">Noorte Tunnustusgala</span>
         </a>
 
         <a
@@ -483,18 +492,18 @@
           data-label="Lisa foto 02"
           aria-label="Ava foto: Külalised"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item02Open" data-i18n-data-label="gala.gallery.item02Add">
           <img
             src="assets/tunnustusgala/optimized/gala-02.webp"
-            alt="Laureaatide tunnustamine"
+            alt="Külalised"
             width="1200"
             height="800"
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.guests">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Külalised</span>
+          <span data-i18n="gala.gallery.guests">Külalised</span>
         </a>
 
         <a
@@ -503,9 +512,9 @@
           target="_blank"
           rel="noopener noreferrer"
           data-label="Lisa foto 03"
-          aria-label="Ava foto: Hetked täis inpiratsiooni"
+          aria-label="Ava foto: Hetked täis inspiratsiooni"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item03Open" data-i18n-data-label="gala.gallery.item03Add">
           <img
             src="assets/tunnustusgala/optimized/gala-03.webp"
             alt="Hetked täis inspiratsiooni"
@@ -514,9 +523,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.inspiration">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Hetked täis inspiratsiooni</span>
+          <span data-i18n="gala.gallery.inspiration">Hetked täis inspiratsiooni</span>
         </a>
 
         <a
@@ -527,18 +536,18 @@
           data-label="Lisa foto 04"
           aria-label="Ava foto: Improteater"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item04Open" data-i18n-data-label="gala.gallery.item04Add">
           <img
             src="assets/tunnustusgala/optimized/gala-04.webp"
-            alt="Esinejad ja programm"
+            alt="Improteater"
             width="1200"
             height="800"
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.improv">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Improteater</span>
+          <span data-i18n="gala.gallery.improv">Improteater</span>
         </a>
 
         <a
@@ -547,9 +556,9 @@
           target="_blank"
           rel="noopener noreferrer"
           data-label="Lisa foto 05"
-          aria-label="Ava foto: Noored ja kogukond"
+          aria-label="Ava foto: Pidulik õhtu"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item05Open" data-i18n-data-label="gala.gallery.item05Add">
           <img
             src="assets/tunnustusgala/optimized/gala-05.webp"
             alt="Pidulik õhtu"
@@ -558,9 +567,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.evening">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Pidulik õhtu</span>
+          <span data-i18n="gala.gallery.evening">Pidulik õhtu</span>
         </a>
 
         <a
@@ -571,7 +580,7 @@
           data-label="Lisa foto 06"
           aria-label="Ava foto: Laureaatide tunnustamine"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item06Open" data-i18n-data-label="gala.gallery.item06Add">
           <img
             src="assets/tunnustusgala/optimized/gala-06.webp"
             alt="Laureaatide tunnustamine"
@@ -580,9 +589,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.recognition">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Laureaatide tunnustamine</span>
+          <span data-i18n="gala.gallery.recognition">Laureaatide tunnustamine</span>
         </a>
 
         <a
@@ -593,7 +602,7 @@
           data-label="Lisa foto 07"
           aria-label="Ava foto: Peaesineja"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item07Open" data-i18n-data-label="gala.gallery.item07Add">
           <img
             src="assets/tunnustusgala/optimized/gala-07.webp"
             alt="Peaesineja"
@@ -602,9 +611,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.headliner">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Peaesineja</span>
+          <span data-i18n="gala.gallery.headliner">Peaesineja</span>
         </a>
 
         <a
@@ -615,7 +624,7 @@
           data-label="Lisa foto 08"
           aria-label="Ava foto: Vabatahtlikud"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item08Open" data-i18n-data-label="gala.gallery.item08Add">
           <img
             src="assets/tunnustusgala/optimized/gala-08.webp"
             alt="Vabatahtlikud"
@@ -624,9 +633,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.volunteers">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Vabatahtlikud</span>
+          <span data-i18n="gala.gallery.volunteers">Vabatahtlikud</span>
         </a>
 
         <a
@@ -637,7 +646,7 @@
           data-label="Lisa foto 09"
           aria-label="Ava foto: Korraldusmeeskond"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item09Open" data-i18n-data-label="gala.gallery.item09Add">
           <img
             src="assets/tunnustusgala/optimized/gala-09.webp"
             alt="Korraldusmeeskond"
@@ -646,9 +655,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.team">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Korraldusmeeskond</span>
+          <span data-i18n="gala.gallery.team">Korraldusmeeskond</span>
         </a>
 
         <a
@@ -659,7 +668,7 @@
           data-label="Lisa foto 10"
           aria-label="Ava foto: Gala õhkkond"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item10Open" data-i18n-data-label="gala.gallery.item10Add">
           <img
             src="assets/tunnustusgala/optimized/gala-10.webp"
             alt="Gala õhkkond"
@@ -668,9 +677,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.atmosphere">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Gala õhkkond</span>
+          <span data-i18n="gala.gallery.atmosphere">Gala õhkkond</span>
         </a>
 
         <a
@@ -681,7 +690,7 @@
           data-label="Lisa foto 11"
           aria-label="Ava foto: Autasustamine"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item11Open" data-i18n-data-label="gala.gallery.item11Add">
           <img
             src="assets/tunnustusgala/optimized/gala-11.webp"
             alt="Autasustamine"
@@ -690,9 +699,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.awards">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Autasustamine</span>
+          <span data-i18n="gala.gallery.awards">Autasustamine</span>
         </a>
 
         <a
@@ -703,7 +712,7 @@
           data-label="Lisa foto 12"
           aria-label="Ava foto: Mälestused"
           aria-haspopup="dialog"
-        >
+         data-i18n-aria-label="gala.gallery.item12Open" data-i18n-data-label="gala.gallery.item12Add">
           <img
             src="assets/tunnustusgala/optimized/gala-12.webp"
             alt="Mälestused"
@@ -712,9 +721,9 @@
             loading="lazy"
             decoding="async"
             onerror="this.remove()"
-          >
+           data-i18n-alt="gala.gallery.memories">
           <i class="gala-gallery-zoom-hint" aria-hidden="true">+</i>
-          <span>Mälestused</span>
+          <span data-i18n="gala.gallery.memories">Mälestused</span>
         </a>
       </div>
     </section>
@@ -723,11 +732,11 @@
 
     <section id="nomination" class="gala-nomination">
       <div class="gala-nomination-content">
-        <span class="gala-section-label">KANDIDAADI ESITAMINE</span>
+        <span class="gala-section-label" data-i18n="gala.nomination.label">KANDIDAADI ESITAMINE</span>
 
-        <h2>Kas tead tunnustamist väärivat noort?</h2>
+        <h2 data-i18n="gala.nomination.title">Kas tead tunnustamist väärivat noort?</h2>
 
-        <p>
+        <p data-i18n="gala.nomination.description">
           Esita kandidaat Ida-Virumaa noorte tunnustusgalale. Enne vormi täitmist tutvu
           kategooriate ja kandidaatide esitamise tingimustega.
         </p>
@@ -737,11 +746,11 @@
           class="button gala-button"
           target="_blank"
           rel="noopener noreferrer"
-        >
+         data-i18n="gala.nomination.openForm">
           Ava kandidaadi esitamise vorm
         </a>
 
-        <small>Kandidaadiks võib esitada ka iseennast.</small>
+        <small data-i18n="gala.nomination.self">Kandidaadiks võib esitada ka iseennast.</small>
       </div>
     </section>
 
@@ -750,9 +759,9 @@
     <section class="gala-section gala-contact">
       <div class="gala-contact-card">
         <div>
-          <span class="gala-section-label">KÜSIMUSED</span>
-          <h2>Võta meiega ühendust</h2>
-          <p>
+          <span class="gala-section-label" data-i18n="gala.contact.label">KÜSIMUSED</span>
+          <h2 data-i18n="gala.contact.title">Võta meiega ühendust</h2>
+          <p data-i18n="gala.contact.description">
             Küsimuste korral kirjuta meile. Aitame kandidaatide esitamise,
             kategooriate ja sündmuse korraldusega seotud küsimustes.
           </p>
@@ -769,11 +778,11 @@
     <section class="bottom-newsletter" id="newsletter">
       <div class="bottom-newsletter-card">
         <div class="bottom-newsletter-content">
-          <span class="bottom-newsletter-label">INFOKIRI</span>
+          <span class="bottom-newsletter-label" data-i18n="common.newsletter.label">INFOKIRI</span>
 
-          <h2>Hoia end meie tegemistega kursis</h2>
+          <h2 data-i18n="common.newsletter.titleAlternative">Hoia end meie tegemistega kursis</h2>
 
-          <p>
+          <p data-i18n="gala.newsletter.body">
             Liitu infokirjaga, et saada teavet meie sündmuste, projektide ja
             noortele suunatud võimaluste kohta.
           </p>
@@ -785,7 +794,7 @@
             data-sender-form-id="azpjE7"
           ></div>
           <noscript>
-            <a href="https://stats.sender.net/forms/azpjE7/view">
+            <a href="https://stats.sender.net/forms/azpjE7/view" data-i18n="common.newsletter.join">
               Liitu infokirjaga
             </a>
           </noscript>
@@ -801,9 +810,9 @@
 
     <!-- Organisatsioon -->
     <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
+      <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
 
-      <p>
+      <p data-i18n="common.footer.brandText">
         Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
         Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
       </p>
@@ -859,21 +868,21 @@
 
     <!-- Kiirlingid -->
     <div class="footer-column">
-      <h4>Kiirlingid</h4>
+      <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
 
-      <a href="index.html">Avaleht</a>
-      <a href="index.html#about">Meist</a>
-      <a href="index.html#projects">Projektid</a>
-      <a href="index.html#news">Uudised</a>
-      <a href="index.html#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      <a href="index.html" data-i18n="common.nav.home">Avaleht</a>
+      <a href="index.html#about" data-i18n="common.footer.about">Meist</a>
+      <a href="index.html#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+      <a href="index.html#news" data-i18n="common.nav.news">Uudised</a>
+      <a href="index.html#newsletter" data-i18n="common.footer.newsletter">Infokiri</a>
+      <a href="mailto:juhatus@noortetugi.ee" data-i18n="common.nav.contact">Kontakt</a>
     </div>
 
     <!-- Kontakt -->
     <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
+      <h4 data-i18n="common.nav.contact">Kontakt</h4>
 
-      <p>📍 Ida-Virumaa, Eesti</p>
+      <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
 
       <a href="mailto:juhatus@noortetugi.ee">
         ✉️ juhatus@noortetugi.ee
@@ -886,20 +895,20 @@
   </div>
 
   <div class="footer-bottom">
-    <p>
+    <p data-i18n="common.footer.copyright">
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-      <a href="privaatsuspoliitika.html">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+      <a href="privaatsuspoliitika.html" data-i18n="common.nav.privacy">
         Privaatsuspoliitika
       </a>
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
-      <strong>MTÜ Noortealgatuste Tugi</strong><br>
+      <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
       Ametlik veebileht: noortetugi.ee<br>
       Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>
@@ -914,6 +923,7 @@
 
 <script>
   (() => {
+    const t = (key) => window.I18N?.t(key) || "";
     const page = document.querySelector(".gala-page");
     if (!page) return;
 
@@ -1069,13 +1079,13 @@
       lightbox.setAttribute("aria-hidden", "true");
       lightbox.setAttribute("role", "dialog");
       lightbox.setAttribute("aria-modal", "true");
-      lightbox.setAttribute("aria-label", "Suur foto");
+      lightbox.setAttribute("aria-label", t("gala.lightbox.largePhoto"));
 
       lightbox.innerHTML = `
         <button
           class="gala-lightbox-close"
           type="button"
-          aria-label="Sulge foto"
+          aria-label="${t("common.a11y.closePhoto")}"
         >
           ×
         </button>
@@ -1083,6 +1093,7 @@
         <div class="gala-lightbox-frame">
           <img src="" alt="">
           <p></p>
+          <small class="gala-lightbox-credit" hidden></small>
         </div>
       `;
 
@@ -1090,6 +1101,9 @@
 
       const lightboxImage = lightbox.querySelector("img");
       const lightboxCaption = lightbox.querySelector("p");
+      const lightboxCredit = lightbox.querySelector(
+        ".gala-lightbox-credit"
+      );
       const closeButton = lightbox.querySelector(".gala-lightbox-close");
 
       let lastFocusedItem = null;
@@ -1127,6 +1141,14 @@
           item.dataset.lightboxCaption ||
           galleryCaption?.textContent?.trim() ||
           "Ida-Virumaa noorte tunnustusgala";
+
+        const photoCredit =
+          item.dataset.photoCredit ||
+          item.closest(".gala-gallery-section")?.dataset.photoCredit ||
+          "";
+
+        lightboxCredit.textContent = photoCredit;
+        lightboxCredit.hidden = !photoCredit;
 
         lightbox.classList.add("is-open");
         lightbox.setAttribute("aria-hidden", "false");

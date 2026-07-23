@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0e3b03" />
 
-  <title>Privaatsuspoliitika | MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="privacy.meta.title">Privaatsuspoliitika | MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
     content="MTÜ Noortealgatuste Tugi privaatsuspoliitika kirjeldab isikuandmete töötlemist, säilitamist ja sinu õigusi."
-  >
+   data-i18n-content="privacy.meta.description">
   <link rel="canonical" href="https://www.noortetugi.ee/privaatsuspoliitika.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="et_EE">
   <meta
     property="og:title"
     content="Privaatsuspoliitika | MTÜ Noortealgatuste Tugi"
-  >
+   data-i18n-content="privacy.meta.title">
   <meta
     property="og:description"
     content="Tutvu MTÜ Noortealgatuste Tugi isikuandmete töötlemise põhimõtetega."
-  >
+   data-i18n-content="privacy.meta.ogDescription">
   <meta
     property="og:url"
     content="https://www.noortetugi.ee/privaatsuspoliitika.html"
@@ -37,7 +37,9 @@
 
   <!-- CSS / стили сайта -->
   <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/privacy.css" />
+  <link rel="stylesheet" href="/privacy.css?v=20260723-3" />
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/sender-init.js"></script>
 </head>
 
@@ -53,21 +55,21 @@
       href="/"
       class="logo"
       aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
+     data-i18n-aria-label="common.a11y.homeLink">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
         width="1000"
         height="405"
-      >
+       data-i18n-alt="home.meta.title">
     </a>
 
     <!-- Переключатель языков -->
     <div
       class="language-switcher"
       aria-label="Keele valik"
-    >
+     data-i18n-aria-label="common.a11y.languageSelection">
       <button
         class="lang-button is-active"
         type="button"
@@ -104,14 +106,14 @@
       aria-label="Ava menüü"
       aria-expanded="false"
       aria-controls="mainNav"
-    >
+     data-i18n-aria-label="common.a11y.openMenu">
       ⋮
     </button>
 
     <!-- Навигация -->
-    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-      <a href="/">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+      <a href="/" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -121,19 +123,19 @@
           aria-controls="projectsMenu"
           aria-haspopup="true"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
-          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
-          <a href="/laager.html"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
-          <a href="/street.html"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
+          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span data-i18n="common.nav.gala">Noorte tunnustusgala</span></a>
+          <a href="/laager.html"><span class="nav-projects-number">02</span><span data-i18n="common.nav.camp">Projektikirjutamise laager</span></a>
+          <a href="/street.html"><span class="nav-projects-number">03</span><span data-i18n="common.nav.street">Street Dance Jam</span></a>
         </div>
       </div>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/dokumendid.html">Dokumendid</a>
-      <a href="/privaatsuspoliitika.html" aria-current="page">Privaatsuspoliitika</a>
+      <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+      <a href="/#contact" data-i18n="privacy.hero.contact">Kontakt</a>
+      <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
+      <a href="/privaatsuspoliitika.html" aria-current="page" data-i18n="privacy.hero.title">Privaatsuspoliitika</a>
     </nav>
 
   </div>
@@ -144,40 +146,40 @@
   <div class="privacy-hero-glow privacy-hero-glow-one" aria-hidden="true"></div>
   <div class="privacy-hero-glow privacy-hero-glow-two" aria-hidden="true"></div>
   <div class="privacy-new-container">
-    <div class="privacy-new-badge">PRIVAATSUS JA ANDMEKAITSE</div>
+    <div class="privacy-new-badge" data-i18n="privacy.hero.badge">PRIVAATSUS JA ANDMEKAITSE</div>
 
-    <h1>Privaatsuspoliitika</h1>
+    <h1 data-i18n="privacy.hero.title">Privaatsuspoliitika</h1>
 
-    <p>
+    <p data-i18n="privacy.hero.description">
       Selgitame lihtsalt ja arusaadavalt, milliseid andmeid MTÜ Noortealgatuste Tugi
       võib veebilehe, kontaktivormide, registreerimiste ja infokirja kaudu töödelda.
     </p>
 
     <div class="privacy-new-meta">
       <div>
-        <span>Andmetöötleja</span>
-        <strong>MTÜ Noortealgatuste Tugi</strong>
+        <span data-i18n="privacy.hero.controller">Andmetöötleja</span>
+        <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong>
       </div>
 
       <div>
-        <span>Viimati uuendatud</span>
+        <span data-i18n="privacy.hero.updated">Viimati uuendatud</span>
         <strong>12.06.2026</strong>
       </div>
 
       <div>
-        <span>Kontakt</span>
+        <span data-i18n="privacy.hero.contact">Kontakt</span>
         <strong>juhatus@noortetugi.ee</strong>
       </div>
     </div>
 
-    <div class="privacy-trust-path" aria-label="Meie andmekaitse põhimõtted">
-      <span>Selgus</span>
+    <div class="privacy-trust-path" aria-label="Meie andmekaitse põhimõtted" data-i18n-aria-label="privacy.hero.principlesLabel">
+      <span data-i18n="privacy.hero.clarity">Selgus</span>
       <i aria-hidden="true">→</i>
-      <span>Vajalik miinimum</span>
+      <span data-i18n="privacy.hero.minimum">Vajalik miinimum</span>
       <i aria-hidden="true">→</i>
-      <span>Turvalisus</span>
+      <span data-i18n="privacy.hero.security">Turvalisus</span>
       <i aria-hidden="true">→</i>
-      <span>Teie õigused</span>
+      <span data-i18n="privacy.hero.rights">Teie õigused</span>
     </div>
   </div>
 </section>
@@ -185,9 +187,9 @@
 <main class="privacy-new-page">
   <section class="privacy-new-intro">
     <div class="privacy-intro-card">
-      <span>Meie põhimõte</span>
-      <h2>Kogume ainult seda, mida on päriselt vaja</h2>
-      <p>
+      <span data-i18n="privacy.intro.label">Meie põhimõte</span>
+      <h2 data-i18n="privacy.intro.title">Kogume ainult seda, mida on päriselt vaja</h2>
+      <p data-i18n="privacy.intro.description">
         Kasutame isikuandmeid ainult selleks, et vastata pöördumistele,
         korraldada sündmusi, hallata registreerimisi ja saata infot meie
         tegevuste kohta juhul, kui inimene on selleks nõusoleku andnud.
@@ -195,13 +197,13 @@
     </div>
 
     <div class="privacy-side-card">
-      <h3>Kiire ülevaade</h3>
+      <h3 data-i18n="privacy.overview.title">Kiire ülevaade</h3>
 
       <ul>
-        <li>Me ei müü isikuandmeid.</li>
-        <li>Infokirjast saab igal ajal loobuda.</li>
-        <li>Andmeid kasutatakse ainult selgel eesmärgil.</li>
-        <li>Küsimuste korral saab kirjutada meile e-posti teel.</li>
+        <li data-i18n="privacy.overview.item1">Me ei müü isikuandmeid.</li>
+        <li data-i18n="privacy.overview.item2">Infokirjast saab igal ajal loobuda.</li>
+        <li data-i18n="privacy.overview.item3">Andmeid kasutatakse ainult selgel eesmärgil.</li>
+        <li data-i18n="privacy.overview.item4">Küsimuste korral saab kirjutada meile e-posti teel.</li>
       </ul>
     </div>
   </section>
@@ -209,8 +211,8 @@
   <section class="privacy-new-grid">
     <article class="privacy-new-card">
       <div class="privacy-card-number">01</div>
-      <h3>Milliseid andmeid võime koguda?</h3>
-      <p>
+      <h3 data-i18n="privacy.cards.collectedTitle">Milliseid andmeid võime koguda?</h3>
+      <p data-i18n="privacy.cards.collectedText">
         Kui võtate meiega ühendust, liitute infokirjaga või registreerute
         sündmusele, võime töödelda teie nime, e-posti aadressi, telefoninumbrit,
         organisatsiooni või kooli nime, sõnumi sisu ja muud infot, mille te ise
@@ -220,8 +222,8 @@
 
     <article class="privacy-new-card">
       <div class="privacy-card-number">02</div>
-      <h3>Milleks me andmeid kasutame?</h3>
-      <p>
+      <h3 data-i18n="privacy.cards.purposeTitle">Milleks me andmeid kasutame?</h3>
+      <p data-i18n="privacy.cards.purposeText">
         Kasutame andmeid selleks, et vastata kirjadele, kinnitada registreerimisi,
         korraldada sündmusi, saata vajalikke teateid, hallata koostööd ning jagada
         infot noorteprojektide, koolituste ja võimaluste kohta.
@@ -230,8 +232,8 @@
 
     <article class="privacy-new-card">
       <div class="privacy-card-number">03</div>
-      <h3>Infokiri</h3>
-      <p>
+      <h3 data-i18n="privacy.cards.newsletterTitle">Infokiri</h3>
+      <p data-i18n-html="privacy.cards.newsletterHtml">
         Infokirjaga liitumine on vabatahtlik. Saadame infokirju ainult inimestele,
         kes on selleks nõusoleku andnud. Infokirjast saab loobuda kirjas oleva
         loobumislingi kaudu või kirjutades aadressile
@@ -241,8 +243,8 @@
 
     <article class="privacy-new-card">
       <div class="privacy-card-number">04</div>
-      <h3>Õiguslik alus</h3>
-      <p>
+      <h3 data-i18n="privacy.cards.legalTitle">Õiguslik alus</h3>
+      <p data-i18n="privacy.cards.legalText">
         Infokirja puhul töötleme andmeid nõusoleku alusel. Kontaktpäringute,
         registreerimiste ja sündmuste korraldamise puhul töötleme andmeid selleks,
         et täita inimese enda algatatud pöördumist või korraldada meie tegevust
@@ -252,8 +254,8 @@
 
     <article class="privacy-new-card">
       <div class="privacy-card-number">05</div>
-      <h3>Kui kaua andmeid säilitame?</h3>
-      <p>
+      <h3 data-i18n="privacy.cards.retentionTitle">Kui kaua andmeid säilitame?</h3>
+      <p data-i18n="privacy.cards.retentionText">
         Säilitame isikuandmeid kuni kolm aastat alates nende kogumisest või kuni 
         konkreetse eesmärgi täitmiseni, sõltuvalt sellest, kumb saabub varem. Seadusest 
         tuleneva kohustuse korral võime andmeid säilitada pikema aja jooksul.
@@ -262,8 +264,8 @@
 
     <article class="privacy-new-card">
       <div class="privacy-card-number">06</div>
-      <h3>Teenusepakkujad</h3>
-      <p>
+      <h3 data-i18n="privacy.cards.providersTitle">Teenusepakkujad</h3>
+      <p data-i18n="privacy.cards.providersText">
         Mõned andmed võivad liikuda läbi tehniliste teenusepakkujate, näiteks
         veebimajutuse, e-posti, vormide või infokirja tööriistade kaudu. Kasutame
         neid teenuseid ainult veebilehe ja organisatsiooni töö korraldamiseks.
@@ -272,8 +274,8 @@
 
     <article class="privacy-new-card">
       <div class="privacy-card-number">07</div>
-      <h3>Küpsised</h3>
-      <p>
+      <h3 data-i18n="privacy.cards.cookiesTitle">Küpsised</h3>
+      <p data-i18n="privacy.cards.cookiesText">
         Veebileht võib kasutada tehniliselt vajalikke küpsiseid, mis aitavad lehel
         korrektselt toimida. Kui tulevikus lisame analüütika- või turundusküpsised,
         teavitame sellest kasutajat eraldi ning küsime vajaduse korral nõusolekut.
@@ -282,8 +284,8 @@
 
     <article class="privacy-new-card">
       <div class="privacy-card-number">08</div>
-      <h3>Teie õigused</h3>
-      <p>
+      <h3 data-i18n="privacy.hero.rights">Teie õigused</h3>
+      <p data-i18n="privacy.cards.rightsText">
         Teil on õigus küsida, milliseid andmeid me teie kohta töötleme, paluda
         andmete parandamist, kustutamist või töötlemise piiramist ning võtta tagasi
         antud nõusolek. Samuti on teil õigus pöörduda Andmekaitse Inspektsiooni poole.
@@ -293,15 +295,15 @@
 
   <section class="privacy-contact-panel">
     <div>
-      <span>Küsimused andmete kohta?</span>
-      <h2>Võtke meiega ühendust</h2>
-      <p>
+      <span data-i18n="privacy.contact.label">Küsimused andmete kohta?</span>
+      <h2 data-i18n="privacy.contact.title">Võtke meiega ühendust</h2>
+      <p data-i18n="privacy.contact.description">
         Kui teil on küsimusi privaatsuspoliitika või isikuandmete töötlemise kohta,
         kirjutage meile. Vastame esimesel võimalusel.
       </p>
     </div>
 
-    <a href="mailto:juhatus@noortetugi.ee" class="privacy-contact-button">
+    <a href="mailto:juhatus@noortetugi.ee" class="privacy-contact-button" data-i18n="privacy.contact.write">
       Kirjuta meile
     </a>
   </section>
@@ -310,11 +312,11 @@
 <section class="bottom-newsletter" id="newsletter">
   <div class="bottom-newsletter-card">
     <div class="bottom-newsletter-content">
-      <span class="bottom-newsletter-label">INFOKIRI</span>
+      <span class="bottom-newsletter-label" data-i18n="common.newsletter.label">INFOKIRI</span>
 
-      <h2>Hoia end kursis meie tegemistega</h2>
+      <h2 data-i18n="common.newsletter.title">Hoia end kursis meie tegemistega</h2>
 
-      <p>
+      <p data-i18n="common.newsletter.body">
         Liitu infokirjaga, et saada teavet meie sündmuste, projektide,
         noortealgatuste ja võimaluste kohta Ida-Virumaal.
       </p>
@@ -326,7 +328,7 @@
         data-sender-form-id="azpjE7"
       ></div>
       <noscript>
-        <a href="https://stats.sender.net/forms/azpjE7/view">
+        <a href="https://stats.sender.net/forms/azpjE7/view" data-i18n="common.newsletter.join">
           Liitu infokirjaga
         </a>
       </noscript>
@@ -341,9 +343,9 @@
 
     <!-- Organisatsioon -->
     <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
+      <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
 
-      <p>
+      <p data-i18n="common.footer.brandText">
         Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
         Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
       </p>
@@ -399,21 +401,21 @@
 
     <!-- Kiirlingid -->
     <div class="footer-column">
-      <h4>Kiirlingid</h4>
+      <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
 
-      <a href="index.html">Avaleht</a>
-      <a href="index.html#about">Meist</a>
-      <a href="index.html#projects">Projektid</a>
-      <a href="index.html#news">Uudised</a>
-      <a href="index.html#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      <a href="index.html" data-i18n="common.nav.home">Avaleht</a>
+      <a href="index.html#about" data-i18n="common.footer.about">Meist</a>
+      <a href="index.html#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+      <a href="index.html#news" data-i18n="common.nav.news">Uudised</a>
+      <a href="index.html#newsletter" data-i18n="privacy.cards.newsletterTitle">Infokiri</a>
+      <a href="mailto:juhatus@noortetugi.ee" data-i18n="privacy.hero.contact">Kontakt</a>
     </div>
 
     <!-- Kontakt -->
     <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
+      <h4 data-i18n="privacy.hero.contact">Kontakt</h4>
 
-      <p>📍 Ida-Virumaa, Eesti</p>
+      <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
 
       <a href="mailto:juhatus@noortetugi.ee">
         ✉️ juhatus@noortetugi.ee
@@ -426,20 +428,20 @@
   </div>
 
   <div class="footer-bottom">
-    <p>
+    <p data-i18n="common.footer.copyright">
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-      <a href="privaatsuspoliitika.html">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+      <a href="privaatsuspoliitika.html" data-i18n="privacy.hero.title">
         Privaatsuspoliitika
       </a>
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
-      <strong>MTÜ Noortealgatuste Tugi</strong><br>
+      <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
       Ametlik veebileht: noortetugi.ee<br>
       Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>

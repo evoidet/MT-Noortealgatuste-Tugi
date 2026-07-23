@@ -116,7 +116,7 @@ body.news-page .news-hero {
 }
 
 body.news-page .news-hero::after {
-  content: "UUDISED";
+  content: var(--i18n-news-hero-label, "UUDISED");
   position: absolute;
   right: -20px;
   bottom: -12px;

@@ -159,7 +159,10 @@ body.gala-page .gala-hero::before {
 }
 
 body.gala-page .gala-hero::after {
-  content: "TUNNUSTAME • INSPIREERIME • ÜHENDAME";
+  content: var(
+    --i18n-gala-hero-words,
+    "TUNNUSTAME • INSPIREERIME • ÜHENDAME"
+  );
   position: absolute;
   right: -110px;
   bottom: 27px;
@@ -514,6 +517,17 @@ body.gala-page .gala-hero-caption strong {
   font-size: 20px;
 }
 
+body.gala-page .gala-hero-photo-credit {
+  display: block;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
 /* =========================================================
    HERO FOTO GALA-00 — AVAMINE SUURELT
    Ülejäänud hero kujundust ei muudeta.
@@ -641,7 +655,6 @@ body.gala-page .gala-hero-clickable:focus-visible img {
     transition: none !important;
   }
 }
-
 
 /* Hero hõljuvad valgused */
 
@@ -1534,6 +1547,29 @@ body.gala-page .gala-gallery-header .gala-section-label {
   color: var(--gala-gold-light);
 }
 
+body.gala-page .gala-gallery-credit {
+  display: flex;
+  margin: 18px 0 0;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+body.gala-page .gala-gallery-credit::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  flex: 0 0 24px;
+  background: rgba(242, 212, 123, 0.7);
+}
+
+body.gala-page .gala-gallery-credit strong {
+  color: var(--gala-gold-light);
+  font-weight: 700;
+}
+
 body.gala-page .gala-gallery-note {
   flex: 0 0 250px;
   padding: 23px;
@@ -1949,6 +1985,20 @@ body.gala-page .gala-lightbox-frame p {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 20px;
   text-align: center;
+}
+
+body.gala-page .gala-lightbox-credit {
+  display: block;
+  margin: 5px 6px 2px;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+}
+
+body.gala-page .gala-lightbox-credit[hidden] {
+  display: none;
 }
 
 body.gala-page .gala-lightbox-close {
@@ -2808,6 +2858,10 @@ body.gala-page .nav a::after {
     font-size: 36px;
   }
 
+  html[lang="et"] body.gala-page .gala-categories-section .gala-section-heading h2 {
+    font-size: 29px;
+  }
+
   body.gala-page .gala-hero-visual {
     width: 100%;
     min-height: 0;
@@ -2879,5 +2933,35 @@ body.gala-page .nav a::after {
   body.gala-page .gala-reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+@media (max-width: 360px) {
+  body.gala-page .gala-hero h1 {
+    font-size: 38px;
+  }
+
+  body.gala-page .gala-about-section h2 {
+    font-size: 34px;
+  }
+
+  body.gala-page [data-i18n="gala.about.categoriesStat"] {
+    overflow-wrap: anywhere;
+    font-size: 11px;
+  }
+
+  html body.gala-page .gala-experience-card
+  h3[data-i18n="gala.evening.recognitionTitle"] {
+    font-size: 28px;
+  }
+
+  body.gala-page .gala-categories-section .gala-section-heading h2 {
+    overflow-wrap: anywhere;
+    font-size: 24px;
+  }
+
+  body.gala-page .gala-nomination h2 {
+    overflow-wrap: anywhere;
+    font-size: 32px;
   }
 }

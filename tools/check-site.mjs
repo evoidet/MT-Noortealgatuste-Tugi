@@ -11,9 +11,43 @@ const htmlFiles = fs
 
 const failures = [];
 const senderFormId = "azpjE7";
+const supportedLanguages = ["et", "en", "ru"];
+
+const translationContext = {
+  window: {}
+};
+
+vm.runInNewContext(
+  fs.readFileSync(path.join(root, "translations.js"), "utf8"),
+  translationContext,
+  {
+    filename: "translations.js"
+  }
+);
+
+const translations = translationContext.window.SITE_TRANSLATIONS || {};
 
 function report(file, message) {
   failures.push(`${file}: ${message}`);
+}
+
+const translationKeys = new Set(
+  supportedLanguages.flatMap((language) =>
+    Object.keys(translations[language] || {}),
+  ),
+);
+
+for (const key of translationKeys) {
+  for (const language of supportedLanguages) {
+    const value = translations[language]?.[key];
+
+    if (value === undefined || value === null || value === "") {
+      report(
+        "translations.js",
+        `missing ${language} translation for "${key}"`,
+      );
+    }
+  }
 }
 
 function localTarget(reference) {
@@ -59,6 +93,47 @@ for (const file of htmlFiles) {
       source.indexOf('/site-config.js"') > source.indexOf('/script.js"'))
   ) {
     report(file, "site-config.js must load before script.js");
+  }
+
+  const translationsIndex = source.indexOf('/translations.js"');
+  const i18nIndex = source.indexOf('/i18n.js"');
+  const headEndIndex = source.toLowerCase().indexOf("</head>");
+
+  if (
+    translationsIndex === -1 ||
+    i18nIndex === -1 ||
+    translationsIndex > i18nIndex ||
+    i18nIndex > headEndIndex
+  ) {
+    report(
+      file,
+      "translations.js and i18n.js must load in that order inside <head>"
+    );
+  }
+
+  for (const language of supportedLanguages) {
+    const buttonPattern = new RegExp(
+      `<button\\b[^>]*\\bdata-lang=["']${language}["']`,
+      "i"
+    );
+
+    if (!buttonPattern.test(source)) {
+      report(file, `missing language button "${language}"`);
+    }
+  }
+
+  for (const match of source.matchAll(
+    /\bdata-i18n(?:-[\w-]+)?=["']([^"']+)["']/gi,
+  )) {
+    const key = match[1];
+
+    for (const language of supportedLanguages) {
+      const value = translations[language]?.[key];
+
+      if (value === undefined || value === null || value === "") {
+        report(file, `missing ${language} translation for "${key}"`);
+      }
+    }
   }
 
   const senderForms = [

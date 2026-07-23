@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0e3b03">
 
-  <title>Uudised ja saavutused | MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="newsPage.meta.title">Uudised ja saavutused | MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
     content="MTÜ Noortealgatuste Tugi uudised, saavutused, sündmused ja noortealgatused Ida-Virumaal."
-  >
+   data-i18n-content="newsPage.meta.description">
   <link rel="canonical" href="https://www.noortetugi.ee/uudised.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="et_EE">
   <meta
     property="og:title"
     content="Uudised ja saavutused | MTÜ Noortealgatuste Tugi"
-  >
+   data-i18n-content="newsPage.meta.title">
   <meta
     property="og:description"
     content="Uudised, saavutused, sündmused ja noortealgatused Ida-Virumaal."
-  >
+   data-i18n-content="newsPage.meta.ogDescription">
   <meta property="og:url" content="https://www.noortetugi.ee/uudised.html">
   <meta
     property="og:image"
@@ -32,7 +32,9 @@
   <link rel="shortcut icon" href="/favicon.png">
 
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/news.css">
+  <link rel="stylesheet" href="/news.css?v=20260723">
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/sender-init.js"></script>
 </head>
 
@@ -41,17 +43,17 @@
 <header class="header">
   <div class="header-inner">
 
-    <a href="/" class="logo" aria-label="MTÜ Noortealgatuste Tugi avaleht">
+    <a href="/" class="logo" aria-label="MTÜ Noortealgatuste Tugi avaleht" data-i18n-aria-label="common.a11y.homeLink">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
         width="1000"
         height="405"
-      >
+       data-i18n-alt="home.meta.title">
     </a>
 
-    <div class="language-switcher" aria-label="Keele valik">
+    <div class="language-switcher" aria-label="Keele valik" data-i18n-aria-label="common.a11y.languageSelection">
       <button class="lang-button is-active" type="button" data-lang="et" aria-pressed="true">ET</button>
       <button class="lang-button" type="button" data-lang="ru" aria-pressed="false">RU</button>
       <button class="lang-button" type="button" data-lang="en" aria-pressed="false">EN</button>
@@ -64,13 +66,13 @@
       aria-label="Ava menüü"
       aria-expanded="false"
       aria-controls="mainNav"
-    >
+     data-i18n-aria-label="common.a11y.openMenu">
       ⋮
     </button>
 
-    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-      <a href="/">Avaleht</a>
-      <a href="/uudised.html" aria-current="page">Uudised</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+      <a href="/" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/uudised.html" aria-current="page" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -80,19 +82,19 @@
           aria-controls="projectsMenu"
           aria-haspopup="true"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
-          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
-          <a href="/laager.html"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
-          <a href="/street.html"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
+          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span data-i18n="common.nav.gala">Noorte tunnustusgala</span></a>
+          <a href="/laager.html"><span class="nav-projects-number">02</span><span data-i18n="common.nav.camp">Projektikirjutamise laager</span></a>
+          <a href="/street.html"><span class="nav-projects-number">03</span><span data-i18n="common.nav.street">Street Dance Jam</span></a>
         </div>
       </div>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/dokumendid.html">Dokumendid</a>
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+      <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+      <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
+      <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
+      <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
 
   </div>
@@ -107,18 +109,22 @@
 
     <div class="news-container news-hero-layout">
       <div class="news-hero-copy" data-news-reveal>
-        <span class="news-eyebrow">UUDISED · SAAVUTUSED · VÕIMALUSED</span>
-        <h1>Meie lood liiguvad <span>ideest mõjuni</span></h1>
-        <p>
+        <span class="news-eyebrow" data-i18n="newsPage.hero.eyebrow">UUDISED · SAAVUTUSED · VÕIMALUSED</span>
+        <h1>
+          <span data-i18n="newsPage.hero.titlePrefix">Meie lood liiguvad</span>
+          <span data-i18n="newsPage.hero.titleAccent">ideest mõjuni</span>
+        </h1>
+        <p data-i18n="newsPage.hero.description">
           Siit leiad organisatsiooni värskemad uudised, sündmuste kokkuvõtted,
           noorte saavutused, koostööd ja järgmised võimalused.
         </p>
 
         <div class="news-hero-actions">
           <a href="#news-content" class="news-button news-button-primary">
-            Vaata uudiseid <span aria-hidden="true">↓</span>
+            <span data-i18n="newsPage.hero.viewNews">Vaata uudiseid</span>
+            <span aria-hidden="true">↓</span>
           </a>
-          <a href="mailto:juhatus@noortetugi.ee" class="news-button news-button-secondary">
+          <a href="mailto:juhatus@noortetugi.ee" class="news-button news-button-secondary" data-i18n="newsPage.hero.shareStory">
             Jaga meiega oma lugu
           </a>
         </div>
@@ -135,14 +141,14 @@
         </div>
 
         <div class="news-hero-dashboard">
-          <span>MEIE UUDISED</span>
+          <span data-i18n="newsPage.hero.dashboard">MEIE UUDISED</span>
           <strong id="newsHeroCount">0</strong>
-          <p>avaldatud lugu</p>
+          <p data-i18n="newsPage.hero.publishedStory">avaldatud lugu</p>
 
           <div class="news-hero-categories">
-            <i>Saavutused</i>
-            <i>Sündmused</i>
-            <i>Noortealgatused</i>
+            <i data-i18n="news.categories.achievements">Saavutused</i>
+            <i data-i18n="news.categories.events">Sündmused</i>
+            <i data-i18n="news.categories.initiatives">Noortealgatused</i>
           </div>
         </div>
       </div>
@@ -155,25 +161,25 @@
       <div id="newsListingView">
         <div class="news-content-heading" data-news-reveal>
           <div>
-            <span>UUSIMAD LOOD</span>
-            <h2>Uudised, mida tasub märgata</h2>
+            <span data-i18n="newsPage.list.label">UUSIMAD LOOD</span>
+            <h2 data-i18n="newsPage.list.title">Uudised, mida tasub märgata</h2>
           </div>
 
           <label class="news-search">
-            <span class="sr-only">Otsi uudiseid</span>
+            <span class="sr-only" data-i18n="newsPage.search.label">Otsi uudiseid</span>
             <input
               type="search"
               id="newsSearch"
               placeholder="Otsi pealkirja või teema järgi..."
               autocomplete="off"
-            >
+             data-i18n-placeholder="newsPage.search.placeholder">
             <i aria-hidden="true">⌕</i>
           </label>
         </div>
 
         <div class="news-toolbar" data-news-reveal>
-          <div class="news-filters" id="newsFilters" aria-label="Uudiste kategooriad"></div>
-          <p id="newsResultsText">Kõik uudised</p>
+          <div class="news-filters" id="newsFilters" aria-label="Uudiste kategooriad" data-i18n-aria-label="newsPage.filters.label"></div>
+          <p id="newsResultsText" data-i18n="newsPage.results.all">Kõik uudised</p>
         </div>
 
         <div id="newsFeatured"></div>
@@ -190,16 +196,17 @@
   <section class="news-story-cta">
     <div class="news-container news-story-cta-card">
       <div>
-        <span>KAS SUL ON UUDIS?</span>
-        <h2>Aitame noorte tegemised nähtavaks muuta</h2>
-        <p>
+        <span data-i18n="newsPage.story.label">KAS SUL ON UUDIS?</span>
+        <h2 data-i18n="newsPage.story.title">Aitame noorte tegemised nähtavaks muuta</h2>
+        <p data-i18n="newsPage.story.description">
           Anna meile teada saavutusest, uuest algatusest, sündmusest või
           koostöövõimalusest, mida võiks kogukonnaga jagada.
         </p>
       </div>
 
       <a href="mailto:juhatus@noortetugi.ee">
-        Kirjuta meile <i aria-hidden="true">→</i>
+        <span data-i18n="newsPage.story.write">Kirjuta meile</span>
+        <i aria-hidden="true">→</i>
       </a>
     </div>
   </section>
@@ -209,9 +216,9 @@
 <section id="newsletter" class="newsletter-section">
   <div class="newsletter-content">
     <div class="newsletter-text">
-      <span class="newsletter-label">INFOKIRI</span>
-      <h2>Hoia end kursis meie tegemistega</h2>
-      <p>
+      <span class="newsletter-label" data-i18n="common.newsletter.label">INFOKIRI</span>
+      <h2 data-i18n="common.newsletter.title">Hoia end kursis meie tegemistega</h2>
+      <p data-i18n="common.newsletter.body">
         Liitu infokirjaga, et saada teavet meie sündmuste, projektide,
         noortealgatuste ja võimaluste kohta Ida-Virumaal.
       </p>
@@ -223,7 +230,7 @@
         data-sender-form-id="azpjE7"
       ></div>
       <noscript>
-        <a href="https://stats.sender.net/forms/azpjE7/view">
+        <a href="https://stats.sender.net/forms/azpjE7/view" data-i18n="common.newsletter.join">
           Liitu infokirjaga
         </a>
       </noscript>
@@ -234,8 +241,8 @@
 <footer class="site-footer">
   <div class="footer-main">
     <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
-      <p>
+      <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
+      <p data-i18n="common.footer.brandText">
         Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
         Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
       </p>
@@ -262,33 +269,33 @@
     </div>
 
     <div class="footer-column">
-      <h4>Kiirlingid</h4>
-      <a href="/">Avaleht</a>
-      <a href="/#about">Meist</a>
-      <a href="/#projects">Projektid</a>
-      <a href="/uudised.html">Uudised</a>
-      <a href="#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
+      <a href="/" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/#about" data-i18n="common.footer.about">Meist</a>
+      <a href="/#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
+      <a href="#newsletter" data-i18n="common.footer.newsletter">Infokiri</a>
+      <a href="mailto:juhatus@noortetugi.ee" data-i18n="common.nav.contact">Kontakt</a>
     </div>
 
     <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
-      <p>📍 Ida-Virumaa, Eesti</p>
+      <h4 data-i18n="common.nav.contact">Kontakt</h4>
+      <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
       <a href="mailto:juhatus@noortetugi.ee">✉️ juhatus@noortetugi.ee</a>
       <a href="mailto:info@noortetugi.ee">✉️ info@noortetugi.ee</a>
     </div>
   </div>
 
   <div class="footer-bottom">
-    <p>© 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.</p>
-    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+    <p data-i18n="common.footer.copyright">© 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.</p>
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+      <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
-      <strong>MTÜ Noortealgatuste Tugi</strong><br>
+      <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
       Ametlik veebileht: noortetugi.ee<br>
       Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>

@@ -9,20 +9,20 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
     content="MTÜ Noortealgatuste Tugi aitab Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu."
-  >
+   data-i18n-content="home.meta.description">
   <meta name="theme-color" content="#0e3b03">
   <link rel="canonical" href="https://www.noortetugi.ee/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="et_EE">
-  <meta property="og:title" content="MTÜ Noortealgatuste Tugi">
+  <meta property="og:title" content="MTÜ Noortealgatuste Tugi" data-i18n-content="home.meta.title">
   <meta
     property="og:description"
     content="Aitame Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu."
-  >
+   data-i18n-content="home.meta.ogDescription">
   <meta property="og:url" content="https://www.noortetugi.ee/">
   <meta
     property="og:image"
@@ -49,7 +49,9 @@
   <link rel="stylesheet" href="/style.css">
 
   <!-- Стили главной страницы -->
-  <link rel="stylesheet" href="/home.css">
+  <link rel="stylesheet" href="/home.css?v=20260723-3">
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/sender-init.js"></script>
 </head>
 
@@ -70,13 +72,13 @@
       class="photo-modal-close"
       type="button"
       aria-label="Sulge fotoaken"
-    >
+     data-i18n-aria-label="home.modal.close">
       <span aria-hidden="true">×</span>
     </button>
 
     <div class="photo-modal-card" role="document">
       <div class="photo-modal-visual">
-        <span class="photo-modal-kicker" id="photoModalKicker">MEIE MEESKOND</span>
+        <span class="photo-modal-kicker" id="photoModalKicker" data-i18n="home.modal.kicker">MEIE MEESKOND</span>
 
         <img
           class="photo-modal-image"
@@ -88,10 +90,10 @@
 
       <div class="photo-modal-info">
         <p class="photo-modal-role" id="photoModalRole"></p>
-        <h2 id="photoModalName">Meeskonnaliige</h2>
+        <h2 id="photoModalName" data-i18n="home.modal.member">Meeskonnaliige</h2>
         <p class="photo-modal-description" id="photoModalDescription"></p>
 
-        <span class="photo-modal-hint">
+        <span class="photo-modal-hint" data-i18n="common.a11y.photoHint">
           Sulgemiseks vajuta ristile, taustale või klahvile Esc
         </span>
       </div>
@@ -108,21 +110,21 @@
       href="/"
       class="logo"
       aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
+     data-i18n-aria-label="common.a11y.homeLink">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
         width="1000"
         height="405"
-      >
+       data-i18n-alt="home.meta.title">
     </a>
 
     <!-- Переключатель языков -->
     <div
       class="language-switcher"
       aria-label="Keele valik"
-    >
+     data-i18n-aria-label="common.a11y.languageSelection">
       <button
         class="lang-button is-active"
         type="button"
@@ -159,14 +161,14 @@
       aria-label="Ava menüü"
       aria-expanded="false"
       aria-controls="mainNav"
-    >
+     data-i18n-aria-label="common.a11y.openMenu">
       ⋮
     </button>
 
     <!-- Навигация -->
-    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-      <a href="/" aria-current="page">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+      <a href="/" aria-current="page" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -176,28 +178,28 @@
           aria-controls="projectsMenu"
           aria-haspopup="true"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
           <a href="/tunnustusgala.html">
             <span class="nav-projects-number">01</span>
-            <span>Noorte tunnustusgala</span>
+            <span data-i18n="common.nav.gala">Noorte tunnustusgala</span>
           </a>
           <a href="/laager.html">
             <span class="nav-projects-number">02</span>
-            <span>Projektikirjutamise laager</span>
+            <span data-i18n="common.nav.camp">Projektikirjutamise laager</span>
           </a>
           <a href="/street.html">
             <span class="nav-projects-number">03</span>
-            <span>Street Dance Jam</span>
+            <span data-i18n="common.nav.street">Street Dance Jam</span>
           </a>
         </div>
       </div>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/dokumendid.html">Dokumendid</a>
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+      <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+      <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
+      <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
+      <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
 
   </div>
@@ -216,16 +218,16 @@
 
     <div class="home-container home-hero-layout">
       <div class="home-hero-copy" data-reveal>
-        <span class="home-kicker">
+        <span class="home-kicker" data-i18n="home.hero.kicker">
           NOORTE IDEEDEST PÄRIS MUUTUS
         </span>
 
         <h1>
-          Aitame noortel
-          <span>tegutseda, kasvada ja mõjutada</span>
+          <span data-i18n="home.hero.titlePrefix">Aitame noortel</span>
+          <span data-i18n="home.hero.titleAccent">tegutseda, kasvada ja mõjutada</span>
         </h1>
 
-        <p>
+        <p data-i18n="home.hero.description">
           MTÜ Noortealgatuste Tugi loob Ida-Virumaa noortele võimalusi,
           toetab julgeid algatusi ning aitab ideedel kasvada päriselt
           teostatavateks projektideks – pakkudes samal ajal teadmisi ja
@@ -234,21 +236,21 @@
 
         <div class="home-hero-actions">
           <a href="#projects" class="home-button home-button-primary">
-            Vaata meie projekte
+            <span data-i18n="home.hero.projectsButton">Vaata meie projekte</span>
             <span aria-hidden="true">→</span>
           </a>
 
-          <a href="#contact" class="home-button home-button-secondary">
+          <a href="#contact" class="home-button home-button-secondary" data-i18n="common.buttons.contact">
             Võta ühendust
           </a>
         </div>
 
-        <div class="home-hero-path" aria-label="Meie tööprotsess">
-          <span>Idee</span>
+        <div class="home-hero-path" aria-label="Meie tööprotsess" data-i18n-aria-label="home.hero.processLabel">
+          <span data-i18n="home.hero.idea">Idee</span>
           <i aria-hidden="true">→</i>
-          <span>Tugi</span>
+          <span data-i18n="home.hero.support">Tugi</span>
           <i aria-hidden="true">→</i>
-          <span>Mõju</span>
+          <span data-i18n="home.hero.impact">Mõju</span>
         </div>
       </div>
 
@@ -267,7 +269,7 @@
               type="button"
               aria-haspopup="dialog"
               aria-label="Ava MTÜ Noortealgatuste Tugi logo suurelt"
-            >
+             data-i18n-aria-label="home.hero.logoOpen">
               <span class="home-logo-open-icon" aria-hidden="true">+</span>
 
               <img
@@ -291,8 +293,8 @@
                 aria-labelledby="home-value-tab-1"
                 tabindex="0"
               >
-                <span class="home-value-panel-title">Noortelt noortele</span>
-                <p>Noored ei ole ainult osalejad, vaid ka ideede autorid ja eestvedajad.</p>
+                <span class="home-value-panel-title" data-i18n="home.hero.value1Title">Noortelt noortele</span>
+                <p data-i18n="home.hero.value1Text">Noored ei ole ainult osalejad, vaid ka ideede autorid ja eestvedajad.</p>
               </div>
 
               <div
@@ -303,8 +305,8 @@
                 tabindex="0"
                 hidden
               >
-                <span class="home-value-panel-title">Ideest teostuseni</span>
-                <p>Aitame planeerida, leida ressursse ja viia algatused päriselt ellu.</p>
+                <span class="home-value-panel-title" data-i18n="home.hero.value2Title">Ideest teostuseni</span>
+                <p data-i18n="home.hero.value2Text">Aitame planeerida, leida ressursse ja viia algatused päriselt ellu.</p>
               </div>
 
               <div
@@ -315,13 +317,13 @@
                 tabindex="0"
                 hidden
               >
-                <span class="home-value-panel-title">Kogukonnale kasulik</span>
-                <p>Loome võimalusi, mis lähtuvad kohalike noorte vajadustest ja unistustest.</p>
+                <span class="home-value-panel-title" data-i18n="home.hero.value3Title">Kogukonnale kasulik</span>
+                <p data-i18n="home.hero.value3Text">Loome võimalusi, mis lähtuvad kohalike noorte vajadustest ja unistustest.</p>
               </div>
             </div>
           </div>
 
-          <div class="home-value-tabs" role="tablist" aria-label="Meie põhimõtted">
+          <div class="home-value-tabs" role="tablist" aria-label="Meie põhimõtted" data-i18n-aria-label="home.hero.valuesLabel">
             <button
               class="home-floating-badge home-floating-badge-one is-active"
               id="home-value-tab-1"
@@ -333,7 +335,7 @@
               data-home-value-tab
             >
               <span aria-hidden="true">01</span>
-              <span>Noortelt noortele</span>
+              <span data-i18n="home.hero.value1Title">Noortelt noortele</span>
             </button>
 
             <button
@@ -347,7 +349,7 @@
               data-home-value-tab
             >
               <span aria-hidden="true">02</span>
-              <span>Ideest teostuseni</span>
+              <span data-i18n="home.hero.value2Title">Ideest teostuseni</span>
             </button>
 
             <button
@@ -361,15 +363,15 @@
               data-home-value-tab
             >
               <span aria-hidden="true">03</span>
-              <span>Kogukonnale kasulik</span>
+              <span data-i18n="home.hero.value3Title">Kogukonnale kasulik</span>
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <a href="#news" class="home-scroll-cue" aria-label="Liigu järgmise sektsioonini">
-      <span>Avasta rohkem</span>
+    <a href="#news" class="home-scroll-cue" aria-label="Liigu järgmise sektsioonini" data-i18n-aria-label="home.hero.scrollLabel">
+      <span data-i18n="home.hero.discover">Avasta rohkem</span>
       <i aria-hidden="true"></i>
     </a>
   </section>
@@ -383,18 +385,18 @@
     <div class="home-container">
       <div class="home-news-heading" data-reveal>
         <div>
-          <span class="home-section-label">UUDISED JA SAAVUTUSED</span>
-          <h2>Meie tegemised, hetked ja järgmised sammud</h2>
+          <span class="home-section-label" data-i18n="home.news.label">UUDISED JA SAAVUTUSED</span>
+          <h2 data-i18n="home.news.title">Meie tegemised, hetked ja järgmised sammud</h2>
         </div>
 
         <div class="home-news-heading-side">
-          <p>
+          <p data-i18n="home.news.description">
             Organisatsiooni uudised, sündmuste kokkuvõtted, noorte saavutused
             ja uued võimalused Ida-Virumaal.
           </p>
 
           <a class="home-news-all" href="/uudised.html">
-            Vaata kõiki uudiseid
+            <span data-i18n="home.news.all">Vaata kõiki uudiseid</span>
             <i aria-hidden="true">→</i>
           </a>
         </div>
@@ -405,17 +407,17 @@
         data-reveal
         data-reveal-delay="80"
         aria-label="Uudiste teemad"
-      >
-        <a class="is-active" href="/uudised.html">Kõik</a>
-        <a href="/uudised.html?category=achievements">Saavutused</a>
-        <a href="/uudised.html?category=events">Sündmused</a>
-        <a href="/uudised.html?category=initiatives">Noortealgatused</a>
+       data-i18n-aria-label="home.news.topicsLabel">
+        <a class="is-active" href="/uudised.html" data-i18n="news.categories.all">Kõik</a>
+        <a href="/uudised.html?category=achievements" data-i18n="news.categories.achievements">Saavutused</a>
+        <a href="/uudised.html?category=events" data-i18n="news.categories.events">Sündmused</a>
+        <a href="/uudised.html?category=initiatives" data-i18n="news.categories.initiatives">Noortealgatused</a>
       </nav>
 
       <!-- Kolm uusimat uudist lisatakse automaatselt news-data.js failist. -->
       <div id="homeNewsList" class="home-news-layout" aria-live="polite">
         <noscript>
-          <div class="home-news-empty">
+          <div class="home-news-empty" data-i18n="home.news.noScript">
             Uudiste kuvamiseks peab JavaScript olema lubatud.
           </div>
         </noscript>
@@ -430,11 +432,11 @@
 
       <div class="home-section-heading home-section-heading-split" data-reveal>
         <div>
-          <span class="home-section-label">MEIST</span>
-          <h2>Koht, kus noore idee saab hoo sisse</h2>
+          <span class="home-section-label" data-i18n="home.about.label">MEIST</span>
+          <h2 data-i18n="home.about.title">Koht, kus noore idee saab hoo sisse</h2>
         </div>
 
-        <p>
+        <p data-i18n="home.about.description">
           Me usume, et noortel peab olema võimalus mitte ainult ideid jagada,
           vaid ka neid katsetada, arendada ja päriselt ellu viia. Selleks
           ühendame nõustamise, praktilise toe, partnerid ja kogukonna.
@@ -446,8 +448,8 @@
         <article class="home-value-card" data-reveal>
           <span class="home-value-icon" aria-hidden="true">↗</span>
           <span class="home-value-number">01</span>
-          <h3>Toetame</h3>
-          <p>
+          <h3 data-i18n="home.about.supportTitle">Toetame</h3>
+          <p data-i18n="home.about.supportText">
             Aitame noortel oma idee selgelt sõnastada, tegevused läbi mõelda
             ja järgmised sammud paika panna.
           </p>
@@ -456,8 +458,8 @@
         <article class="home-value-card home-value-card-featured" data-reveal data-reveal-delay="100">
           <span class="home-value-icon" aria-hidden="true">✦</span>
           <span class="home-value-number">02</span>
-          <h3>Arendame</h3>
-          <p>
+          <h3 data-i18n="home.about.developTitle">Arendame</h3>
+          <p data-i18n="home.about.developText">
             Loome praktilisi õpikogemusi, kus noored saavad uusi oskusi,
             kontakte ja enesekindlust.
           </p>
@@ -466,8 +468,8 @@
         <article class="home-value-card" data-reveal data-reveal-delay="200">
           <span class="home-value-icon" aria-hidden="true">◎</span>
           <span class="home-value-number">03</span>
-          <h3>Ühendame</h3>
-          <p>
+          <h3 data-i18n="home.about.connectTitle">Ühendame</h3>
+          <p data-i18n="home.about.connectText">
             Toome kokku noored, spetsialistid, organisatsioonid ja toetajad,
             et head ideed jõuaksid suurema mõjuni.
           </p>
@@ -480,16 +482,16 @@
 
   <!-- ================= MOVING MESSAGE ================= -->
 
-  <section class="home-marquee" aria-label="Meie väärtused">
+  <section class="home-marquee" aria-label="Meie väärtused" data-i18n-aria-label="home.marquee.label">
     <div class="home-marquee-track">
-      <span>NOORTE IDEED</span><i>✦</i>
-      <span>JULGED ALGATUSED</span><i>✦</i>
-      <span>PÄRIS KOGEMUS</span><i>✦</i>
-      <span>TUGEV KOGUKOND</span><i>✦</i>
-      <span>NOORTE IDEED</span><i>✦</i>
-      <span>JULGED ALGATUSED</span><i>✦</i>
-      <span>PÄRIS KOGEMUS</span><i>✦</i>
-      <span>TUGEV KOGUKOND</span><i>✦</i>
+      <span data-i18n="home.marquee.ideas">NOORTE IDEED</span><i>✦</i>
+      <span data-i18n="home.marquee.initiatives">JULGED ALGATUSED</span><i>✦</i>
+      <span data-i18n="home.marquee.experience">PÄRIS KOGEMUS</span><i>✦</i>
+      <span data-i18n="home.marquee.community">TUGEV KOGUKOND</span><i>✦</i>
+      <span data-i18n="home.marquee.ideas">NOORTE IDEED</span><i>✦</i>
+      <span data-i18n="home.marquee.initiatives">JULGED ALGATUSED</span><i>✦</i>
+      <span data-i18n="home.marquee.experience">PÄRIS KOGEMUS</span><i>✦</i>
+      <span data-i18n="home.marquee.community">TUGEV KOGUKOND</span><i>✦</i>
     </div>
   </section>
 
@@ -500,9 +502,9 @@
     <div class="home-container">
 
       <div class="home-section-heading" data-reveal>
-        <span class="home-section-label">MEESKOND</span>
-        <h2>Inimesed, kes aitavad ideedel kasvada</h2>
-        <p>
+        <span class="home-section-label" data-i18n="home.team.label">MEESKOND</span>
+        <h2 data-i18n="home.team.title">Inimesed, kes aitavad ideedel kasvada</h2>
+        <p data-i18n="home.team.description">
           Meie meeskond ühendab projektijuhtimise, kommunikatsiooni,
           turunduse, finantsid ja noorsootöö kogemuse.
         </p>
@@ -510,8 +512,8 @@
 
       <div class="home-team-group">
         <div class="home-team-group-heading" data-reveal>
-          <span>JUHTKOND</span>
-          <h3>Organisatsiooni eestvedajad</h3>
+          <span data-i18n="home.team.leadershipLabel">JUHTKOND</span>
+          <h3 data-i18n="home.team.leadershipTitle">Organisatsiooni eestvedajad</h3>
         </div>
 
         <div class="home-leadership-grid">
@@ -534,12 +536,12 @@
                 tabindex="0"
                 role="button"
                 aria-label="Ava Mario Polshini täispikk foto"
-              >
+               data-i18n-aria-label="home.team.openMario">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role">Tegevjuht</p>
+              <p class="home-person-role" data-i18n="home.team.executiveDirector">Tegevjuht</p>
               <h3>Mario Polshin</h3>
-              <p>
+              <p data-i18n="home.team.executiveDirectorText">
                 Vastutab ürituste korralduse, meeskonna töö koordineerimise
                 ja projektide elluviimise eest.
               </p>
@@ -565,12 +567,12 @@
                 tabindex="0"
                 role="button"
                 aria-label="Ava Mihhail Semiyanovi täispikk foto"
-              >
+               data-i18n-aria-label="home.team.openMihhail">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role">Avalike suhete juht</p>
+              <p class="home-person-role" data-i18n="home.team.publicRelations">Avalike suhete juht</p>
               <h3>Mihhail Semiyanov</h3>
-              <p>
+              <p data-i18n="home.team.publicRelationsText">
                 Aitab juhtida noorteprojekte, sündmusi ja kogukondlike
                 algatuste elluviimist.
               </p>
@@ -581,8 +583,8 @@
 
       <div class="home-team-group home-team-group-secondary">
         <div class="home-team-group-heading" data-reveal>
-          <span>TIIM</span>
-          <h3>Meie spetsialistid</h3>
+          <span data-i18n="home.team.teamLabel">TIIM</span>
+          <h3 data-i18n="home.team.specialistsTitle">Meie spetsialistid</h3>
         </div>
 
         <div class="home-team-grid">
@@ -606,12 +608,12 @@
                 tabindex="0"
                 role="button"
                 aria-label="Ava Egor Stepanovi täispikk foto"
-              >
+               data-i18n-aria-label="home.team.openEgor">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role">Finantsjuht</p>
+              <p class="home-person-role" data-i18n="home.team.finance">Finantsjuht</p>
               <h3>Egor Stepanov</h3>
-              <p>
+              <p data-i18n="home.team.financeText">
                 Tegeleb organisatsiooni rahaliste küsimuste, eelarve
                 koostamise ja finantsaruandlusega.
               </p>
@@ -637,12 +639,12 @@
                 tabindex="0"
                 role="button"
                 aria-label="Ava Sofia Germi täispikk foto"
-              >
+               data-i18n-aria-label="home.team.openSofia">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role">Kommunikatsioonijuht</p>
+              <p class="home-person-role" data-i18n="home.team.communication">Kommunikatsioonijuht</p>
               <h3>Sofia Germ</h3>
-              <p>
+              <p data-i18n="home.team.communicationText">
                 Vastutab kommunikatsiooni, avaliku info ja organisatsiooni
                 nähtavuse arendamise eest.
               </p>
@@ -668,12 +670,12 @@
                 tabindex="0"
                 role="button"
                 aria-label="Ava Jekaterina Rogožini täispikk foto"
-              >
+               data-i18n-aria-label="home.team.openJekaterina">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role">Turundusjuht</p>
+              <p class="home-person-role" data-i18n="home.team.marketing">Turundusjuht</p>
               <h3>Jekaterina Rogožina</h3>
-              <p>
+              <p data-i18n="home.team.marketingText">
                 Vastutab organisatsiooni turundustegevuste, sotsiaalmeedia
                 ja avalike suhete eest.
               </p>
@@ -699,12 +701,12 @@
                 tabindex="0"
                 role="button"
                 aria-label="Ava Andrei Ostretsovi täispikk foto"
-              >
+               data-i18n-aria-label="home.team.openAndrei">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role">Kommunikatsioonijuhi assistent</p>
+              <p class="home-person-role" data-i18n="home.team.communicationAssistant">Kommunikatsioonijuhi assistent</p>
               <h3>Andrei Ostretsov</h3>
-              <p>
+              <p data-i18n="home.team.communicationAssistantText">
                 Aitab kaasa kommunikatsiooni, info jagamise ja kogukondlike
                 tegevuste elluviimisele.
               </p>
@@ -723,9 +725,9 @@
     <div class="home-container">
 
       <div class="home-section-heading home-section-heading-light" data-reveal>
-        <span class="home-section-label">PROJEKTID</span>
-        <h2>Ideed, mis on saanud päris sündmusteks</h2>
-        <p>
+        <span class="home-section-label" data-i18n="home.projects.label">PROJEKTID</span>
+        <h2 data-i18n="home.projects.title">Ideed, mis on saanud päris sündmusteks</h2>
+        <p data-i18n="home.projects.description">
           Meie projektid ühendavad tunnustamise, praktilise õppimise,
           loovuse ja noorte omaalgatuse.
         </p>
@@ -736,42 +738,45 @@
         <a href="/tunnustusgala.html" class="home-project-card" data-reveal data-tilt>
           <span class="home-project-index">01</span>
           <div class="home-project-orb" aria-hidden="true"></div>
-          <span class="home-project-label">TUNNUSTUSÜRITUS</span>
-          <h3>Ida-Virumaa noorte tunnustusgala</h3>
-          <p>
+          <span class="home-project-label" data-i18n="home.projects.galaLabel">TUNNUSTUSÜRITUS</span>
+          <h3 data-i18n="home.projects.galaTitle">Ida-Virumaa noorte tunnustusgala</h3>
+          <p data-i18n="home.projects.galaText">
             Pidulik sündmus, kus tunnustame aktiivseid, silmapaistvaid
             ja kogukonda panustavaid Ida-Virumaa noori.
           </p>
           <span class="home-project-link">
-            Vaata projekti <i aria-hidden="true">↗</i>
+            <span data-i18n="home.projects.view">Vaata projekti</span>
+            <i aria-hidden="true">↗</i>
           </span>
         </a>
 
         <a href="/laager.html" class="home-project-card" data-reveal data-reveal-delay="100" data-tilt>
           <span class="home-project-index">02</span>
           <div class="home-project-orb" aria-hidden="true"></div>
-          <span class="home-project-label">PRAKTILINE LAAGER</span>
-          <h3>Ida-Virumaa noorte projektikirjutamise laager</h3>
-          <p>
+          <span class="home-project-label" data-i18n="home.projects.campLabel">PRAKTILINE LAAGER</span>
+          <h3 data-i18n="home.projects.campTitle">Ida-Virumaa noorte projektikirjutamise laager</h3>
+          <p data-i18n="home.projects.campText">
             Kahepäevane praktiline kogemus, kus noored arendavad ideid,
             kirjutavad projekte ja õpivad rahastust leidma.
           </p>
           <span class="home-project-link">
-            Vaata projekti <i aria-hidden="true">↗</i>
+            <span data-i18n="home.projects.view">Vaata projekti</span>
+            <i aria-hidden="true">↗</i>
           </span>
         </a>
 
         <a href="/street.html" class="home-project-card" data-reveal data-reveal-delay="200" data-tilt>
           <span class="home-project-index">03</span>
           <div class="home-project-orb" aria-hidden="true"></div>
-          <span class="home-project-label">TANTSUÜRITUS</span>
-          <h3>Street Dance Jam</h3>
-          <p>
+          <span class="home-project-label" data-i18n="home.projects.streetLabel">TANTSUÜRITUS</span>
+          <h3 data-i18n="common.nav.street">Street Dance Jam</h3>
+          <p data-i18n="home.projects.streetText">
             Noortelt noortele loodud tänavatantsusündmus, mis ühendab
             töötoad, tantsulahingud ja hiphop-kultuuri.
           </p>
           <span class="home-project-link">
-            Vaata projekti <i aria-hidden="true">↗</i>
+            <span data-i18n="home.projects.view">Vaata projekti</span>
+            <i aria-hidden="true">↗</i>
           </span>
         </a>
 
@@ -785,9 +790,9 @@
     <div class="home-container home-contact-layout">
 
       <div class="home-contact-panel" data-reveal>
-        <span class="home-section-label">KONTAKT</span>
-        <h2>Kas sul on idee, mida tahaksid ellu viia?</h2>
-        <p>
+        <span class="home-section-label" data-i18n="home.contact.label">KONTAKT</span>
+        <h2 data-i18n="home.contact.title">Kas sul on idee, mida tahaksid ellu viia?</h2>
+        <p data-i18n="home.contact.description">
           Kirjuta meile. Arutame koos, millist tuge vajad ja milline võiks
           olla sinu järgmine samm.
         </p>
@@ -796,7 +801,7 @@
           <a href="mailto:juhatus@noortetugi.ee">
             <span aria-hidden="true">✉</span>
             <div>
-              <small>E-post</small>
+              <small data-i18n="home.contact.email">E-post</small>
               <strong>juhatus@noortetugi.ee</strong>
             </div>
           </a>
@@ -804,8 +809,8 @@
           <div>
             <span aria-hidden="true">⌖</span>
             <div>
-              <small>Piirkond</small>
-              <strong>Ida-Virumaa, Eesti</strong>
+              <small data-i18n="home.contact.region">Piirkond</small>
+              <strong data-i18n="home.contact.regionValue">Ida-Virumaa, Eesti</strong>
             </div>
           </div>
         </div>
@@ -817,8 +822,8 @@
 
       <div class="home-contact-card" data-reveal data-reveal-delay="120">
         <div class="home-contact-card-heading">
-          <span>SAADA SÕNUM</span>
-          <h3>Räägi meile oma ideest</h3>
+          <span data-i18n="home.contact.formLabel">SAADA SÕNUM</span>
+          <h3 data-i18n="home.contact.formTitle">Räägi meile oma ideest</h3>
         </div>
 
         <form
@@ -828,7 +833,7 @@
         >
           <div class="home-form-row">
             <label for="contactName">
-              Teie nimi *
+              <span data-i18n="home.contact.name">Teie nimi *</span>
               <input
                 type="text"
                 id="contactName"
@@ -836,11 +841,11 @@
                 placeholder="Maria Tamm"
                 autocomplete="name"
                 required
-              >
+               data-i18n-placeholder="home.contact.namePlaceholder">
             </label>
 
             <label for="contactEmail">
-              E-posti aadress *
+              <span data-i18n="home.contact.emailAddress">E-posti aadress *</span>
               <input
                 type="email"
                 id="contactEmail"
@@ -848,13 +853,13 @@
                 placeholder="maria@example.ee"
                 autocomplete="email"
                 required
-              >
+               data-i18n-placeholder="home.contact.emailPlaceholder">
             </label>
           </div>
 
           <div class="home-form-row">
             <label for="contactPhone">
-              Telefon
+              <span data-i18n="home.contact.phone">Telefon</span>
               <input
                 type="tel"
                 id="contactPhone"
@@ -865,30 +870,30 @@
             </label>
 
             <label for="contactSubject">
-              Teema *
+              <span data-i18n="home.contact.subject">Teema *</span>
               <input
                 type="text"
                 id="contactSubject"
                 name="subject"
                 placeholder="Minu idee"
                 required
-              >
+               data-i18n-placeholder="home.contact.subjectPlaceholder">
             </label>
           </div>
 
           <label for="contactMessage">
-            Sõnum *
+            <span data-i18n="home.contact.message">Sõnum *</span>
             <textarea
               id="contactMessage"
               name="message"
               placeholder="Kirjelda lühidalt oma ideed või küsimust..."
               required
-            ></textarea>
+             data-i18n-placeholder="home.contact.messagePlaceholder"></textarea>
           </label>
 
           <button type="submit" class="home-contact-submit">
-            Saada sõnum
-              <span aria-hidden="true">→</span>
+            <span data-i18n="home.contact.submit">Saada sõnum</span>
+            <span aria-hidden="true">→</span>
           </button>
 
           <p
@@ -912,11 +917,11 @@
 <section id="newsletter" class="newsletter-section">
   <div class="newsletter-content">
     <div class="newsletter-text">
-      <span class="newsletter-label">INFOKIRI</span>
+      <span class="newsletter-label" data-i18n="common.newsletter.label">INFOKIRI</span>
 
-      <h2>Hoia end kursis meie tegemistega</h2>
+      <h2 data-i18n="common.newsletter.title">Hoia end kursis meie tegemistega</h2>
 
-      <p>
+      <p data-i18n="common.newsletter.body">
         Liitu infokirjaga, et saada teavet meie sündmuste, projektide,
         noortealgatuste ja võimaluste kohta Ida-Virumaal.
       </p>
@@ -928,7 +933,7 @@
         data-sender-form-id="azpjE7"
       ></div>
       <noscript>
-        <a href="https://stats.sender.net/forms/azpjE7/view">
+        <a href="https://stats.sender.net/forms/azpjE7/view" data-i18n="common.newsletter.join">
           Liitu infokirjaga
         </a>
       </noscript>
@@ -943,9 +948,9 @@
 
     <!-- Organisatsioon -->
     <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
+      <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
 
-      <p>
+      <p data-i18n="common.footer.brandText">
         Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
         Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
       </p>
@@ -1001,21 +1006,21 @@
 
     <!-- Kiirlingid -->
     <div class="footer-column">
-      <h4>Kiirlingid</h4>
+      <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
 
-      <a href="index.html">Avaleht</a>
-      <a href="index.html#about">Meist</a>
-      <a href="index.html#projects">Projektid</a>
-      <a href="/uudised.html">Uudised</a>
-      <a href="index.html#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      <a href="index.html" data-i18n="common.nav.home">Avaleht</a>
+      <a href="index.html#about" data-i18n="common.footer.about">Meist</a>
+      <a href="index.html#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
+      <a href="index.html#newsletter" data-i18n="common.footer.newsletter">Infokiri</a>
+      <a href="mailto:juhatus@noortetugi.ee" data-i18n="common.nav.contact">Kontakt</a>
     </div>
 
     <!-- Kontakt -->
     <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
+      <h4 data-i18n="common.nav.contact">Kontakt</h4>
 
-      <p>📍 Ida-Virumaa, Eesti</p>
+      <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
 
       <a href="mailto:juhatus@noortetugi.ee">
         ✉️ juhatus@noortetugi.ee
@@ -1028,20 +1033,20 @@
   </div>
 
   <div class="footer-bottom">
-    <p>
+    <p data-i18n="common.footer.copyright">
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-      <a href="privaatsuspoliitika.html">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+      <a href="privaatsuspoliitika.html" data-i18n="common.nav.privacy">
         Privaatsuspoliitika
       </a>
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
-      <strong>MTÜ Noortealgatuste Tugi</strong><br>
+      <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
       Ametlik veebileht: noortetugi.ee<br>
       Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>
@@ -1187,6 +1192,7 @@
 
 <script>
   (() => {
+    const t = (key, variables) => window.I18N?.t(key, variables) || "";
     const modal = document.getElementById("photoModal");
     const modalImage = document.getElementById("photoModalImage");
     const modalKicker = document.getElementById("photoModalKicker");
@@ -1247,19 +1253,21 @@
           photo.currentSrc ||
           photo.src,
         imageAlt:
-          `${photo.alt || "Meeskonnaliige"} foto`,
-        kicker: "MEIE MEESKOND",
+          t("home.modal.photoAlt", {
+            name: photo.alt || t("home.modal.member")
+          }),
+        kicker: t("home.modal.kicker"),
         name:
           card?.querySelector(".home-person-info h3")
             ?.textContent
             ?.trim() ||
           photo.alt ||
-          "Meeskonnaliige",
+          t("home.modal.member"),
         role:
           card?.querySelector(".home-person-role")
             ?.textContent
             ?.trim() ||
-          "Meeskonnaliige",
+          t("home.modal.member"),
         description:
           card?.querySelector(
             ".home-person-info > p:last-child"
@@ -1284,11 +1292,10 @@
           logo?.src ||
           "assets/logo-header.png",
         imageAlt: "MTÜ Noortealgatuste Tugi logo",
-        kicker: "MEIE ORGANISATSIOON",
-        role: "IDA-VIRUMAA NOORTE IDEEDE KASVULAVA",
+        kicker: t("home.modal.organisationKicker"),
+        role: t("home.modal.organisationRole"),
         name: "MTÜ Noortealgatuste Tugi",
-        description:
-          "Loome Ida-Virumaa noortele võimalusi, toetame julgeid algatusi ning aitame ideedel kasvada päriselt teostatavateks projektideks."
+        description: t("home.modal.organisationDescription")
       };
     };
 
@@ -1319,8 +1326,8 @@
           "",
         imageAlt:
           image?.alt ||
-          "Uudise foto",
-        kicker: "UUDISE FOTO",
+          t("news.ui.photo"),
+        kicker: t("news.lightbox.kicker"),
         role:
           [category, date]
             .filter(Boolean)
@@ -1332,7 +1339,7 @@
               ?.textContent
           ) ||
           image?.alt ||
-          "Uudise foto",
+          t("news.ui.photo"),
         description:
           normalizeText(
             card?.querySelector(
@@ -1406,9 +1413,9 @@
 
         modalImage.removeAttribute("src");
         modalImage.alt = "";
-        modalKicker.textContent = "MEIE MEESKOND";
+        modalKicker.textContent = t("home.modal.kicker");
         modalRole.textContent = "";
-        modalName.textContent = "Meeskonnaliige";
+        modalName.textContent = t("home.modal.member");
         modalDescription.textContent = "";
 
         lastFocused?.focus({

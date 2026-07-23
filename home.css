@@ -163,7 +163,7 @@ body.home-page .home-hero::before {
 }
 
 body.home-page .home-hero::after {
-  content: "IDEEST MÕJUNI";
+  content: var(--i18n-home-hero-route, "IDEEST MÕJUNI");
   position: absolute;
   z-index: -1;
   right: -35px;
@@ -2126,7 +2126,7 @@ body.home-page .home-news-section::before {
 }
 
 body.home-page .home-news-section::after {
-  content: "UUDISED";
+  content: var(--i18n-home-news-label, "UUDISED");
   position: absolute;
   right: -35px;
   bottom: -36px;
@@ -3830,5 +3830,16 @@ body.home-page .home-news-small-media .home-news-photo-zoom {
 @media (prefers-reduced-motion: reduce) {
   body.home-page .home-news-photo-zoom {
     transition: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  html body.home-page .home-project-card
+  h3[data-i18n="home.projects.campTitle"] {
+    font-size: 24px;
+  }
+
+  html[lang="ru"] body.home-page .home-contact-panel h2 {
+    font-size: 36px;
   }
 }

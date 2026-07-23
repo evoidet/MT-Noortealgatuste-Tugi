@@ -1,7 +1,10 @@
 /* Documents page: reuses the complete Privacy Policy visual shell. */
 
 body.documents-page .privacy-new-hero::after {
-  content: "AVALIK • AJAKOHANE • USALDUSVÄÄRNE";
+  content: var(
+    --i18n-documents-hero-words,
+    "AVALIK • AJAKOHANE • USALDUSVÄÄRNE"
+  );
 }
 
 body.documents-page .privacy-intro-card::before {
@@ -370,6 +373,15 @@ body.documents-page .privacy-contact-panel::after {
     font-size: 35px;
   }
 
+  html[lang="et"] body.documents-page .documents-section-heading h2 {
+    font-size: 32px;
+  }
+
+  html[lang="ru"] body.documents-page .documents-section-heading h2 {
+    overflow-wrap: anywhere;
+    font-size: clamp(26px, 8vw, 30px);
+  }
+
   body.documents-page .document-item {
     grid-template-columns: 1fr;
   }
@@ -390,5 +402,17 @@ body.documents-page .privacy-contact-panel::after {
 
   body.documents-page .documents-source-note {
     padding: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  html[lang="ru"] body.documents-page .privacy-intro-card h2 {
+    font-size: 31px;
+  }
+
+  html[lang="et"] body.documents-page .documents-section-heading h2,
+  html[lang="en"] body.documents-page .documents-section-heading h2 {
+    overflow-wrap: anywhere;
+    font-size: 26px;
   }
 }

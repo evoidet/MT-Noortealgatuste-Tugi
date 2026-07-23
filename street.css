@@ -2115,7 +2115,7 @@ body.street-page .sdj-thanks-card::before {
 }
 
 body.street-page .sdj-thanks-card::after {
-  content: "THANK YOU";
+  content: var(--i18n-street-thank-you, "AITÄH");
   position: absolute;
   right: -22px;
   bottom: -35px;
@@ -3372,5 +3372,21 @@ body.street-page
 
     object-fit: contain;
     object-position: center;
+  }
+}
+
+@media (max-width: 360px) {
+  html[lang="et"] body.street-page
+  .sdj-section-heading h2 {
+    overflow-wrap: anywhere;
+    font-size: 28px;
+  }
+
+  html[lang="ru"] body.street-page .sdj-quote-card blockquote {
+    font-size: 29px;
+  }
+
+  html[lang="ru"] body.street-page .sdj-final-content h2 {
+    font-size: 40px;
   }
 }

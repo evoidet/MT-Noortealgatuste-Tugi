@@ -287,7 +287,7 @@ body.network-page .network-hero::before {
 }
 
 body.network-page .network-hero::after {
-  content: "VÕRGUSTIK";
+  content: var(--i18n-network-hero-label, "VÕRGUSTIK");
   position: absolute;
   right: -55px;
   bottom: 20px;
@@ -1146,6 +1146,15 @@ body.network-page .network-join-card h2 {
   letter-spacing: -0.047em;
 
   text-wrap: balance;
+}
+
+html[lang="en"] body.network-page .network-introduction-heading h2 {
+  font-size: clamp(40px, 4.4vw, 56px);
+}
+
+html[lang="ru"] body.network-page .network-introduction-heading h2 {
+  font-size: clamp(38px, 3.75vw, 48px);
+  letter-spacing: -0.035em;
 }
 
 body.network-page .network-section-heading > p,
@@ -4146,5 +4155,13 @@ body.network-page .network-logo-lightbox-close:focus-visible {
   body.network-page .network-member-logo::after,
   body.network-page .network-logo-lightbox-close {
     transition: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  html[lang="et"] body.network-page
+  [data-i18n="network.members.title"] {
+    overflow-wrap: anywhere;
+    font-size: 33px;
   }
 }

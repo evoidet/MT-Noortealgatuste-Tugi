@@ -128,7 +128,10 @@ body.privacy-page .privacy-new-hero {
 }
 
 body.privacy-page .privacy-new-hero::after {
-  content: "SELGE • VAJALIK • TURVALINE";
+  content: var(
+    --i18n-privacy-hero-words,
+    "SELGE • VAJALIK • TURVALINE"
+  );
   position: absolute;
   right: -120px;
   bottom: 24px;
@@ -231,6 +234,11 @@ body.privacy-page .privacy-new-hero h1 {
   letter-spacing: -0.045em;
   text-wrap: balance;
   text-shadow: 0 22px 60px rgba(0, 0, 0, 0.26);
+}
+
+html[lang="ru"] body.privacy-page .privacy-new-hero h1 {
+  overflow-wrap: anywhere;
+  font-size: clamp(34px, 6vw, 76px);
 }
 
 body.privacy-page .privacy-new-hero > .privacy-new-container > p {
@@ -1147,7 +1155,11 @@ body.privacy-page .nav a::after {
 
 @media (max-width: 460px) {
   body.privacy-page .privacy-new-hero h1 {
-    font-size: 43px;
+    font-size: clamp(26px, 8.6vw, 39px);
+  }
+
+  html[lang="ru"] body.privacy-page .privacy-new-hero h1 {
+    font-size: clamp(22px, 7vw, 34px);
   }
 
   body.privacy-page .privacy-intro-card h2,
@@ -1190,5 +1202,18 @@ body.privacy-page .nav a::after {
   body.privacy-page .privacy-reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+@media (max-width: 380px) {
+  html[lang="ru"] body.privacy-page .privacy-intro-card h2 {
+    overflow-wrap: anywhere;
+    font-size: clamp(27px, 8vw, 30px);
+  }
+
+  html[lang="et"] body.privacy-page
+  [data-i18n="privacy.cards.providersTitle"] {
+    overflow-wrap: anywhere;
+    font-size: 26px;
   }
 }

@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#071833">
 
-  <title>Street Dance Jam 2025 | MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="street.meta.title">Street Dance Jam 2025 | MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
     content="Street Dance Jam tõi Ida-Virumaa noored kokku tänavatantsu, töötubade, tantsulahingute ja noorte omaalgatuse kaudu."
-  >
+   data-i18n-content="street.meta.description">
   <link rel="canonical" href="https://www.noortetugi.ee/street.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="et_EE">
   <meta
     property="og:title"
     content="Street Dance Jam 2025 | MTÜ Noortealgatuste Tugi"
-  >
+   data-i18n-content="street.meta.title">
   <meta
     property="og:description"
     content="Tänavatants, töötoad, tantsulahingud ja noorte omaalgatus Ida-Virumaal."
-  >
+   data-i18n-content="street.meta.ogDescription">
   <meta property="og:url" content="https://www.noortetugi.ee/street.html">
   <meta
     property="og:image"
@@ -34,7 +34,9 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/street.css?v=20260716">
+  <link rel="stylesheet" href="/street.css?v=20260723-4">
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
 </head>
 
 
@@ -50,21 +52,21 @@
       href="/"
       class="logo"
       aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
+     data-i18n-aria-label="common.a11y.homeLink">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
         width="1000"
         height="405"
-      >
+       data-i18n-alt="home.meta.title">
     </a>
 
     <!-- Переключатель языков -->
     <div
       class="language-switcher"
       aria-label="Keele valik"
-    >
+     data-i18n-aria-label="common.a11y.languageSelection">
       <button
         class="lang-button is-active"
         type="button"
@@ -101,14 +103,14 @@
       aria-label="Ava menüü"
       aria-expanded="false"
       aria-controls="mainNav"
-    >
+     data-i18n-aria-label="common.a11y.openMenu">
       ⋮
     </button>
 
     <!-- Навигация -->
-    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-      <a href="/">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+      <a href="/" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -119,19 +121,19 @@
           aria-haspopup="true"
           aria-current="page"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
-          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
-          <a href="/laager.html"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
-          <a href="/street.html" aria-current="page"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
+          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span data-i18n="common.nav.gala">Noorte tunnustusgala</span></a>
+          <a href="/laager.html"><span class="nav-projects-number">02</span><span data-i18n="common.nav.camp">Projektikirjutamise laager</span></a>
+          <a href="/street.html" aria-current="page"><span class="nav-projects-number">03</span><span data-i18n="common.nav.street">Street Dance Jam</span></a>
         </div>
       </div>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/dokumendid.html">Dokumendid</a>
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+      <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+      <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
+      <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
+      <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
 
   </div>
@@ -154,7 +156,7 @@
 
       <div class="sdj-hero-content">
 
-        <span class="sdj-eyebrow">
+        <span class="sdj-eyebrow" data-i18n="street.hero.eyebrow">
           NOORTELT NOORTELE
         </span>
 
@@ -167,7 +169,7 @@
           data-lightbox-type="logo"
           data-lightbox-kicker="SÜNDMUSE LOGO"
           data-lightbox-caption="Street Dance Jam 2025"
-        >
+         data-i18n-aria-label="street.hero.openLogo" data-i18n-data-lightbox-kicker="street.hero.logoKicker">
           <img
             src="assets/street-dance-jam/optimized/street-dance-jam-logo.webp"
             data-full="assets/street-dance-jam/street-dance-jam-logo.jpg"
@@ -180,22 +182,22 @@
           >
         </div>
 
-        <h1>
+        <h1 data-i18n="street.hero.title">
           Tänavatants, energia ja noorte omaalgatus
         </h1>
 
-        <p class="sdj-hero-description">
+        <p class="sdj-hero-description" data-i18n="street.hero.description">
           17. augustil 2025 toimus Kohtla-Järve Koolinoorte Loomemajas
           esmakordselt noorte korraldatud tänavatantsufestival
           Street Dance Jam 2025.
         </p>
 
         <div class="sdj-hero-buttons">
-          <a href="#sdj-about" class="sdj-button sdj-button-primary">
+          <a href="#sdj-about" class="sdj-button sdj-button-primary" data-i18n="street.hero.read">
             Loe sündmusest
           </a>
 
-          <a href="#sdj-gallery" class="sdj-button sdj-button-secondary">
+          <a href="#sdj-gallery" class="sdj-button sdj-button-secondary" data-i18n="street.hero.gallery">
             Vaata galeriid
           </a>
         </div>
@@ -210,7 +212,7 @@
         data-lightbox-type="poster"
         data-lightbox-kicker="ÜRITUSE PLAKAT"
         data-lightbox-caption="Street Dance Jam 2025 ürituse plakat"
-      >
+       data-i18n-aria-label="street.hero.openPoster" data-i18n-data-lightbox-caption="street.hero.posterCaption" data-i18n-data-lightbox-kicker="street.hero.posterKicker">
         <div class="sdj-poster-background"></div>
 
         <img
@@ -222,9 +224,9 @@
           height="1350"
           loading="lazy"
           decoding="async"
-        >
+         data-i18n-alt="street.hero.posterCaption">
 
-        <div class="sdj-poster-label">
+        <div class="sdj-poster-label" data-i18n="street.hero.first">
           Esimene Street Dance Jam
         </div>
       </div>
@@ -241,15 +243,15 @@
       <article class="sdj-info-card">
         <span class="sdj-info-number">01</span>
         <div>
-          <span class="sdj-info-label">Kuupäev</span>
-          <strong>17. august 2025</strong>
+          <span class="sdj-info-label" data-i18n="street.info.date">Kuupäev</span>
+          <strong data-i18n="street.info.dateValue">17. august 2025</strong>
         </div>
       </article>
 
       <article class="sdj-info-card">
         <span class="sdj-info-number">02</span>
         <div>
-          <span class="sdj-info-label">Asukoht</span>
+          <span class="sdj-info-label" data-i18n="street.info.location">Asukoht</span>
           <strong>Kohtla-Järve Koolinoorte Loomemaja</strong>
         </div>
       </article>
@@ -257,16 +259,16 @@
       <article class="sdj-info-card">
         <span class="sdj-info-number">03</span>
         <div>
-          <span class="sdj-info-label">Programm</span>
-          <strong>Tantsulahingud</strong>
+          <span class="sdj-info-label" data-i18n="street.info.program">Programm</span>
+          <strong data-i18n="street.info.battles">Tantsulahingud</strong>
         </div>
       </article>
 
       <article class="sdj-info-card">
         <span class="sdj-info-number">04</span>
         <div>
-          <span class="sdj-info-label">Korraldajad</span>
-          <strong>Noored koostöös partneritega</strong>
+          <span class="sdj-info-label" data-i18n="street.info.organisers">Korraldajad</span>
+          <strong data-i18n="street.info.organisersValue">Noored koostöös partneritega</strong>
         </div>
       </article>
 
@@ -280,9 +282,9 @@
     <div class="sdj-container">
 
       <div class="sdj-section-heading">
-        <span class="sdj-section-label">Sündmusest</span>
+        <span class="sdj-section-label" data-i18n="street.about.label">Sündmusest</span>
 
-        <h2>
+        <h2 data-i18n="street.about.title">
           Noorte ideest sündis tõeline tänavatantsufestival
         </h2>
       </div>
@@ -290,7 +292,7 @@
       <div class="sdj-about-grid">
 
         <div class="sdj-about-text">
-          <p>
+          <p data-i18n-html="street.about.text1">
             17. augustil 2025 toimus Kohtla-Järve Koolinoorte Loomemajas
             esmakordselt noortelt noortele korraldatud tänavatantsufestival
             <strong>Street Dance Jam 2025</strong>. Sündmus valmis
@@ -298,13 +300,13 @@
             noorte ühise algatusena.
           </p>
 
-          <p>
+          <p data-i18n="street.about.text2">
             Ürituse eesmärk oli tuua kokku tänavatantsu ja hiphop-kultuuri
             huvilised noored, pakkudes neile võimalust õppida, ennast proovile
             panna ning veeta aktiivselt aega loovas ja toetavas keskkonnas.
           </p>
 
-          <p>
+          <p data-i18n="street.about.text3">
             Kogu sündmus oli noorte endi planeeritud ja ellu viidud – alates
             idee väljatöötamisest kuni programmi koostamise, partneritega
             suhtlemise ja sündmuse korraldamiseni.
@@ -314,7 +316,7 @@
         <aside class="sdj-quote-card">
           <span class="sdj-quote-mark">“</span>
 
-          <blockquote>
+          <blockquote data-i18n="street.about.quote">
             Noorte ideed võivad kasvada suurteks, kvaliteetseteks ja
             inspireerivateks projektideks.
           </blockquote>
@@ -335,13 +337,13 @@
     <div class="sdj-container">
 
       <div class="sdj-section-heading sdj-section-heading-light">
-        <span class="sdj-section-label">Päeva programm</span>
+        <span class="sdj-section-label" data-i18n="street.program.label">Päeva programm</span>
 
-        <h2>
+        <h2 data-i18n="street.program.title">
           Üks päev täis liikumist, muusikat ja emotsioone
         </h2>
 
-        <p>
+        <p data-i18n="street.program.description">
           Festival ühendas praktilised töötoad, tänavatantsulahingud,
           muusika ja noorte omavahelise suhtlemise.
         </p>
@@ -354,9 +356,9 @@
 
           <div class="sdj-program-icon" aria-hidden="true">↗</div>
 
-          <h3>Breaking’u töötoad</h3>
+          <h3 data-i18n="street.program.breakingTitle">Breaking’u töötoad</h3>
 
-          <p>
+          <p data-i18n="street.program.breakingText">
             Algajad ja kogenumad osalejad õppisid uusi liikumisi ning
             tutvusid breaking’u põhielementidega.
           </p>
@@ -367,9 +369,9 @@
 
           <div class="sdj-program-icon" aria-hidden="true">★</div>
 
-          <h3>Hip-hopi töötoad</h3>
+          <h3 data-i18n="street.program.hiphopTitle">Hip-hopi töötoad</h3>
 
-          <p>
+          <p data-i18n="street.program.hiphopText">
             Osalejad said arendada oma tehnikat, rütmitunnetust,
             eneseväljendust ja lavalist julgust.
           </p>
@@ -380,9 +382,9 @@
 
           <div class="sdj-program-icon" aria-hidden="true">⚡</div>
 
-          <h3>Tantsulahingud</h3>
+          <h3 data-i18n="street.info.battles">Tantsulahingud</h3>
 
-          <p>
+          <p data-i18n="street.program.battlesText">
             Noored võistlesid neljas kategoorias, näidates üles loovust,
             julgust ja sportlikku vaimu.
           </p>
@@ -393,9 +395,9 @@
 
           <div class="sdj-program-icon" aria-hidden="true">♫</div>
 
-          <h3>DJ ja MC</h3>
+          <h3 data-i18n="street.program.djTitle">DJ ja MC</h3>
 
-          <p>
+          <p data-i18n="street.program.djText">
             Kogu päeva jooksul hoidsid meeleolu üleval DJ ja MC, kes lõid
             tõelise tänavafestivali atmosfääri.
           </p>
@@ -412,13 +414,13 @@
     <div class="sdj-container">
 
       <div class="sdj-section-heading">
-        <span class="sdj-section-label">Dance battles</span>
+        <span class="sdj-section-label" data-i18n="street.battles.label">Dance battles</span>
 
-        <h2>
+        <h2 data-i18n="street.battles.title">
           Neli võistluskategooriat
         </h2>
 
-        <p>
+        <p data-i18n="street.battles.description">
           Tantsulahingutes said osaleda nii algajad kui ka juba
           kogenumad noored tantsijad.
         </p>
@@ -429,25 +431,25 @@
         <article class="sdj-battle-card">
           <span>01</span>
           <h3>Breaking Beginners</h3>
-          <p>Breaking’u kategooria alustavatele tantsijatele.</p>
+          <p data-i18n="street.battles.breakingBeginners">Breaking’u kategooria alustavatele tantsijatele.</p>
         </article>
 
         <article class="sdj-battle-card">
           <span>02</span>
           <h3>Breaking Juniors</h3>
-          <p>Breaking’u kategooria noortele edasijõudnutele.</p>
+          <p data-i18n="street.battles.breakingJuniors">Breaking’u kategooria noortele edasijõudnutele.</p>
         </article>
 
         <article class="sdj-battle-card">
           <span>03</span>
           <h3>Hip-Hop Beginners</h3>
-          <p>Hip-hopi kategooria alustavatele tantsuhuvilistele.</p>
+          <p data-i18n="street.battles.hiphopBeginners">Hip-hopi kategooria alustavatele tantsuhuvilistele.</p>
         </article>
 
         <article class="sdj-battle-card">
           <span>04</span>
           <h3>Hip-Hop Juniors</h3>
-          <p>Hip-hopi kategooria kogenumatele noortele tantsijatele.</p>
+          <p data-i18n="street.battles.hiphopJuniors">Hip-hopi kategooria kogenumatele noortele tantsijatele.</p>
         </article>
 
       </div>
@@ -461,19 +463,19 @@
     <div class="sdj-container sdj-impact-grid">
 
       <div class="sdj-impact-content">
-        <span class="sdj-section-label">Noorte omaalgatus</span>
+        <span class="sdj-section-label" data-i18n="street.impact.label">Noorte omaalgatus</span>
 
-        <h2>
+        <h2 data-i18n="street.impact.title">
           Sündmus, mis andis noortele võimaluse ise juhtida ja korraldada
         </h2>
 
-        <p>
+        <p data-i18n="street.impact.text1">
           Street Dance Jam 2025 oli märgilise tähtsusega sündmus, sest
           tegemist oli ühe esimese suurema noortealgatusega, mis viidi ellu
           MTÜ Noortealgatuste Tugi toetusel.
         </p>
 
-        <p>
+        <p data-i18n="street.impact.text2">
           Organisatsioon aitas noortel oma idee reaalsuseks muuta ning pakkus
           vajalikku nõustamist ja tuge kogu ettevalmistusprotsessi jooksul.
         </p>
@@ -483,17 +485,17 @@
 
         <article>
           <strong>1.</strong>
-          <span>Street Dance Jam Kohtla-Järvel</span>
+          <span data-i18n="street.impact.location">Street Dance Jam Kohtla-Järvel</span>
         </article>
 
         <article>
           <strong>4</strong>
-          <span>tantsulahingu kategooriat</span>
+          <span data-i18n="street.impact.categories">tantsulahingu kategooriat</span>
         </article>
 
         <article>
           <strong>100%</strong>
-          <span>noorte enda algatus ja korraldus</span>
+          <span data-i18n="street.impact.youthLed">noorte enda algatus ja korraldus</span>
         </article>
 
       </div>
@@ -508,13 +510,13 @@
     <div class="sdj-container">
 
       <div class="sdj-section-heading">
-        <span class="sdj-section-label">Galerii</span>
+        <span class="sdj-section-label" data-i18n="street.gallery.label">Galerii</span>
 
-        <h2>
+        <h2 data-i18n="street.gallery.title">
           Hetked Street Dance Jamilt
         </h2>
 
-        <p>
+        <p data-i18n="street.gallery.description">
           Lisa siia fotod töötubadest, tantsulahingutest, osalejatest,
           publikust ja autasustamisest.
         </p>
@@ -532,8 +534,8 @@
             height="800"
             loading="lazy"
             decoding="async"
-          >
-          <figcaption>Professionalid</figcaption>
+           data-i18n-alt="street.gallery.battleAlt">
+          <figcaption data-i18n="street.gallery.professionals">Professionalid</figcaption>
         </figure>
 
         <!-- FOTO 2 -->
@@ -546,8 +548,8 @@
             height="800"
             loading="lazy"
             decoding="async"
-          >
-          <figcaption>Naljakad noored</figcaption>
+           data-i18n-alt="street.gallery.breakingAlt">
+          <figcaption data-i18n="street.gallery.fun">Naljakad noored</figcaption>
         </figure>
 
         <!-- FOTO 3 -->
@@ -560,8 +562,8 @@
             height="800"
             loading="lazy"
             decoding="async"
-          >
-          <figcaption>Hip-hopi töötuba</figcaption>
+           data-i18n-alt="street.gallery.hiphopAlt">
+          <figcaption data-i18n="street.gallery.hiphop">Hip-hopi töötuba</figcaption>
         </figure>
 
         <!-- FOTO 4 -->
@@ -574,8 +576,8 @@
             height="800"
             loading="lazy"
             decoding="async"
-          >
-          <figcaption>Posterid</figcaption>
+           data-i18n-alt="street.gallery.participantsAlt">
+          <figcaption data-i18n="street.gallery.posters">Posterid</figcaption>
         </figure>
 
         <!-- FOTO 5 -->
@@ -588,8 +590,8 @@
             height="800"
             loading="lazy"
             decoding="async"
-          >
-          <figcaption>Osalejad</figcaption>
+           data-i18n-alt="street.gallery.audienceAlt">
+          <figcaption data-i18n="street.gallery.participants">Osalejad</figcaption>
         </figure>
 
         <!-- FOTO 6 -->
@@ -602,8 +604,8 @@
             height="800"
             loading="lazy"
             decoding="async"
-          >
-          <figcaption>Veel osalejad</figcaption>
+           data-i18n-alt="street.gallery.teamAlt">
+          <figcaption data-i18n="street.gallery.moreParticipants">Veel osalejad</figcaption>
         </figure>
 
       </div>
@@ -621,13 +623,13 @@
       </div>
 
       <div class="sdj-thanks-content">
-        <span class="sdj-section-label">Suur tänu</span>
+        <span class="sdj-section-label" data-i18n="street.thanks.label">Suur tänu</span>
 
-        <h2>
+        <h2 data-i18n="street.thanks.title">
           Täname kõiki, kes aitasid sündmuse ellu viia
         </h2>
 
-        <p>
+        <p data-i18n="street.thanks.description">
           Täname südamest kõiki osalejaid, vabatahtlikke,
           koostööpartnereid ja toetajaid. Tänu ühisele tööle oli võimalik
           kutsuda DJ, korraldada auhinnad võitjatele ning luua noortele
@@ -649,11 +651,11 @@
         STREET DANCE JAM 2025
       </span>
 
-      <h2>
+      <h2 data-i18n="street.cta.title">
         Kohtla-Järvel on aktiivsed, loovad ja ettevõtlikud noored.
       </h2>
 
-      <p>
+      <p data-i18n="street.cta.description">
         Street Dance Jam oli alles algus ning andis tugeva aluse uute
         noortealgatuste ja tänavatantsu traditsioonide kujunemisele linnas.
       </p>
@@ -661,7 +663,7 @@
       <a
         href="mailto:juhatus@noortetugi.ee"
         class="sdj-button sdj-button-primary"
-      >
+       data-i18n="gala.contact.title">
         Võta meiega ühendust
       </a>
     </div>
@@ -677,9 +679,9 @@
 
     <!-- Organisatsioon -->
     <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
+      <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
 
-      <p>
+      <p data-i18n="common.footer.brandText">
         Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
         Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
       </p>
@@ -735,21 +737,21 @@
 
     <!-- Kiirlingid -->
     <div class="footer-column">
-      <h4>Kiirlingid</h4>
+      <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
 
-      <a href="index.html">Avaleht</a>
-      <a href="index.html#about">Meist</a>
-      <a href="index.html#projects">Projektid</a>
-      <a href="index.html#news">Uudised</a>
-      <a href="index.html#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      <a href="index.html" data-i18n="common.nav.home">Avaleht</a>
+      <a href="index.html#about" data-i18n="common.footer.about">Meist</a>
+      <a href="index.html#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+      <a href="index.html#news" data-i18n="common.nav.news">Uudised</a>
+      <a href="index.html#newsletter" data-i18n="common.footer.newsletter">Infokiri</a>
+      <a href="mailto:juhatus@noortetugi.ee" data-i18n="common.nav.contact">Kontakt</a>
     </div>
 
     <!-- Kontakt -->
     <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
+      <h4 data-i18n="common.nav.contact">Kontakt</h4>
 
-      <p>📍 Ida-Virumaa, Eesti</p>
+      <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
 
       <a href="mailto:juhatus@noortetugi.ee">
         ✉️ juhatus@noortetugi.ee
@@ -762,20 +764,20 @@
   </div>
 
   <div class="footer-bottom">
-    <p>
+    <p data-i18n="common.footer.copyright">
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-      <a href="privaatsuspoliitika.html">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+      <a href="privaatsuspoliitika.html" data-i18n="common.nav.privacy">
         Privaatsuspoliitika
       </a>
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
-      <strong>MTÜ Noortealgatuste Tugi</strong><br>
+      <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
       Ametlik veebileht: noortetugi.ee<br>
       Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>
@@ -790,6 +792,7 @@
 
 <script>
   (() => {
+    const t = (key) => window.I18N?.t(key) || "";
     const page = document.querySelector(".street-page");
     if (!page) return;
 
@@ -956,7 +959,7 @@
         <button
           class="sdj-lightbox-close"
           type="button"
-          aria-label="Sulge suur foto"
+          aria-label="${t("common.a11y.closeLargePhoto")}"
         >
           <span aria-hidden="true">×</span>
         </button>
@@ -971,7 +974,7 @@
             <p class="sdj-lightbox-type"></p>
             <h2 id="sdjLightboxTitle">Street Dance Jam 2025</h2>
             <span class="sdj-lightbox-hint">
-              Sulgemiseks vajuta ristile, taustale või klahvile Esc
+              ${t("common.a11y.photoHint")}
             </span>
           </div>
         </div>
@@ -1006,7 +1009,7 @@
           type,
           kicker:
             trigger.dataset.lightboxKicker ||
-            (type === "gallery" ? "GALERII" : "STREET DANCE JAM"),
+            (type === "gallery" ? t("street.lightbox.gallery") : "STREET DANCE JAM"),
           title:
             trigger.dataset.lightboxCaption ||
             galleryCaption?.textContent?.trim() ||
@@ -1043,10 +1046,10 @@
         lightboxKicker.textContent = data.kicker;
         lightboxType.textContent =
           data.type === "logo"
-            ? "Sündmuse visuaalne identiteet"
+            ? t("street.lightbox.identity")
             : data.type === "poster"
               ? "Street Dance Jam 2025"
-              : "Hetk sündmuselt";
+              : t("street.lightbox.moment");
         lightboxTitle.textContent = data.title;
 
         lightbox.hidden = false;

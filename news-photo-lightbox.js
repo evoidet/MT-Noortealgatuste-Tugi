@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  const t = (key) => window.I18N?.t(key) || "";
+
   const MEDIA_SELECTOR = [
     ".news-featured-media",
     ".news-card-media",
@@ -20,14 +22,16 @@
     <button
       class="news-photo-lightbox-close"
       type="button"
-      aria-label="Sulge suur foto"
+      aria-label="${t("common.a11y.closeLargePhoto")}"
     >
       <span aria-hidden="true">×</span>
     </button>
 
     <div class="news-photo-lightbox-card" role="document">
       <div class="news-photo-lightbox-visual">
-        <span class="news-photo-lightbox-kicker">UUDISE FOTO</span>
+        <span class="news-photo-lightbox-kicker">${t(
+          "news.lightbox.kicker"
+        )}</span>
 
         <img
           class="news-photo-lightbox-image"
@@ -38,10 +42,10 @@
 
       <div class="news-photo-lightbox-caption">
         <p class="news-photo-lightbox-meta"></p>
-        <h2 id="newsPhotoLightboxTitle">Uudise foto</h2>
+        <h2 id="newsPhotoLightboxTitle">${t("news.ui.photo")}</h2>
 
         <span class="news-photo-lightbox-hint">
-          Sulgemiseks vajuta ristile, taustale või klahvile Esc
+          ${t("common.a11y.photoHint")}
         </span>
       </div>
     </div>
@@ -125,7 +129,7 @@
       title:
         title ||
         normalizeText(image.alt) ||
-        "Uudise foto",
+        t("news.ui.photo"),
 
       meta:
         meta ||
@@ -205,7 +209,7 @@
       lightbox.hidden = true;
       lightboxImage.removeAttribute("src");
       lightboxImage.alt = "";
-      lightboxTitle.textContent = "Uudise foto";
+      lightboxTitle.textContent = t("news.ui.photo");
       lightboxMeta.textContent = "";
 
       lastFocusedMedia?.focus({
@@ -249,7 +253,7 @@
       media.setAttribute("aria-haspopup", "dialog");
       media.setAttribute(
         "aria-label",
-        "Ava uudise foto suurelt"
+        t("news.lightbox.open")
       );
     });
   };

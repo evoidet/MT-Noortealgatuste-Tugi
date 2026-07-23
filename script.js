@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", function () {
      ========================================================= */
 
   const siteConfig = window.SITE_CONFIG || {};
+  const t = function (key, variables) {
+    return window.I18N?.t(key, variables) || "";
+  };
 
   function setText(element, message) {
     if (element) {
@@ -80,7 +83,8 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   /* =========================================================
-     VÄLISED LINGID JA KEELEVALIK
+     VÄLISED LINGID
+     Keelevalikut haldab i18n.js.
      ========================================================= */
 
   (function initConfiguredLinks() {
@@ -97,34 +101,6 @@ document.addEventListener("DOMContentLoaded", function () {
         link.hidden = true;
         link.removeAttribute("href");
       }
-    });
-  })();
-
-  (function initLanguageSwitcher() {
-    const languageUrls = siteConfig.languageUrls || {};
-
-    document.querySelectorAll(".lang-button").forEach(function (button) {
-      const language = button.dataset.lang;
-      const isCurrent = button.classList.contains("is-active");
-      const url = languageUrls[language];
-
-      if (isCurrent) {
-        button.disabled = false;
-        return;
-      }
-
-      if (typeof url !== "string" || !url.trim()) {
-        button.disabled = true;
-        button.setAttribute("aria-disabled", "true");
-        button.title = "Tõlge lisatakse peagi";
-        return;
-      }
-
-      button.disabled = false;
-      button.removeAttribute("aria-disabled");
-      button.addEventListener("click", function () {
-        window.location.assign(url.trim());
-      });
     });
   })();
 
@@ -181,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (legal) {
         const heading = document.createElement("h4");
-        heading.textContent = "Ametlik info";
+        heading.textContent = t("common.footer.officialTitle");
 
         const details = document.createElement("p");
         const name = document.createElement("strong");
@@ -192,8 +168,11 @@ document.addEventListener("DOMContentLoaded", function () {
         email.textContent = "juhatus@noortetugi.ee";
 
         details.append(name, document.createElement("br"));
-        details.append("Registrikood: 80652930", document.createElement("br"));
-        details.append("E-post: ", email);
+        details.append(
+          t("common.footer.registrationCode"),
+          document.createElement("br")
+        );
+        details.append(t("common.footer.emailLabel") + " ", email);
 
         const donation = document.createElement("div");
         const donationHeading = document.createElement("h5");
@@ -203,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const donationIban = document.createElement("span");
 
         donation.className = "footer-donation";
-        donationHeading.textContent = "Annetused";
+        donationHeading.textContent = t("common.footer.donations");
         donationDetails.className = "footer-donation-details";
         donationRecipient.className = "footer-donation-recipient";
         donationRecipient.textContent = "MTÜ Noortealgatuste Tugi";
@@ -228,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const bottomLinks = footer.querySelector(".footer-bottom-links");
 
       bottomLinks?.querySelectorAll("a").forEach(function (link) {
-        if (link.textContent.trim() !== "Privaatsuspoliitika") {
+        if (!link.getAttribute("href")?.includes("privaatsuspoliitika")) {
           link.remove();
         }
       });
@@ -245,8 +224,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     button.type = "button";
     button.className = "back-to-top";
-    button.setAttribute("aria-label", "Tagasi lehe algusesse");
-    button.title = "Tagasi üles";
+    button.setAttribute("aria-label", t("common.a11y.backToTop"));
+    button.title = t("common.a11y.backToTopTitle");
     button.innerHTML = '<span aria-hidden="true">↑</span>';
     document.body.appendChild(button);
 
@@ -300,7 +279,7 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
       setText(
         status,
-        "Kontaktvorm ei ole veel teenusega ühendatud. Palun kirjuta aadressile juhatus@noortetugi.ee."
+        t("common.form.unconfigured")
       );
 
       status?.focus();
@@ -343,7 +322,7 @@ document.addEventListener("DOMContentLoaded", function () {
       !secondsElement ||
       !finishedElement
     ) {
-      console.error("Не найдены элементы таймера гала");
+      console.error("Gala countdown elements are missing.");
       return;
     }
 
@@ -352,8 +331,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const targetDate = Date.parse(dateText);
 
     if (Number.isNaN(targetDate)) {
-      console.error("Неправильная дата гала:", dateText);
-      finishedElement.textContent = "Kuupäev ei ole õigesti määratud.";
+      console.error("The gala date is invalid:", dateText);
+      finishedElement.textContent = t("gala.countdown.invalid");
       return;
     }
 
@@ -368,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
         hoursElement.textContent = "00";
         minutesElement.textContent = "00";
         secondsElement.textContent = "00";
-        finishedElement.textContent = "Kandidaatide esitamise aeg on läbi!";
+        finishedElement.textContent = t("gala.countdown.finished");
 
         if (intervalId !== null) {
           window.clearInterval(intervalId);
@@ -419,7 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
       !secondsElement ||
       !finishedElement
     ) {
-      console.error("Не найдены элементы таймера лагеря");
+      console.error("Camp countdown elements are missing.");
       return;
     }
 
@@ -427,8 +406,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const targetDate = Date.parse(dateText);
 
     if (Number.isNaN(targetDate)) {
-      console.error("Неправильная дата лагеря:", dateText);
-      finishedElement.textContent = "Laagri kuupäev ei ole õigesti määratud.";
+      console.error("The camp date is invalid:", dateText);
+      finishedElement.textContent = t("camp.countdown.invalid");
       return;
     }
 
@@ -443,7 +422,7 @@ document.addEventListener("DOMContentLoaded", function () {
         hoursElement.textContent = "00";
         minutesElement.textContent = "00";
         secondsElement.textContent = "00";
-        finishedElement.textContent = "Laager on alanud!";
+        finishedElement.textContent = t("camp.countdown.started");
 
         if (intervalId !== null) {
           window.clearInterval(intervalId);

@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Võrgustik | MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="network.meta.title">Võrgustik | MTÜ Noortealgatuste Tugi</title>
 
   <meta
     name="description"
     content="Tutvu Ida-Virumaa noorteühenduste võrgustikku kuuluvate organisatsioonidega ning leia uusi koostöövõimalusi."
-  >
+   data-i18n-content="network.meta.description">
   <meta name="theme-color" content="#0e3b03">
   <link rel="canonical" href="https://www.noortetugi.ee/vorgustik.html">
   <meta property="og:type" content="website">
@@ -17,11 +17,11 @@
   <meta
     property="og:title"
     content="Võrgustik | MTÜ Noortealgatuste Tugi"
-  >
+   data-i18n-content="network.meta.title">
   <meta
     property="og:description"
     content="Tutvu Ida-Virumaa noorteühendustega ja leia uusi koostöövõimalusi."
-  >
+   data-i18n-content="network.meta.ogDescription">
   <meta property="og:url" content="https://www.noortetugi.ee/vorgustik.html">
   <meta
     property="og:image"
@@ -34,7 +34,9 @@
   <link rel="apple-touch-icon" href="/favicon.png">
 
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/vorgustik.css">
+  <link rel="stylesheet" href="/vorgustik.css?v=20260723-2">
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
 </head>
 
 <body class="network-page">
@@ -54,17 +56,17 @@
         href="/"
         class="logo"
         aria-label="MTÜ Noortealgatuste Tugi avaleht"
-      >
+       data-i18n-aria-label="common.a11y.homeLink">
         <img
           src="/assets/logo-header.png"
           alt="MTÜ Noortealgatuste Tugi"
           class="logo-img"
           width="1000"
           height="405"
-        >
+         data-i18n-alt="home.meta.title">
       </a>
 
-      <div class="language-switcher" aria-label="Keele valik">
+      <div class="language-switcher" aria-label="Keele valik" data-i18n-aria-label="common.a11y.languageSelection">
         <button
           class="lang-button is-active"
           type="button"
@@ -100,13 +102,13 @@
         aria-label="Ava menüü"
         aria-expanded="false"
         aria-controls="mainNav"
-      >
+       data-i18n-aria-label="common.a11y.openMenu">
         ⋮
       </button>
 
-      <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-        <a href="/">Avaleht</a>
-        <a href="/uudised.html">Uudised</a>
+      <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+        <a href="/" data-i18n="common.nav.home">Avaleht</a>
+        <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -116,19 +118,19 @@
           aria-controls="projectsMenu"
           aria-haspopup="true"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
-          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
-          <a href="/laager.html"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
-          <a href="/street.html"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
+          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span data-i18n="common.nav.gala">Noorte tunnustusgala</span></a>
+          <a href="/laager.html"><span class="nav-projects-number">02</span><span data-i18n="common.nav.camp">Projektikirjutamise laager</span></a>
+          <a href="/street.html"><span class="nav-projects-number">03</span><span data-i18n="common.nav.street">Street Dance Jam</span></a>
         </div>
       </div>
-        <a href="/vorgustik.html" aria-current="page">Võrgustik</a>
-        <a href="/#contact">Kontakt</a>
-        <a href="/dokumendid.html">Dokumendid</a>
-        <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+        <a href="/vorgustik.html" aria-current="page" data-i18n="common.nav.network">Võrgustik</a>
+        <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
+        <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
+        <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
       </nav>
 
     </div>
@@ -147,17 +149,17 @@
 
         <div class="network-hero-content network-reveal">
           <div class="network-eyebrow">
-            <span>Ida-Virumaa noored</span>
+            <span data-i18n="network.hero.kickerPrefix">Ida-Virumaa noored</span>
             <i aria-hidden="true">✦</i>
-            <span>üks tugev võrgustik</span>
+            <span data-i18n="network.hero.kickerAccent">üks tugev võrgustik</span>
           </div>
 
           <h1>
-            Koos sünnivad
-            <span>suuremad ideed</span>
+            <span data-i18n="network.hero.titlePrefix">Koos sünnivad</span>
+            <span data-i18n="network.hero.titleAccent">suuremad ideed</span>
           </h1>
 
-          <p>
+          <p data-i18n="network.hero.description">
             MTÜ Noortealgatuste Tugi võrgustik ühendab Ida-Virumaa
             organisatsioone, kes loovad noortele võimalusi, arendavad
             kogukonda ja viivad ellu tähenduslikke algatusi.
@@ -165,21 +167,23 @@
 
           <div class="network-hero-actions">
             <a class="network-button network-button-primary" href="#members">
-              Tutvu võrgustikuga
+              <span data-i18n="network.hero.explore">Tutvu võrgustikuga</span>
               <span aria-hidden="true">↘</span>
             </a>
 
             <a
               class="network-button network-button-secondary"
               href="mailto:juhatus@noortetugi.ee?subject=Soovin%20liituda%20v%C3%B5rgustikuga"
-            >
+             data-i18n="network.hero.join">
               Soovin liituda
             </a>
           </div>
 
           <div class="network-hero-note">
             <span aria-hidden="true">●</span>
-            Koostöö, kogemuste jagamine ja ühine mõju Ida-Virumaal
+            <strong data-i18n="network.hero.tagline">
+              Koostöö, kogemuste jagamine ja ühine mõju Ida-Virumaal
+            </strong>
           </div>
         </div>
 
@@ -200,7 +204,7 @@
                 width="500"
                 height="500"
               >
-              <strong>Meie võrgustik</strong>
+              <strong data-i18n="network.hero.ourNetwork">Meie võrgustik</strong>
               <span>Ida-Virumaa</span>
             </div>
 
@@ -214,17 +218,17 @@
 
           <div class="network-floating-card network-floating-card-one">
             <span>01</span>
-            Koostöö
+            <strong data-i18n="network.hero.cooperation">Koostöö</strong>
           </div>
 
           <div class="network-floating-card network-floating-card-two">
             <span>02</span>
-            Uued võimalused
+            <strong data-i18n="network.hero.opportunities">Uued võimalused</strong>
           </div>
 
           <div class="network-floating-card network-floating-card-three">
             <span>03</span>
-            Ühine mõju
+            <strong data-i18n="network.hero.impact">Ühine mõju</strong>
           </div>
         </div>
 
@@ -238,16 +242,16 @@
         <div class="network-introduction-card network-reveal">
 
           <div class="network-introduction-heading">
-            <span class="network-section-label">Meie ühine eesmärk</span>
-            <h2>Usume, et koostöös peitub jõud.</h2>
-            <p class="network-introduction-lead">
+            <span class="network-section-label" data-i18n="network.about.label">Meie ühine eesmärk</span>
+            <h2 data-i18n="network.about.title">Usume, et koostöös peitub jõud.</h2>
+            <p class="network-introduction-lead" data-i18n="network.about.lead">
               Ida-Virumaa noortevaldkond vajab tähelepanu just siin ja praegu –
               sest just noored kujundavad homset maakonda.
             </p>
           </div>
 
           <div class="network-introduction-copy">
-            <p>
+            <p data-i18n="network.about.text1">
               MTÜ Noortealgatuste Tugi on algatanud ja kokku kutsunud
               Ida-Virumaa noorteühenduste maakondliku võrgustiku, mille eesmärk
               on koondada ja vahendada ajakohast infot noorteprojektide,
@@ -255,21 +259,21 @@
               algatuste kohta.
             </p>
 
-            <p>
+            <p data-i18n="network.about.text2">
               Lisaks loob võrgustik võimalusi osaleda ühistes aruteludes ja
               kohtumistel, teha ettepanekuid uute koostööalgatuste käivitamiseks
               ning jagada üksteise tegevusi ja saavutusi oma infokanalites.
             </p>
 
-            <p>
+            <p data-i18n="network.about.text3">
               Võrgustikku kuuluvad nii noortevolikogud kui ka teised
               noorteorganisatsioonid, kellega on võimalik tutvuda allpool.
             </p>
 
             <div class="network-introduction-join">
               <div>
-                <strong>Kuidas liituda?</strong>
-                <p>
+                <strong data-i18n="network.about.joinTitle">Kuidas liituda?</strong>
+                <p data-i18n="network.about.joinText">
                   Kui ka sinu noorteühendus soovib panustada maakondliku koostöö
                   arendamisse ja Ida-Virumaa noortevaldkonna tugevdamisse, siis
                   liitu meie võrgustikuga.
@@ -291,18 +295,18 @@
 
     <!-- ================= MARQUEE ================= -->
 
-    <section class="network-marquee" aria-label="Võrgustiku märksõnad">
+    <section class="network-marquee" aria-label="Võrgustiku märksõnad" data-i18n-aria-label="network.marquee.label">
       <div class="network-marquee-track" aria-hidden="true">
-        <span>KOOSTÖÖ</span><i>✦</i>
-        <span>NOORTE IDEED</span><i>✦</i>
+        <span data-i18n="network.marquee.cooperation">KOOSTÖÖ</span><i>✦</i>
+        <span data-i18n="network.marquee.ideas">NOORTE IDEED</span><i>✦</i>
         <span>IDA-VIRUMAA</span><i>✦</i>
-        <span>ÜHINE MÕJU</span><i>✦</i>
-        <span>ARENG</span><i>✦</i>
-        <span>KOOSTÖÖ</span><i>✦</i>
-        <span>NOORTE IDEED</span><i>✦</i>
+        <span data-i18n="network.marquee.impact">ÜHINE MÕJU</span><i>✦</i>
+        <span data-i18n="network.marquee.growth">ARENG</span><i>✦</i>
+        <span data-i18n="network.marquee.cooperation">KOOSTÖÖ</span><i>✦</i>
+        <span data-i18n="network.marquee.ideas">NOORTE IDEED</span><i>✦</i>
         <span>IDA-VIRUMAA</span><i>✦</i>
-        <span>ÜHINE MÕJU</span><i>✦</i>
-        <span>ARENG</span><i>✦</i>
+        <span data-i18n="network.marquee.impact">ÜHINE MÕJU</span><i>✦</i>
+        <span data-i18n="network.marquee.growth">ARENG</span><i>✦</i>
       </div>
     </section>
 
@@ -313,9 +317,9 @@
 
         <div class="network-members-header">
           <div class="network-section-heading network-reveal">
-            <span class="network-section-label">Meie liikmed</span>
-            <h2>Organisatsioonid meie võrgustikus</h2>
-            <p>
+            <span class="network-section-label" data-i18n="network.members.label">Meie liikmed</span>
+            <h2 data-i18n="network.members.title">Organisatsioonid meie võrgustikus</h2>
+            <p data-i18n="network.members.description">
               Võrgustikus on kokku kuus organisatsiooni ning kõigi liikmete
               profiilid on nüüd avaldatud.
             </p>
@@ -326,7 +330,7 @@
             style="--network-delay: 120ms"
           >
             <strong id="networkVisibleCount">6</strong>
-            <span>avaldatud profiili nähtaval</span>
+            <span data-i18n="network.members.visible">avaldatud profiili nähtaval</span>
           </div>
         </div>
 
@@ -339,20 +343,20 @@
               type="search"
               placeholder="Otsi nime, linna või tegevuse järgi..."
               autocomplete="off"
-            >
+             data-i18n-placeholder="network.members.searchPlaceholder">
           </label>
 
           <div
             class="network-filters"
             role="group"
             aria-label="Filtreeri organisatsioone"
-          >
+           data-i18n-aria-label="network.members.filterLabel">
             <button
               class="network-filter is-active"
               type="button"
               data-filter="all"
               aria-pressed="true"
-            >
+             data-i18n="network.members.all">
               Kõik
             </button>
 
@@ -361,7 +365,7 @@
               type="button"
               data-filter="noorteuhendus"
               aria-pressed="false"
-            >
+             data-i18n="network.members.organisations">
               Noorteühendused
             </button>
 
@@ -370,7 +374,7 @@
               type="button"
               data-filter="osaluskogu"
               aria-pressed="false"
-            >
+             data-i18n="network.members.councils">
               Osaluskogud
             </button>
           </div>
@@ -391,32 +395,32 @@
               <div class="network-member-logo">
                 <span class="network-member-logo-fallback" aria-hidden="true">SN</span>
               </div>
-              <span class="network-member-type">Osaluskogu</span>
+              <span class="network-member-type" data-i18n="network.members.council">Osaluskogu</span>
             </div>
 
             <div class="network-member-content">
               <h3>Sillamäe Noortenõukogu</h3>
-              <p>
+              <p data-i18n="network.members.sillamaeDescription">
                 Esindame noorte huve linnatasandil, aitame korraldada erinevaid
                 üritusi ning suhtleme aktiivselt kohalike noortega.
               </p>
 
               <div class="network-member-tags">
                 <span>Sillamäe</span>
-                <span>Noorte esindamine</span>
+                <span data-i18n="network.members.representation">Noorte esindamine</span>
               </div>
 
               <dl class="network-member-details">
                 <div>
-                  <dt>Asukoht</dt>
+                  <dt data-i18n="network.members.location">Asukoht</dt>
                   <dd>Kesk tn 27, Sillamäe</dd>
                 </div>
                 <div>
-                  <dt>Telefon</dt>
+                  <dt data-i18n="network.members.phone">Telefon</dt>
                   <dd><a href="tel:+37256609722">+372 5660 9722</a></dd>
                 </div>
                 <div>
-                  <dt>E-post</dt>
+                  <dt data-i18n="network.members.email">E-post</dt>
                   <dd>
                     <a href="mailto:sapoval.alexander@gmail.com">
                       sapoval.alexander@gmail.com
@@ -425,7 +429,7 @@
                 </div>
               </dl>
 
-              <div class="network-member-socials" aria-label="Sotsiaalmeedia">
+              <div class="network-member-socials" aria-label="Sotsiaalmeedia" data-i18n-aria-label="network.members.social">
                 <a
                   href="https://www.instagram.com/sillanoortekogu/?igsh=YWE3eGJ5N3FpZjMw"
                   target="_blank"
@@ -437,13 +441,14 @@
             </div>
 
             <div class="network-member-footer">
-              <a href="mailto:sapoval.alexander@gmail.com">Kirjuta</a>
+              <a href="mailto:sapoval.alexander@gmail.com" data-i18n="network.members.write">Kirjuta</a>
               <a
                 href="https://www.sillamae.ee/et/haridus-noored-kultuur-sport/noored/sillamae-linna-noortenoukogu"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Koduleht <span aria-hidden="true">↗</span>
+                <span data-i18n="network.members.website">Koduleht</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </div>
           </article>
@@ -467,16 +472,16 @@
                   height="180"
                   loading="lazy"
                   onerror="this.remove()"
-                >
+                 data-i18n-alt="network.members.logoAlutaguse">
               </div>
 
-              <span class="network-member-type">Osaluskogu</span>
+              <span class="network-member-type" data-i18n="network.members.council">Osaluskogu</span>
             </div>
 
             <div class="network-member-content">
               <h3>Alutaguse valla noortevolikogu</h3>
 
-              <p>
+              <p data-i18n="network.members.alutaguseDescription">
                 Noortevolikogu arutab noori puudutavaid valla pädevusse kuuluvaid
                 küsimusi ning teeb vallavolikogule noorte huvidest ja vajadustest
                 lähtuvaid ettepanekuid. Samuti tehakse koostööd teiste
@@ -486,24 +491,24 @@
 
               <div class="network-member-tags">
                 <span>Alutaguse vald</span>
-                <span>Noorte osalus</span>
+                <span data-i18n="network.members.participation">Noorte osalus</span>
               </div>
 
               <dl class="network-member-details">
                 <div>
-                  <dt>Asukoht</dt>
+                  <dt data-i18n="network.members.location">Asukoht</dt>
                   <dd>Pargi tn 5, Mäetaguse</dd>
                 </div>
 
                 <div>
-                  <dt>Telefon</dt>
+                  <dt data-i18n="network.members.phone">Telefon</dt>
                   <dd>
                     <a href="tel:+37258878109">+372 5887 8109</a>
                   </dd>
                 </div>
 
                 <div>
-                  <dt>E-post</dt>
+                  <dt data-i18n="network.members.email">E-post</dt>
                   <dd>
                     <a href="mailto:noortevolikogu@alutaguse.edu.ee">
                       noortevolikogu@alutaguse.edu.ee
@@ -512,7 +517,7 @@
                 </div>
               </dl>
 
-              <div class="network-member-socials" aria-label="Sotsiaalmeedia">
+              <div class="network-member-socials" aria-label="Sotsiaalmeedia" data-i18n-aria-label="network.members.social">
                 <a
                   href="https://www.tiktok.com/@alutaguse.noortevolikogu?_r=1&_t=ZN-97eGpg79UKU"
                   target="_blank"
@@ -540,7 +545,7 @@
             </div>
 
             <div class="network-member-footer">
-              <a href="mailto:noortevolikogu@alutaguse.edu.ee">
+              <a href="mailto:noortevolikogu@alutaguse.edu.ee" data-i18n="network.members.write">
                 Kirjuta
               </a>
 
@@ -549,7 +554,8 @@
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Koduleht <span aria-hidden="true">↗</span>
+                <span data-i18n="network.members.website">Koduleht</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </div>
           </article>
@@ -572,14 +578,14 @@
                   height="180"
                   loading="lazy"
                   onerror="this.remove()"
-                >
+                 data-i18n-alt="network.members.logoKohtla">
               </div>
-              <span class="network-member-type">Osaluskogu</span>
+              <span class="network-member-type" data-i18n="network.members.council">Osaluskogu</span>
             </div>
 
             <div class="network-member-content">
               <h3>Kohtla-Järve noortevolikogu</h3>
-              <p>
+              <p data-i18n="network.members.kohtlaDescription">
                 Noortevolikogu kaitseb noorte huve, julgustab kodanikualgatust
                 ja kaasab noori linna otsustusprotsessidesse. Samuti arutatakse
                 noori puudutavaid küsimusi ning tehakse linnavolikogule
@@ -588,20 +594,20 @@
 
               <div class="network-member-tags">
                 <span>Kohtla-Järve</span>
-                <span>Noorte osalus</span>
+                <span data-i18n="network.members.participation">Noorte osalus</span>
               </div>
 
               <dl class="network-member-details">
                 <div>
-                  <dt>Asukoht</dt>
+                  <dt data-i18n="network.members.location">Asukoht</dt>
                   <dd>Järveküla tee 44, Kohtla-Järve</dd>
                 </div>
                 <div>
-                  <dt>Telefon</dt>
+                  <dt data-i18n="network.members.phone">Telefon</dt>
                   <dd><a href="tel:+37258362925">+372 5836 2925</a></dd>
                 </div>
                 <div>
-                  <dt>E-post</dt>
+                  <dt data-i18n="network.members.email">E-post</dt>
                   <dd>
                     <a href="mailto:kjnoortevolikogu@gmail.com">
                       kjnoortevolikogu@gmail.com
@@ -610,7 +616,7 @@
                 </div>
               </dl>
 
-              <div class="network-member-socials" aria-label="Sotsiaalmeedia">
+              <div class="network-member-socials" aria-label="Sotsiaalmeedia" data-i18n-aria-label="network.members.social">
                 <a
                   href="https://www.instagram.com/kj_noortevolikogu/?igsh=cG1vejJiYjZ6ODhm&utm_source=qr"
                   target="_blank"
@@ -636,7 +642,7 @@
             </div>
 
             <div class="network-member-footer">
-              <a href="mailto:kjnoortevolikogu@gmail.com">
+              <a href="mailto:kjnoortevolikogu@gmail.com" data-i18n="network.members.write">
                 Kirjuta
               </a>
 
@@ -646,7 +652,8 @@
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Koduleht <span aria-hidden="true">↗</span>
+                <span data-i18n="network.members.website">Koduleht</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </div>
             </article>
@@ -669,14 +676,14 @@
                   height="180"
                   loading="lazy"
                   onerror="this.remove()"
-                >
+                 data-i18n-alt="network.members.logoVolunteezy">
               </div>
-              <span class="network-member-type">Noorteühendus</span>
+              <span class="network-member-type" data-i18n="network.members.organisation">Noorteühendus</span>
             </div>
 
             <div class="network-member-content">
               <h3>MTÜ Volunteezy</h3>
-              <p>
+              <p data-i18n="network.members.volunteezyDescription">
                 Volunteezy on vabatahtlike kogukond, mis ühendab noori ja
                 organisatsioone ning vahendab vabatahtliku töö võimalusi eri
                 valdkondades. Osalemine aitab arendada juhtimis-,
@@ -686,20 +693,20 @@
 
               <div class="network-member-tags">
                 <span>Narva</span>
-                <span>Vabatahtlik tegevus</span>
+                <span data-i18n="network.members.volunteering">Vabatahtlik tegevus</span>
               </div>
 
               <dl class="network-member-details">
                 <div>
-                  <dt>Asukoht</dt>
+                  <dt data-i18n="network.members.location">Asukoht</dt>
                   <dd>Võidu 8a-18, Narva</dd>
                 </div>
                 <div>
-                  <dt>Telefon</dt>
+                  <dt data-i18n="network.members.phone">Telefon</dt>
                   <dd><a href="tel:+37254583030">+372 5458 3030</a></dd>
                 </div>
                 <div>
-                  <dt>E-post</dt>
+                  <dt data-i18n="network.members.email">E-post</dt>
                   <dd>
                     <a href="mailto:volunteezyoff@gmail.com">
                       volunteezyoff@gmail.com
@@ -708,7 +715,7 @@
                 </div>
               </dl>
 
-              <div class="network-member-socials" aria-label="Sotsiaalmeedia">
+              <div class="network-member-socials" aria-label="Sotsiaalmeedia" data-i18n-aria-label="network.members.social">
                 <a
                   href="https://t.me/volunteezyEE"
                   target="_blank"
@@ -734,13 +741,14 @@
             </div>
 
             <div class="network-member-footer">
-              <a href="mailto:volunteezyoff@gmail.com">Kirjuta</a>
+              <a href="mailto:volunteezyoff@gmail.com" data-i18n="network.members.write">Kirjuta</a>
               <a
                 href="https://linktr.ee/volunteezyest"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Kõik lingid <span aria-hidden="true">↗</span>
+                <span data-i18n="network.members.allLinks">Kõik lingid</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </div>
           </article>
@@ -763,14 +771,14 @@
                   height="180"
                   loading="lazy"
                   onerror="this.remove()"
-                >
+                 data-i18n-alt="network.members.logoNoorteaeg">
               </div>
-              <span class="network-member-type">Noorteühendus</span>
+              <span class="network-member-type" data-i18n="network.members.organisation">Noorteühendus</span>
             </div>
 
             <div class="network-member-content">
               <h3>MTÜ Noorteaeg</h3>
-              <p>
+              <p data-i18n="network.members.noorteaegDescription">
                 MTÜ Noorteaeg on Ida-Virumaal tegutsev noorteühendus, mis
                 korraldab noortele hariduslikke, kultuuri-, spordi- ja
                 kogukonnaüritusi. Eesmärk on anda noortele võimalusi algatada
@@ -780,20 +788,20 @@
 
               <div class="network-member-tags">
                 <span>Narva-Jõesuu</span>
-                <span>Noorte algatused</span>
+                <span data-i18n="network.members.initiatives">Noorte algatused</span>
               </div>
 
               <dl class="network-member-details">
                 <div>
-                  <dt>Asukoht</dt>
+                  <dt data-i18n="network.members.location">Asukoht</dt>
                   <dd>Kudruküla tn 1-3, Narva-Jõesuu</dd>
                 </div>
                 <div>
-                  <dt>Telefon</dt>
+                  <dt data-i18n="network.members.phone">Telefon</dt>
                   <dd><a href="tel:+37255572817">+372 5557 2817</a></dd>
                 </div>
                 <div>
-                  <dt>E-post</dt>
+                  <dt data-i18n="network.members.email">E-post</dt>
                   <dd>
                     <a href="mailto:noorteaeg@gmail.com">
                       noorteaeg@gmail.com
@@ -802,7 +810,7 @@
                 </div>
               </dl>
 
-              <div class="network-member-socials" aria-label="Sotsiaalmeedia">
+              <div class="network-member-socials" aria-label="Sotsiaalmeedia" data-i18n-aria-label="network.members.social">
                 <a
                   href="https://www.instagram.com/noorteaeg/"
                   target="_blank"
@@ -821,13 +829,14 @@
             </div>
 
             <div class="network-member-footer">
-              <a href="mailto:noorteaeg@gmail.com">Kirjuta</a>
+              <a href="mailto:noorteaeg@gmail.com" data-i18n="network.members.write">Kirjuta</a>
               <a
                 href="https://noorteaeg.ee"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Koduleht <span aria-hidden="true">↗</span>
+                <span data-i18n="network.members.website">Koduleht</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </div>
           </article>
@@ -850,34 +859,34 @@
                   height="1000"
                   loading="lazy"
                   onerror="this.remove()"
-                >
+                 data-i18n-alt="network.members.logoNva">
               </div>
-              <span class="network-member-type">Noorteühendus</span>
+              <span class="network-member-type" data-i18n="network.members.organisation">Noorteühendus</span>
             </div>
 
             <div class="network-member-content">
               <h3>MTÜ Noorte Vaba Algatus</h3>
-              <p>
+              <p data-i18n="network.members.nvaDescription">
                 MTÜ Noorte Vaba Algatus tegeleb noorte projektide algatamise
                 ja elluviimisega Narvas.
               </p>
 
               <div class="network-member-tags">
                 <span>Narva</span>
-                <span>Noorte projektid</span>
+                <span data-i18n="network.members.projects">Noorte projektid</span>
               </div>
 
               <dl class="network-member-details">
                 <div>
-                  <dt>Asukoht</dt>
+                  <dt data-i18n="network.members.location">Asukoht</dt>
                   <dd>Kangelaste 36-10, Narva</dd>
                 </div>
                 <div>
-                  <dt>Telefon</dt>
+                  <dt data-i18n="network.members.phone">Telefon</dt>
                   <dd><a href="tel:+37258069001">58069001</a></dd>
                 </div>
                 <div>
-                  <dt>E-post</dt>
+                  <dt data-i18n="network.members.email">E-post</dt>
                   <dd>
                     <a href="mailto:mtunoortevabaalgatus@gmail.com">
                       mtunoortevabaalgatus@gmail.com
@@ -886,7 +895,7 @@
                 </div>
               </dl>
 
-              <div class="network-member-socials" aria-label="Sotsiaalmeedia">
+              <div class="network-member-socials" aria-label="Sotsiaalmeedia" data-i18n-aria-label="network.members.social">
                 <a
                   href="https://www.facebook.com/profile.php?id=61585770705238&amp;locale=et_EE"
                   target="_blank"
@@ -899,14 +908,14 @@
             </div>
 
             <div class="network-member-footer">
-              <a href="mailto:mtunoortevabaalgatus@gmail.com">Kirjuta</a>
-              <span class="network-member-site-status">Koduleht puudub</span>
+              <a href="mailto:mtunoortevabaalgatus@gmail.com" data-i18n="network.members.write">Kirjuta</a>
+              <span class="network-member-site-status" data-i18n="network.members.noWebsite">Koduleht puudub</span>
             </div>
           </article>
 
         </div>
 
-        <p class="network-empty-state" id="networkEmptyState" hidden>
+        <p class="network-empty-state" id="networkEmptyState" hidden data-i18n="network.members.empty">
           Otsingule vastavaid organisatsioone ei leitud.
         </p>
 
@@ -921,9 +930,9 @@
         <div
           class="network-section-heading network-section-heading-light network-reveal"
         >
-          <span class="network-section-label">Kuidas koostöö algab?</span>
-          <h2>Kolm lihtsat sammu ühise algatuseni</h2>
-          <p>
+          <span class="network-section-label" data-i18n="network.steps.label">Kuidas koostöö algab?</span>
+          <h2 data-i18n="network.steps.title">Kolm lihtsat sammu ühise algatuseni</h2>
+          <p data-i18n="network.steps.description">
             Võrgustik ei ole ainult nimekiri. See on koht, kus kontaktist võib
             kasvada ühine projekt, sündmus või pikaajaline partnerlus.
           </p>
@@ -933,8 +942,8 @@
 
           <article class="network-process-card network-reveal">
             <span>01</span>
-            <h3>Leia sobiv organisatsioon</h3>
-            <p>Tutvu liikmete tegevusvaldkondade ja piirkondadega.</p>
+            <h3 data-i18n="network.steps.findTitle">Leia sobiv organisatsioon</h3>
+            <p data-i18n="network.steps.findText">Tutvu liikmete tegevusvaldkondade ja piirkondadega.</p>
           </article>
 
           <article
@@ -942,8 +951,8 @@
             style="--network-delay: 100ms"
           >
             <span>02</span>
-            <h3>Võta ühendust</h3>
-            <p>
+            <h3 data-i18n="network.steps.contactTitle">Võta ühendust</h3>
+            <p data-i18n="network.steps.contactText">
               Kirjuta otse organisatsioonile või küsi meilt sobivat kontakti.
             </p>
           </article>
@@ -953,8 +962,8 @@
             style="--network-delay: 200ms"
           >
             <span>03</span>
-            <h3>Loo midagi uut</h3>
-            <p>Sõnastage ühine eesmärk ning viige idee koos ellu.</p>
+            <h3 data-i18n="network.steps.createTitle">Loo midagi uut</h3>
+            <p data-i18n="network.steps.createText">Sõnastage ühine eesmärk ning viige idee koos ellu.</p>
           </article>
 
         </div>
@@ -968,11 +977,11 @@
 
         <div class="network-join-card network-reveal">
           <div class="network-join-copy">
-            <span class="network-section-label">Liitu võrgustikuga</span>
+            <span class="network-section-label" data-i18n="network.join.label">Liitu võrgustikuga</span>
 
-            <h2>Kas teie organisatsioon võiks olla järgmine?</h2>
+            <h2 data-i18n="network.join.title">Kas teie organisatsioon võiks olla järgmine?</h2>
 
-            <p>
+            <p data-i18n="network.join.description">
               Kui tegutsete noorte, kogukonna või hariduse valdkonnas ning
               soovite Ida-Virumaal rohkem koostööd teha, võtke meiega ühendust.
             </p>
@@ -983,11 +992,11 @@
               class="network-button network-button-accent"
               href="mailto:juhatus@noortetugi.ee?subject=V%C3%B5rgustikuga%20liitumine"
             >
-              Kirjuta meile
+              <span data-i18n="network.join.write">Kirjuta meile</span>
               <span aria-hidden="true">↗</span>
             </a>
 
-            <a class="network-text-link" href="/#contact">
+            <a class="network-text-link" href="/#contact" data-i18n="network.join.contacts">
               Vaata kontakte
             </a>
           </div>
@@ -1004,9 +1013,9 @@
     <div class="footer-main">
 
       <div class="footer-brand">
-        <h3>MTÜ Noortealgatuste Tugi</h3>
+        <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
 
-        <p>
+        <p data-i18n="common.footer.brandText">
           Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
           Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
         </p>
@@ -1067,20 +1076,20 @@
       </div>
 
       <div class="footer-column">
-        <h4>Kiirlingid</h4>
+        <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
 
-        <a href="/">Avaleht</a>
-        <a href="/#about">Meist</a>
-        <a href="/#projects">Projektid</a>
-        <a href="/uudised.html">Uudised</a>
-        <a href="/vorgustik.html">Võrgustik</a>
-        <a href="/#newsletter">Infokiri</a>
+        <a href="/" data-i18n="common.nav.home">Avaleht</a>
+        <a href="/#about" data-i18n="common.footer.about">Meist</a>
+        <a href="/#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+        <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
+        <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+        <a href="/#newsletter" data-i18n="common.footer.newsletter">Infokiri</a>
       </div>
 
       <div class="footer-column footer-contact">
-        <h4>Kontakt</h4>
+        <h4 data-i18n="common.nav.contact">Kontakt</h4>
 
-        <p>📍 Ida-Virumaa, Eesti</p>
+        <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
 
         <a href="mailto:juhatus@noortetugi.ee">
           ✉️ juhatus@noortetugi.ee
@@ -1094,20 +1103,20 @@
     </div>
 
     <div class="footer-bottom">
-      <p>
+      <p data-i18n="common.footer.copyright">
         © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
       </p>
 
-      <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-        <a href="/privaatsuspoliitika.html">
+      <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+        <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">
           Privaatsuspoliitika
         </a>
       </nav>
     </div>
 
-    <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+    <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
       <p>
-        <strong>MTÜ Noortealgatuste Tugi</strong><br>
+        <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
         Registrikood: 80652930<br>
         Ametlik veebileht: noortetugi.ee<br>
         Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>
@@ -1134,7 +1143,7 @@
       id="networkLogoLightboxClose"
       type="button"
       aria-label="Sulge logo"
-    >
+     data-i18n-aria-label="network.lightbox.close">
       <span aria-hidden="true">×</span>
     </button>
 
@@ -1148,11 +1157,11 @@
       </div>
 
       <div class="network-logo-lightbox-caption">
-        <span>Võrgustiku liige</span>
-        <strong id="networkLogoLightboxTitle">
+        <span data-i18n="network.lightbox.kicker">Võrgustiku liige</span>
+        <strong id="networkLogoLightboxTitle" data-i18n="network.lightbox.title">
           Organisatsiooni logo
         </strong>
-        <small>
+        <small data-i18n="common.a11y.photoHint">
           Sulgemiseks vajuta ristile, taustale või klahvile Esc
         </small>
       </div>
@@ -1166,6 +1175,7 @@
     (() => {
       "use strict";
 
+      const t = (key, variables) => window.I18N?.t(key, variables) || "";
       const progress = document.getElementById("networkScrollProgress");
       const hero = document.querySelector(".network-hero");
       const searchInput = document.getElementById("networkSearch");
@@ -1231,7 +1241,7 @@
 
       const normalizeText = (value) =>
         value
-          .toLocaleLowerCase("et")
+          .toLocaleLowerCase(window.I18N?.getLanguage?.() || "et")
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .trim();
@@ -1337,7 +1347,7 @@
             ?.textContent
             ?.trim() ||
           image?.alt?.replace(/\s+logo$/i, "") ||
-          "Organisatsioon"
+          t("network.lightbox.organisation")
         );
       };
 
@@ -1364,7 +1374,9 @@
         lastFocusedLogo = logo;
 
         logoLightboxImage.src = imageSource;
-        logoLightboxImage.alt = `${organizationName} logo`;
+        logoLightboxImage.alt = t("network.lightbox.logoAlt", {
+          name: organizationName
+        });
         logoLightboxTitle.textContent = organizationName;
 
         logoLightbox.hidden = false;
@@ -1430,7 +1442,9 @@
           logo.setAttribute("tabindex", "0");
           logo.setAttribute(
             "aria-label",
-            `Ava ${organizationName} logo suurelt`
+            window.I18N?.t("network.members.openLogo", {
+              name: organizationName
+            }) || `Ava ${organizationName} logo suurelt`
           );
 
           logo.addEventListener("click", (event) => {

@@ -34,6 +34,18 @@
 sender("2e5cae1b584292");
 
 document.addEventListener("DOMContentLoaded", function () {
+  const t = function (key) {
+    return window.I18N?.t(key) || "";
+  };
+
+  const localizeEmbeddedForm = function (formContainer) {
+    const embeddedFrame = formContainer.querySelector("iframe");
+
+    if (embeddedFrame) {
+      embeddedFrame.title = t("common.newsletter.embedTitle");
+    }
+  };
+
   window.setTimeout(function () {
     document
       .querySelectorAll(".sender-form-field:empty")
@@ -42,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const emailLink = document.createElement("a");
 
         message.className = "sender-form-unavailable";
-        message.append("Liitumisvorm on ajutiselt kättesaamatu. Kirjuta ");
+        message.append(t("common.newsletter.unavailable"));
 
         emailLink.href = "mailto:juhatus@noortetugi.ee";
         emailLink.textContent = "juhatus@noortetugi.ee";
@@ -63,11 +75,30 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         observer.observe(formContainer, {
-          childList: true
+          childList: true,
+          subtree: true
         });
         window.setTimeout(function () {
           observer.disconnect();
         }, 30000);
       });
   }, 4000);
+
+  document.querySelectorAll(".sender-form-field").forEach(function (formContainer) {
+    localizeEmbeddedForm(formContainer);
+
+    const frameObserver = new MutationObserver(function () {
+      localizeEmbeddedForm(formContainer);
+    });
+
+    frameObserver.observe(formContainer, {
+      childList: true,
+      subtree: true
+    });
+
+    window.setTimeout(function () {
+      localizeEmbeddedForm(formContainer);
+      frameObserver.disconnect();
+    }, 30000);
+  });
 });

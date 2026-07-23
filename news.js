@@ -18,16 +18,20 @@
     const page = document.querySelector(".news-page");
     if (!page) return;
 
+    const t = (key, variables) => window.I18N?.t(key, variables) || "";
+    const locale = window.I18N?.locale() || "et-EE";
+    const currentLanguage = window.I18N?.getLanguage() || "et";
+
     const allItems = Array.isArray(window.NEWS_ITEMS)
       ? window.NEWS_ITEMS.filter((item) => item && item.published !== false)
       : [];
 
     const categories = {
-      all: "Kõik",
-      achievements: "Saavutused",
-      events: "Sündmused",
-      initiatives: "Noortealgatused",
-      opportunities: "Võimalused",
+      all: t("news.categories.all"),
+      achievements: t("news.categories.achievements"),
+      events: t("news.categories.events"),
+      initiatives: t("news.categories.initiatives"),
+      opportunities: t("news.categories.opportunities"),
       ...(window.NEWS_CATEGORIES || {})
     };
 
@@ -47,17 +51,14 @@
   if (/^https?:\/\/\S+$/i.test(text)) {
     const previousText = String(content[index - 1] || "").toLowerCase();
 
-    let linkText = "Ava link";
+    let linkText = t("news.ui.openLink");
 
-    if (previousText.includes("registreer")) {
-      linkText = "Registreeru siin";
+    if (/registreer|registration|register|регистрац/i.test(previousText)) {
+      linkText = t("news.ui.registerHere");
     }
 
-    if (
-      previousText.includes("kandidaadi") ||
-      previousText.includes("kandidaate")
-    ) {
-      linkText = "Esita kandidaat";
+    if (/kandida|nomination|candidate|кандидат|заявк/i.test(previousText)) {
+      linkText = t("news.ui.submitCandidate");
     }
 
     return `
@@ -88,12 +89,12 @@
 
     const formatDate = (item) => {
       if (item.displayDate) return item.displayDate;
-      if (!item.date) return "Peagi";
+      if (!item.date) return t("news.ui.soon");
 
       const date = new Date(`${item.date}T12:00:00`);
       if (Number.isNaN(date.getTime())) return item.date;
 
-      return new Intl.DateTimeFormat("et-EE", {
+      return new Intl.DateTimeFormat(locale, {
         day: "numeric",
         month: "long",
         year: "numeric"
@@ -150,7 +151,9 @@
     const authorHtml = (item, className = "news-author") => {
       const author = typeof item.author === "string" ? item.author.trim() : "";
       return author
-        ? `<span class="${className}">Autor: ${escapeHtml(author)}</span>`
+        ? `<span class="${className}">${escapeHtml(
+            t("news.ui.author", { author })
+          )}</span>`
         : "";
     };
 
@@ -170,7 +173,7 @@
         <img
           class="news-image-primary"
           src="${escapeHtml(item.image || "")}"
-          alt="${escapeHtml(item.imageAlt || item.title || "Uudise foto")}"
+          alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
           loading="lazy"
           decoding="async"
         >
@@ -184,13 +187,15 @@
         data-news-reveal
         data-news-tilt
         style="--news-delay:${(index % 4) * 70}ms"
-        aria-label="Loe uudist: ${escapeHtml(item.title)}"
+        aria-label="${escapeHtml(
+          t("news.ui.readLabel", { title: item.title })
+        )}"
       >
-        ${imageHtml(item, "news-card-media", "Lisa uudise foto")}
+        ${imageHtml(item, "news-card-media", t("news.ui.addPhoto"))}
 
         <div class="news-card-body">
           <div class="news-card-meta">
-            <span>${escapeHtml(item.categoryLabel || "Uudised")}</span>
+            <span>${escapeHtml(item.categoryLabel || t("common.nav.news"))}</span>
             <time>${escapeHtml(formatDate(item))}</time>
           </div>
 
@@ -199,7 +204,9 @@
           ${authorHtml(item)}
 
           <div class="news-card-footer">
-            <strong>${item.placeholder ? "Uudis ilmub peagi" : "Loe edasi"}</strong>
+            <strong>${item.placeholder
+              ? t("news.ui.comingSoon")
+              : t("news.ui.readMore")}</strong>
             <i aria-hidden="true">↗</i>
           </div>
         </div>
@@ -212,13 +219,19 @@
         href="${articleUrl(item)}"
         data-news-reveal
         data-news-tilt
-        aria-label="Ava uudis: ${escapeHtml(item.title)}"
+        aria-label="${escapeHtml(
+          t("news.ui.openLabel", { title: item.title })
+        )}"
       >
-        ${imageHtml(item, "news-featured-media", "Lisa põhiuudise foto")}
+        ${imageHtml(
+          item,
+          "news-featured-media",
+          t("news.ui.addFeaturedPhoto")
+        )}
 
         <div class="news-featured-content">
           <div class="news-card-meta">
-            <span>${escapeHtml(item.categoryLabel || "Uudised")}</span>
+            <span>${escapeHtml(item.categoryLabel || t("common.nav.news"))}</span>
             <time>${escapeHtml(formatDate(item))}</time>
           </div>
 
@@ -227,7 +240,9 @@
           ${authorHtml(item, "news-featured-author")}
 
           <div class="news-featured-action">
-            <strong>${item.placeholder ? "Uudis ilmub peagi" : "Ava uudis"}</strong>
+            <strong>${item.placeholder
+              ? t("news.ui.comingSoon")
+              : t("news.ui.openNews")}</strong>
             <i aria-hidden="true">→</i>
           </div>
         </div>
@@ -239,7 +254,7 @@
         activeCategory === "all" || item.category === activeCategory
       );
 
-      const needle = searchValue.trim().toLocaleLowerCase("et");
+      const needle = searchValue.trim().toLocaleLowerCase(locale);
       if (!needle) return categoryMatch;
 
       const haystack = [
@@ -250,7 +265,7 @@
         ...(Array.isArray(item.content) ? item.content : [])
       ]
         .join(" ")
-        .toLocaleLowerCase("et");
+        .toLocaleLowerCase(locale);
 
       return categoryMatch && haystack.includes(needle);
     });
@@ -374,7 +389,7 @@
 
       listingView.hidden = false;
       articleView.hidden = true;
-      document.title = "Uudised ja saavutused | MTÜ Noortealgatuste Tugi";
+      document.title = t("newsPage.meta.title");
 
       renderFilters();
 
@@ -387,8 +402,8 @@
         : `
           <div class="news-empty-state" data-news-reveal>
             <span>⌕</span>
-            <h2>Selles kategoorias uudiseid veel ei ole</h2>
-            <p>Vali teine kategooria või eemalda otsingusõna.</p>
+            <h2>${escapeHtml(t("news.ui.emptyTitle"))}</h2>
+            <p>${escapeHtml(t("news.ui.emptyText"))}</p>
           </div>
         `;
 
@@ -396,10 +411,21 @@
 
       if (resultsText) {
         const categoryText = categories[activeCategory] || categories.all;
-        resultsText.textContent = (
-          `${categoryText}: ${items.length} ` +
-          `${items.length === 1 ? "uudis" : "uudist"}`
-        );
+        let resultNoun = t("news.ui.resultMany");
+
+        if (items.length === 1) {
+          resultNoun = t("news.ui.resultOne");
+        } else if (
+          currentLanguage === "ru" &&
+          items.length % 10 >= 2 &&
+          items.length % 10 <= 4 &&
+          (items.length % 100 < 12 || items.length % 100 > 14)
+        ) {
+          resultNoun = t("news.ui.resultFew");
+        }
+
+        resultsText.textContent =
+          `${categoryText}: ${items.length} ${resultNoun}`;
       }
 
       removeBrokenImages(listingView);
@@ -430,12 +456,12 @@
       articleTarget.innerHTML = `
         <a class="news-article-back" href="/uudised.html">
           <span aria-hidden="true">←</span>
-          Tagasi uudiste juurde
+          ${escapeHtml(t("news.ui.back"))}
         </a>
 
         <div class="news-article-heading" data-news-reveal>
           <div class="news-card-meta">
-            <span>${escapeHtml(item.categoryLabel || "Uudised")}</span>
+            <span>${escapeHtml(item.categoryLabel || t("common.nav.news"))}</span>
             <time>${escapeHtml(formatDate(item))}</time>
           </div>
 
@@ -445,7 +471,7 @@
         </div>
 
         <div class="news-article-hero" data-news-reveal>
-          ${imageHtml(item, "news-article-image", "Lisa uudise foto")}
+          ${imageHtml(item, "news-article-image", t("news.ui.addPhoto"))}
         </div>
 
         <div class="news-article-layout">
@@ -458,21 +484,19 @@
 
             ${item.placeholder ? `
               <div class="news-article-placeholder-note">
-                <strong>See on ajutine näidis.</strong>
+                <strong>${escapeHtml(t("news.ui.placeholderTitle"))}</strong>
                 <p>
-                  Lisa päris uudis faili <code>news-data.js</code>.
-                  Sama uudis ilmub automaatselt ka avalehele.
+                  ${escapeHtml(t("news.ui.placeholderText"))}
                 </p>
               </div>
             ` : ""}
           </article>
 
           <aside class="news-article-aside" data-news-reveal>
-            <span>JAGA IDEED</span>
-            <h2>Kas sul on uudis või saavutus, mida jagada?</h2>
+            <span>${escapeHtml(t("news.ui.shareLabel"))}</span>
+            <h2>${escapeHtml(t("news.ui.shareTitle"))}</h2>
             <p>
-              Kirjuta meile ning aitame sinu loo organisatsiooni kanalites
-              nähtavaks teha.
+              ${escapeHtml(t("news.ui.shareText"))}
             </p>
             <a href="mailto:juhatus@noortetugi.ee">
               juhatus@noortetugi.ee
@@ -483,8 +507,8 @@
         ${related.length ? `
           <section class="news-related">
             <div class="news-related-heading" data-news-reveal>
-              <span>VEEL UUDISEID</span>
-              <h2>Järgmised lood ja tegemised</h2>
+              <span>${escapeHtml(t("news.ui.moreLabel"))}</span>
+              <h2>${escapeHtml(t("news.ui.moreTitle"))}</h2>
             </div>
 
             <div class="news-grid">

@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0e3b03" />
 
-  <title>Dokumendid | MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="documents.meta.title">Dokumendid | MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
     content="MTÜ Noortealgatuste Tugi avalikud dokumendid, sealhulgas organisatsiooni kehtiv põhikiri."
-  >
+   data-i18n-content="documents.meta.description">
   <link rel="canonical" href="https://www.noortetugi.ee/dokumendid.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="et_EE">
   <meta
     property="og:title"
     content="Dokumendid | MTÜ Noortealgatuste Tugi"
-  >
+   data-i18n-content="documents.meta.title">
   <meta
     property="og:description"
     content="Tutvu MTÜ Noortealgatuste Tugi avalike dokumentidega."
-  >
+   data-i18n-content="documents.meta.ogDescription">
   <meta
     property="og:url"
     content="https://www.noortetugi.ee/dokumendid.html"
@@ -35,8 +35,10 @@
   <link rel="shortcut icon" href="/favicon.png">
 
   <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/privacy.css" />
-  <link rel="stylesheet" href="/documents.css" />
+  <link rel="stylesheet" href="/privacy.css?v=20260723-3" />
+  <link rel="stylesheet" href="/documents.css?v=20260723-3" />
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/sender-init.js"></script>
 </head>
 
@@ -50,20 +52,20 @@
       href="/"
       class="logo"
       aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
+     data-i18n-aria-label="common.a11y.homeLink">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
         width="1000"
         height="405"
-      >
+       data-i18n-alt="home.meta.title">
     </a>
 
     <div
       class="language-switcher"
       aria-label="Keele valik"
-    >
+     data-i18n-aria-label="common.a11y.languageSelection">
       <button
         class="lang-button is-active"
         type="button"
@@ -99,13 +101,13 @@
       aria-label="Ava menüü"
       aria-expanded="false"
       aria-controls="mainNav"
-    >
+     data-i18n-aria-label="common.a11y.openMenu">
       ⋮
     </button>
 
-    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-      <a href="/">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+      <a href="/" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -115,19 +117,19 @@
           aria-controls="projectsMenu"
           aria-haspopup="true"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
-          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
-          <a href="/laager.html"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
-          <a href="/street.html"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
+          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span data-i18n="common.nav.gala">Noorte tunnustusgala</span></a>
+          <a href="/laager.html"><span class="nav-projects-number">02</span><span data-i18n="common.nav.camp">Projektikirjutamise laager</span></a>
+          <a href="/street.html"><span class="nav-projects-number">03</span><span data-i18n="common.nav.street">Street Dance Jam</span></a>
         </div>
       </div>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/dokumendid.html" aria-current="page">Dokumendid</a>
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+      <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+      <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
+      <a href="/dokumendid.html" aria-current="page" data-i18n="documents.hero.title">Dokumendid</a>
+      <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
   </div>
 </header>
@@ -138,40 +140,40 @@
   <div class="privacy-hero-glow privacy-hero-glow-two" aria-hidden="true"></div>
 
   <div class="privacy-new-container">
-    <div class="privacy-new-badge">AVALIKUD DOKUMENDID</div>
+    <div class="privacy-new-badge" data-i18n="documents.hero.badge">AVALIKUD DOKUMENDID</div>
 
-    <h1>Dokumendid</h1>
+    <h1 data-i18n="documents.hero.title">Dokumendid</h1>
 
-    <p>
+    <p data-i18n="documents.hero.description">
       Siit leiad MTÜ Noortealgatuste Tugi avalikud alusdokumendid.
       Kõik failid on koondatud ühte selgesse ja mugavalt allalaaditavasse nimekirja.
     </p>
 
     <div class="privacy-new-meta">
       <div>
-        <span>Organisatsioon</span>
-        <strong>MTÜ Noortealgatuste Tugi</strong>
+        <span data-i18n="documents.hero.organisation">Organisatsioon</span>
+        <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong>
       </div>
 
       <div>
-        <span>Registrikood</span>
+        <span data-i18n="documents.hero.registryCode">Registrikood</span>
         <strong>80652930</strong>
       </div>
 
       <div>
-        <span>Ametlik allikas</span>
-        <strong>Eesti e-Äriregister</strong>
+        <span data-i18n="documents.hero.officialSource">Ametlik allikas</span>
+        <strong data-i18n="documents.hero.register">Eesti e-Äriregister</strong>
       </div>
     </div>
 
-    <div class="privacy-trust-path" aria-label="Dokumentide avaldamise põhimõtted">
-      <span>Avalik</span>
+    <div class="privacy-trust-path" aria-label="Dokumentide avaldamise põhimõtted" data-i18n-aria-label="documents.hero.principlesLabel">
+      <span data-i18n="documents.hero.public">Avalik</span>
       <i aria-hidden="true">→</i>
-      <span>Selge</span>
+      <span data-i18n="documents.hero.clear">Selge</span>
       <i aria-hidden="true">→</i>
-      <span>Ajakohane</span>
+      <span data-i18n="documents.hero.current">Ajakohane</span>
       <i aria-hidden="true">→</i>
-      <span>Allalaaditav</span>
+      <span data-i18n="documents.hero.downloadable">Allalaaditav</span>
     </div>
   </div>
 </section>
@@ -179,9 +181,9 @@
 <main class="privacy-new-page">
   <section class="privacy-new-intro">
     <div class="privacy-intro-card">
-      <span>Dokumendikogu</span>
-      <h2>Oluline info ühes kohas</h2>
-      <p>
+      <span data-i18n="documents.intro.label">Dokumendikogu</span>
+      <h2 data-i18n="documents.intro.title">Oluline info ühes kohas</h2>
+      <p data-i18n="documents.intro.description">
         Avaldame organisatsiooni dokumendid PDF-vormingus, et neid oleks
         lihtne avada, salvestada ja jagada. Iga dokumendi juures on näidatud
         selle liik, kehtivus ja ametlik allikas.
@@ -189,13 +191,13 @@
     </div>
 
     <div class="privacy-side-card">
-      <h3>Kiire ülevaade</h3>
+      <h3 data-i18n="documents.overview.title">Kiire ülevaade</h3>
 
       <ul>
-        <li>Failid avanevad otse brauseris.</li>
-        <li>PDF-faile saab ühe klõpsuga alla laadida.</li>
-        <li>Kehtivus ja päritolu on selgelt märgitud.</li>
-        <li>Nimekiri täieneb uute dokumentidega.</li>
+        <li data-i18n="documents.overview.item1">Failid avanevad otse brauseris.</li>
+        <li data-i18n="documents.overview.item2">PDF-faile saab ühe klõpsuga alla laadida.</li>
+        <li data-i18n="documents.overview.item3">Kehtivus ja päritolu on selgelt märgitud.</li>
+        <li data-i18n="documents.overview.item4">Nimekiri täieneb uute dokumentidega.</li>
       </ul>
     </div>
   </section>
@@ -209,11 +211,11 @@
   <section class="documents-library" aria-labelledby="baseDocumentsTitle">
     <div class="documents-section-heading">
       <div>
-        <span class="documents-eyebrow">Alusdokumendid</span>
-        <h2 id="baseDocumentsTitle">Organisatsiooni alusdokumendid</h2>
+        <span class="documents-eyebrow" data-i18n="documents.library.label">Alusdokumendid</span>
+        <h2 id="baseDocumentsTitle" data-i18n="documents.library.title">Organisatsiooni alusdokumendid</h2>
       </div>
 
-      <p>
+      <p data-i18n="documents.library.description">
         Ametlikud dokumendid on esitatud lühikese kirjelduse,
         kehtivusinfo ning eraldi vaatamis- ja allalaadimislingiga.
       </p>
@@ -239,15 +241,15 @@
         </div>
 
         <div class="document-content">
-          <span class="document-type">Põhikiri · PDF</span>
-          <h3>Põhikiri</h3>
-          <p>
+          <span class="document-type" data-i18n="documents.item.type">Põhikiri · PDF</span>
+          <h3 data-i18n="documents.item.title">Põhikiri</h3>
+          <p data-i18n="documents.item.description">
             MTÜ Noortealgatuste Tugi kehtiv põhikiri Eesti e-Äriregistrist.
           </p>
 
-          <div class="document-meta" aria-label="Dokumendi andmed">
-            <span>Kehtiv alates 20.05.2026</span>
-            <span>Ametlik registridokument</span>
+          <div class="document-meta" aria-label="Dokumendi andmed" data-i18n-aria-label="documents.item.detailsLabel">
+            <span data-i18n="documents.item.validFrom">Kehtiv alates 20.05.2026</span>
+            <span data-i18n="documents.item.official">Ametlik registridokument</span>
           </div>
         </div>
 
@@ -258,7 +260,7 @@
             target="_blank"
             rel="noopener"
             aria-label="Vaata MTÜ Noortealgatuste Tugi põhikirja PDF-faili"
-          >
+           data-i18n-aria-label="documents.item.viewLabel">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -271,7 +273,7 @@
               <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"></path>
               <circle cx="12" cy="12" r="2.5"></circle>
             </svg>
-            Vaata PDF-i
+            <span data-i18n="documents.item.view">Vaata PDF-i</span>
           </a>
 
           <a
@@ -279,7 +281,7 @@
             href="/assets/documents/MTU_Noortealgatuste_Tugi_pohikiri.pdf"
             download="MTU_Noortealgatuste_Tugi_pohikiri.pdf"
             aria-label="Laadi alla MTÜ Noortealgatuste Tugi põhikirja PDF-fail"
-          >
+           data-i18n-aria-label="documents.item.downloadLabel">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -293,7 +295,7 @@
               <path d="m7.5 10.5 4.5 4.5 4.5-4.5"></path>
               <path d="M4 20h16"></path>
             </svg>
-            Laadi alla
+            <span data-i18n="documents.item.download">Laadi alla</span>
           </a>
         </div>
       </article>
@@ -314,7 +316,7 @@
         <path d="M12 8h.01"></path>
       </svg>
 
-      <p>
+      <p data-i18n-html="documents.source.html">
         Põhikiri on alla laaditud
         <a
           href="https://ariregister.rik.ee/eng/company/80652930"
@@ -328,15 +330,15 @@
 
   <section class="privacy-contact-panel">
     <div>
-      <span>Ei leia vajalikku dokumenti?</span>
-      <h2>Kirjuta meile</h2>
-      <p>
+      <span data-i18n="documents.contact.label">Ei leia vajalikku dokumenti?</span>
+      <h2 data-i18n="documents.contact.title">Kirjuta meile</h2>
+      <p data-i18n="documents.contact.description">
         Kui vajad täiendavat dokumenti või soovid avaldatud faili kohta
         täpsustust, võta meie juhatusega ühendust.
       </p>
     </div>
 
-    <a href="mailto:juhatus@noortetugi.ee" class="privacy-contact-button">
+    <a href="mailto:juhatus@noortetugi.ee" class="privacy-contact-button" data-i18n="common.buttons.contact">
       Võta ühendust
     </a>
   </section>
@@ -345,11 +347,11 @@
 <section class="bottom-newsletter" id="newsletter">
   <div class="bottom-newsletter-card">
     <div class="bottom-newsletter-content">
-      <span class="bottom-newsletter-label">INFOKIRI</span>
+      <span class="bottom-newsletter-label" data-i18n="common.newsletter.label">INFOKIRI</span>
 
-      <h2>Hoia end kursis meie tegemistega</h2>
+      <h2 data-i18n="common.newsletter.title">Hoia end kursis meie tegemistega</h2>
 
-      <p>
+      <p data-i18n="common.newsletter.body">
         Liitu infokirjaga, et saada teavet meie sündmuste, projektide,
         noortealgatuste ja võimaluste kohta Ida-Virumaal.
       </p>
@@ -361,7 +363,7 @@
         data-sender-form-id="azpjE7"
       ></div>
       <noscript>
-        <a href="https://stats.sender.net/forms/azpjE7/view">
+        <a href="https://stats.sender.net/forms/azpjE7/view" data-i18n="common.newsletter.join">
           Liitu infokirjaga
         </a>
       </noscript>
@@ -374,9 +376,9 @@
 <footer class="site-footer">
   <div class="footer-main">
     <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
+      <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
 
-      <p>
+      <p data-i18n="common.footer.brandText">
         Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
         Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
       </p>
@@ -431,21 +433,21 @@
     </div>
 
     <div class="footer-column">
-      <h4>Kiirlingid</h4>
+      <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
 
-      <a href="index.html">Avaleht</a>
-      <a href="index.html#about">Meist</a>
-      <a href="index.html#projects">Projektid</a>
-      <a href="uudised.html">Uudised</a>
-      <a href="dokumendid.html">Dokumendid</a>
-      <a href="index.html#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      <a href="index.html" data-i18n="common.nav.home">Avaleht</a>
+      <a href="index.html#about" data-i18n="common.footer.about">Meist</a>
+      <a href="index.html#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+      <a href="uudised.html" data-i18n="common.nav.news">Uudised</a>
+      <a href="dokumendid.html" data-i18n="documents.hero.title">Dokumendid</a>
+      <a href="index.html#newsletter" data-i18n="common.footer.newsletter">Infokiri</a>
+      <a href="mailto:juhatus@noortetugi.ee" data-i18n="common.nav.contact">Kontakt</a>
     </div>
 
     <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
+      <h4 data-i18n="common.nav.contact">Kontakt</h4>
 
-      <p>📍 Ida-Virumaa, Eesti</p>
+      <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
 
       <a href="mailto:juhatus@noortetugi.ee">
         ✉️ juhatus@noortetugi.ee
@@ -458,19 +460,19 @@
   </div>
 
   <div class="footer-bottom">
-    <p>
+    <p data-i18n="common.footer.copyright">
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-      <a href="dokumendid.html" aria-current="page">Dokumendid</a>
-      <a href="privaatsuspoliitika.html">Privaatsuspoliitika</a>
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+      <a href="dokumendid.html" aria-current="page" data-i18n="documents.hero.title">Dokumendid</a>
+      <a href="privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
-      <strong>MTÜ Noortealgatuste Tugi</strong><br>
+      <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
       Ametlik veebileht: noortetugi.ee<br>
       Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>

@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#082f27">
 
-  <title>Ida-Virumaa noorte projektikirjutamise laager 2026 | MTÜ Noortealgatuste Tugi</title>
+  <title data-i18n="camp.meta.title">Ida-Virumaa noorte projektikirjutamise laager 2026 | MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
     content="Ida-Virumaa noorte projektikirjutamise laager aitab noortel muuta ideed selgeteks, teostatavateks ja mõjusateks projektideks."
-  >
+   data-i18n-content="camp.meta.description">
   <link rel="canonical" href="https://www.noortetugi.ee/laager.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="et_EE">
   <meta
     property="og:title"
     content="Ida-Virumaa noorte projektikirjutamise laager 2026 | MTÜ Noortealgatuste Tugi"
-  >
+   data-i18n-content="camp.meta.title">
   <meta
     property="og:description"
     content="Kahepäevane laager aitab noortel muuta ideed selgeteks ja teostatavateks projektideks."
-  >
+   data-i18n-content="camp.meta.ogDescription">
   <meta property="og:url" content="https://www.noortetugi.ee/laager.html">
   <meta
     property="og:image"
@@ -34,7 +34,9 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/camp.css">
+  <link rel="stylesheet" href="/camp.css?v=20260723-2">
+  <script src="/translations.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/sender-init.js"></script>
 </head>
 
@@ -50,21 +52,21 @@
       href="/"
       class="logo"
       aria-label="MTÜ Noortealgatuste Tugi avaleht"
-    >
+     data-i18n-aria-label="common.a11y.homeLink">
       <img
         src="/assets/logo-header.png"
         alt="MTÜ Noortealgatuste Tugi"
         class="logo-img"
         width="1000"
         height="405"
-      >
+       data-i18n-alt="home.meta.title">
     </a>
 
     <!-- Переключатель языков -->
     <div
       class="language-switcher"
       aria-label="Keele valik"
-    >
+     data-i18n-aria-label="common.a11y.languageSelection">
       <button
         class="lang-button is-active"
         type="button"
@@ -101,14 +103,14 @@
       aria-label="Ava menüü"
       aria-expanded="false"
       aria-controls="mainNav"
-    >
+     data-i18n-aria-label="common.a11y.openMenu">
       ⋮
     </button>
 
     <!-- Навигация -->
-    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon">
-      <a href="/">Avaleht</a>
-      <a href="/uudised.html">Uudised</a>
+    <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
+      <a href="/" data-i18n="common.nav.home">Avaleht</a>
+      <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
       <div class="nav-projects">
         <button
           class="nav-projects-toggle"
@@ -119,19 +121,19 @@
           aria-haspopup="true"
           aria-current="page"
         >
-          <span>Projektid</span>
+          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
           <span class="nav-projects-chevron" aria-hidden="true"></span>
         </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid">
-          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span>Noorte tunnustusgala</span></a>
-          <a href="/laager.html" aria-current="page"><span class="nav-projects-number">02</span><span>Projektikirjutamise laager</span></a>
-          <a href="/street.html"><span class="nav-projects-number">03</span><span>Street Dance Jam</span></a>
+        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
+          <a href="/tunnustusgala.html"><span class="nav-projects-number">01</span><span data-i18n="common.nav.gala">Noorte tunnustusgala</span></a>
+          <a href="/laager.html" aria-current="page"><span class="nav-projects-number">02</span><span data-i18n="common.nav.camp">Projektikirjutamise laager</span></a>
+          <a href="/street.html"><span class="nav-projects-number">03</span><span data-i18n="common.nav.street">Street Dance Jam</span></a>
         </div>
       </div>
-      <a href="/vorgustik.html">Võrgustik</a>
-      <a href="/#contact">Kontakt</a>
-      <a href="/dokumendid.html">Dokumendid</a>
-      <a href="/privaatsuspoliitika.html">Privaatsuspoliitika</a>
+      <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
+      <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
+      <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
+      <a href="/privaatsuspoliitika.html" data-i18n="common.nav.privacy">Privaatsuspoliitika</a>
     </nav>
 
   </div>
@@ -148,81 +150,81 @@
 
       <div class="camp-hero-inner">
         <div class="camp-hero-content">
-          <span class="camp-label">19.–20. SEPTEMBER 2026 · TOILA SPA HOTELL</span>
+          <span class="camp-label" data-i18n="camp.hero.eyebrow">19.–20. SEPTEMBER 2026 · TOILA SPA HOTELL</span>
 
           <h1>
             Ida-Virumaa noorte projektikirjutamise laager
-            <span>aktiivsetele noortele</span>
+            <span data-i18n="camp.hero.titleAccent">aktiivsetele noortele</span>
           </h1>
 
-          <p>
+          <p data-i18n="camp.hero.description">
             Kahepäevane praktiline laager noortele, kellel on idee, mida nad
             soovivad arendada, või tiim, kellega koos oma projekt ellu viia.
           </p>
 
           <div class="camp-buttons">
-            <span class="camp-registration-status">
+            <span class="camp-registration-status" data-i18n="camp.hero.registrationClosed">
               Registreerimine ei ole veel avatud
             </span>
 
-            <a href="#camp-about" class="camp-secondary-button">
+            <a href="#camp-about" class="camp-secondary-button" data-i18n="camp.hero.discover">
               Tutvu laagriga
             </a>
           </div>
 
-          <div class="camp-hero-path" aria-label="Idee areng laagris">
-            <span>Idee</span>
+          <div class="camp-hero-path" aria-label="Idee areng laagris" data-i18n-aria-label="camp.hero.progressLabel">
+            <span data-i18n="home.hero.idea">Idee</span>
             <i aria-hidden="true">→</i>
-            <span>Plaan</span>
+            <span data-i18n="camp.hero.plan">Plaan</span>
             <i aria-hidden="true">→</i>
-            <span>Projekt</span>
+            <span data-i18n="camp.hero.project">Projekt</span>
             <i aria-hidden="true">→</i>
-            <span>Mõju</span>
+            <span data-i18n="home.hero.impact">Mõju</span>
           </div>
         </div>
 
-        <div class="camp-hero-visual" aria-label="Projekti arengukaart">
+        <div class="camp-hero-visual" aria-label="Projekti arengukaart" data-i18n-aria-label="camp.hero.mapLabel">
           <div class="camp-idea-map">
             <div class="camp-map-ring camp-map-ring-one" aria-hidden="true"></div>
             <div class="camp-map-ring camp-map-ring-two" aria-hidden="true"></div>
             <div class="camp-map-lines" aria-hidden="true"></div>
 
             <article class="camp-map-core">
-              <span>START</span>
-              <strong>Sinu idee</strong>
-              <p>Laagris anname sellele struktuuri, suuna ja järgmised sammud.</p>
+              <span data-i18n="camp.hero.start">START</span>
+              <strong data-i18n="camp.hero.yourIdea">Sinu idee</strong>
+              <p data-i18n="camp.hero.mapText">Laagris anname sellele struktuuri, suuna ja järgmised sammud.</p>
             </article>
 
             <div class="camp-map-node camp-map-node-one">
               <span>01</span>
-              Eesmärk
+              <strong data-i18n="camp.hero.goal">Eesmärk</strong>
             </div>
 
             <div class="camp-map-node camp-map-node-two">
               <span>02</span>
-              Tegevused
+              <strong data-i18n="camp.hero.activities">Tegevused</strong>
             </div>
 
             <div class="camp-map-node camp-map-node-three">
               <span>03</span>
-              Eelarve
+              <strong data-i18n="camp.hero.budget">Eelarve</strong>
             </div>
 
             <div class="camp-map-node camp-map-node-four">
               <span>04</span>
-              Rahastus
+              <strong data-i18n="camp.hero.funding">Rahastus</strong>
             </div>
 
             <div class="camp-map-node camp-map-node-five">
               <span>05</span>
-              Mõju
+              <strong data-i18n="home.hero.impact">Mõju</strong>
             </div>
           </div>
         </div>
       </div>
 
-      <a href="#camp-about" class="camp-scroll-cue" aria-label="Liigu laagri kirjelduse juurde">
-        <span>Avasta programm</span>
+      <a href="#camp-about" class="camp-scroll-cue" aria-label="Liigu laagri kirjelduse juurde" data-i18n-aria-label="camp.hero.scrollLabel">
+        <span data-i18n="camp.hero.program">Avasta programm</span>
         <i aria-hidden="true"></i>
       </a>
     </section>
@@ -231,23 +233,23 @@
 
     <section class="camp-information">
       <article class="camp-information-card">
-        <span>Kuupäev</span>
+        <span data-i18n="camp.info.date">Kuupäev</span>
         <strong>19.–20.09.2026</strong>
       </article>
 
       <article class="camp-information-card">
-        <span>Asukoht</span>
+        <span data-i18n="camp.info.location">Asukoht</span>
         <strong>Toila SPA Hotell</strong>
       </article>
 
       <article class="camp-information-card">
-        <span>Kestus</span>
-        <strong>2 päeva</strong>
+        <span data-i18n="camp.info.duration">Kestus</span>
+        <strong data-i18n="camp.info.twoDays">2 päeva</strong>
       </article>
 
       <article class="camp-information-card">
-        <span>Korraldaja</span>
-        <strong>MTÜ Noortealgatuste Tugi</strong>
+        <span data-i18n="camp.info.organiser">Korraldaja</span>
+        <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong>
       </article>
     </section>
 
@@ -255,11 +257,11 @@
 
     <section id="camp-about" class="camp-section">
       <div class="camp-section-heading">
-        <span class="camp-section-label">LAAGRIST</span>
+        <span class="camp-section-label" data-i18n="camp.about.label">LAAGRIST</span>
 
-        <h2>Ideest läbimõeldud projektini</h2>
+        <h2 data-i18n="camp.about.title">Ideest läbimõeldud projektini</h2>
 
-        <p>
+        <p data-i18n="camp.about.lead">
           Projektikirjutamise laagri eesmärk on aidata noortel muuta esialgne
           idee selgeks ja teostatavaks projektiks.
         </p>
@@ -267,13 +269,13 @@
 
       <div class="camp-about-grid">
         <div class="camp-about-text">
-          <p>
+          <p data-i18n="camp.about.text1">
             Kahe päeva jooksul õpivad osalejad sõnastama projekti eesmärki,
             määrama sihtrühma, kavandama tegevusi, koostama eelarvet ning leidma
             oma ideele sobivaid rahastusvõimalusi.
           </p>
 
-          <p>
+          <p data-i18n="camp.about.text2">
             Laagris töötatakse nii iseseisvalt kui ka tiimides. Osaleja võib
             tulla juba olemasoleva projektidee või meeskonnaga. Täielikult
             valmis projektiplaan ei ole osalemiseks vajalik.
@@ -282,7 +284,7 @@
 
         <div class="camp-highlight-card">
           <strong>2</strong>
-          <span>praktilist ja arendavat päeva</span>
+          <span data-i18n="camp.about.stat">praktilist ja arendavat päeva</span>
         </div>
       </div>
     </section>
@@ -295,29 +297,29 @@
   data-event-date="2026-09-19T10:00:00+03:00"
 >
   <div class="camp-countdown-heading">
-    <span>LAAGRI ALGUSENI ON JÄÄNUD</span>
-    <h3>Kohtume 19.–20. septembril 2026</h3>
+    <span data-i18n="camp.countdown.label">LAAGRI ALGUSENI ON JÄÄNUD</span>
+    <h3 data-i18n="camp.countdown.meet">Kohtume 19.–20. septembril 2026</h3>
   </div>
 
   <div class="camp-countdown-grid">
     <div class="camp-countdown-item">
       <strong id="campCountdownDays">00</strong>
-      <span>Päeva</span>
+      <span data-i18n="common.countdown.days">Päeva</span>
     </div>
 
     <div class="camp-countdown-item">
       <strong id="campCountdownHours">00</strong>
-      <span>Tundi</span>
+      <span data-i18n="common.countdown.hours">Tundi</span>
     </div>
 
     <div class="camp-countdown-item">
       <strong id="campCountdownMinutes">00</strong>
-      <span>Minutit</span>
+      <span data-i18n="common.countdown.minutes">Minutit</span>
     </div>
 
     <div class="camp-countdown-item">
       <strong id="campCountdownSeconds">00</strong>
-      <span>Sekundit</span>
+      <span data-i18n="common.countdown.seconds">Sekundit</span>
     </div>
   </div>
 
@@ -333,11 +335,11 @@
     <section class="camp-audience">
       <div class="camp-audience-container">
         <div class="camp-section-heading">
-          <span class="camp-section-label">KELLELE?</span>
+          <span class="camp-section-label" data-i18n="camp.audience.label">KELLELE?</span>
 
-          <h2>Ootame aktiivseid noori ja noortetiime</h2>
+          <h2 data-i18n="camp.audience.title">Ootame aktiivseid noori ja noortetiime</h2>
 
-          <p>
+          <p data-i18n="camp.audience.description">
             Laager sobib osalejale, kes soovib oma idee arendamisel praktilist
             tuge, uusi teadmisi ja tagasisidet.
           </p>
@@ -346,8 +348,8 @@
         <div class="camp-audience-grid">
           <article class="camp-audience-card">
             <span>01</span>
-            <h3>Noor, kellel on idee</h3>
-            <p>
+            <h3 data-i18n="camp.audience.ideaTitle">Noor, kellel on idee</h3>
+            <p data-i18n="camp.audience.ideaText">
               Sul on idee sündmuse, projekti või algatuse jaoks, kuid sa ei tea
               veel täpselt, kuidas sellega edasi liikuda.
             </p>
@@ -355,8 +357,8 @@
 
           <article class="camp-audience-card">
             <span>02</span>
-            <h3>Juba tegutsev tiim</h3>
-            <p>
+            <h3 data-i18n="camp.audience.teamTitle">Juba tegutsev tiim</h3>
+            <p data-i18n="camp.audience.teamText">
               Teil on olemas meeskond ja ühine idee, mida soovite laagri jooksul
               põhjalikumalt läbi töötada.
             </p>
@@ -364,8 +366,8 @@
 
           <article class="camp-audience-card">
             <span>03</span>
-            <h3>Aktiivne ja ettevõtlik noor</h3>
-            <p>
+            <h3 data-i18n="camp.audience.activeTitle">Aktiivne ja ettevõtlik noor</h3>
+            <p data-i18n="camp.audience.activeText">
               Soovid õppida projektide koostamist, leida uusi koostööpartnereid
               ning tulevikus oma algatusi ellu viia.
             </p>
@@ -378,9 +380,9 @@
 
     <section class="camp-section">
       <div class="camp-section-heading">
-        <span class="camp-section-label">MIDA ÕPID?</span>
+        <span class="camp-section-label" data-i18n="camp.skills.label">MIDA ÕPID?</span>
 
-        <h2>Praktilised oskused oma idee elluviimiseks</h2>
+        <h2 data-i18n="camp.skills.title">Praktilised oskused oma idee elluviimiseks</h2>
       </div>
 
       <div class="camp-skills-grid">
@@ -388,8 +390,8 @@
           <div class="camp-skill-icon">01</div>
 
           <div>
-            <h3>Probleemi ja eesmärgi sõnastamine</h3>
-            <p>
+            <h3 data-i18n="camp.skills.problemTitle">Probleemi ja eesmärgi sõnastamine</h3>
+            <p data-i18n="camp.skills.problemText">
               Õpid kirjeldama, millist probleemi sinu projekt lahendab ja
               millist tulemust soovid saavutada.
             </p>
@@ -400,8 +402,8 @@
           <div class="camp-skill-icon">02</div>
 
           <div>
-            <h3>Tegevuskava koostamine</h3>
-            <p>
+            <h3 data-i18n="camp.skills.planTitle">Tegevuskava koostamine</h3>
+            <p data-i18n="camp.skills.planText">
               Paned paika projekti põhitegevused, ajakava, vastutajad ja
               vajalikud ressursid.
             </p>
@@ -412,8 +414,8 @@
           <div class="camp-skill-icon">03</div>
 
           <div>
-            <h3>Eelarve planeerimine</h3>
-            <p>
+            <h3 data-i18n="camp.skills.budgetTitle">Eelarve planeerimine</h3>
+            <p data-i18n="camp.skills.budgetText">
               Õpid hindama projekti kulusid ning koostama arusaadavat ja
               realistlikku eelarvet.
             </p>
@@ -424,8 +426,8 @@
           <div class="camp-skill-icon">04</div>
 
           <div>
-            <h3>Rahastusvõimaluste leidmine</h3>
-            <p>
+            <h3 data-i18n="camp.skills.fundingTitle">Rahastusvõimaluste leidmine</h3>
+            <p data-i18n="camp.skills.fundingText">
               Saad ülevaate sellest, kust otsida projektile rahastust ning
               kuidas valida sobiv toetusprogramm.
             </p>
@@ -436,8 +438,8 @@
           <div class="camp-skill-icon">05</div>
 
           <div>
-            <h3>Idee esitlemine</h3>
-            <p>
+            <h3 data-i18n="camp.skills.pitchTitle">Idee esitlemine</h3>
+            <p data-i18n="camp.skills.pitchText">
               Harjutad oma projekti selget ja veenvat tutvustamist mentoritele,
               partneritele ja võimalikele rahastajatele.
             </p>
@@ -448,8 +450,8 @@
           <div class="camp-skill-icon">06</div>
 
           <div>
-            <h3>Meeskonnatöö</h3>
-            <p>
+            <h3 data-i18n="camp.skills.teamworkTitle">Meeskonnatöö</h3>
+            <p data-i18n="camp.skills.teamworkText">
               Õpid jagama ülesandeid, määrama rolle ning tegema koostööd ühise
               eesmärgi saavutamiseks.
             </p>
@@ -463,41 +465,41 @@
     <section class="camp-program">
       <div class="camp-program-container">
         <div class="camp-section-heading">
-          <span class="camp-section-label">PROGRAMM</span>
+          <span class="camp-section-label" data-i18n="camp.program.label">PROGRAMM</span>
 
-          <h2>Kahe päeva jooksul viime idee järgmisele tasemele</h2>
+          <h2 data-i18n="camp.program.title">Kahe päeva jooksul viime idee järgmisele tasemele</h2>
 
-          <p>
+          <p data-i18n="camp.program.note">
             Täpsem programm ja kellajad lisatakse enne laagri toimumist.
           </p>
         </div>
 
         <div class="camp-days">
           <article class="camp-day-card">
-            <span class="camp-day-number">1. päev</span>
+            <span class="camp-day-number" data-i18n="camp.program.day1">1. päev</span>
 
-            <h3>Idee ja projekti ülesehitus</h3>
+            <h3 data-i18n="camp.program.day1Title">Idee ja projekti ülesehitus</h3>
 
             <ul>
-              <li>Saabumine ja osalejate tutvumine</li>
-              <li>Ideede ning tiimide tutvustamine</li>
-              <li>Probleemi, eesmärgi ja sihtrühma määramine</li>
-              <li>Projekti tegevuste kavandamine</li>
-              <li>Mentorite tagasiside</li>
+              <li data-i18n="camp.program.day1Item1">Saabumine ja osalejate tutvumine</li>
+              <li data-i18n="camp.program.day1Item2">Ideede ning tiimide tutvustamine</li>
+              <li data-i18n="camp.program.day1Item3">Probleemi, eesmärgi ja sihtrühma määramine</li>
+              <li data-i18n="camp.program.day1Item4">Projekti tegevuste kavandamine</li>
+              <li data-i18n="camp.program.day1Item5">Mentorite tagasiside</li>
             </ul>
           </article>
 
           <article class="camp-day-card">
-            <span class="camp-day-number">2. päev</span>
+            <span class="camp-day-number" data-i18n="camp.program.day2">2. päev</span>
 
-            <h3>Eelarve, rahastus ja esitlus</h3>
+            <h3 data-i18n="camp.program.day2Title">Eelarve, rahastus ja esitlus</h3>
 
             <ul>
-              <li>Projekti eelarve koostamine</li>
-              <li>Rahastusvõimaluste otsimine</li>
-              <li>Riskide ja võimalike lahenduste analüüs</li>
-              <li>Projekti esitluse ettevalmistamine</li>
-              <li>Ideede esitlemine ja lõplik tagasiside</li>
+              <li data-i18n="camp.program.day2Item1">Projekti eelarve koostamine</li>
+              <li data-i18n="camp.program.day2Item2">Rahastusvõimaluste otsimine</li>
+              <li data-i18n="camp.program.day2Item3">Riskide ja võimalike lahenduste analüüs</li>
+              <li data-i18n="camp.program.day2Item4">Projekti esitluse ettevalmistamine</li>
+              <li data-i18n="camp.program.day2Item5">Ideede esitlemine ja lõplik tagasiside</li>
             </ul>
           </article>
         </div>
@@ -510,11 +512,11 @@
     <section class="camp-support">
       <div class="camp-support-inner">
         <div class="camp-section-heading camp-section-heading-light">
-          <span class="camp-section-label">TUGI PÄRAST LAAGRIT</span>
+          <span class="camp-section-label" data-i18n="camp.support.label">TUGI PÄRAST LAAGRIT</span>
 
-          <h2>Laager on algus, mitte lõpp</h2>
+          <h2 data-i18n="camp.support.title">Laager on algus, mitte lõpp</h2>
 
-          <p>
+          <p data-i18n="camp.support.description">
             Hea projekt vajab vahel veel ühte küsimust, kontakti või julgustavat
             tagasisidet. Soovime, et sinu idee liiguks edasi ka pärast laagrit.
           </p>
@@ -523,8 +525,8 @@
         <div class="camp-support-grid">
           <article class="camp-support-card">
             <span>01</span>
-            <h3>Tagasiside</h3>
-            <p>
+            <h3 data-i18n="camp.support.feedbackTitle">Tagasiside</h3>
+            <p data-i18n="camp.support.feedbackText">
               Aitame sul pärast laagrit oma projektiplaani täpsustada ja
               järgmised sammud selgemaks muuta.
             </p>
@@ -532,8 +534,8 @@
 
           <article class="camp-support-card">
             <span>02</span>
-            <h3>Kontaktid</h3>
-            <p>
+            <h3 data-i18n="camp.support.contactsTitle">Kontaktid</h3>
+            <p data-i18n="camp.support.contactsText">
               Jagame võimalikke koostööpartnereid, mentoreid ja rahastusallikaid,
               mis võivad sinu ideed edasi aidata.
             </p>
@@ -541,8 +543,8 @@
 
           <article class="camp-support-card">
             <span>03</span>
-            <h3>Järgmine samm</h3>
-            <p>
+            <h3 data-i18n="camp.support.nextTitle">Järgmine samm</h3>
+            <p data-i18n="camp.support.nextText">
               Kui soovid projektiga jätkata, saad meiega ühendust võtta ning
               koos läbi arutada, kuidas ideest päris tegevuseni jõuda.
             </p>
@@ -556,11 +558,11 @@
     <section class="camp-section camp-contact">
       <div class="camp-contact-card">
         <div>
-          <span class="camp-section-label">KÜSIMUSED JA IDEED</span>
+          <span class="camp-section-label" data-i18n="camp.contact.label">KÜSIMUSED JA IDEED</span>
 
-          <h2>Kas vajad oma projektile nõu või tuge?</h2>
+          <h2 data-i18n="camp.contact.title">Kas vajad oma projektile nõu või tuge?</h2>
 
-          <p>
+          <p data-i18n="camp.contact.description">
             Kirjuta meile laagri või oma idee kohta. Vastame,
             aitame mõtteid korrastada ja arutame koos, milline võiks olla sinu
             järgmine samm.
@@ -580,11 +582,11 @@
       <div class="bottom-newsletter-card">
 
         <div class="bottom-newsletter-content">
-          <span class="bottom-newsletter-label">INFOKIRI</span>
+          <span class="bottom-newsletter-label" data-i18n="common.newsletter.label">INFOKIRI</span>
 
-          <h2>Hoia end meie tegemistega kursis</h2>
+          <h2 data-i18n="common.newsletter.titleAlternative">Hoia end meie tegemistega kursis</h2>
 
-          <p>
+          <p data-i18n="camp.newsletter.body">
             Liitu infokirjaga, et saada teavet meie sündmuste, projektide,
             laagrite ja noortele suunatud võimaluste kohta.
           </p>
@@ -596,7 +598,7 @@
             data-sender-form-id="azpjE7"
           ></div>
           <noscript>
-            <a href="https://stats.sender.net/forms/azpjE7/view">
+            <a href="https://stats.sender.net/forms/azpjE7/view" data-i18n="common.newsletter.join">
               Liitu infokirjaga
             </a>
           </noscript>
@@ -612,9 +614,9 @@
 
     <!-- Organisatsioon -->
     <div class="footer-brand">
-      <h3>MTÜ Noortealgatuste Tugi</h3>
+      <h3 data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</h3>
 
-      <p>
+      <p data-i18n="common.footer.brandText">
         Toetame noorte ideid, algatusi ja kogukondlikke projekte Ida-Virumaal.
         Aitame noortel tegutseda, õppida ja oma algatusi ellu viia.
       </p>
@@ -670,21 +672,21 @@
 
     <!-- Kiirlingid -->
     <div class="footer-column">
-      <h4>Kiirlingid</h4>
+      <h4 data-i18n="common.footer.quickLinks">Kiirlingid</h4>
 
-      <a href="index.html">Avaleht</a>
-      <a href="index.html#about">Meist</a>
-      <a href="index.html#projects">Projektid</a>
-      <a href="index.html#news">Uudised</a>
-      <a href="index.html#newsletter">Infokiri</a>
-      <a href="mailto:juhatus@noortetugi.ee">Kontakt</a>
+      <a href="index.html" data-i18n="common.nav.home">Avaleht</a>
+      <a href="index.html#about" data-i18n="common.footer.about">Meist</a>
+      <a href="index.html#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
+      <a href="index.html#news" data-i18n="common.nav.news">Uudised</a>
+      <a href="index.html#newsletter" data-i18n="common.footer.newsletter">Infokiri</a>
+      <a href="mailto:juhatus@noortetugi.ee" data-i18n="common.nav.contact">Kontakt</a>
     </div>
 
     <!-- Kontakt -->
     <div class="footer-column footer-contact">
-      <h4>Kontakt</h4>
+      <h4 data-i18n="common.nav.contact">Kontakt</h4>
 
-      <p>📍 Ida-Virumaa, Eesti</p>
+      <p data-i18n="common.footer.location">📍 Ida-Virumaa, Eesti</p>
 
       <a href="mailto:juhatus@noortetugi.ee">
         ✉️ juhatus@noortetugi.ee
@@ -697,20 +699,20 @@
   </div>
 
   <div class="footer-bottom">
-    <p>
+    <p data-i18n="common.footer.copyright">
       © 2026 MTÜ Noortealgatuste Tugi. Kõik õigused kaitstud.
     </p>
 
-    <nav class="footer-bottom-links" aria-label="Jaluse lingid">
-      <a href="privaatsuspoliitika.html">
+    <nav class="footer-bottom-links" aria-label="Jaluse lingid" data-i18n-aria-label="common.a11y.footerLinks">
+      <a href="privaatsuspoliitika.html" data-i18n="common.nav.privacy">
         Privaatsuspoliitika
       </a>
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed">
+  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
-      <strong>MTÜ Noortealgatuste Tugi</strong><br>
+      <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
       Ametlik veebileht: noortetugi.ee<br>
       Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.<br>
@@ -726,6 +728,7 @@
 
 <script>
   (() => {
+    const t = (key) => window.I18N?.t(key) || "";
     const page = document.querySelector(".camp-page");
     if (!page) return;
 
@@ -864,7 +867,7 @@
         <button
           class="camp-lightbox-close"
           type="button"
-          aria-label="Sulge foto"
+          aria-label="${t("common.a11y.closePhoto")}"
         >
           ×
         </button>
@@ -900,7 +903,7 @@
           const caption = item.querySelector("span");
           lightboxCaption.textContent = caption
             ? caption.textContent
-            : "Ida-Virumaa noorte projektikirjutamise laager";
+            : t("camp.lightbox.defaultCaption");
 
           lightbox.classList.add("is-open");
           lightbox.setAttribute("aria-hidden", "false");

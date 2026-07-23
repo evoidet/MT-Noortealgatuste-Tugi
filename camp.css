@@ -158,7 +158,7 @@ body.camp-page .camp-hero::before {
 }
 
 body.camp-page .camp-hero::after {
-  content: "IDEE • TEADMINE • PROJEKT • MÕJU";
+  content: var(--i18n-camp-hero-words, "IDEE • TEADMINE • PROJEKT • MÕJU");
   position: absolute;
   right: -130px;
   bottom: 20px;
@@ -811,7 +811,7 @@ body.camp-page #camp-about {
 }
 
 body.camp-page #camp-about::before {
-  content: "IDEEST PROJEKTINI";
+  content: var(--i18n-camp-idea-to-project, "IDEEST PROJEKTINI");
   position: absolute;
   top: 68px;
   right: -40px;
@@ -1094,7 +1094,7 @@ body.camp-page .camp-audience {
 }
 
 body.camp-page .camp-audience::before {
-  content: "KELLELE?";
+  content: var(--i18n-camp-audience, "KELLELE?");
   position: absolute;
   right: -25px;
   bottom: -25px;
@@ -1458,7 +1458,7 @@ body.camp-page .camp-support {
 }
 
 body.camp-page .camp-support::before {
-  content: "EDASI";
+  content: var(--i18n-camp-next, "EDASI");
   position: absolute;
   right: -25px;
   bottom: -45px;
@@ -1692,7 +1692,7 @@ body.camp-page .camp-registration {
 }
 
 body.camp-page .camp-registration::before {
-  content: "SINU IDEE";
+  content: var(--i18n-camp-your-idea, "SINU IDEE");
   position: absolute;
   right: -30px;
   bottom: -30px;
@@ -2580,6 +2580,17 @@ body.camp-page .nav a::after {
   body.camp-page .camp-reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+@media (max-width: 360px) {
+  html[lang="ru"] body.camp-page .camp-section-heading h2 {
+    font-size: 34px;
+  }
+
+  html[lang="ru"] body.camp-page .camp-day-card h3 {
+    overflow-wrap: anywhere;
+    font-size: 25px;
   }
 }
 
