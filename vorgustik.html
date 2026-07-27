@@ -31,11 +31,11 @@
 
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-  <link rel="stylesheet" href="/style.css?v=20260723-3">
+  <link rel="stylesheet" href="/style.css?v=20260727-4">
   <link rel="stylesheet" href="/vorgustik.css?v=20260723-2">
-  <script src="/translations.js"></script>
+  <script src="/translations.js?v=20260727-6"></script>
   <script src="/i18n.js?v=20260723-2"></script>
 </head>
 
@@ -201,8 +201,8 @@
                 src="/assets/logo-header.png"
                 alt=""
                 class="network-orbit-logo"
-                width="500"
-                height="500"
+                width="1000"
+                height="405"
               >
               <strong data-i18n="network.hero.ourNetwork">Meie võrgustik</strong>
               <span>Ida-Virumaa</span>
@@ -328,6 +328,9 @@
           <div
             class="network-result-box network-reveal"
             style="--network-delay: 120ms"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
           >
             <strong id="networkVisibleCount">6</strong>
             <span data-i18n="network.members.visible">avaldatud profiili nähtaval</span>
@@ -342,8 +345,9 @@
               id="networkSearch"
               type="search"
               placeholder="Otsi nime, linna või tegevuse järgi..."
+              aria-label="Otsi nime, linna või tegevuse järgi..."
               autocomplete="off"
-             data-i18n-placeholder="network.members.searchPlaceholder">
+             data-i18n-placeholder="network.members.searchPlaceholder" data-i18n-aria-label="network.members.searchPlaceholder">
           </label>
 
           <div
@@ -468,8 +472,8 @@
                 <img
                   src="/assets/vorgustik/alutaguse-valla-noortevolikogu.jpg"
                   alt="Alutaguse valla noortevolikogu logo"
-                  width="180"
-                  height="180"
+                  width="1439"
+                  height="950"
                   loading="lazy"
                   onerror="this.remove()"
                  data-i18n-alt="network.members.logoAlutaguse">
@@ -672,8 +676,8 @@
                 <img
                   src="/assets/vorgustik/volunteezy.png"
                   alt="MTÜ Volunteezy logo"
-                  width="180"
-                  height="180"
+                  width="1282"
+                  height="1305"
                   loading="lazy"
                   onerror="this.remove()"
                  data-i18n-alt="network.members.logoVolunteezy">
@@ -963,7 +967,7 @@
           >
             <span>03</span>
             <h3 data-i18n="network.steps.createTitle">Loo midagi uut</h3>
-            <p data-i18n="network.steps.createText">Sõnastage ühine eesmärk ning viige idee koos ellu.</p>
+            <p data-i18n="network.steps.createText">Sõnasta ühine eesmärk ning vii idee koos ellu.</p>
           </article>
 
         </div>
@@ -1148,7 +1152,6 @@
       <div class="network-logo-lightbox-image-wrap">
         <img
           id="networkLogoLightboxImage"
-          src=""
           alt=""
         >
       </div>
@@ -1159,14 +1162,14 @@
           Organisatsiooni logo
         </strong>
         <small data-i18n="common.a11y.photoHint">
-          Sulgemiseks vajuta ristile, taustale või klahvile Esc
+          Akna sulgemiseks kasuta sulgemisnuppu, vajuta taustale või klahvi Esc
         </small>
       </div>
     </div>
   </div>
 
   <script src="/site-config.js"></script>
-  <script src="/script.js?v=20260723-2"></script>
+  <script src="/script.js?v=20260727-6"></script>
 
   <script>
     (() => {
@@ -1179,7 +1182,21 @@
       const filterButtons = [...document.querySelectorAll(".network-filter")];
       const memberCards = [...document.querySelectorAll(".network-member-card")];
       const visibleCount = document.getElementById("networkVisibleCount");
+      const visibleCountLabel = visibleCount?.nextElementSibling;
       const emptyState = document.getElementById("networkEmptyState");
+      const pluralRules = new Intl.PluralRules(
+        window.I18N?.getLanguage?.() || "et"
+      );
+
+      const pluralized = (baseKey, value) => {
+        const category = pluralRules.select(value);
+
+        return (
+          t(`${baseKey}.${category}`) ||
+          t(`${baseKey}.other`) ||
+          t(baseKey)
+        );
+      };
 
       let activeFilter = "all";
 
@@ -1267,6 +1284,12 @@
         });
 
         if (visibleCount) visibleCount.textContent = String(count);
+        if (visibleCountLabel) {
+          visibleCountLabel.textContent = pluralized(
+            "network.members.visible",
+            count
+          );
+        }
         if (emptyState) emptyState.hidden = count !== 0;
       };
 
@@ -1387,6 +1410,14 @@
             logoLightboxClose?.focus({
               preventScroll: true
             });
+
+            window.setTimeout(() => {
+              if (logoLightbox.classList.contains("is-open")) {
+                logoLightboxClose?.focus({
+                  preventScroll: true
+                });
+              }
+            }, 80);
           });
         });
       };

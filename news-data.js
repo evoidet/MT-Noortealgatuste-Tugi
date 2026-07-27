@@ -10,6 +10,12 @@
    events        = events
    initiatives   = youth initiatives
    opportunities = opportunities
+
+   Image rules:
+   - `image` is a landscape news cover between 3:2 and 8:5
+     (minimum size: 1200 x 750).
+   - `imageFit: "contain"` is reserved for intentional portrait posters.
+   - `originalImage` may keep any aspect ratio and is shown inside the article.
    ========================================================= */
 
 (function (windowObject) {
@@ -44,9 +50,7 @@
       date: "2026-06-28",
       image: "/assets/news/laager/laager.jpg",
       imagePosition: "center 24%",
-      originalImage: "/assets/news/laager/laager.jpg",
-      originalImageWidth: 1080,
-      originalImageHeight: 1350,
+      imageFit: "contain",
       featured: false,
       placeholder: false,
       published: true
@@ -55,11 +59,8 @@
       id: "avasta-erasmus-voimalused-vitatiimis",
       category: "opportunities",
       date: "2026-07-01",
-      image: "/assets/news/erasmus-vitatiim/erasmus-vitatiim.webp",
-      imagePosition: "center 30%",
-      originalImage: "/assets/news/erasmus-vitatiim/erasmus-vitatiim.jpg",
-      originalImageWidth: 1080,
-      originalImageHeight: 1350,
+      image: "/assets/news/erasmus-vitatiim/erasmus-vitatiim.jpg",
+      imagePosition: "center center",
       featured: false,
       placeholder: false,
       published: true

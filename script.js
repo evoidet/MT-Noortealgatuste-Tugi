@@ -9,12 +9,63 @@ document.addEventListener("DOMContentLoaded", function () {
   const t = function (key, variables) {
     return window.I18N?.t(key, variables) || "";
   };
+  const currentLanguage = window.I18N?.getLanguage?.() || "et";
+  const pluralRules = new Intl.PluralRules(currentLanguage);
 
   function setText(element, message) {
     if (element) {
       element.textContent = message;
     }
   }
+
+  function getPluralizedText(baseKey, value) {
+    const category = pluralRules.select(value);
+
+    return (
+      t(`${baseKey}.${category}`) ||
+      t(`${baseKey}.other`) ||
+      t(baseKey)
+    );
+  }
+
+  function setCountdownValue(valueElement, value, translationKey) {
+    valueElement.textContent = String(value).padStart(2, "0");
+
+    const labelElement = valueElement.nextElementSibling;
+
+    if (labelElement) {
+      labelElement.textContent = getPluralizedText(translationKey, value);
+    }
+  }
+
+  (function initSkipLink() {
+    const mainContent = document.querySelector("main");
+
+    if (!mainContent || document.querySelector(".skip-link")) {
+      return;
+    }
+
+    if (!mainContent.id) {
+      mainContent.id = "main-content";
+    }
+
+    if (!mainContent.hasAttribute("tabindex")) {
+      mainContent.tabIndex = -1;
+    }
+
+    const skipLink = document.createElement("a");
+    skipLink.className = "skip-link";
+    skipLink.href = `#${mainContent.id}`;
+    skipLink.textContent = t("common.a11y.skipToContent");
+
+    skipLink.addEventListener("click", function () {
+      window.setTimeout(function () {
+        mainContent.focus({ preventScroll: true });
+      }, 0);
+    });
+
+    document.body.prepend(skipLink);
+  })();
 
   function getFocusableElements(container) {
     if (!container) {
@@ -345,6 +396,28 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
+    form
+      .querySelectorAll("input[required], textarea[required], select[required]")
+      .forEach(function (field) {
+        field.addEventListener("input", function () {
+          field.setCustomValidity("");
+        });
+
+        field.addEventListener("invalid", function () {
+          field.setCustomValidity("");
+
+          if (field.validity.valueMissing) {
+            field.setCustomValidity(t("common.form.required"));
+          } else if (
+            field instanceof HTMLInputElement &&
+            field.type === "email" &&
+            field.validity.typeMismatch
+          ) {
+            field.setCustomValidity(t("common.form.invalidEmail"));
+          }
+        });
+      });
+
     function showUnconfiguredMessage(event) {
       event.preventDefault();
       setText(
@@ -413,10 +486,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const remainingTime = targetDate - Date.now();
 
       if (remainingTime <= 0) {
-        daysElement.textContent = "00";
-        hoursElement.textContent = "00";
-        minutesElement.textContent = "00";
-        secondsElement.textContent = "00";
+        setCountdownValue(daysElement, 0, "common.countdown.days");
+        setCountdownValue(hoursElement, 0, "common.countdown.hours");
+        setCountdownValue(minutesElement, 0, "common.countdown.minutes");
+        setCountdownValue(secondsElement, 0, "common.countdown.seconds");
         finishedElement.textContent = t("gala.countdown.finished");
 
         if (intervalId !== null) {
@@ -434,10 +507,10 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
 
-      daysElement.textContent = String(days).padStart(2, "0");
-      hoursElement.textContent = String(hours).padStart(2, "0");
-      minutesElement.textContent = String(minutes).padStart(2, "0");
-      secondsElement.textContent = String(seconds).padStart(2, "0");
+      setCountdownValue(daysElement, days, "common.countdown.days");
+      setCountdownValue(hoursElement, hours, "common.countdown.hours");
+      setCountdownValue(minutesElement, minutes, "common.countdown.minutes");
+      setCountdownValue(secondsElement, seconds, "common.countdown.seconds");
     }
 
     updateGalaCountdown();
@@ -488,10 +561,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const remainingTime = targetDate - Date.now();
 
       if (remainingTime <= 0) {
-        daysElement.textContent = "00";
-        hoursElement.textContent = "00";
-        minutesElement.textContent = "00";
-        secondsElement.textContent = "00";
+        setCountdownValue(daysElement, 0, "common.countdown.days");
+        setCountdownValue(hoursElement, 0, "common.countdown.hours");
+        setCountdownValue(minutesElement, 0, "common.countdown.minutes");
+        setCountdownValue(secondsElement, 0, "common.countdown.seconds");
         finishedElement.textContent = t("camp.countdown.started");
 
         if (intervalId !== null) {
@@ -509,10 +582,10 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
 
-      daysElement.textContent = String(days).padStart(2, "0");
-      hoursElement.textContent = String(hours).padStart(2, "0");
-      minutesElement.textContent = String(minutes).padStart(2, "0");
-      secondsElement.textContent = String(seconds).padStart(2, "0");
+      setCountdownValue(daysElement, days, "common.countdown.days");
+      setCountdownValue(hoursElement, hours, "common.countdown.hours");
+      setCountdownValue(minutesElement, minutes, "common.countdown.minutes");
+      setCountdownValue(secondsElement, seconds, "common.countdown.seconds");
     }
 
     updateCampCountdown();
@@ -610,14 +683,20 @@ document.addEventListener("DOMContentLoaded", function () {
       navigation.classList.add("open");
       menuButton.classList.add("active");
       menuButton.setAttribute("aria-expanded", "true");
+      menuButton.setAttribute("aria-label", t("common.a11y.closeMenu"));
     }
 
-    function hideMenu() {
+    function hideMenu(options = {}) {
       menuIsOpen = false;
       navigation.classList.remove("open");
       menuButton.classList.remove("active");
       menuButton.setAttribute("aria-expanded", "false");
+      menuButton.setAttribute("aria-label", t("common.a11y.openMenu"));
       document.dispatchEvent(new CustomEvent("navigation:close-projects"));
+
+      if (options.restoreFocus) {
+        menuButton.focus();
+      }
     }
 
     menuButton.addEventListener("click", function (event) {
@@ -647,7 +726,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && menuIsOpen) {
-        hideMenu();
+        hideMenu({ restoreFocus: true });
       }
     });
 

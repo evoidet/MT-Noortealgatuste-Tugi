@@ -107,7 +107,9 @@
         )}"
       >
         <img
-          class="news-image-primary"
+          class="news-image-primary${item.imageFit === "contain"
+            ? " news-image-contain"
+            : ""}"
           src="${escapeHtml(item.image || "")}"
           alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
           width="1200"
@@ -138,7 +140,7 @@
             <span class="home-news-category">
               ${escapeHtml(featured.categoryLabel || t("common.nav.news"))}
             </span>
-            <time>${escapeHtml(formatDate(featured))}</time>
+            <time datetime="${escapeHtml(featured.date)}">${escapeHtml(formatDate(featured))}</time>
           </div>
 
           <h3>${escapeHtml(featured.title)}</h3>
@@ -177,7 +179,7 @@
             <span class="home-news-category">
               ${escapeHtml(item.categoryLabel || t("common.nav.news"))}
             </span>
-            <time>${escapeHtml(formatDate(item))}</time>
+            <time datetime="${escapeHtml(item.date)}">${escapeHtml(formatDate(item))}</time>
           </div>
 
           <h3>${escapeHtml(item.title)}</h3>

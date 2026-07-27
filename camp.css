@@ -2293,8 +2293,18 @@ body.camp-page .nav a::after {
 }
 
   body.camp-page .camp-hero-inner {
-    grid-template-columns: minmax(0, 1fr) minmax(330px, 0.8fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 48px;
+  }
+
+  body.camp-page .camp-hero-content {
+    min-width: 0;
+  }
+
+  body.camp-page .camp-hero-visual {
+    justify-self: center;
+    width: min(680px, 100%);
+    min-height: 540px;
   }
 
   body.camp-page .camp-information {

@@ -987,6 +987,25 @@ body.home-page .home-value-icon {
   transition: transform 0.35s ease;
 }
 
+body.home-page .home-value-icon-connect svg {
+  display: block;
+  width: 31px;
+  height: 31px;
+  overflow: visible;
+}
+
+body.home-page .home-value-icon-connect .home-connect-links {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+body.home-page .home-value-icon-connect .home-connect-nodes {
+  fill: currentColor;
+}
+
 body.home-page .home-value-card:hover .home-value-icon {
   transform: rotate(-8deg) scale(1.08);
 }
@@ -2421,6 +2440,17 @@ body.home-page .home-news-small-media .news-image-primary {
   object-fit: cover;
   object-position: var(--news-image-position, center center);
   transition: transform 0.55s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.home-page .home-news-media .news-image-primary.news-image-contain,
+body.home-page .home-news-small-media .news-image-primary.news-image-contain {
+  box-sizing: border-box;
+  padding: clamp(8px, 1.2vw, 16px);
+  object-fit: contain;
+  object-position: center;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(92, 228, 19, 0.18), transparent 28%),
+    linear-gradient(145deg, #244f12, #0e3b03);
 }
 
 body.home-page .home-news-card:hover .news-image-primary {

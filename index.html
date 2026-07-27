@@ -46,11 +46,11 @@
   >
 
   <!-- Общие стили сайта -->
-  <link rel="stylesheet" href="/style.css?v=20260723-3">
+  <link rel="stylesheet" href="/style.css?v=20260727-4">
 
   <!-- Стили главной страницы -->
-  <link rel="stylesheet" href="/home.css?v=20260723-5">
-  <script src="/translations.js"></script>
+  <link rel="stylesheet" href="/home.css?v=20260727-1">
+  <script src="/translations.js?v=20260727-6"></script>
   <script src="/i18n.js?v=20260723-2"></script>
   <script src="/sender-init.js"></script>
 </head>
@@ -83,7 +83,6 @@
         <img
           class="photo-modal-image"
           id="photoModalImage"
-          src=""
           alt=""
         >
       </div>
@@ -94,7 +93,7 @@
         <p class="photo-modal-description" id="photoModalDescription"></p>
 
         <span class="photo-modal-hint" data-i18n="common.a11y.photoHint">
-          Sulgemiseks vajuta ristile, taustale või klahvile Esc
+          Akna sulgemiseks kasuta sulgemisnuppu, vajuta taustale või klahvi Esc
         </span>
       </div>
     </div>
@@ -466,7 +465,12 @@
         </article>
 
         <article class="home-value-card" data-reveal data-reveal-delay="200">
-          <span class="home-value-icon" aria-hidden="true">◎</span>
+          <span class="home-value-icon home-value-icon-connect" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false">
+              <path class="home-connect-links" d="M16 16 8 8M16 16l8-8M16 16v9"></path>
+              <path class="home-connect-nodes" d="M8 4.5 11.5 8 8 11.5 4.5 8 8 4.5Zm16 0L27.5 8 24 11.5 20.5 8 24 4.5ZM16 21.5l3.5 3.5-3.5 3.5-3.5-3.5 3.5-3.5Z"></path>
+            </svg>
+          </span>
           <span class="home-value-number">03</span>
           <h3 data-i18n="home.about.connectTitle">Ühendame</h3>
           <p data-i18n="home.about.connectText">
@@ -833,7 +837,7 @@
         >
           <div class="home-form-row">
             <label for="contactName">
-              <span data-i18n="home.contact.name">Teie nimi *</span>
+              <span data-i18n="home.contact.name">Sinu nimi *</span>
               <input
                 type="text"
                 id="contactName"
@@ -1053,10 +1057,10 @@
   </div>
 </footer>
 
-<script src="/news-data.js?v=20260723-2"></script>
-<script src="/news-home.js?v=20260723-2"></script>
+<script src="/news-data.js?v=20260727-1"></script>
+<script src="/news-home.js?v=20260727-4"></script>
 <script src="/site-config.js"></script>
-<script src="/script.js?v=20260723-2"></script>
+<script src="/script.js?v=20260727-6"></script>
 
 <script>
   (() => {
@@ -1384,6 +1388,14 @@
           closeButton.focus({
             preventScroll: true
           });
+
+          window.setTimeout(() => {
+            if (modal.classList.contains("open")) {
+              closeButton.focus({
+                preventScroll: true
+              });
+            }
+          }, 80);
         });
       });
     };
@@ -1491,6 +1503,7 @@
       mediaItems.forEach((media) => {
         if (
           media.dataset.homeNewsPhotoReady === "true" ||
+          media.closest("a[href]") ||
           !media.querySelector("img")
         ) {
           return;
@@ -1506,7 +1519,7 @@
         media.setAttribute("aria-haspopup", "dialog");
         media.setAttribute(
           "aria-label",
-          "Ava uudise foto suurelt"
+          t("news.lightbox.open")
         );
 
         const zoomIcon = document.createElement("span");
@@ -1549,6 +1562,7 @@
 
       if (
         !media ||
+        media.closest("a[href]") ||
         !media.classList.contains(
           "home-news-photo-openable"
         )
@@ -1572,6 +1586,7 @@
 
       if (
         media &&
+        !media.closest("a[href]") &&
         media.classList.contains(
           "home-news-photo-openable"
         ) &&

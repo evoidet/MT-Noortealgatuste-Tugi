@@ -21,6 +21,17 @@
     const t = (key, variables) => window.I18N?.t(key, variables) || "";
     const locale = window.I18N?.locale() || "et-EE";
     const currentLanguage = window.I18N?.getLanguage() || "et";
+    const pluralRules = new Intl.PluralRules(currentLanguage);
+
+    const pluralized = (baseKey, value) => {
+      const category = pluralRules.select(value);
+
+      return (
+        t(`${baseKey}.${category}`) ||
+        t(`${baseKey}.other`) ||
+        t(baseKey)
+      );
+    };
 
     const allItems = Array.isArray(window.NEWS_ITEMS)
       ? window.NEWS_ITEMS.filter((item) => item && item.published !== false)
@@ -139,9 +150,49 @@
     const resultsText = document.getElementById("newsResultsText");
     const articleTarget = document.getElementById("newsArticleContent");
     const heroCount = document.getElementById("newsHeroCount");
+    const hero = document.querySelector(".news-hero");
+    const siteOrigin = "https://www.noortetugi.ee";
+    const listingCanonicalUrl = `${siteOrigin}/uudised.html`;
+
+    const setMetaContent = (selector, content) => {
+      document.querySelector(selector)?.setAttribute("content", content);
+    };
+
+    const setNewsMetadata = ({
+      pageTitle,
+      socialTitle,
+      description,
+      socialDescription = description,
+      canonicalUrl = listingCanonicalUrl,
+      image = "/assets/logo-header.png",
+      type = "website"
+    }) => {
+      const absoluteImageUrl = new URL(image, siteOrigin).href;
+
+      document.title = pageTitle;
+      document
+        .querySelector('link[rel="canonical"]')
+        ?.setAttribute("href", canonicalUrl);
+
+      setMetaContent('meta[name="description"]', description);
+      setMetaContent('meta[property="og:type"]', type);
+      setMetaContent('meta[property="og:title"]', socialTitle);
+      setMetaContent('meta[property="og:description"]', socialDescription);
+      setMetaContent('meta[property="og:url"]', canonicalUrl);
+      setMetaContent('meta[property="og:image"]', absoluteImageUrl);
+    };
 
     if (heroCount) {
       heroCount.textContent = String(realItems.length);
+
+      const heroCountLabel = heroCount.nextElementSibling;
+
+      if (heroCountLabel) {
+        heroCountLabel.textContent = pluralized(
+          "newsPage.hero.publishedStory",
+          realItems.length
+        );
+      }
     }
 
     const articleUrl = (item) => (
@@ -176,7 +227,9 @@
         )}"
       >
         <img
-          class="news-image-primary"
+          class="news-image-primary${item.imageFit === "contain"
+            ? " news-image-contain"
+            : ""}"
           src="${escapeHtml(item.image || "")}"
           alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
           width="1200"
@@ -235,7 +288,7 @@
         <div class="news-card-body">
           <div class="news-card-meta">
             <span>${escapeHtml(item.categoryLabel || t("common.nav.news"))}</span>
-            <time>${escapeHtml(formatDate(item))}</time>
+            <time datetime="${escapeHtml(item.date)}">${escapeHtml(formatDate(item))}</time>
           </div>
 
           <h3>${escapeHtml(item.title)}</h3>
@@ -275,7 +328,7 @@
         <div class="news-featured-content">
           <div class="news-card-meta">
             <span>${escapeHtml(item.categoryLabel || t("common.nav.news"))}</span>
-            <time>${escapeHtml(formatDate(item))}</time>
+            <time datetime="${escapeHtml(item.date)}">${escapeHtml(formatDate(item))}</time>
           </div>
 
           <h2>${escapeHtml(item.title)}</h2>
@@ -436,17 +489,17 @@
 
       listingView.hidden = false;
       articleView.hidden = true;
-      document.title = t("newsPage.meta.title");
 
-      document
-        .querySelector('meta[name="description"]')
-        ?.setAttribute("content", t("newsPage.meta.description"));
-      document
-        .querySelector('meta[property="og:title"]')
-        ?.setAttribute("content", t("newsPage.meta.title"));
-      document
-        .querySelector('meta[property="og:description"]')
-        ?.setAttribute("content", t("newsPage.meta.ogDescription"));
+      if (hero) {
+        hero.hidden = false;
+      }
+
+      setNewsMetadata({
+        pageTitle: t("newsPage.meta.title"),
+        socialTitle: t("newsPage.meta.title"),
+        description: t("newsPage.meta.description"),
+        socialDescription: t("newsPage.meta.ogDescription")
+      });
 
       renderFilters();
 
@@ -494,17 +547,22 @@
 
       listingView.hidden = true;
       articleView.hidden = false;
-      document.title = `${item.title} | MTÜ Noortealgatuste Tugi`;
 
-      document
-        .querySelector('meta[name="description"]')
-        ?.setAttribute("content", item.excerpt);
-      document
-        .querySelector('meta[property="og:title"]')
-        ?.setAttribute("content", item.title);
-      document
-        .querySelector('meta[property="og:description"]')
-        ?.setAttribute("content", item.excerpt);
+      if (hero) {
+        hero.hidden = true;
+      }
+
+      const canonicalUrl =
+        `${listingCanonicalUrl}?id=${encodeURIComponent(item.id)}`;
+
+      setNewsMetadata({
+        pageTitle: `${item.title} | MTÜ Noortealgatuste Tugi`,
+        socialTitle: item.title,
+        description: item.excerpt,
+        canonicalUrl,
+        image: item.image,
+        type: "article"
+      });
 
       const content = Array.isArray(item.content) && item.content.length
         ? item.content
@@ -534,7 +592,7 @@
         <div class="news-article-heading" data-news-reveal>
           <div class="news-card-meta">
             <span>${escapeHtml(item.categoryLabel || t("common.nav.news"))}</span>
-            <time>${escapeHtml(formatDate(item))}</time>
+            <time datetime="${escapeHtml(item.date)}">${escapeHtml(formatDate(item))}</time>
           </div>
 
           <h1>${escapeHtml(item.title)}</h1>
@@ -626,6 +684,16 @@
     if (selectedArticle) {
       renderArticle(selectedArticle);
     } else {
+      if (articleId) {
+        const listingUrl = new URL(window.location.href);
+        listingUrl.searchParams.delete("id");
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `${listingUrl.pathname}${listingUrl.search}${listingUrl.hash}`
+        );
+      }
+
       renderListing();
     }
 
@@ -633,8 +701,6 @@
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-
-    const hero = document.querySelector(".news-hero");
 
     if (hero && !reducedMotion) {
       hero.addEventListener("pointermove", (event) => {

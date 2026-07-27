@@ -115,6 +115,10 @@ body.news-page .news-hero {
   color: var(--news-white);
 }
 
+body.news-page .news-hero[hidden] {
+  display: none;
+}
+
 body.news-page .news-hero::after {
   content: var(--i18n-news-hero-label, "UUDISED");
   position: absolute;
@@ -702,6 +706,18 @@ body.news-page .news-article-image .news-image-primary {
   object-fit: cover;
   object-position: var(--news-image-position, center center);
   transition: transform 0.55s cubic-bezier(0.18, 0.8, 0.2, 1);
+}
+
+body.news-page .news-featured-media .news-image-primary.news-image-contain,
+body.news-page .news-card-media .news-image-primary.news-image-contain,
+body.news-page .news-article-image .news-image-primary.news-image-contain {
+  box-sizing: border-box;
+  padding: clamp(8px, 1.2vw, 16px);
+  object-fit: contain;
+  object-position: center;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(92, 228, 19, 0.18), transparent 28%),
+    linear-gradient(145deg, #244f12, #0e3b03);
 }
 
 body.news-page .news-featured-card:hover .news-image-primary,

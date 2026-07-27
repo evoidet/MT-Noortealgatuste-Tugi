@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadNewsItems } from "../scripts/lib/news-catalog.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const htmlFiles = fs
@@ -105,6 +106,285 @@ function localTarget(reference) {
   }
 
   return path.resolve(root, clean.replace(/^[/\\]+/, ""));
+}
+
+function readJpegDimensions(buffer) {
+  if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) {
+    return null;
+  }
+
+  const startOfFrameMarkers = new Set([
+    0xc0,
+    0xc1,
+    0xc2,
+    0xc3,
+    0xc5,
+    0xc6,
+    0xc7,
+    0xc9,
+    0xca,
+    0xcb,
+    0xcd,
+    0xce,
+    0xcf,
+  ]);
+  let offset = 2;
+
+  while (offset + 3 < buffer.length) {
+    while (offset < buffer.length && buffer[offset] === 0xff) {
+      offset += 1;
+    }
+
+    const marker = buffer[offset];
+    offset += 1;
+
+    if (
+      marker === 0xd8 ||
+      marker === 0xd9 ||
+      marker === 0x01 ||
+      (marker >= 0xd0 && marker <= 0xd7)
+    ) {
+      continue;
+    }
+
+    if (offset + 1 >= buffer.length) {
+      break;
+    }
+
+    const segmentLength = buffer.readUInt16BE(offset);
+
+    if (
+      startOfFrameMarkers.has(marker) &&
+      segmentLength >= 7 &&
+      offset + 6 < buffer.length
+    ) {
+      return {
+        width: buffer.readUInt16BE(offset + 5),
+        height: buffer.readUInt16BE(offset + 3),
+      };
+    }
+
+    if (segmentLength < 2) {
+      break;
+    }
+
+    offset += segmentLength;
+  }
+
+  return null;
+}
+
+function readWebpDimensions(buffer) {
+  if (
+    buffer.length < 20 ||
+    buffer.toString("ascii", 0, 4) !== "RIFF" ||
+    buffer.toString("ascii", 8, 12) !== "WEBP"
+  ) {
+    return null;
+  }
+
+  let offset = 12;
+
+  while (offset + 8 <= buffer.length) {
+    const chunkType = buffer.toString("ascii", offset, offset + 4);
+    const chunkSize = buffer.readUInt32LE(offset + 4);
+    const dataOffset = offset + 8;
+    const dataEnd = Math.min(dataOffset + chunkSize, buffer.length);
+
+    if (chunkType === "VP8X" && dataOffset + 10 <= dataEnd) {
+      return {
+        width: buffer.readUIntLE(dataOffset + 4, 3) + 1,
+        height: buffer.readUIntLE(dataOffset + 7, 3) + 1,
+      };
+    }
+
+    if (
+      chunkType === "VP8L" &&
+      dataOffset + 5 <= dataEnd &&
+      buffer[dataOffset] === 0x2f
+    ) {
+      const dimensions = buffer.readUInt32LE(dataOffset + 1);
+
+      return {
+        width: (dimensions & 0x3fff) + 1,
+        height: ((dimensions >>> 14) & 0x3fff) + 1,
+      };
+    }
+
+    if (chunkType === "VP8 " && dataOffset + 10 <= dataEnd) {
+      const searchEnd = Math.min(dataOffset + 16, dataEnd - 5);
+
+      for (let index = dataOffset; index <= searchEnd; index += 1) {
+        if (
+          buffer[index] === 0x9d &&
+          buffer[index + 1] === 0x01 &&
+          buffer[index + 2] === 0x2a
+        ) {
+          return {
+            width: buffer.readUInt16LE(index + 3) & 0x3fff,
+            height: buffer.readUInt16LE(index + 5) & 0x3fff,
+          };
+        }
+      }
+    }
+
+    offset = dataOffset + chunkSize + (chunkSize % 2);
+  }
+
+  return null;
+}
+
+function readImageDimensions(filePath) {
+  const buffer = fs.readFileSync(filePath);
+
+  if (
+    buffer.length >= 24 &&
+    buffer.toString("hex", 0, 8) === "89504e470d0a1a0a"
+  ) {
+    return {
+      width: buffer.readUInt32BE(16),
+      height: buffer.readUInt32BE(20),
+    };
+  }
+
+  const dimensions =
+    readJpegDimensions(buffer) ||
+    readWebpDimensions(buffer);
+
+  if (!dimensions?.width || !dimensions?.height) {
+    throw new Error("unsupported or unreadable image format");
+  }
+
+  return dimensions;
+}
+
+function isInsideDirectory(filePath, directory) {
+  const relativePath = path.relative(directory, filePath);
+
+  return (
+    relativePath !== "" &&
+    !relativePath.startsWith(`..${path.sep}`) &&
+    relativePath !== ".." &&
+    !path.isAbsolute(relativePath)
+  );
+}
+
+const newsDataFile = "news-data.js";
+const newsAssetsDirectory = path.join(root, "assets", "news");
+
+try {
+  const newsItems = loadNewsItems(
+    fs.readFileSync(path.join(root, newsDataFile), "utf8"),
+  );
+
+  for (const item of newsItems) {
+    const itemLabel = `news item "${item.id}"`;
+    const imageFit = item.imageFit || "cover";
+
+    if (!["cover", "contain"].includes(imageFit)) {
+      report(
+        newsDataFile,
+        `${itemLabel} has unsupported imageFit "${imageFit}"`,
+      );
+    }
+
+    const imageTarget = localTarget(item.image);
+
+    if (!imageTarget || !isInsideDirectory(imageTarget, newsAssetsDirectory)) {
+      report(
+        newsDataFile,
+        `${itemLabel} cover must be a local file inside assets/news`,
+      );
+      continue;
+    }
+
+    if (!fs.existsSync(imageTarget)) {
+      report(newsDataFile, `${itemLabel} cover "${item.image}" is missing`);
+      continue;
+    }
+
+    try {
+      const { width, height } = readImageDimensions(imageTarget);
+      const ratio = width / height;
+
+      if (imageFit === "contain") {
+        if (ratio >= 1) {
+          report(
+            newsDataFile,
+            `${itemLabel} uses imageFit "contain", which is reserved for intentional portrait posters`,
+          );
+        }
+      } else {
+        if (ratio < 1.49 || ratio > 1.61) {
+          report(
+            newsDataFile,
+            `${itemLabel} cover is ${width}x${height}; standard covers must stay between 3:2 and 8:5`,
+          );
+        }
+
+        if (width < 1200 || height < 750) {
+          report(
+            newsDataFile,
+            `${itemLabel} cover is ${width}x${height}; use at least 1200x750`,
+          );
+        }
+      }
+    } catch (error) {
+      report(
+        newsDataFile,
+        `${itemLabel} cover could not be checked: ${error.message}`,
+      );
+    }
+
+    if (!item.originalImage) {
+      continue;
+    }
+
+    const originalTarget = localTarget(item.originalImage);
+
+    if (
+      !originalTarget ||
+      !isInsideDirectory(originalTarget, newsAssetsDirectory)
+    ) {
+      report(
+        newsDataFile,
+        `${itemLabel} originalImage must be a local file inside assets/news`,
+      );
+      continue;
+    }
+
+    if (!fs.existsSync(originalTarget)) {
+      report(
+        newsDataFile,
+        `${itemLabel} originalImage "${item.originalImage}" is missing`,
+      );
+      continue;
+    }
+
+    try {
+      const { width, height } = readImageDimensions(originalTarget);
+      const declaredWidth = Number(item.originalImageWidth);
+      const declaredHeight = Number(item.originalImageHeight);
+
+      if (
+        Number.isFinite(declaredWidth) &&
+        Number.isFinite(declaredHeight) &&
+        (declaredWidth !== width || declaredHeight !== height)
+      ) {
+        report(
+          newsDataFile,
+          `${itemLabel} originalImage is ${width}x${height}, but ${declaredWidth}x${declaredHeight} is declared`,
+        );
+      }
+    } catch (error) {
+      report(
+        newsDataFile,
+        `${itemLabel} originalImage could not be checked: ${error.message}`,
+      );
+    }
+  }
+} catch (error) {
+  report(newsDataFile, `could not load news catalogue: ${error.message}`);
 }
 
 for (const file of htmlFiles) {

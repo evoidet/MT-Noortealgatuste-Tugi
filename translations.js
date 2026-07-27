@@ -27,6 +27,16 @@
       "Open menu",
       "Открыть меню"
     ],
+    "common.a11y.closeMenu": [
+      "Sulge menüü",
+      "Close menu",
+      "Закрыть меню"
+    ],
+    "common.a11y.skipToContent": [
+      "Liigu põhisisu juurde",
+      "Skip to main content",
+      "Перейти к основному содержанию"
+    ],
     "common.a11y.mainNavigation": [
       "Põhinavigatsioon",
       "Main navigation",
@@ -68,9 +78,9 @@
       "Закрыть увеличенную фотографию"
     ],
     "common.a11y.photoHint": [
-      "Sulgemiseks vajuta ristile, taustale või klahvile Esc",
-      "To close, select the cross, the backdrop or press Esc",
-      "Чтобы закрыть окно, нажмите на крестик, фон или клавишу Esc"
+      "Akna sulgemiseks kasuta sulgemisnuppu, vajuta taustale või klahvi Esc",
+      "To close, use the close button, select the backdrop or press Esc",
+      "Чтобы закрыть окно, используйте кнопку закрытия, нажмите на фон или нажмите клавишу Esc"
     ],
     "common.nav.home": ["Avaleht", "Home", "Главная"],
     "common.nav.news": ["Uudised", "News", "Новости"],
@@ -183,10 +193,36 @@
       "The contact form is not connected yet. Please email juhatus@noortetugi.ee.",
       "Контактная форма пока не подключена. Напишите нам на juhatus@noortetugi.ee."
     ],
+    "common.form.required": [
+      "Palun täida see väli.",
+      "Please complete this field.",
+      "Пожалуйста, заполните это поле."
+    ],
+    "common.form.invalidEmail": [
+      "Palun sisesta korrektne e-posti aadress.",
+      "Please enter a valid email address.",
+      "Пожалуйста, введите корректный адрес электронной почты."
+    ],
     "common.countdown.days": ["Päeva", "Days", "Дней"],
+    "common.countdown.days.one": ["Päev", "Day", "День"],
+    "common.countdown.days.few": ["Päeva", "Days", "Дня"],
+    "common.countdown.days.many": ["Päeva", "Days", "Дней"],
+    "common.countdown.days.other": ["Päeva", "Days", "Дней"],
     "common.countdown.hours": ["Tundi", "Hours", "Часов"],
+    "common.countdown.hours.one": ["Tund", "Hour", "Час"],
+    "common.countdown.hours.few": ["Tundi", "Hours", "Часа"],
+    "common.countdown.hours.many": ["Tundi", "Hours", "Часов"],
+    "common.countdown.hours.other": ["Tundi", "Hours", "Часов"],
     "common.countdown.minutes": ["Minutit", "Minutes", "Минут"],
+    "common.countdown.minutes.one": ["Minut", "Minute", "Минута"],
+    "common.countdown.minutes.few": ["Minutit", "Minutes", "Минуты"],
+    "common.countdown.minutes.many": ["Minutit", "Minutes", "Минут"],
+    "common.countdown.minutes.other": ["Minutit", "Minutes", "Минут"],
     "common.countdown.seconds": ["Sekundit", "Seconds", "Секунд"],
+    "common.countdown.seconds.one": ["Sekund", "Second", "Секунда"],
+    "common.countdown.seconds.few": ["Sekundit", "Seconds", "Секунды"],
+    "common.countdown.seconds.many": ["Sekundit", "Seconds", "Секунд"],
+    "common.countdown.seconds.other": ["Sekundit", "Seconds", "Секунд"],
 
     /* ========================= Home page ========================= */
     "home.meta.title": [
@@ -565,7 +601,7 @@
       "Tell us about your idea",
       "Расскажите нам о своей идее"
     ],
-    "home.contact.name": ["Teie nimi *", "Your name *", "Ваше имя *"],
+    "home.contact.name": ["Sinu nimi *", "Your name *", "Ваше имя *"],
     "home.contact.namePlaceholder": ["Maria Tamm", "Maria Tamm", "Maria Tamm"],
     "home.contact.emailAddress": [
       "E-posti aadress *",
@@ -637,6 +673,26 @@
       "published stories",
       "опубликованных материалов"
     ],
+    "newsPage.hero.publishedStory.one": [
+      "avaldatud lugu",
+      "published story",
+      "опубликованный материал"
+    ],
+    "newsPage.hero.publishedStory.few": [
+      "avaldatud lugu",
+      "published stories",
+      "опубликованных материала"
+    ],
+    "newsPage.hero.publishedStory.many": [
+      "avaldatud lugu",
+      "published stories",
+      "опубликованных материалов"
+    ],
+    "newsPage.hero.publishedStory.other": [
+      "avaldatud lugu",
+      "published stories",
+      "опубликованных материалов"
+    ],
     "newsPage.list.label": ["UUSIMAD LOOD", "LATEST STORIES", "СВЕЖИЕ МАТЕРИАЛЫ"],
     "newsPage.list.title": [
       "Uudised, mida tasub märgata",
@@ -688,14 +744,14 @@
     "news.ui.author": ["Autor: {{author}}", "Author: {{author}}", "Автор: {{author}}"],
     "news.ui.photo": ["Uudise foto", "News photo", "Фотография к новости"],
     "news.ui.addPhoto": [
-      "Lisa uudise foto",
-      "Add a news photo",
-      "Добавьте фотографию к новости"
+      "Uudise foto ei ole saadaval",
+      "News photo unavailable",
+      "Фотография к новости недоступна"
     ],
     "news.ui.addFeaturedPhoto": [
-      "Lisa põhiuudise foto",
-      "Add a featured news photo",
-      "Добавьте фотографию главной новости"
+      "Põhiuudise foto ei ole saadaval",
+      "Featured news photo unavailable",
+      "Фотография главной новости недоступна"
     ],
     "news.ui.readLabel": [
       "Loe uudist: {{title}}",
@@ -734,7 +790,7 @@
     "news.ui.emptyText": [
       "Vali teine kategooria või eemalda otsingusõna.",
       "Choose another category or clear the search term.",
-      "Выберите другую категорию или удалите поисковый запрос."
+      "Выберите другую категорию или очистите строку поиска."
     ],
     "news.ui.resultOne": ["uudis", "news item", "новость"],
     "news.ui.resultFew": ["uudist", "news items", "новости"],
@@ -745,14 +801,14 @@
       "Вернуться к новостям"
     ],
     "news.ui.placeholderTitle": [
-      "See on ajutine näidis.",
-      "This is a temporary example.",
-      "Это временный пример."
+      "Uudis on koostamisel.",
+      "This story is being prepared.",
+      "Материал готовится."
     ],
     "news.ui.placeholderText": [
-      "Lisa päris uudis faili news-data.js. Sama uudis ilmub automaatselt ka avalehele.",
-      "Add the real news item to news-data.js. It will also appear on the homepage automatically.",
-      "Добавьте настоящую новость в файл news-data.js. Она автоматически появится и на главной странице."
+      "Täielik uudis ilmub peagi.",
+      "The full story will be published soon.",
+      "Полный материал скоро появится."
     ],
     "news.ui.shareLabel": ["JAGA IDEED", "SHARE AN IDEA", "ПОДЕЛИТЬСЯ ИДЕЕЙ"],
     "news.ui.shareTitle": [
@@ -777,9 +833,9 @@
       "Первая новость скоро появится"
     ],
     "news.ui.firstSoonText": [
-      "Lisa esimene uudis faili news-data.js.",
-      "Add the first news item to news-data.js.",
-      "Добавьте первую новость в файл news-data.js."
+      "Värsked uudised ilmuvad siin peagi.",
+      "New stories will appear here soon.",
+      "Скоро здесь появятся новые материалы."
     ],
     "news.lightbox.kicker": ["UUDISE FOTO", "NEWS PHOTO", "ФОТОГРАФИЯ К НОВОСТИ"],
     "news.lightbox.open": [
@@ -816,7 +872,7 @@
     ],
     "camp.decor.audience": ["KELLELE?", "WHO IS IT FOR?", "ДЛЯ КОГО?"],
     "camp.decor.next": ["EDASI", "NEXT", "ДАЛЬШЕ"],
-    "camp.decor.yourIdea": ["SINU IDEE", "YOUR IDEA", "ТВОЯ ИДЕЯ"],
+    "camp.decor.yourIdea": ["SINU IDEE", "YOUR IDEA", "ВАША ИДЕЯ"],
     "camp.hero.eyebrow": [
       "19.–20. SEPTEMBER 2026 · TOILA SPA HOTELL",
       "19–20 SEPTEMBER 2026 · TOILA SPA HOTELL",
@@ -1209,9 +1265,9 @@
       "О событии"
     ],
     "gala.hero.addPhoto": [
-      "Lisa gala peafoto",
-      "Add the gala’s main photo",
-      "Добавьте главную фотографию гала-вечера"
+      "Gala peafoto ei ole saadaval",
+      "Main gala photo unavailable",
+      "Главная фотография гала-вечера недоступна"
     ],
     "gala.hero.photoCaption": [
       "Ida-Virumaa noorte tunnustusgala – ühispilt",
@@ -1474,16 +1530,16 @@
       "Моменты, которые останутся в памяти"
     ],
     "gala.gallery.photos": ["Fotod:", "Photos:", "Фото:"],
-    "gala.gallery.count": ["12 fotokohta", "12 photos", "12 фотографий"],
+    "gala.gallery.count": ["12 fotot", "12 photos", "12 фотографий"],
     "gala.gallery.note": [
       "Klõpsa fotol, et avada see täissuuruses.",
       "Select a photo to open it at full size.",
       "Нажмите на фотографию, чтобы открыть её в полном размере."
     ],
     "gala.gallery.addPhoto": [
-      "Lisa foto {{number}}",
-      "Add photo {{number}}",
-      "Добавить фото {{number}}"
+      "Foto {{number}} ei ole saadaval",
+      "Photo {{number}} unavailable",
+      "Фото {{number}} недоступно"
     ],
     "gala.gallery.openPhoto": [
       "Ava foto: {{caption}}",
@@ -1491,7 +1547,7 @@
       "Открыть фото: {{caption}}"
     ],
     "gala.gallery.gala": [
-      "Noorte Tunnustusgala",
+      "Noorte tunnustusgala",
       "Youth Recognition Gala",
       "Гала-вечер признания молодёжи"
     ],
@@ -1514,69 +1570,69 @@
     "gala.gallery.atmosphere": ["Gala õhkkond", "Gala atmosphere", "Атмосфера гала-вечера"],
     "gala.gallery.awards": ["Autasustamine", "Awards", "Награждение"],
     "gala.gallery.memories": ["Mälestused", "Memories", "Воспоминания"],
-    "gala.gallery.item01Add": ["Lisa foto 01", "Add photo 01", "Добавить фото 01"],
+    "gala.gallery.item01Add": ["Foto 01 ei ole saadaval", "Photo 01 unavailable", "Фото 01 недоступно"],
     "gala.gallery.item01Open": [
       "Ava foto: Ida-Virumaa noorte tunnustusgala",
       "Open photo: Ida-Virumaa noorte tunnustusgala",
       "Открыть фото: Ida-Virumaa noorte tunnustusgala"
     ],
-    "gala.gallery.item02Add": ["Lisa foto 02", "Add photo 02", "Добавить фото 02"],
+    "gala.gallery.item02Add": ["Foto 02 ei ole saadaval", "Photo 02 unavailable", "Фото 02 недоступно"],
     "gala.gallery.item02Open": ["Ava foto: Külalised", "Open photo: Guests", "Открыть фото: Гости"],
-    "gala.gallery.item03Add": ["Lisa foto 03", "Add photo 03", "Добавить фото 03"],
+    "gala.gallery.item03Add": ["Foto 03 ei ole saadaval", "Photo 03 unavailable", "Фото 03 недоступно"],
     "gala.gallery.item03Open": [
       "Ava foto: Hetked täis inspiratsiooni",
       "Open photo: Moments full of inspiration",
       "Открыть фото: Моменты вдохновения"
     ],
-    "gala.gallery.item04Add": ["Lisa foto 04", "Add photo 04", "Добавить фото 04"],
+    "gala.gallery.item04Add": ["Foto 04 ei ole saadaval", "Photo 04 unavailable", "Фото 04 недоступно"],
     "gala.gallery.item04Open": [
       "Ava foto: Improteater",
       "Open photo: Improvisational theatre",
       "Открыть фото: Импровизационный театр"
     ],
-    "gala.gallery.item05Add": ["Lisa foto 05", "Add photo 05", "Добавить фото 05"],
+    "gala.gallery.item05Add": ["Foto 05 ei ole saadaval", "Photo 05 unavailable", "Фото 05 недоступно"],
     "gala.gallery.item05Open": [
       "Ava foto: Pidulik õhtu",
       "Open photo: Celebratory evening",
       "Открыть фото: Торжественный вечер"
     ],
-    "gala.gallery.item06Add": ["Lisa foto 06", "Add photo 06", "Добавить фото 06"],
+    "gala.gallery.item06Add": ["Foto 06 ei ole saadaval", "Photo 06 unavailable", "Фото 06 недоступно"],
     "gala.gallery.item06Open": [
       "Ava foto: Laureaatide tunnustamine",
       "Open photo: Recognising the laureates",
       "Открыть фото: Награждение лауреатов"
     ],
-    "gala.gallery.item07Add": ["Lisa foto 07", "Add photo 07", "Добавить фото 07"],
+    "gala.gallery.item07Add": ["Foto 07 ei ole saadaval", "Photo 07 unavailable", "Фото 07 недоступно"],
     "gala.gallery.item07Open": [
       "Ava foto: Peaesineja",
       "Open photo: Headline performer",
       "Открыть фото: Главный исполнитель"
     ],
-    "gala.gallery.item08Add": ["Lisa foto 08", "Add photo 08", "Добавить фото 08"],
+    "gala.gallery.item08Add": ["Foto 08 ei ole saadaval", "Photo 08 unavailable", "Фото 08 недоступно"],
     "gala.gallery.item08Open": [
       "Ava foto: Vabatahtlikud",
       "Open photo: Volunteers",
       "Открыть фото: Волонтёры"
     ],
-    "gala.gallery.item09Add": ["Lisa foto 09", "Add photo 09", "Добавить фото 09"],
+    "gala.gallery.item09Add": ["Foto 09 ei ole saadaval", "Photo 09 unavailable", "Фото 09 недоступно"],
     "gala.gallery.item09Open": [
       "Ava foto: Korraldusmeeskond",
       "Open photo: Organising team",
       "Открыть фото: Команда организаторов"
     ],
-    "gala.gallery.item10Add": ["Lisa foto 10", "Add photo 10", "Добавить фото 10"],
+    "gala.gallery.item10Add": ["Foto 10 ei ole saadaval", "Photo 10 unavailable", "Фото 10 недоступно"],
     "gala.gallery.item10Open": [
       "Ava foto: Gala õhkkond",
       "Open photo: Gala atmosphere",
       "Открыть фото: Атмосфера гала-вечера"
     ],
-    "gala.gallery.item11Add": ["Lisa foto 11", "Add photo 11", "Добавить фото 11"],
+    "gala.gallery.item11Add": ["Foto 11 ei ole saadaval", "Photo 11 unavailable", "Фото 11 недоступно"],
     "gala.gallery.item11Open": [
       "Ava foto: Autasustamine",
       "Open photo: Awards",
       "Открыть фото: Награждение"
     ],
-    "gala.gallery.item12Add": ["Lisa foto 12", "Add photo 12", "Добавить фото 12"],
+    "gala.gallery.item12Add": ["Foto 12 ei ole saadaval", "Photo 12 unavailable", "Фото 12 недоступно"],
     "gala.gallery.item12Open": [
       "Ava foto: Mälestused",
       "Open photo: Memories",
@@ -1763,7 +1819,7 @@
       "Throughout the day, the DJ and MC kept the energy high and created an authentic street-festival atmosphere.",
       "Весь день настроение поддерживали DJ и MC, создавая атмосферу настоящего уличного фестиваля."
     ],
-    "street.battles.label": ["Dance battles", "Dance battles", "Dance battles"],
+    "street.battles.label": ["Tantsulahingud", "Dance battles", "Танцевальные баттлы"],
     "street.battles.title": ["Neli võistluskategooriat", "Four competition categories", "Четыре конкурсные категории"],
     "street.battles.description": [
       "Tantsulahingutes said osaleda nii algajad kui ka juba kogenumad noored tantsijad.",
@@ -1794,7 +1850,7 @@
     "street.impact.title": [
       "Sündmus, mis andis noortele võimaluse ise juhtida ja korraldada",
       "An event that let young people lead and organise",
-      "Событие, которое дало молодёжи возможность руководить и организовывать"
+      "Событие, которое дало молодёжи возможность самостоятельно руководить подготовкой и организовать мероприятие"
     ],
     "street.impact.text1": [
       "Street Dance Jam 2025 oli märgilise tähtsusega sündmus, sest tegemist oli ühe esimese suurema noortealgatusega, mis viidi ellu MTÜ Noortealgatuste Tugi toetusel.",
@@ -1828,9 +1884,9 @@
       "Моменты Street Dance Jam"
     ],
     "street.gallery.description": [
-      "Lisa siia fotod töötubadest, tantsulahingutest, osalejatest, publikust ja autasustamisest.",
-      "Add photos of workshops, dance battles, participants, the audience and awards here.",
-      "Добавьте сюда фотографии мастер-классов, танцевальных баттлов, участников, зрителей и награждения."
+      "Vaata hetki töötubadest, tantsulahingutest, osalejatest, publikust ja autasustamisest.",
+      "Explore moments from the workshops, dance battles, participants, audience and awards.",
+      "Посмотрите моменты с мастер-классов, танцевальных баттлов, выступлений участников и награждения."
     ],
     "street.gallery.battleAlt": [
       "Street Dance Jam 2025 tantsulahing",
@@ -1838,7 +1894,7 @@
       "Танцевальный баттл Street Dance Jam 2025"
     ],
     "street.gallery.breakingAlt": [
-      "Street Dance Jam 2025 breaking'u töötuba",
+      "Street Dance Jam 2025 breaking’u töötuba",
       "Street Dance Jam 2025 breaking workshop",
       "Мастер-класс по брейкингу на Street Dance Jam 2025"
     ],
@@ -1863,11 +1919,11 @@
       "Организаторы и победители Street Dance Jam 2025"
     ],
     "street.gallery.professionals": ["Professionalid", "Professionals", "Профессионалы"],
-    "street.gallery.fun": ["Naljakad noored", "Young people having fun", "Весёлая молодёжь"],
+    "street.gallery.fun": ["Noored lõbutsemas", "Young people having fun", "Весёлая молодёжь"],
     "street.gallery.hiphop": ["Hip-hopi töötuba", "Hip-hop workshop", "Мастер-класс по хип-хопу"],
     "street.gallery.posters": ["Posterid", "Posters", "Плакаты"],
     "street.gallery.participants": ["Osalejad", "Participants", "Участники"],
-    "street.gallery.moreParticipants": ["Veel osalejad", "More participants", "Другие участники"],
+    "street.gallery.moreParticipants": ["Veel osalejaid", "More participants", "Другие участники"],
     "street.thanks.label": ["Suur tänu", "Thank you", "Большое спасибо"],
     "street.thanks.title": [
       "Täname kõiki, kes aitasid sündmuse ellu viia",
@@ -1908,7 +1964,7 @@
       "Политика конфиденциальности | MTÜ Noortealgatuste Tugi"
     ],
     "privacy.meta.description": [
-      "MTÜ Noortealgatuste Tugi privaatsuspoliitika kirjeldab isikuandmete töötlemist, säilitamist ja sinu õigusi.",
+      "MTÜ Noortealgatuste Tugi privaatsuspoliitika kirjeldab isikuandmete töötlemist, säilitamist ja teie õigusi.",
       "The MTÜ Noortealgatuste Tugi Privacy Policy explains how personal data is processed and retained, and describes your rights.",
       "Политика конфиденциальности MTÜ Noortealgatuste Tugi объясняет, как обрабатываются и хранятся персональные данные, а также описывает ваши права."
     ],
@@ -2007,7 +2063,7 @@
     "privacy.cards.legalText": [
       "Infokirja puhul töötleme andmeid nõusoleku alusel. Kontaktpäringute, registreerimiste ja sündmuste korraldamise puhul töötleme andmeid selleks, et täita inimese enda algatatud pöördumist või korraldada meie tegevust õigustatud huvi alusel.",
       "For the newsletter, we process data on the basis of consent. For contact enquiries, registrations and event organisation, we process data to respond to a person’s request or to manage our activities on the basis of legitimate interest.",
-      "Данные для рассылки мы обрабатываем на основании согласия. При контактных запросах, регистрациях и организации мероприятий данные обрабатываются для выполнения обращения самого человека или организации нашей деятельности на основании законного интереса."
+      "Данные для рассылки мы обрабатываем на основании согласия. При контактных запросах, регистрациях и организации мероприятий данные обрабатываются, чтобы ответить на обращение человека или организовать нашу деятельность на основании законного интереса."
     ],
     "privacy.cards.retentionTitle": [
       "Kui kaua andmeid säilitame?",
@@ -2052,7 +2108,7 @@
       "If you have questions about this Privacy Policy or the processing of personal data, write to us. We will respond as soon as possible.",
       "Если у вас есть вопросы о политике конфиденциальности или обработке персональных данных, напишите нам. Мы ответим при первой возможности."
     ],
-    "privacy.contact.write": ["Kirjuta meile", "Write to us", "Написать нам"],
+    "privacy.contact.write": ["Kirjutage meile", "Write to us", "Написать нам"],
 
     /* ========================= Documents ========================= */
     "documents.meta.title": [
@@ -2186,7 +2242,7 @@
     "documents.contact.description": [
       "Kui vajad täiendavat dokumenti või soovid avaldatud faili kohta täpsustust, võta meie juhatusega ühendust.",
       "If you need an additional document or clarification about a published file, contact our board.",
-      "Если вам нужен дополнительный документ или уточнение о опубликованном файле, свяжитесь с нашим правлением."
+      "Если вам нужен дополнительный документ или уточнение об опубликованном файле, свяжитесь с нашим правлением."
     ],
 
     /* ========================= Network ========================= */
@@ -2239,7 +2295,7 @@
     "network.hero.tagline": [
       "Koostöö, kogemuste jagamine ja ühine mõju Ida-Virumaal",
       "Collaboration, shared experience and collective impact in Ida-Viru County",
-      "Сотрудничество, обмен опытом и общее влияние в Ида-Вирумаа"
+      "Сотрудничество, обмен опытом и общий результат в Ида-Вирумаа"
     ],
     "network.hero.ourNetwork": ["Meie võrgustik", "Our network", "Наша сеть"],
     "network.hero.cooperation": ["Koostöö", "Collaboration", "Сотрудничество"],
@@ -2299,6 +2355,26 @@
       "В сеть входят шесть организаций, и профили всех участников уже опубликованы."
     ],
     "network.members.visible": [
+      "avaldatud profiili nähtaval",
+      "published profiles visible",
+      "опубликованных профилей показано"
+    ],
+    "network.members.visible.one": [
+      "avaldatud profiil nähtaval",
+      "published profile visible",
+      "опубликованный профиль показан"
+    ],
+    "network.members.visible.few": [
+      "avaldatud profiili nähtaval",
+      "published profiles visible",
+      "опубликованных профиля показано"
+    ],
+    "network.members.visible.many": [
+      "avaldatud profiili nähtaval",
+      "published profiles visible",
+      "опубликованных профилей показано"
+    ],
+    "network.members.visible.other": [
       "avaldatud profiili nähtaval",
       "published profiles visible",
       "опубликованных профилей показано"
@@ -2395,7 +2471,7 @@
     "network.members.volunteezyDescription": [
       "Volunteezy on vabatahtlike kogukond, mis ühendab noori ja organisatsioone ning vahendab vabatahtliku töö võimalusi eri valdkondades. Osalemine aitab arendada juhtimis-, projektijuhtimis- ja suhtlemisoskusi, saada kogemusi ning leida uusi tuttavaid.",
       "Volunteezy is a volunteer community connecting young people and organisations with volunteering opportunities in different fields. Taking part helps develop leadership, project-management and communication skills, gain experience and meet new people.",
-      "Volunteezy — сообщество волонтёров, которое объединяет молодёжь и организации и помогает находить возможности волонтёрской работы в разных сферах. Участие развивает лидерские навыки, управление проектами и коммуникацию, даёт опыт и новые знакомства."
+      "Volunteezy — сообщество волонтёров, которое объединяет молодёжь и организации и помогает находить возможности волонтёрской работы в разных сферах. Участие помогает развить лидерские навыки, навыки управления проектами и общения, получить опыт и завести новые знакомства."
     ],
     "network.members.noorteaegDescription": [
       "MTÜ Noorteaeg on Ida-Virumaal tegutsev noorteühendus, mis korraldab noortele hariduslikke, kultuuri-, spordi- ja kogukonnaüritusi. Eesmärk on anda noortele võimalusi algatada ideid, arendada oskusi ja osaleda aktiivselt kohaliku elu kujundamises.",
@@ -2465,7 +2541,7 @@
     ],
     "network.steps.createTitle": ["Loo midagi uut", "Create something new", "Создайте что-то новое"],
     "network.steps.createText": [
-      "Sõnastage ühine eesmärk ning viige idee koos ellu.",
+      "Sõnasta ühine eesmärk ning vii idee koos ellu.",
       "Define a shared goal and bring the idea to life together.",
       "Сформулируйте общую цель и вместе воплотите идею."
     ],
@@ -2540,7 +2616,7 @@
         excerpt: "17 октября 2026 года в Концертном доме «Йыхви» вновь состоится Ida-Virumaa noorte tunnustusgala, где отметят активную, инициативную и выдающуюся молодёжь региона.",
         imageAlt: "Ida-Virumaa noorte tunnustusgala",
         content: [
-          "17 октября 2026 года в Концертном доме «Йыхви» вновь состоится Ida-Virumaa noorte tunnustusgala — торжественное событие, цель которого заметить и отметить активную, инициативную и выдающуюся молодёжь региона.",
+          "17 октября 2026 года в Концертном доме «Йыхви» вновь состоится Ida-Virumaa noorte tunnustusgala — торжественное событие, цель которого — заметить и отметить активную, инициативную и выдающуюся молодёжь региона.",
           "Гала-вечер объединит молодых людей, тех, кто их поддерживает, организации и представителей сообщества. В центре внимания будут достижения, смелость, творчество и вклад молодёжи Ида-Вирумаа в развитие местной жизни.",
           "С помощью гала-вечера мы хотим показать вдохновляющие примеры, рассказать о достижениях молодёжи и побудить других молодых людей воплощать свои идеи и активно участвовать в жизни сообщества.",
           "Номинации:",
@@ -2622,8 +2698,7 @@
           "Vanus: 15–30 aastat",
           "Kohapeal pakutakse osalejatele suupisteid.",
           "Kui soovid osaleda, kuid elad teises Ida-Virumaa linnas, on vajaduse korral võimalik katta ka transpordikulud.",
-          "Registreerimislink:",
-          "https://docs.google.com/forms/d/e/1FAIpQLScLBHt-C4bzJBltpdP1iwX7Aqv6BTwgzOP_uRXw8rNMB3NQpg/viewform",
+          "Registreerimine on lõppenud.",
           "Noortealgatust toetavad Erasmus+ ja Euroopa Solidaarsuskorpuse Agentuur koostöös EuroPeers Eesti võrgustikuga Euroopa noortenädala 2026 tegevuste raames."
         ]
       },
@@ -2645,8 +2720,7 @@
           "Age: 15–30",
           "Snacks will be provided.",
           "If you would like to attend but live in another town in Ida-Viru County, transport costs may also be covered where needed.",
-          "Registration link:",
-          "https://docs.google.com/forms/d/e/1FAIpQLScLBHt-C4bzJBltpdP1iwX7Aqv6BTwgzOP_uRXw8rNMB3NQpg/viewform",
+          "Registration has closed.",
           "The youth initiative is supported by Erasmus+ and the European Solidarity Corps Agency in cooperation with the EuroPeers Estonia network as part of European Youth Week 2026."
         ]
       },
@@ -2656,7 +2730,7 @@
         excerpt: "8 июля в VitaTiim в Нарве пройдёт бесплатная информационная встреча, где молодые люди 15–30 лет из Ида-Вирумаа смогут узнать о возможностях программы Erasmus+.",
         imageAlt: "Молодёжное мероприятие о возможностях Erasmus+ в VitaTiim в Нарве",
         content: [
-          "Мир полон возможностей, и некоторые из них могут быть созданы именно для вас.",
+          "Мир полон возможностей, и некоторые из них могут подойти именно вам.",
           "8 июля в 12:00 в VitaTiim в Нарве пройдёт информационная встреча, где молодёжь Ида-Вирумаа сможет узнать о возможностях программы Erasmus+.",
           "На встрече вы узнаете о международных молодёжных проектах, молодёжных обменах, обучении, волонтёрстве и других направлениях программы Erasmus+.",
           "Участие бесплатное. Мероприятие предназначено для всех молодых людей Ида-Вирумаа в возрасте 15–30 лет. Опыт участия в международных проектах не требуется.",
@@ -2668,8 +2742,7 @@
           "Возраст: 15–30 лет",
           "Для участников будут подготовлены лёгкие закуски.",
           "Если вы хотите участвовать, но живёте в другом городе Ида-Вирумаа, при необходимости можно покрыть транспортные расходы.",
-          "Ссылка для регистрации:",
-          "https://docs.google.com/forms/d/e/1FAIpQLScLBHt-C4bzJBltpdP1iwX7Aqv6BTwgzOP_uRXw8rNMB3NQpg/viewform",
+          "Регистрация завершена.",
           "Молодёжную инициативу поддерживают Erasmus+ и Агентство Европейского корпуса солидарности в сотрудничестве с сетью EuroPeers Eesti в рамках Европейской недели молодёжи 2026."
         ]
       }

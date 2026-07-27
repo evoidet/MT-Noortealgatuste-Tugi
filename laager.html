@@ -33,9 +33,9 @@
   <link rel="shortcut icon" href="/favicon.png">
 
   <!-- CSS -->
-  <link rel="stylesheet" href="/style.css?v=20260723-3">
-  <link rel="stylesheet" href="/camp.css?v=20260723-3">
-  <script src="/translations.js"></script>
+  <link rel="stylesheet" href="/style.css?v=20260727-4">
+  <link rel="stylesheet" href="/camp.css?v=20260727-2">
+  <script src="/translations.js?v=20260727-6"></script>
   <script src="/i18n.js?v=20260723-2"></script>
   <script src="/sender-init.js"></script>
 </head>
@@ -721,7 +721,7 @@
 
 
 <script src="/site-config.js"></script>
-<script src="/script.js?v=20260723-2"></script>
+<script src="/script.js?v=20260727-6"></script>
 
 <script>
   (() => {
@@ -870,7 +870,7 @@
         </button>
 
         <div class="camp-lightbox-frame">
-          <img src="" alt="">
+          <img alt="">
           <p></p>
         </div>
       `;
@@ -906,6 +906,12 @@
           lightbox.setAttribute("aria-hidden", "false");
           document.body.classList.add("camp-lightbox-open");
           closeButton.focus();
+
+          window.setTimeout(() => {
+            if (lightbox.classList.contains("is-open")) {
+              closeButton.focus({ preventScroll: true });
+            }
+          }, 80);
         });
       });
 

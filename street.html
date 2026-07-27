@@ -33,9 +33,9 @@
   <link rel="shortcut icon" href="/favicon.png">
 
   <!-- CSS -->
-  <link rel="stylesheet" href="/style.css?v=20260723-3">
-  <link rel="stylesheet" href="/street.css?v=20260723-4">
-  <script src="/translations.js"></script>
+  <link rel="stylesheet" href="/style.css?v=20260727-4">
+  <link rel="stylesheet" href="/street.css?v=20260727-1">
+  <script src="/translations.js?v=20260727-6"></script>
   <script src="/i18n.js?v=20260723-2"></script>
 </head>
 
@@ -217,7 +217,7 @@
 
         <img
           src="assets/street-dance-jam/optimized/street-dance-jam-poster.webp"
-          data-full="assets/street-dance-jam/street-dance-jam-poster.jpg"
+          data-full="assets/street-dance-jam/optimized/street-dance-jam-poster.webp"
           alt="Street Dance Jam 2025 ürituse plakat"
           class="sdj-poster"
           width="1080"
@@ -414,7 +414,7 @@
     <div class="sdj-container">
 
       <div class="sdj-section-heading">
-        <span class="sdj-section-label" data-i18n="street.battles.label">Dance battles</span>
+        <span class="sdj-section-label" data-i18n="street.battles.label">Tantsulahingud</span>
 
         <h2 data-i18n="street.battles.title">
           Neli võistluskategooriat
@@ -517,7 +517,7 @@
         </h2>
 
         <p data-i18n="street.gallery.description">
-          Lisa siia fotod töötubadest, tantsulahingutest, osalejatest,
+          Vaata hetki töötubadest, tantsulahingutest, osalejatest,
           publikust ja autasustamisest.
         </p>
       </div>
@@ -543,13 +543,13 @@
           <img
             src="assets/street-dance-jam/optimized/photo-02.webp"
             data-full="assets/street-dance-jam/photo-02.jpg"
-            alt="Street Dance Jam 2025 breaking'u töötuba"
+            alt="Street Dance Jam 2025 breaking’u töötuba"
             width="1200"
             height="800"
             loading="lazy"
             decoding="async"
            data-i18n-alt="street.gallery.breakingAlt">
-          <figcaption data-i18n="street.gallery.fun">Naljakad noored</figcaption>
+          <figcaption data-i18n="street.gallery.fun">Noored lõbutsemas</figcaption>
         </figure>
 
         <!-- FOTO 3 -->
@@ -605,7 +605,7 @@
             loading="lazy"
             decoding="async"
            data-i18n-alt="street.gallery.teamAlt">
-          <figcaption data-i18n="street.gallery.moreParticipants">Veel osalejad</figcaption>
+          <figcaption data-i18n="street.gallery.moreParticipants">Veel osalejaid</figcaption>
         </figure>
 
       </div>
@@ -785,7 +785,7 @@
 </footer>
 
 <script src="/site-config.js"></script>
-<script src="/script.js?v=20260723-2"></script>
+<script src="/script.js?v=20260727-6"></script>
 
 <script>
   (() => {
@@ -964,7 +964,7 @@
         <div class="sdj-lightbox-card" role="document">
           <div class="sdj-lightbox-visual">
             <span class="sdj-lightbox-kicker">STREET DANCE JAM</span>
-            <img src="" alt="">
+            <img alt="">
           </div>
 
           <div class="sdj-lightbox-info">
@@ -1058,6 +1058,12 @@
             document.body.classList.add("sdj-lightbox-open");
 
             closeButton.focus({ preventScroll: true });
+
+            window.setTimeout(() => {
+              if (lightbox.classList.contains("is-open")) {
+                closeButton.focus({ preventScroll: true });
+              }
+            }, 80);
           });
         });
       };

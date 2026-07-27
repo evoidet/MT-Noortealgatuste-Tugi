@@ -36,7 +36,6 @@
 
         <img
           class="news-photo-lightbox-image"
-          src=""
           alt=""
         >
       </div>
@@ -183,6 +182,14 @@
         closeButton.focus({
           preventScroll: true
         });
+
+        window.setTimeout(() => {
+          if (lightbox.classList.contains("is-open")) {
+            closeButton.focus({
+              preventScroll: true
+            });
+          }
+        }, 80);
       });
     });
   };
@@ -242,6 +249,7 @@
     mediaItems.forEach((media) => {
       if (
         media.dataset.newsPhotoReady === "true" ||
+        media.closest("a[href]") ||
         !media.querySelector("img")
       ) {
         return;
@@ -288,6 +296,7 @@
 
     if (
       !media ||
+      media.closest("a[href]") ||
       !media.classList.contains(
         "news-photo-openable"
       )
@@ -308,6 +317,7 @@
 
     if (
       media &&
+      !media.closest("a[href]") &&
       media.classList.contains(
         "news-photo-openable"
       ) &&
