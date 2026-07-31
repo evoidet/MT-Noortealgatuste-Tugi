@@ -445,19 +445,19 @@
       "Исполнительный директор"
     ],
     "home.team.executiveDirectorText": [
-      "Vastutab ürituste korralduse, meeskonna töö koordineerimise ja projektide elluviimise eest.",
-      "Responsible for organising events, coordinating the team and delivering projects.",
-      "Отвечает за организацию мероприятий, координацию работы команды и реализацию проектов."
+      "Kujundab organisatsiooni kuvandit kogukonnas ning vastutab arendustegevuste eest.",
+      "Shapes the organisation’s public image in the community and is responsible for development activities.",
+      "Формирует образ организации в сообществе и отвечает за её развитие."
     ],
-    "home.team.publicRelations": [
-      "Avalike suhete juht",
-      "Head of Public Relations",
-      "Руководитель по связям с общественностью"
+    "home.team.projectManager": [
+      "Projekti juht",
+      "Project Manager",
+      "Руководитель проектов"
     ],
-    "home.team.publicRelationsText": [
-      "Aitab juhtida noorteprojekte, sündmusi ja kogukondlike algatuste elluviimist.",
-      "Helps lead youth projects, events and community initiatives.",
-      "Помогает руководить молодёжными проектами, мероприятиями и общественными инициативами."
+    "home.team.projectManagerText": [
+      "Tegeleb projektide kirjutamise, uute võimaluste leidmise ning välissuhete arendamisega.",
+      "Writes project proposals, identifies new opportunities and develops international relations.",
+      "Занимается подготовкой проектных заявок, поиском новых возможностей и развитием международных связей."
     ],
     "home.team.finance": ["Finantsjuht", "Finance Manager", "Финансовый руководитель"],
     "home.team.financeText": [
