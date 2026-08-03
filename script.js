@@ -470,7 +470,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const dateText =
-      galaCountdown.dataset.eventDate || "2026-08-02T23:59:59+03:00";
+      galaCountdown.dataset.eventDate || "2026-10-17T15:00:00+03:00";
     const targetDate = Date.parse(dateText);
 
     if (Number.isNaN(targetDate)) {

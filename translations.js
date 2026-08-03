@@ -1343,10 +1343,10 @@
       "a year of youth achievement",
       "год достижений молодёжи"
     ],
-    "gala.countdown.label": [
-      "Kandidaatide esitamiseks on jäänud",
-      "Time left to submit nominations",
-      "До окончания приёма заявок"
+      "gala.countdown.label": [
+      "Tunnustusgalani on jäänud",
+      "Time left until the Recognition Gala",
+      "До церемонии награждения осталось"
     ],
     "gala.countdown.meet": [
       "Kohtume 17. oktoobril 2026",
@@ -1359,10 +1359,16 @@
       "Дата указана неверно."
     ],
     "gala.countdown.finished": [
-      "Kandidaatide esitamise aeg on läbi!",
-      "The nomination period has ended!",
-      "Приём заявок завершён!"
+      "Tunnustusgala on alanud!",
+      "The Recognition Gala has begun!",
+      "Церемония награждения началась!"
     ],
+    "gala.countdown.note": [
+      "Kandidaatide esitamine on lõppenud. Täname kõiki kandidaate ja esitajaid!",
+      "Nominations are now closed. Thank you to all nominees and nominators!",
+      "Приём заявок завершён. Благодарим всех кандидатов и тех, кто их выдвинул!"
+    ]
+    ,
     "gala.evening.label": ["GALAÕHTU", "GALA EVENING", "ГАЛА-ВЕЧЕР"],
     "gala.evening.title": [
       "Rohkem kui auhindade üleandmine",
