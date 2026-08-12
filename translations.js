@@ -179,14 +179,14 @@
     "common.footer.emailLabel": ["E-post:", "Email:", "Эл. почта:"],
     "common.footer.donations": ["Annetused", "Donations", "Пожертвования"],
     "common.footer.officialWebsite": [
-      "Ametlik veebileht: noortetugi.ee",
-      "Official website: noortetugi.ee",
-      "Официальный сайт: noortetugi.ee"
+      "Ametlik veebileht:",
+      "Official website:",
+      "Официальный сайт:"
     ],
     "common.footer.officialWebsiteStatement": [
       "Noortetugi.ee on MTÜ Noortealgatuste Tugi ametlik veebileht ja domeen.",
       "Noortetugi.ee is the official website and domain of MTÜ Noortealgatuste Tugi.",
-      "Noortetugi.ee — официальный сайт и домен MTÜ Noortealgatuste Tugi."
+      "Noortetugi.ee является официальным сайтом и доменом MTÜ Noortealgatuste Tugi."
     ],
     "common.form.unconfigured": [
       "Kontaktvorm ei ole veel teenusega ühendatud. Palun kirjuta aadressile juhatus@noortetugi.ee.",
@@ -231,14 +231,14 @@
       "MTÜ Noortealgatuste Tugi"
     ],
     "home.meta.description": [
-      "MTÜ Noortealgatuste Tugi aitab Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu.",
-      "MTÜ Noortealgatuste Tugi helps young people in Ida-Viru County develop ideas, launch projects and shape local life.",
-      "MTÜ Noortealgatuste Tugi помогает молодёжи Ида-Вирумаа развивать идеи, запускать проекты и участвовать в жизни региона."
+      "MTÜ Noortealgatuste Tugi toetab Ida-Virumaa noorte arengut ja omaalgatust haridusprogrammide, koolituste, laagrite, sündmuste ning projektitoe kaudu.",
+      "MTÜ Noortealgatuste Tugi supports young people’s development and initiative in Ida-Viru County through educational programs, training, camps, events and project support.",
+      "MTÜ Noortealgatuste Tugi поддерживает развитие и инициативы молодёжи Ида-Вирумаа через образовательные программы, обучения, лагеря, мероприятия и проектную поддержку."
     ],
     "home.meta.ogDescription": [
-      "Aitame Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu.",
-      "We help young people in Ida-Viru County develop ideas, launch projects and shape local life.",
-      "Мы помогаем молодёжи Ида-Вирумаа развивать идеи, запускать проекты и участвовать в жизни региона."
+      "Toetame Ida-Virumaa noorte arengut ja omaalgatust haridusprogrammide, koolituste, laagrite, sündmuste ning projektitoe kaudu.",
+      "We support young people’s development and initiative in Ida-Viru County through educational programs, training, camps, events and project support.",
+      "Мы поддерживаем развитие и инициативы молодёжи Ида-Вирумаа через образовательные программы, обучения, лагеря, мероприятия и проектную поддержку."
     ],
     "home.modal.close": [
       "Sulge fotoaken",
@@ -380,6 +380,48 @@
       "Me usume, et noortel peab olema võimalus mitte ainult ideid jagada, vaid ka neid katsetada, arendada ja päriselt ellu viia. Selleks ühendame nõustamise, praktilise toe, partnerid ja kogukonna.",
       "We believe young people should have the opportunity not only to share ideas, but also to test, develop and bring them to life. We combine guidance, practical support, partners and community to make this possible.",
       "Мы верим, что у молодёжи должна быть возможность не только делиться идеями, но и проверять, развивать и воплощать их. Для этого мы объединяем консультации, практическую поддержку, партнёров и сообщество."
+    ],
+    "home.mission.label": ["MISSIOON", "MISSION", "МИССИЯ"],
+    "home.mission.title": ["Meie missioon", "Our Mission", "Наша миссия"],
+    "home.mission.paragraph1": [
+      "MTÜ Noortealgatuste Tugi missioon on toetada Ida-Virumaa noorte arengut, omaalgatust ja aktiivset osalemist kogukonnas.",
+      "The mission of MTÜ Noortealgatuste Tugi is to support the development, initiative and active participation of young people in Ida-Virumaa.",
+      "Миссия MTÜ Noortealgatuste Tugi — поддерживать развитие, инициативность и активное участие молодёжи Ида-Вирумаа в жизни общества."
+    ],
+    "home.mission.paragraph2": [
+      "Loome ja korraldame noortele suunatud hariduslikke, arendavaid ja kogukondlikke programme, koolitusi, laagreid ning sündmusi. Aitame noortel arendada oma ideid, leida vajalikke teadmisi ja ressursse ning viia oma algatused päriselt ellu.",
+      "We create and organize educational, developmental and community-focused programs, training sessions, camps and events for young people. We help young people develop their ideas, find the knowledge and resources they need, and turn their initiatives into real projects.",
+      "Мы создаём и организуем образовательные, развивающие и общественные программы, обучения, лагеря и мероприятия для молодёжи. Мы помогаем молодым людям развивать свои идеи, находить необходимые знания и ресурсы и воплощать свои инициативы в реальные проекты."
+    ],
+    "home.mission.programsTitle": [
+      "Programmid ja teenused",
+      "Programs and services",
+      "Программы и услуги"
+    ],
+    "home.mission.youthInitiatives": [
+      "Noortealgatused ja projektitugi",
+      "Youth initiatives and project support",
+      "Молодёжные инициативы и проектная поддержка"
+    ],
+    "home.mission.education": [
+      "Hariduslikud ja arendavad tegevused",
+      "Educational and developmental activities",
+      "Образовательные и развивающие мероприятия"
+    ],
+    "home.mission.training": [
+      "Koolitused ja noortelaagrid",
+      "Training programs and youth camps",
+      "Обучающие программы и молодёжные лагеря"
+    ],
+    "home.mission.community": [
+      "Sündmused ja kogukonnategevused",
+      "Events and community activities",
+      "Мероприятия и общественная деятельность"
+    ],
+    "home.mission.projectsLink": [
+      "Tutvu meie projektidega",
+      "Explore our projects",
+      "Познакомиться с нашими проектами"
     ],
     "home.about.supportTitle": ["Toetame", "We support", "Поддерживаем"],
     "home.about.supportText": [

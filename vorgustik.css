@@ -3093,6 +3093,11 @@ body.network-page .network-introduction-heading h2 {
   text-wrap: balance;
 }
 
+body.network-page .network-introduction-heading,
+body.network-page .network-introduction-copy {
+  min-width: 0;
+}
+
 body.network-page .network-introduction-lead {
   margin: 24px 0 0;
 
@@ -3510,7 +3515,7 @@ body.network-page
 
 @media (max-width: 980px) {
   body.network-page .network-introduction-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 36px;
     padding: 42px;
   }
@@ -4159,6 +4164,20 @@ body.network-page .network-logo-lightbox-close:focus-visible {
 }
 
 @media (max-width: 360px) {
+  body.network-page .network-introduction-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.network-page .network-introduction-heading,
+  body.network-page .network-introduction-copy {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html[lang="ru"] body.network-page .network-introduction-heading h2 {
+    overflow-wrap: anywhere;
+  }
+
   html[lang="et"] body.network-page
   [data-i18n="network.members.title"] {
     overflow-wrap: anywhere;

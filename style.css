@@ -1748,6 +1748,7 @@ body.newsletter-popup-open {
 .newsletter-form {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .bottom-newsletter-content,
@@ -2162,6 +2163,14 @@ body.newsletter-popup-open {
   color: var(--white);
 }
 
+.footer-official-domain-statement {
+  display: inline-block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
 .footer-donation {
   margin-top: 18px;
   padding-top: 16px;
@@ -2244,7 +2253,7 @@ body.newsletter-popup-open {
   .privacy-new-meta,
   .bottom-newsletter-card,
   .newsletter-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .footer-main {
@@ -2258,6 +2267,23 @@ body.newsletter-popup-open {
 }
 
 @media (max-width: 640px) {
+  .bottom-newsletter-card,
+  .newsletter-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bottom-newsletter-content,
+  .newsletter-text {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html[lang="ru"] .bottom-newsletter-content h2,
+  html[lang="ru"] .newsletter-text h2 {
+    hyphens: auto;
+    overflow-wrap: normal;
+  }
+
   .hero {
     padding: 80px 6%;
   }

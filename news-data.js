@@ -50,7 +50,6 @@
       date: "2026-06-28",
       image: "/assets/news/laager/laager.jpg",
       imagePosition: "center 24%",
-      imageFit: "contain",
       featured: false,
       placeholder: false,
       published: true

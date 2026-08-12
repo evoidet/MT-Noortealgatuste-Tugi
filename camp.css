@@ -2338,7 +2338,7 @@ body.camp-page .nav a::after {
   }
 
   body.camp-page .bottom-newsletter-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -2555,6 +2555,10 @@ body.camp-page .nav a::after {
   body.camp-page .camp-contact-card,
   body.camp-page .bottom-newsletter-card {
     padding: 25px;
+  }
+
+  body.camp-page .bottom-newsletter h2 {
+    overflow-wrap: anywhere;
   }
 
   body.camp-page .camp-skill-card {

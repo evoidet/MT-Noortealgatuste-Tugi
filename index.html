@@ -12,7 +12,7 @@
   <title data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</title>
   <meta
     name="description"
-    content="MTÜ Noortealgatuste Tugi aitab Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu."
+    content="MTÜ Noortealgatuste Tugi toetab Ida-Virumaa noorte arengut ja omaalgatust haridusprogrammide, koolituste, laagrite, sündmuste ning projektitoe kaudu."
    data-i18n-content="home.meta.description">
   <meta name="theme-color" content="#0e3b03">
   <link rel="canonical" href="https://www.noortetugi.ee/">
@@ -21,7 +21,7 @@
   <meta property="og:title" content="MTÜ Noortealgatuste Tugi" data-i18n-content="home.meta.title">
   <meta
     property="og:description"
-    content="Aitame Ida-Virumaa noortel arendada ideid, algatada projekte ja kujundada kohalikku elu."
+    content="Toetame Ida-Virumaa noorte arengut ja omaalgatust haridusprogrammide, koolituste, laagrite, sündmuste ning projektitoe kaudu."
    data-i18n-content="home.meta.ogDescription">
   <meta property="og:url" content="https://www.noortetugi.ee/">
   <meta
@@ -30,6 +30,35 @@
   >
   <meta name="twitter:card" content="summary_large_image">
 
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NGO",
+      "@id": "https://www.noortetugi.ee/#organization",
+      "name": "MTÜ Noortealgatuste Tugi",
+      "legalName": "MTÜ Noortealgatuste Tugi",
+      "url": "https://www.noortetugi.ee/",
+      "logo": "https://www.noortetugi.ee/assets/logo-header.png",
+      "description": "MTÜ Noortealgatuste Tugi missioon on toetada Ida-Virumaa noorte arengut, omaalgatust ja aktiivset osalemist kogukonnas.",
+      "identifier": {
+        "@type": "PropertyValue",
+        "propertyID": "Estonian registry code",
+        "value": "80652930"
+      },
+      "email": "mailto:juhatus@noortetugi.ee",
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "Ida-Virumaa, Eesti"
+      },
+      "sameAs": [
+        "https://www.facebook.com/profile.php?id=61577836850124",
+        "https://www.instagram.com/noortealgatuste_tugi/",
+        "https://www.linkedin.com/company/mtu-noortelgatuse-tugi/",
+        "https://www.tiktok.com/@noortetugi"
+      ]
+    }
+  </script>
+
   <!-- Favicon для браузеров и Google -->
   <link
     rel="icon"
@@ -37,6 +66,7 @@
     sizes="96x96"
     href="/favicon.png"
   >
+  <link rel="shortcut icon" href="/favicon.ico">
 
   <!-- Иконка для iPhone и iPad -->
   <link
@@ -46,11 +76,11 @@
   >
 
   <!-- Общие стили сайта -->
-  <link rel="stylesheet" href="/style.css?v=20260727-4">
+  <link rel="stylesheet" href="/style.css?v=20260812-3">
 
   <!-- Стили главной страницы -->
-  <link rel="stylesheet" href="/home.css?v=20260727-1">
-  <script src="/translations.js?v=20260730-1"></script>
+  <link rel="stylesheet" href="/home.css?v=20260812-1">
+  <script src="/translations.js?v=20260812-1"></script>
   <script src="/i18n.js?v=20260723-2"></script>
   <script src="/sender-init.js"></script>
 </head>
@@ -83,6 +113,7 @@
         <img
           class="photo-modal-image"
           id="photoModalImage"
+          src="/assets/logo-header.png"
           alt=""
         >
       </div>
@@ -122,6 +153,7 @@
     <!-- Переключатель языков -->
     <div
       class="language-switcher"
+      role="group"
       aria-label="Keele valik"
      data-i18n-aria-label="common.a11y.languageSelection">
       <button
@@ -168,33 +200,7 @@
     <nav class="nav" id="mainNav" aria-label="Põhinavigatsioon" data-i18n-aria-label="common.a11y.mainNavigation">
       <a href="/" aria-current="page" data-i18n="common.nav.home">Avaleht</a>
       <a href="/uudised.html" data-i18n="common.nav.news">Uudised</a>
-      <div class="nav-projects">
-        <button
-          class="nav-projects-toggle"
-          id="projectsMenuToggle"
-          type="button"
-          aria-expanded="false"
-          aria-controls="projectsMenu"
-          aria-haspopup="true"
-        >
-          <span data-i18n="common.a11y.projectsMenu">Projektid</span>
-          <span class="nav-projects-chevron" aria-hidden="true"></span>
-        </button>
-        <div class="nav-projects-menu" id="projectsMenu" aria-label="Projektid" data-i18n-aria-label="common.a11y.projectsMenu">
-          <a href="/tunnustusgala.html">
-            <span class="nav-projects-number">01</span>
-            <span data-i18n="common.nav.gala">Noorte tunnustusgala</span>
-          </a>
-          <a href="/laager.html">
-            <span class="nav-projects-number">02</span>
-            <span data-i18n="common.nav.camp">Projektikirjutamise laager</span>
-          </a>
-          <a href="/street.html">
-            <span class="nav-projects-number">03</span>
-            <span data-i18n="common.nav.street">Street Dance Jam</span>
-          </a>
-        </div>
-      </div>
+      <a href="/#projects" data-i18n="common.a11y.projectsMenu">Projektid</a>
       <a href="/vorgustik.html" data-i18n="common.nav.network">Võrgustik</a>
       <a href="/#contact" data-i18n="common.nav.contact">Kontakt</a>
       <a href="/dokumendid.html" data-i18n="common.nav.documents">Dokumendid</a>
@@ -244,7 +250,7 @@
           </a>
         </div>
 
-        <div class="home-hero-path" aria-label="Meie tööprotsess" data-i18n-aria-label="home.hero.processLabel">
+        <div class="home-hero-path" role="group" aria-label="Meie tööprotsess" data-i18n-aria-label="home.hero.processLabel">
           <span data-i18n="home.hero.idea">Idee</span>
           <i aria-hidden="true">→</i>
           <span data-i18n="home.hero.support">Tugi</span>
@@ -441,6 +447,53 @@
           ühendame nõustamise, praktilise toe, partnerid ja kogukonna.
         </p>
       </div>
+
+      <section id="mission" class="home-mission-card" aria-labelledby="home-mission-title" data-reveal>
+        <div class="home-mission-copy">
+          <span class="home-mission-label" data-i18n="home.mission.label">MISSIOON</span>
+          <h3 id="home-mission-title" data-i18n="home.mission.title">Meie missioon</h3>
+
+          <div class="home-mission-text">
+            <p data-i18n="home.mission.paragraph1">
+              MTÜ Noortealgatuste Tugi missioon on toetada Ida-Virumaa noorte
+              arengut, omaalgatust ja aktiivset osalemist kogukonnas.
+            </p>
+
+            <p data-i18n="home.mission.paragraph2">
+              Loome ja korraldame noortele suunatud hariduslikke, arendavaid ja
+              kogukondlikke programme, koolitusi, laagreid ning sündmusi. Aitame
+              noortel arendada oma ideid, leida vajalikke teadmisi ja ressursse
+              ning viia oma algatused päriselt ellu.
+            </p>
+          </div>
+        </div>
+
+        <aside class="home-mission-programs" aria-labelledby="home-mission-programs-title">
+          <h4 id="home-mission-programs-title" data-i18n="home.mission.programsTitle">
+            Programmid ja teenused
+          </h4>
+
+          <ul>
+            <li data-i18n="home.mission.youthInitiatives">
+              Noortealgatused ja projektitugi
+            </li>
+            <li data-i18n="home.mission.education">
+              Hariduslikud ja arendavad tegevused
+            </li>
+            <li data-i18n="home.mission.training">
+              Koolitused ja noortelaagrid
+            </li>
+            <li data-i18n="home.mission.community">
+              Sündmused ja kogukonnategevused
+            </li>
+          </ul>
+
+          <a class="home-mission-link" href="#projects">
+            <span data-i18n="home.mission.projectsLink">Tutvu meie projektidega</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </aside>
+      </section>
 
       <div class="home-values-grid">
 
@@ -966,7 +1019,7 @@
           class="social-text"
           data-config-group="socialUrls"
           data-config-link="facebook"
-          hidden
+          href="https://www.facebook.com/profile.php?id=61577836850124"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Facebook"
@@ -1047,7 +1100,7 @@
     </nav>
   </div>
 
-  <div class="footer-legal" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
+  <div class="footer-legal" role="group" aria-label="Organisatsiooni ametlikud andmed" data-i18n-aria-label="common.a11y.officialDetails">
     <p>
       <strong data-i18n="home.meta.title">MTÜ Noortealgatuste Tugi</strong><br>
       Registrikood: 80652930<br>
@@ -1062,7 +1115,7 @@
 <script src="/news-data.js?v=20260727-1"></script>
 <script src="/news-home.js?v=20260727-4"></script>
 <script src="/site-config.js"></script>
-<script src="/script.js?v=20260727-6"></script>
+<script src="/script.js?v=20260812-1"></script>
 
 <script>
   (() => {

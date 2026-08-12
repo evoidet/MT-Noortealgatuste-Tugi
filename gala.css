@@ -2669,7 +2669,7 @@ body.gala-page .nav a::after {
   }
 
   body.gala-page .bottom-newsletter-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -2920,6 +2920,10 @@ body.gala-page .nav a::after {
   body.gala-page .gala-contact-card,
   body.gala-page .bottom-newsletter-card {
     padding: 25px;
+  }
+
+  body.gala-page .bottom-newsletter h2 {
+    overflow-wrap: anywhere;
   }
 
   body.gala-page .gala-countdown-item {

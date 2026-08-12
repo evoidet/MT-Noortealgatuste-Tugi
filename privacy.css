@@ -1106,7 +1106,7 @@ body.privacy-page .nav a::after {
   }
 
   body.privacy-page .bottom-newsletter-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1178,6 +1178,10 @@ body.privacy-page .nav a::after {
   body.privacy-page .privacy-contact-panel,
   body.privacy-page .bottom-newsletter-card {
     padding: 24px;
+  }
+
+  body.privacy-page .bottom-newsletter h2 {
+    overflow-wrap: anywhere;
   }
 
   body.privacy-page .privacy-new-card {

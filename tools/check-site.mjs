@@ -531,10 +531,23 @@ for (const file of htmlFiles) {
   }
 
   for (const match of source.matchAll(
-    /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi,
+    /<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi,
   )) {
+    const attributes = match[1];
+    const inlineSource = match[2];
+
+    if (/\btype\s*=\s*["']application\/ld\+json["']/i.test(attributes)) {
+      try {
+        JSON.parse(inlineSource);
+      } catch (error) {
+        report(file, `JSON-LD syntax error: ${error.message}`);
+      }
+
+      continue;
+    }
+
     try {
-      new vm.Script(match[1], { filename: file });
+      new vm.Script(inlineSource, { filename: file });
     } catch (error) {
       report(file, `inline script syntax error: ${error.message}`);
     }
