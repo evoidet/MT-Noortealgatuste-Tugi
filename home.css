@@ -2006,6 +2006,23 @@ body.home-page .home-person-info h3 {
   line-height: 1.15;
 }
 
+body.home-page .home-person-email {
+  display: block;
+  max-width: 100%;
+  margin: -5px 0 10px;
+  color: var(--home-green);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+body.home-page .home-person-email:hover,
+body.home-page .home-person-email:focus-visible {
+  text-decoration: underline;
+}
+
 body.home-page .home-person-info > p:last-child {
   margin: 0;
   color: var(--home-text-soft);
@@ -2020,6 +2037,10 @@ body.home-page .home-person-card-lead .home-person-role {
 body.home-page .home-person-card-lead .home-person-info h3 {
   color: var(--home-white);
   font-size: 27px;
+}
+
+body.home-page .home-person-card-lead .home-person-email {
+  color: var(--home-accent);
 }
 
 body.home-page .home-person-card-lead .home-person-info > p:last-child {
