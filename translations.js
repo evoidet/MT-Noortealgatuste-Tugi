@@ -940,6 +940,11 @@
       "Registration is not open yet",
       "Регистрация пока не открыта"
     ],
+    "camp.hero.registerNow": [
+      "Registreeru laagrisse",
+      "Register for the camp",
+      "Зарегистрироваться в лагерь"
+    ],
     "camp.hero.discover": [
       "Tutvu laagriga",
       "Explore the camp",
@@ -2692,7 +2697,9 @@
           "Laagri oluline osa on kogemuste vahetamine. Osalejad saavad tutvustada oma mõtteid, kuulata teiste noorte ideid ning saada tagasisidet, mis aitab projekte sisukamaks ja realistlikumaks muuta.",
           "Ida-Virumaa noorte projektikirjutamise laager toimub sellisel kujul esimest korda. MTÜ Noortealgatuste Tugi soovib selle algatusega toetada Ida-Virumaa noorte ettevõtlikkust ning suurendada noorte valmisolekut ise projekte algatada ja kogukonna arengusse panustada.",
           "Laager sobib noortele, kes soovivad ellu viia sündmust, koolitust, kogukondlikku algatust või mõnda muud ideed, kuid vajavad selle kavandamisel teadmisi, tuge ja inspiratsiooni.",
-          "Lisateavet laagri programmi, osalemise ja registreerimise kohta saab MTÜ Noortealgatuste Tugi projektikirjutamise laagri veebilehelt."
+          "Lisateavet laagri programmi, osalemise ja registreerimise kohta saab MTÜ Noortealgatuste Tugi projektikirjutamise laagri veebilehelt.",
+          "Registreerimine on avatud:",
+          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform"
         ]
       },
       {
@@ -2707,7 +2714,9 @@
           "Sharing experience is an important part of the camp. Participants can present their thoughts, hear other young people’s ideas and receive feedback that makes projects more meaningful and realistic.",
           "This is the first time Ida-Virumaa noorte projektikirjutamise laager will be held in this format. Through the initiative, MTÜ Noortealgatuste Tugi aims to support enterprising young people in Ida-Viru County and increase their readiness to launch projects and contribute to community development.",
           "The camp is for young people who want to deliver an event, training course, community initiative or another idea but need knowledge, support and inspiration to plan it.",
-          "Further information about the programme, participation and registration is available on the MTÜ Noortealgatuste Tugi project-writing camp page."
+          "Further information about the programme, participation and registration is available on the MTÜ Noortealgatuste Tugi project-writing camp page.",
+          "Registration is open:",
+          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform"
         ]
       },
       {
@@ -2722,7 +2731,9 @@
           "Важной частью лагеря станет обмен опытом. Участники смогут представить свои мысли, услышать идеи других молодых людей и получить обратную связь, которая поможет сделать проекты содержательнее и реалистичнее.",
           "Ida-Virumaa noorte projektikirjutamise laager в таком формате проводится впервые. Этой инициативой MTÜ Noortealgatuste Tugi хочет поддержать предприимчивость молодёжи Ида-Вирумаа и повысить её готовность самостоятельно запускать проекты и участвовать в развитии сообщества.",
           "Лагерь подойдёт молодым людям, которые хотят провести событие или обучение, запустить общественную инициативу или воплотить другую идею, но нуждаются в знаниях, поддержке и вдохновении для планирования.",
-          "Дополнительная информация о программе, участии и регистрации доступна на странице лагеря по написанию проектов MTÜ Noortealgatuste Tugi."
+          "Дополнительная информация о программе, участии и регистрации доступна на странице лагеря по написанию проектов MTÜ Noortealgatuste Tugi.",
+          "Регистрация открыта:",
+          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform"
         ]
       }
     ],
