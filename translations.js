@@ -384,14 +384,21 @@
     "home.mission.label": ["MISSIOON", "MISSION", "МИССИЯ"],
     "home.mission.title": ["Meie missioon", "Our Mission", "Наша миссия"],
     "home.mission.paragraph1": [
-      "MTÜ Noortealgatuste Tugi missioon on toetada Ida-Virumaa noorte arengut, omaalgatust ja aktiivset osalemist kogukonnas.",
-      "The mission of MTÜ Noortealgatuste Tugi is to support the development, initiative and active participation of young people in Ida-Virumaa.",
-      "Миссия MTÜ Noortealgatuste Tugi — поддерживать развитие, инициативность и активное участие молодёжи Ида-Вирумаа в жизни общества."
+      "MTÜ Noortealgatuste Tugi on Ida-Virumaa noorte kõrval ideest teostuseni. Toetame noori omaalgatuste arendamisel ja elluviimisel, ühendame nad vajalike teadmiste, inimeste ja võimalustega ning julgustame neid proovima, õppima ja arenema. Nii aitame kujundada aktiivset ja üksteist toetavat noortekogukonda.",
+      "MTÜ Noortealgatuste Tugi stands alongside young people in Ida-Virumaa from idea to implementation. We support young people in developing and carrying out their own initiatives, connect them with the knowledge, people and opportunities they need, and encourage them to try, learn and grow. In this way, we help build an active and mutually supportive youth community.",
+      "MTÜ Noortealgatuste Tugi сопровождает молодёжь Ида-Вирумаа от идеи до реализации. Мы поддерживаем молодых людей в развитии и осуществлении собственных инициатив, связываем их с необходимыми знаниями, людьми и возможностями и вдохновляем пробовать, учиться и развиваться. Так мы помогаем формировать активное молодёжное сообщество, в котором поддерживают друг друга."
     ],
     "home.mission.paragraph2": [
       "Loome ja korraldame noortele suunatud hariduslikke, arendavaid ja kogukondlikke programme, koolitusi, laagreid ning sündmusi. Aitame noortel arendada oma ideid, leida vajalikke teadmisi ja ressursse ning viia oma algatused päriselt ellu.",
       "We create and organize educational, developmental and community-focused programs, training sessions, camps and events for young people. We help young people develop their ideas, find the knowledge and resources they need, and turn their initiatives into real projects.",
       "Мы создаём и организуем образовательные, развивающие и общественные программы, обучения, лагеря и мероприятия для молодёжи. Мы помогаем молодым людям развивать свои идеи, находить необходимые знания и ресурсы и воплощать свои инициативы в реальные проекты."
+    ],
+    "home.vision.label": ["VISIOON", "VISION", "ВИДЕНИЕ"],
+    "home.vision.title": ["Meie visioon", "Our Vision", "Наше видение"],
+    "home.vision.paragraph1": [
+      "MTÜ Noortealgatuste Tugi on Ida-Virumaa noorte omaalgatuse ja osaluse eestvedaja, võimekas ja usaldusväärne partner noortele ning piirkondliku noortevaldkonna kujundaja. Igal Ida-Virumaa noorel on võimalus ja tugi, et oma ideid ellu viia, areneda ja kogukonnaelus kaasa lüüa.",
+      "MTÜ Noortealgatuste Tugi is a leader in youth initiative and participation in Ida-Virumaa, a capable and trusted partner for young people, and a contributor to shaping the region’s youth sector. Every young person in Ida-Virumaa has the opportunity and support to bring their ideas to life, grow and take part in community life.",
+      "MTÜ Noortealgatuste Tugi — ведущая организация в сфере молодёжных инициатив и участия в Ида-Вирумаа, компетентный и надёжный партнёр для молодёжи и участник формирования региональной молодёжной сферы. У каждого молодого человека в Ида-Вирумаа есть возможности и поддержка, чтобы воплощать свои идеи, развиваться и участвовать в жизни сообщества."
     ],
     "home.mission.programsTitle": [
       "Programmid ja teenused",

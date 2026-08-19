@@ -921,6 +921,10 @@ body.home-page .home-mission-card::after {
   pointer-events: none;
 }
 
+body.home-page .home-vision-card {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 body.home-page .home-mission-copy,
 body.home-page .home-mission-programs {
   position: relative;
