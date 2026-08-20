@@ -300,6 +300,11 @@ document.addEventListener("DOMContentLoaded", function () {
           document.createElement("br")
         );
         details.append(
+          t("common.footer.addressLabel") +
+            " Maleva tn 35-32, 31025 Kohtla-Järve, Ida-Virumaa, Eesti",
+          document.createElement("br")
+        );
+        details.append(
           officialWebsiteLabel,
           document.createTextNode(" "),
           website,

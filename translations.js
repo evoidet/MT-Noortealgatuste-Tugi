@@ -176,6 +176,7 @@
       "Registry code: 80652930",
       "Регистрационный код: 80652930"
     ],
+    "common.footer.addressLabel": ["Aadress:", "Address:", "Адрес:"],
     "common.footer.emailLabel": ["E-post:", "Email:", "Эл. почта:"],
     "common.footer.donations": ["Annetused", "Donations", "Пожертвования"],
     "common.footer.officialWebsite": [
