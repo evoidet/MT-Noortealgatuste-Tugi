@@ -1,5 +1,8 @@
 admin-local/
 node_modules/
+staff-app/node_modules/
+staff-app/private/runtime/
+staff-app/private/generated/
 .env
 .env.local
 .env.*.local

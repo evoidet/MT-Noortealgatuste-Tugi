@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="et">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="googlebot" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="same-origin">
+    <meta name="theme-color" content="#0e3b03">
+    <meta name="description" content="" data-i18n-content="staff.meta.description">
+    <title></title>
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/news.css">
+    <link rel="stylesheet" href="/admin/styles.css">
+    <script src="/translations.js" defer></script>
+    <script src="/i18n.js" defer></script>
+    <script type="module" src="/admin/app.js"></script>
+  </head>
+  <body class="staff-page news-page">
+    <a class="staff-skip-link" href="#staffMain" data-i18n="staff.accessibility.skipToContent"></a>
+
+    <div id="staffApp" class="staff-app">
+      <section id="bootView" class="staff-gate staff-gate--loading" aria-live="polite">
+        <div class="staff-loader" aria-hidden="true"></div>
+        <p data-i18n="staff.common.loading"></p>
+      </section>
+
+      <section id="loginView" class="staff-gate" hidden>
+        <div class="staff-gate-card">
+          <img
+            class="staff-gate-logo"
+            src="/assets/logo-header.png"
+            alt=""
+            data-i18n-alt="staff.brand.logoAlt"
+            width="320"
+            height="128"
+          >
+          <span class="staff-eyebrow" data-i18n="staff.login.eyebrow"></span>
+          <h1 data-i18n="staff.login.title"></h1>
+          <p data-i18n="staff.login.description"></p>
+          <a id="loginButton" class="staff-button staff-button--primary staff-button--wide" href="#">
+            <span class="staff-button-icon" aria-hidden="true">G</span>
+            <span data-i18n="staff.login.action"></span>
+          </a>
+          <p class="staff-gate-note" data-i18n="staff.login.domainNote"></p>
+          <div class="staff-language-switcher" data-i18n-aria-label="staff.language.label" role="group">
+            <button class="lang-button" type="button" data-lang="et" data-i18n="staff.language.etShort"></button>
+            <button class="lang-button" type="button" data-lang="ru" data-i18n="staff.language.ruShort"></button>
+            <button class="lang-button" type="button" data-lang="en" data-i18n="staff.language.enShort"></button>
+          </div>
+        </div>
+      </section>
+
+      <section id="deniedView" class="staff-gate" hidden>
+        <div class="staff-gate-card staff-gate-card--compact">
+          <div class="staff-gate-symbol" aria-hidden="true">!</div>
+          <span class="staff-eyebrow" data-i18n="staff.denied.eyebrow"></span>
+          <h1 data-i18n="staff.denied.title"></h1>
+          <p id="deniedMessage" data-i18n="staff.denied.description"></p>
+          <button id="deniedRetryButton" class="staff-button staff-button--primary" type="button" data-i18n="staff.common.tryAgain"></button>
+        </div>
+      </section>
+
+      <div id="authenticatedShell" class="staff-shell" hidden>
+        <header class="staff-header">
+          <div class="staff-header-inner">
+            <button id="brandHomeButton" class="staff-brand" type="button" data-action="navigate" data-view="home">
+              <img src="/assets/logo-header.png" alt="" data-i18n-alt="staff.brand.logoAlt" width="212" height="84">
+              <span>
+                <strong data-i18n="staff.brand.staffArea"></strong>
+                <small data-i18n="staff.brand.private"></small>
+              </span>
+            </button>
+
+            <div class="staff-header-actions">
+              <div class="staff-language-switcher staff-language-switcher--header" data-i18n-aria-label="staff.language.label" role="group">
+                <button class="lang-button" type="button" data-lang="et" data-i18n="staff.language.etShort"></button>
+                <button class="lang-button" type="button" data-lang="ru" data-i18n="staff.language.ruShort"></button>
+                <button class="lang-button" type="button" data-lang="en" data-i18n="staff.language.enShort"></button>
+              </div>
+
+              <button id="userMenuButton" class="staff-user-button" type="button" aria-expanded="false" aria-controls="userMenu" data-i18n-aria-label="staff.header.accountMenu">
+                <span id="userInitial" class="staff-user-initial" aria-hidden="true"></span>
+                <span class="staff-user-copy">
+                  <strong id="userName"></strong>
+                  <small id="userRole"></small>
+                </span>
+                <span aria-hidden="true">⌄</span>
+              </button>
+
+              <div id="userMenu" class="staff-user-menu" hidden>
+                <p id="userEmail"></p>
+                <button id="logoutButton" class="staff-menu-action" type="button">
+                  <span aria-hidden="true">↗</span>
+                  <span data-i18n="staff.header.logout"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="staff-layout">
+          <aside class="staff-sidebar" aria-label="" data-i18n-aria-label="staff.navigation.label">
+            <nav class="staff-sidebar-nav">
+              <button class="staff-nav-button is-active" type="button" data-action="navigate" data-view="home">
+                <span aria-hidden="true">⌂</span>
+                <span data-i18n="staff.navigation.home"></span>
+              </button>
+              <button class="staff-nav-button" type="button" data-action="navigate" data-view="mine">
+                <span aria-hidden="true">▤</span>
+                <span data-i18n="staff.navigation.mine"></span>
+              </button>
+              <button class="staff-nav-button" type="button" data-action="navigate" data-view="review" data-requires="review">
+                <span aria-hidden="true">✓</span>
+                <span data-i18n="staff.navigation.review"></span>
+                <span id="reviewBadge" class="staff-nav-badge" hidden></span>
+              </button>
+              <button class="staff-nav-button" type="button" data-action="navigate" data-view="audit" data-requires="audit">
+                <span aria-hidden="true">◷</span>
+                <span data-i18n="staff.navigation.audit"></span>
+              </button>
+            </nav>
+            <div class="staff-sidebar-note">
+              <span aria-hidden="true">●</span>
+              <p data-i18n="staff.navigation.privateNotice"></p>
+            </div>
+          </aside>
+
+          <main id="staffMain" class="staff-main" tabindex="-1">
+            <div id="viewRoot" class="staff-view" aria-live="polite"></div>
+          </main>
+        </div>
+
+        <nav class="staff-bottom-nav" aria-label="" data-i18n-aria-label="staff.navigation.label">
+          <button class="staff-bottom-nav-button is-active" type="button" data-action="navigate" data-view="home">
+            <span aria-hidden="true">⌂</span>
+            <small data-i18n="staff.navigation.home"></small>
+          </button>
+          <button class="staff-bottom-nav-button" type="button" data-action="navigate" data-view="mine">
+            <span aria-hidden="true">▤</span>
+            <small data-i18n="staff.navigation.mineShort"></small>
+          </button>
+          <button class="staff-bottom-nav-button" type="button" data-action="navigate" data-view="review" data-requires="review">
+            <span aria-hidden="true">✓</span>
+            <small data-i18n="staff.navigation.reviewShort"></small>
+          </button>
+          <button class="staff-bottom-nav-button" type="button" data-action="navigate" data-view="audit" data-requires="audit">
+            <span aria-hidden="true">◷</span>
+            <small data-i18n="staff.navigation.audit"></small>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <dialog id="aiDialog" class="staff-dialog" aria-labelledby="aiDialogTitle">
+      <form method="dialog" class="staff-dialog-card" data-dialog="ai">
+        <div class="staff-dialog-header">
+          <div>
+            <span class="staff-eyebrow" data-i18n="staff.ai.eyebrow"></span>
+            <h2 id="aiDialogTitle" data-i18n="staff.ai.title"></h2>
+          </div>
+          <button class="staff-icon-button" type="button" data-action="close-ai" data-i18n-aria-label="staff.common.close">×</button>
+        </div>
+
+        <label class="staff-field">
+          <span data-i18n="staff.ai.modeLabel"></span>
+          <select id="aiMode">
+            <option value="fix_language" data-i18n="staff.ai.mode.fixLanguage"></option>
+            <option value="formal" data-i18n="staff.ai.mode.formal"></option>
+            <option value="news" data-i18n="staff.ai.mode.news"></option>
+          </select>
+        </label>
+
+        <div class="staff-ai-compare">
+          <section>
+            <h3 data-i18n="staff.ai.original"></h3>
+            <pre id="aiOriginal"></pre>
+          </section>
+          <section>
+            <h3 data-i18n="staff.ai.suggestion"></h3>
+            <div id="aiSuggestion" class="staff-ai-suggestion" data-i18n="staff.ai.suggestionEmpty"></div>
+          </section>
+        </div>
+
+        <p class="staff-form-hint" data-i18n="staff.ai.safetyNote"></p>
+        <div class="staff-dialog-actions">
+          <button id="aiGenerateButton" class="staff-button staff-button--secondary" type="button" data-action="generate-ai">
+            <span aria-hidden="true">✦</span>
+            <span data-i18n="staff.ai.generate"></span>
+          </button>
+          <button class="staff-button staff-button--ghost" type="button" data-action="close-ai" data-i18n="staff.ai.keepOriginal"></button>
+          <button id="aiUseButton" class="staff-button staff-button--primary" type="button" data-action="use-ai" disabled data-i18n="staff.ai.useSuggestion"></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="reviewDialog" class="staff-dialog" aria-labelledby="reviewDialogTitle">
+      <form method="dialog" class="staff-dialog-card staff-dialog-card--small" data-dialog="review">
+        <div class="staff-dialog-header">
+          <div>
+            <span class="staff-eyebrow" data-i18n="staff.review.eyebrow"></span>
+            <h2 id="reviewDialogTitle" data-i18n="staff.review.dialogTitle"></h2>
+          </div>
+          <button class="staff-icon-button" type="button" data-action="close-review" data-i18n-aria-label="staff.common.close">×</button>
+        </div>
+        <p id="reviewDecisionDescription"></p>
+        <label class="staff-field">
+          <span data-i18n="staff.review.comment"></span>
+          <textarea id="reviewComment" rows="5" data-i18n-placeholder="staff.review.commentPlaceholder"></textarea>
+          <small id="reviewCommentHint" data-i18n="staff.review.commentHint"></small>
+        </label>
+        <div class="staff-dialog-actions">
+          <button class="staff-button staff-button--ghost" type="button" data-action="close-review" data-i18n="staff.common.cancel"></button>
+          <button id="reviewConfirmButton" class="staff-button staff-button--primary" type="button" data-action="confirm-review" data-i18n="staff.review.confirm"></button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toastRegion" class="staff-toast-region" aria-live="polite" aria-atomic="true"></div>
+  </body>
+</html>
