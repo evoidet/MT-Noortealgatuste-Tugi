@@ -543,6 +543,45 @@ export async function openPrivateAttachment({
   return { statusCode: 200, stream: result.stream, blob: result.blob };
 }
 
+export async function readPrivateAttachment({
+  config,
+  attachment,
+  blobClient = defaultBlobClient
+}) {
+  const opened = await openPrivateAttachment({ config, attachment, blobClient });
+  if (!opened) {
+    throw new StorageError("BLOB_NOT_FOUND", "The uploaded Blob was not found.", { status: 404 });
+  }
+
+  const configuredLimit = maxUploadBytes(config);
+  if (Number.isSafeInteger(opened.blob?.size) && opened.blob.size > configuredLimit) {
+    throw new StorageError("FILE_TOO_LARGE", "The uploaded file is too large.", { status: 413 });
+  }
+
+  const buffer = await readWebStream(opened.stream, configuredLimit);
+  if (Number.isSafeInteger(attachment?.size) && attachment.size !== buffer.length) {
+    throw new StorageError("FILE_SIZE_MISMATCH", "The stored file size does not match its database record.", {
+      status: 503
+    });
+  }
+
+  const expectedHash = String(attachment?.sha256 || "").trim().toLowerCase();
+  if (/^[a-f0-9]{64}$/.test(expectedHash)) {
+    const actualHash = createHash("sha256").update(buffer).digest("hex");
+    if (actualHash !== expectedHash) {
+      throw new StorageError("BLOB_INTEGRITY_FAILED", "The stored file failed its integrity check.", {
+        status: 503
+      });
+    }
+  }
+
+  return {
+    buffer,
+    size: buffer.length,
+    blob: opened.blob
+  };
+}
+
 export async function verifyClientUploadedFile({
   config,
   submission,

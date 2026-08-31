@@ -32,6 +32,33 @@ function mailUnavailableError() {
   return error;
 }
 
+function mailAttachmentError() {
+  const error = new Error("Expense notification attachments are invalid.");
+  error.code = "MAIL_ATTACHMENT_INVALID";
+  return error;
+}
+
+function normalizedAttachments(value) {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 101) {
+    throw mailAttachmentError();
+  }
+  return value.map((attachment) => {
+    const filename = cleanHeader(attachment?.filename);
+    const contentType = cleanHeader(attachment?.contentType, "application/octet-stream");
+    if (!filename || !attachment?.content || !contentType) throw mailAttachmentError();
+    return { filename, content: attachment.content, contentType };
+  });
+}
+
+function expenseMessageId(submission, recipient) {
+  const id = String(submission?.id || "submission").replace(/[^a-z0-9-]/gi, "-").slice(0, 80);
+  const revision = Number.isSafeInteger(Number(submission?.revision)) ? Number(submission.revision) : 0;
+  const updated = new Date(submission?.updatedAt || 0).getTime();
+  const timestamp = Number.isFinite(updated) && updated > 0 ? updated : 0;
+  const domain = String(recipient || "").split("@").at(-1)?.toLowerCase() || "noortetugi.ee";
+  return `<expense-${id}-r${revision}-${timestamp}@${domain}>`;
+}
+
 export function createMailService(config, overrides = {}) {
   const configured = Boolean(config.smtpHost && config.mailFrom && config.financeNotificationEmail);
   const transport = overrides.transport ?? (configured
@@ -52,7 +79,7 @@ export function createMailService(config, overrides = {}) {
   return Object.freeze({
     available: Boolean(transport && config.mailFrom && config.financeNotificationEmail),
 
-    async sendExpenseSubmitted({ submission, reviewUrl }) {
+    async sendExpenseSubmitted({ submission, reviewUrl, attachments }) {
       if (!transport || !config.mailFrom || !config.financeNotificationEmail) {
         throw mailUnavailableError();
       }
@@ -62,10 +89,12 @@ export function createMailService(config, overrides = {}) {
       const project = cleanHeader(data.project, "Projekt puudub");
       const subject = `Uus kuluaruanne — ${submitter} — ${project}`;
       const submittedAt = cleanLine(submission?.submittedAt || submission?.updatedAt);
+      const mailAttachments = normalizedAttachments(attachments);
 
-      await transport.sendMail({
+      return transport.sendMail({
         from: config.mailFrom,
         to: config.financeNotificationEmail,
+        messageId: expenseMessageId(submission, config.financeNotificationEmail),
         subject,
         text: [
           "Uus kuluaruanne ootab kontrollimist.",
@@ -79,11 +108,18 @@ export function createMailService(config, overrides = {}) {
           `Turvaline kontrollimise link: ${cleanLine(reviewUrl)}`,
           "",
           "Link nõuab Google Workspace'i sisselogimist ja finants- või administraatoriõigust.",
-          "Manuseid ei ole sellele kirjale lisatud."
-        ].join("\n")
+          `Manuseid: ${mailAttachments.length}`
+        ].join("\n"),
+        attachments: mailAttachments
       });
     }
   });
 }
 
-export const __mailTestUtils = Object.freeze({ cleanHeader, cleanLine, formatAmount });
+export const __mailTestUtils = Object.freeze({
+  cleanHeader,
+  cleanLine,
+  expenseMessageId,
+  formatAmount,
+  normalizedAttachments
+});

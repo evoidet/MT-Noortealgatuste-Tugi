@@ -31,7 +31,9 @@ const state = {
     submissionId: null,
     decision: ""
   },
-  lastSubmitted: null
+  lastSubmitted: null,
+  previewing: false,
+  submitting: false
 };
 
 const elements = {
@@ -196,6 +198,8 @@ function friendlyErrorKey(error) {
     PRIMARY_ATTACHMENT_REQUIRED: "staff.errors.primaryAttachmentRequired",
     DOCUMENT_TEMPLATE_UNAVAILABLE: "staff.errors.templateUnavailable",
     DOCUMENT_VALIDATION_ERROR: "staff.errors.documentValidation",
+    SUBMISSION_DELIVERY_FAILED: "staff.errors.submissionFailed",
+    SUBMISSION_IN_PROGRESS: "staff.errors.submissionInProgress",
     SELF_REVIEW_FORBIDDEN: "staff.errors.selfReview"
   };
   if (codeKeys[code]) return codeKeys[code];
@@ -231,6 +235,36 @@ function handleError(error, options = {}) {
   }
 
   showToast(friendlyErrorKey(error), "error");
+}
+
+function safeClientError(error) {
+  return {
+    name: String(error?.name || "Error").slice(0, 80),
+    status: Number.isFinite(error?.status) ? error.status : undefined,
+    code: String(error instanceof ApiError
+      ? error?.payload?.error || "API_ERROR"
+      : "CLIENT_ERROR").slice(0, 80)
+  };
+}
+
+function handlePreviewError(error) {
+  if (error instanceof ApiError && error.status === 401) {
+    handleError(error);
+    return;
+  }
+  console.error("Staff preview could not be rendered:", safeClientError(error));
+  showToast("staff.errors.previewFailed", "error");
+}
+
+function handleSubmissionError(error) {
+  if (error instanceof ApiError && [400, 401, 403, 413, 415, 422, 429].includes(error.status)) {
+    handleError(error);
+    return;
+  }
+  console.error("Staff submission could not be completed:", safeClientError(error));
+  showToast(friendlyErrorKey(error) === "staff.errors.submissionInProgress"
+    ? "staff.errors.submissionInProgress"
+    : "staff.errors.submissionFailed", "error");
 }
 
 function setBusy(button, busy, key = "staff.common.working") {
@@ -360,6 +394,8 @@ function resetFormState() {
   state.editingId = null;
   state.preview = null;
   state.lastSubmitted = null;
+  state.previewing = false;
+  state.submitting = false;
 }
 
 async function navigate(view, options = {}) {
@@ -1270,6 +1306,29 @@ function pendingFiles() {
   return [...state.pendingFiles.values()].flat();
 }
 
+function previewAttachments() {
+  const persisted = Array.isArray(state.current?.attachments) ? state.current.attachments : [];
+  const persistedFingerprints = new Set(persisted.map((attachment) =>
+    `${attachmentName(attachment)}:${Number(attachment.size) || 0}:${attachment.kind || "additional"}`
+  ));
+  const pending = [];
+  for (const [group, files] of state.pendingFiles.entries()) {
+    const kind = group.endsWith("-primary") || group === "news-main" ? "primary" : "additional";
+    for (const file of files) {
+      const fingerprint = `${file.name}:${Number(file.size) || 0}:${kind}`;
+      if (persistedFingerprints.has(fingerprint)) continue;
+      pending.push({
+        name: file.name,
+        mimeType: file.type || "application/octet-stream",
+        size: file.size,
+        kind,
+        pending: true
+      });
+    }
+  }
+  return [...persisted, ...pending];
+}
+
 async function uploadPendingFiles(submissionId) {
   for (const [group, groupFiles] of state.pendingFiles.entries()) {
     const kind = group.endsWith("-primary") || group === "news-main" ? "primary" : "additional";
@@ -1331,9 +1390,9 @@ async function saveDraft(button) {
   }
 }
 
-function renderPreview(type, data) {
+function renderPreview(type, data, attachments = previewAttachments()) {
   state.view = "preview";
-  state.preview = { type, data };
+  state.preview = { type, data, attachments };
   setActiveNavigation("preview");
 
   elements.viewRoot.innerHTML = `
@@ -1358,7 +1417,7 @@ function renderPreview(type, data) {
         </button>
       </div>
       <div class="staff-preview-canvas">
-        ${renderSubmissionPreview(type, data)}
+        ${renderSubmissionPreview(type, data, { attachments })}
       </div>
       <footer class="staff-preview-actions">
         <button class="staff-button staff-button--ghost" type="button" data-action="save-preview">
@@ -1373,6 +1432,34 @@ function renderPreview(type, data) {
     </section>
   `;
   focusMain();
+}
+
+async function openPreview(button) {
+  if (state.previewing || !state.formType) return;
+  if (!validateCurrentForm()) return;
+  state.previewing = true;
+  setBusy(button, true, "staff.common.working");
+  releaseObjectUrls();
+  const type = state.formType;
+  const collected = collectFormData();
+  const transientData = Object.fromEntries(
+    Object.entries(collected).filter(([key]) => key.startsWith("_"))
+  );
+
+  try {
+    const saved = await saveData(type, collected);
+    const payload = await api.getSubmission(saved.id);
+    const refreshed = normalizeSubmission(extractSubmission(payload));
+    if (!refreshed?.id) throw new ApiError("missing_submission_id", 500, payload);
+    state.current = refreshed;
+    state.editingId = refreshed.id;
+    renderPreview(type, { ...refreshed.data, ...transientData }, previewAttachments());
+  } catch (error) {
+    handlePreviewError(error);
+  } finally {
+    state.previewing = false;
+    setBusy(button, false);
+  }
 }
 
 function hasPrimaryExpenseDocument() {
@@ -1407,10 +1494,12 @@ function renderSubmissionSuccess(type, record) {
 
 async function savePreview(button, submit = false) {
   if (!state.preview) return;
+  if (submit && state.submitting) return;
   if (submit && state.preview.type === "expense" && !hasPrimaryExpenseDocument()) {
     showToast("staff.errors.primaryAttachmentRequired", "error");
     return;
   }
+  if (submit) state.submitting = true;
   setBusy(button, true, submit ? "staff.preview.submitting" : "staff.form.saving");
 
   try {
@@ -1427,8 +1516,10 @@ async function savePreview(button, submit = false) {
       showToast("staff.form.saved", "success");
     }
   } catch (error) {
-    handleError(error);
+    if (submit) handleSubmissionError(error);
+    else handleError(error);
   } finally {
+    if (submit) state.submitting = false;
     setBusy(button, false);
   }
 }
@@ -1610,7 +1701,7 @@ async function renderDetail(id, scope = "mine") {
             </div>
           </div>
           <div class="staff-preview-canvas">
-            ${renderSubmissionPreview(record.type, record.data)}
+            ${renderSubmissionPreview(record.type, record.data, { attachments: record.attachments })}
           </div>
         </section>
 
@@ -2075,11 +2166,8 @@ function attachEvents() {
   document.addEventListener("submit", (event) => {
     if (event.target.id !== "submissionForm") return;
     event.preventDefault();
-
-    if (!validateCurrentForm()) return;
-    releaseObjectUrls();
-    const data = collectFormData();
-    renderPreview(state.formType, data);
+    const button = event.submitter || event.target.querySelector('button[type="submit"]');
+    void openPreview(button);
   });
 
   document.addEventListener("change", (event) => {
@@ -2146,7 +2234,9 @@ function attachEvents() {
 
     if (state.view === "home") renderHome();
     else if (state.view === "form" && state.formType) renderForm(state.formType, state.current);
-    else if (state.view === "preview" && state.preview) renderPreview(state.preview.type, state.preview.data);
+    else if (state.view === "preview" && state.preview) {
+      renderPreview(state.preview.type, state.preview.data, state.preview.attachments);
+    }
     else if (state.view === "detail" && state.current) {
       void renderDetail(state.current.id, state.listScope);
     }

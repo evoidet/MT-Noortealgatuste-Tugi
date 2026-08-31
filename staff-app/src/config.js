@@ -14,6 +14,27 @@ function boolean(value, fallback = false) {
   return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
 }
 
+function strictBoolean(value, fallback, name) {
+  if (value === undefined || value === null || String(value).trim() === "") return fallback;
+  const normalized = String(value).trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+  throw new Error(`${name} must be a boolean value (true/false or 1/0).`);
+}
+
+function strictInteger(value, fallback, minimum, maximum, name) {
+  if (value === undefined || value === null || String(value).trim() === "") return fallback;
+  const normalized = String(value).trim();
+  if (!/^\d+$/.test(normalized)) {
+    throw new Error(`${name} must be a whole number.`);
+  }
+  const parsed = Number(normalized);
+  if (!Number.isSafeInteger(parsed) || parsed < minimum || parsed > maximum) {
+    throw new Error(`${name} must be between ${minimum} and ${maximum}.`);
+  }
+  return parsed;
+}
+
 function entries(value) {
   if (value instanceof Set || Array.isArray(value)) return [...value];
   return String(value ?? "").split(",");
@@ -52,8 +73,28 @@ function emailSet(value, name, domain) {
 
 function workspaceEmail(value, name, domain) {
   const normalized = String(value ?? "").trim().toLowerCase();
-  if (!emailHasExactDomain(normalized, domain)) {
+  if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9.-]+$/i.test(normalized) ||
+      !emailHasExactDomain(normalized, domain)) {
     throw new Error(`${name} must be an @${domain} email address.`);
+  }
+  return normalized;
+}
+
+function mailbox(value, name) {
+  const normalized = String(value ?? "").trim();
+  const angleAddress = /^(?:[^<>\r\n]+\s*)?<([^<>\s]+)>$/.exec(normalized);
+  const address = (angleAddress?.[1] || normalized).toLowerCase();
+  if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/i.test(address)) {
+    throw new Error(`${name} must contain a valid email address.`);
+  }
+  return normalized;
+}
+
+function smtpHostname(value, production) {
+  const normalized = String(value ?? "").trim();
+  requiredInProduction("STAFF_SMTP_HOST", normalized, production);
+  if (normalized && (/\s|:\/\//.test(normalized) || normalized.length > 253)) {
+    throw new Error("STAFF_SMTP_HOST must be a hostname without a URL scheme or port.");
   }
   return normalized;
 }
@@ -145,7 +186,7 @@ export function loadConfig(overrides = {}) {
   const smtpUser = overrides.smtpUser ?? process.env.STAFF_SMTP_USER ?? "";
   const smtpPassword = overrides.smtpPassword ?? process.env.STAFF_SMTP_PASSWORD ?? "";
   const maxUploadBytes = overrides.maxUploadBytes ??
-    integer(process.env.STAFF_MAX_UPLOAD_MB, 15, 1) * 1024 * 1024;
+    strictInteger(process.env.STAFF_MAX_UPLOAD_MB, 15, 1, 1_024, "STAFF_MAX_UPLOAD_MB") * 1024 * 1024;
 
   requiredInProduction("STORAGE_DATABASE_URL", storageDatabaseUrl, production);
   requiredInProduction("GOOGLE_CLIENT_ID", googleClientId, production);
@@ -156,11 +197,16 @@ export function loadConfig(overrides = {}) {
     throw new Error("SESSION_SECRET must contain at least 32 bytes in production.");
   }
 
+  const configuredFinanceEmail = overrides.financeNotificationEmail ?? process.env.FINANCE_NOTIFICATION_EMAIL ?? "";
   const financeNotificationEmail = workspaceEmail(
-    overrides.financeNotificationEmail ?? process.env.FINANCE_NOTIFICATION_EMAIL ?? "egor@noortetugi.ee",
+    requiredInProduction("FINANCE_NOTIFICATION_EMAIL", configuredFinanceEmail, production) || "egor@noortetugi.ee",
     "FINANCE_NOTIFICATION_EMAIL",
     allowedGoogleDomain
   );
+  const smtpHost = smtpHostname(overrides.smtpHost ?? process.env.STAFF_SMTP_HOST, production);
+  const configuredMailFrom = overrides.mailFrom ?? process.env.STAFF_MAIL_FROM ?? smtpUser;
+  const mailFromValue = requiredInProduction("STAFF_MAIL_FROM", configuredMailFrom, production);
+  const mailFrom = mailFromValue ? mailbox(mailFromValue, "STAFF_MAIL_FROM") : "";
 
   const config = {
     appRoot,
@@ -198,22 +244,42 @@ export function loadConfig(overrides = {}) {
       overrides.publicSiteOrigin ?? process.env.PUBLIC_SITE_ORIGIN ?? appUrl,
       production
     ),
-    enableDevAuth: boolean(overrides.enableDevAuth ?? process.env.STAFF_ENABLE_DEV_AUTH, false),
+    enableDevAuth: strictBoolean(
+      overrides.enableDevAuth ?? process.env.STAFF_ENABLE_DEV_AUTH,
+      false,
+      "STAFF_ENABLE_DEV_AUTH"
+    ),
     financeNotificationEmail,
     // Invoice creation follows the already configured Egor/finance identity.
     // Keeping one source of truth avoids a second identity environment variable.
     invoiceCreatorEmail: financeNotificationEmail,
-    smtpHost: overrides.smtpHost ?? process.env.STAFF_SMTP_HOST ?? "",
-    smtpPort: integer(overrides.smtpPort ?? process.env.STAFF_SMTP_PORT, 587, 1),
-    smtpSecure: boolean(overrides.smtpSecure ?? process.env.STAFF_SMTP_SECURE, false),
-    smtpRequireTls: boolean(overrides.smtpRequireTls ?? process.env.STAFF_SMTP_REQUIRE_TLS, true),
+    smtpHost,
+    smtpPort: strictInteger(
+      overrides.smtpPort ?? process.env.STAFF_SMTP_PORT,
+      587,
+      1,
+      65_535,
+      "STAFF_SMTP_PORT"
+    ),
+    smtpSecure: strictBoolean(
+      overrides.smtpSecure ?? process.env.STAFF_SMTP_SECURE,
+      false,
+      "STAFF_SMTP_SECURE"
+    ),
+    smtpRequireTls: strictBoolean(
+      overrides.smtpRequireTls ?? process.env.STAFF_SMTP_REQUIRE_TLS,
+      true,
+      "STAFF_SMTP_REQUIRE_TLS"
+    ),
     smtpUser,
     smtpPassword,
-    mailFrom: overrides.mailFrom ?? process.env.STAFF_MAIL_FROM ?? smtpUser,
-    mailConnectionTimeoutMs: integer(
+    mailFrom,
+    mailConnectionTimeoutMs: strictInteger(
       overrides.mailConnectionTimeoutMs ?? process.env.STAFF_MAIL_CONNECTION_TIMEOUT_MS,
       10_000,
-      1_000
+      1_000,
+      120_000,
+      "STAFF_MAIL_CONNECTION_TIMEOUT_MS"
     )
   };
 

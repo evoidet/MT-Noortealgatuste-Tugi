@@ -114,6 +114,97 @@ function safeExternalUrl(value) {
   }
 }
 
+function attachmentName(attachment) {
+  return String(
+    attachment?.originalName || attachment?.filename || attachment?.name || t("staff.files.attachment")
+  ).trim();
+}
+
+function attachmentDownloadUrl(attachment, { inline = false } = {}) {
+  const id = String(attachment?.id || "").trim();
+  if (id) {
+    const path = `/api/staff/attachments/${encodeURIComponent(id)}/download`;
+    return inline ? `${path}?inline=1` : path;
+  }
+  const explicit = String(attachment?.downloadUrl || "").trim();
+  if (!/^\/api\/staff\/attachments\/[^?#/]+\/download$/.test(explicit)) return "";
+  return inline ? `${explicit}?inline=1` : explicit;
+}
+
+function attachmentMimeType(attachment) {
+  return String(attachment?.mimeType || attachment?.type || "application/octet-stream")
+    .split(";", 1)[0]
+    .trim()
+    .toLowerCase();
+}
+
+function attachmentSize(attachment) {
+  const size = Number(attachment?.size);
+  if (!Number.isFinite(size) || size <= 0) return "";
+  if (size < 1024) return `${Math.round(size)} B`;
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function normalizePreviewAttachments(value) {
+  const attachments = Array.isArray(value) ? value : [];
+  const seen = new Set();
+  return attachments.filter((attachment) => {
+    const name = attachmentName(attachment);
+    if (!name) return false;
+    const key = String(attachment?.id || `${name}:${attachment?.size || 0}:${attachment?.kind || "additional"}`);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function previewImageData(data, attachments) {
+  const images = normalizePreviewAttachments(attachments)
+    .filter((attachment) => attachmentMimeType(attachment).startsWith("image/"));
+  const primary = images.find((attachment) => attachment.kind === "primary");
+  const additional = images.filter((attachment) => attachment !== primary);
+  return {
+    ...data,
+    _mainImagePreview: data?._mainImagePreview || (!data?.image && primary
+      ? attachmentDownloadUrl(primary, { inline: true })
+      : ""),
+    _additionalImagePreviews: Array.isArray(data?._additionalImagePreviews) && data._additionalImagePreviews.length
+      ? data._additionalImagePreviews
+      : additional.map((attachment) => attachmentDownloadUrl(attachment, { inline: true })).filter(Boolean)
+  };
+}
+
+export function renderPreviewAttachments(value) {
+  const attachments = normalizePreviewAttachments(value);
+  if (!attachments.length) return "";
+  return `
+    <section class="staff-preview-files" aria-label="${escapeHtml(t("staff.files.title"))}">
+      <div class="staff-section-heading">
+        <div>
+          <span>${escapeHtml(t("staff.files.eyebrow"))}</span>
+          <h2>${escapeHtml(t("staff.files.title"))}</h2>
+        </div>
+      </div>
+      <div class="staff-attachment-list">
+        ${attachments.map((attachment) => {
+          const name = attachmentName(attachment);
+          const url = attachmentDownloadUrl(attachment);
+          const details = [attachmentMimeType(attachment), attachmentSize(attachment)].filter(Boolean).join(" · ");
+          const content = `
+            <span class="staff-attachment-icon" aria-hidden="true">▧</span>
+            <span><strong>${escapeHtml(name)}</strong><small>${escapeHtml(details)}</small></span>
+            ${url ? `<span aria-hidden="true">↓</span>` : ""}
+          `;
+          return url
+            ? `<a class="staff-attachment" href="${escapeHtml(url)}" target="_blank" rel="noopener">${content}</a>`
+            : `<div class="staff-attachment">${content}</div>`;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
 export function contentToParagraphs(value) {
   if (Array.isArray(value)) {
     return value.map((entry) => String(entry || "").trim()).filter(Boolean);
@@ -468,19 +559,17 @@ export function renderInvoicePreview(data) {
   `;
 }
 
-export function renderSubmissionPreview(type, data) {
+export function renderSubmissionPreview(type, data, options = {}) {
+  const attachments = normalizePreviewAttachments(options.attachments);
+  let preview;
   if (type === "news") {
-    return renderNewsPreview(data || {});
+    preview = renderNewsPreview(previewImageData(data || {}, attachments));
+  } else if (type === "expense") {
+    preview = renderExpensePreview(data || {});
+  } else if (type === "invoice") {
+    preview = renderInvoicePreview(data || {});
+  } else {
+    preview = `<div class="staff-empty-state"><p>${escapeHtml(t("staff.preview.unsupported"))}</p></div>`;
   }
-
-  if (type === "expense") {
-    return renderExpensePreview(data || {});
-  }
-
-  if (type === "invoice") {
-    return renderInvoicePreview(data || {});
-  }
-
-  return `<div class="staff-empty-state"><p>${escapeHtml(t("staff.preview.unsupported"))}</p></div>`;
+  return `${preview}${renderPreviewAttachments(attachments)}`;
 }
-

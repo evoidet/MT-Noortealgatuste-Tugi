@@ -113,6 +113,13 @@ function createWorkflowStateError() {
   return error;
 }
 
+function createSubmissionInProgressError() {
+  const error = new Error("The submission is already being processed.");
+  error.code = "SUBMISSION_IN_PROGRESS";
+  error.status = 409;
+  return error;
+}
+
 /**
  * Open the serverless-compatible Postgres data layer.
  *
@@ -177,6 +184,35 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
     async healthCheck() {
       const result = await pool.query("SELECT 1 AS ok");
       return result.rows[0]?.ok === 1;
+    },
+
+    async withSubmissionLock(submissionId, work) {
+      if (typeof work !== "function") throw new TypeError("work must be a function.");
+      const client = await pool.connect();
+      let acquired = false;
+      let releaseError;
+      try {
+        const result = await client.query(
+          "SELECT pg_try_advisory_lock(hashtext('staff-submission-submit'), hashtext($1)) AS acquired",
+          [submissionId]
+        );
+        acquired = result.rows[0]?.acquired === true;
+        if (!acquired) throw createSubmissionInProgressError();
+        return await work();
+      } finally {
+        if (acquired) {
+          try {
+            await client.query(
+              "SELECT pg_advisory_unlock(hashtext('staff-submission-submit'), hashtext($1))",
+              [submissionId]
+            );
+          } catch (error) {
+            // Destroy a client whose session-level lock could not be released.
+            releaseError = error;
+          }
+        }
+        client.release(releaseError);
+      }
     },
 
     async pruneExpired() {
@@ -686,6 +722,20 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         JSON.stringify(metadata ?? {}),
         ipHash
       ]);
+    },
+
+    async hasExpenseDelivery(submissionId, deliveryKey) {
+      const result = await pool.query(`
+        SELECT EXISTS (
+          SELECT 1
+          FROM audit_logs
+          WHERE action = 'EXPENSE_NOTIFICATION_SENT'
+            AND target_type = 'expense'
+            AND target_id = $1
+            AND metadata_json ->> 'deliveryKey' = $2
+        ) AS delivered
+      `, [submissionId, deliveryKey]);
+      return result.rows[0]?.delivered === true;
     },
 
     async listAudit(limit = 200) {

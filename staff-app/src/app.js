@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { Readable } from "node:stream";
+import { isDeepStrictEqual } from "node:util";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { rateLimit, ipKeyGenerator } from "express-rate-limit";
@@ -32,6 +33,7 @@ import {
   downloadFilenameHeader,
   openPrivateAttachment,
   persistUploadedFileWithRecord,
+  readPrivateAttachment,
   verifyClientUploadedFile
 } from "./storage.js";
 import { aiRequestSchema, reviewSchema, validateSubmissionData } from "./validation.js";
@@ -139,6 +141,7 @@ function validationResponse(response, error) {
     "BLOB_PATH_INVALID",
     "BLOB_PATH_MISMATCH",
     "BLOB_READ_FAILED",
+    "BLOB_INTEGRITY_FAILED",
     "BLOB_CLEANUP_REQUIRED",
     "INVALID_ATTACHMENT_STATE",
     "AI_UNAVAILABLE",
@@ -147,10 +150,14 @@ function validationResponse(response, error) {
     "DOCUMENT_VALIDATION_ERROR",
     "DOCUMENT_TEMPLATE_UNAVAILABLE",
     "INVALID_WORKFLOW_STATE",
+    "SUBMISSION_DELIVERY_FAILED",
+    "SUBMISSION_IN_PROGRESS",
     "NEWS_SLUG_CONFLICT"
   ]);
   if (!knownCodes.has(error.code)) return false;
-  const status = error.status || (["AI_UNAVAILABLE", "DOCUMENT_TEMPLATE_UNAVAILABLE"].includes(error.code)
+  const status = error.status || (error.code === "SUBMISSION_DELIVERY_FAILED"
+    ? 502
+    : ["AI_UNAVAILABLE", "DOCUMENT_TEMPLATE_UNAVAILABLE", "BLOB_INTEGRITY_FAILED"].includes(error.code)
     ? 503
     : ["INVALID_WORKFLOW_STATE", "NEWS_SLUG_CONFLICT"].includes(error.code)
       ? 409
@@ -180,6 +187,26 @@ function createLimiter({ windowMs, limit, prefix }) {
   });
 }
 
+function submissionDeliveryError(cause) {
+  const error = new Error("The expense submission could not be delivered.", { cause });
+  error.code = "SUBMISSION_DELIVERY_FAILED";
+  error.status = 502;
+  return error;
+}
+
+function safeOperationalError(error, fallback = "OPERATION_FAILED") {
+  return {
+    code: typeof error?.code === "string" ? error.code.slice(0, 80) : fallback,
+    name: typeof error?.name === "string" ? error.name.slice(0, 80) : "Error",
+    ...(typeof error?.command === "string" ? { command: error.command.slice(0, 40) } : {}),
+    ...(Number.isSafeInteger(error?.responseCode) ? { responseCode: error.responseCode } : {})
+  };
+}
+
+function expenseDeliveryKey(submission) {
+  return `${Number(submission?.revision) || 0}:${String(submission?.updatedAt || "")}`;
+}
+
 async function reconcileBlobStorage({ config, database, limit = 25 }) {
   const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
   const [abandoned, deletePending] = await Promise.all([
@@ -203,7 +230,13 @@ async function reconcileBlobStorage({ config, database, limit = 25 }) {
   return { removed, remaining };
 }
 
-export function createStaffApp({ config, database, mailService = createMailService(config) }) {
+export function createStaffApp({
+  config,
+  database,
+  mailService = createMailService(config),
+  documentGenerator = generateSubmissionDocument,
+  privateAttachmentReader = readPrivateAttachment
+}) {
   const app = express();
   const auth = createAuth({ config, database });
   const ai = createAiAssistant(config);
@@ -214,6 +247,49 @@ export function createStaffApp({ config, database, mailService = createMailServi
   const aiLimiter = createLimiter({ windowMs: 10 * 60_000, limit: 12, prefix: "ai" });
   const publicMediaLimiter = createLimiter({ windowMs: 15 * 60_000, limit: 300, prefix: "public-media" });
   const permissionContext = Object.freeze({ invoiceCreatorEmail: config.invoiceCreatorEmail });
+
+  async function auditSafely(entry, logMessage) {
+    try {
+      await database.audit(entry);
+      return true;
+    } catch (error) {
+      console.error(logMessage, safeOperationalError(error, "AUDIT_FAILED"));
+      return false;
+    }
+  }
+
+  async function prepareExpenseMailAttachments(submission, attachments) {
+    const generated = await documentGenerator("expense", submission.data, {
+      submission,
+      attachments,
+      creator: { name: submission.creatorName, email: submission.creatorEmail }
+    });
+    if (!generated?.buffer || !generated?.filename || !generated?.contentType) {
+      throw Object.assign(new Error("The generated expense document is invalid."), {
+        code: "DOCUMENT_GENERATION_INVALID"
+      });
+    }
+
+    const mailAttachments = [{
+      filename: generated.filename,
+      contentType: generated.contentType,
+      content: Buffer.isBuffer(generated.buffer) ? generated.buffer : Buffer.from(generated.buffer)
+    }];
+    for (const attachment of attachments) {
+      const opened = await privateAttachmentReader({ config, attachment });
+      if (!Buffer.isBuffer(opened?.buffer)) {
+        throw Object.assign(new Error("A private attachment returned invalid content."), {
+          code: "BLOB_READ_FAILED"
+        });
+      }
+      mailAttachments.push({
+        filename: attachment.originalName,
+        contentType: attachment.mimeType,
+        content: opened.buffer
+      });
+    }
+    return mailAttachments;
+  }
 
   app.disable("x-powered-by");
   if (config.trustProxy) app.set("trust proxy", config.trustProxy);
@@ -407,86 +483,180 @@ export function createStaffApp({ config, database, mailService = createMailServi
   }));
 
   app.post("/api/staff/submissions/:id/submit", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
-    const submission = await database.getSubmission(request.params.id);
-    if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-    if (!canSubmitSubmission(request.user, submission, permissionContext)) {
+    const initial = await database.getSubmission(request.params.id);
+    if (!initial) return response.status(404).json({ error: "NOT_FOUND" });
+    const canOwnSubmit = initial.creatorId === request.user.id &&
+      hasPermission(request.user, `${initial.type}:submit:own`, permissionContext);
+    if (!canOwnSubmit) {
       return response.status(403).json({ error: "FORBIDDEN" });
     }
     try {
-      const data = validateSubmissionData(submission.type, submission.data, { final: true });
-      if (
-        submission.type === "expense" &&
-        !(await database.listAttachments(submission.id)).some((attachment) => attachment.kind === "primary")
-      ) {
-        return response.status(400).json({ error: "PRIMARY_ATTACHMENT_REQUIRED", fields: ["attachments"] });
-      }
-      await database.updateSubmission({ id: submission.id, userId: request.user.id, data, event: "SUBMIT_VALIDATED" });
-      const directNewsPublish = submission.type === "news" && canReviewType(request.user, "news");
-      const finalStatus = submission.type === "invoice"
-        ? "APPROVED"
-        : directNewsPublish
-          ? "PUBLISHED"
-          : "SUBMITTED";
-      const updated = await database.setSubmissionStatus({
-        id: submission.id,
-        status: finalStatus,
-        userId: request.user.id,
-        event: submission.type === "invoice"
-          ? "CONFIRMED"
+      const updated = await database.withSubmissionLock(initial.id, async () => {
+        const submission = await database.getSubmission(initial.id);
+        if (!submission) return null;
+        const directNewsPublish = submission.type === "news" && canReviewType(request.user, "news");
+        const finalStatus = submission.type === "invoice"
+          ? "APPROVED"
           : directNewsPublish
             ? "PUBLISHED"
-            : "SUBMITTED"
-      });
-      await database.audit({
-        user: request.user,
-        action: submission.type === "invoice"
-          ? "INVOICE_CONFIRMED"
-          : directNewsPublish
-            ? "NEWS_PUBLISHED"
-            : `${auditPrefix[submission.type]}_SUBMITTED`,
-        targetType: submission.type,
-        targetId: submission.id,
-        ipHash: auth.clientIpHash(request)
-      });
+            : "SUBMITTED";
 
-      if (submission.type === "expense") {
-        const reviewUrl = new URL("/admin", config.baseUrl);
-        reviewUrl.searchParams.set("submission", updated.id);
-        reviewUrl.searchParams.set("scope", "review");
-        try {
-          await mailService.sendExpenseSubmitted({
-            submission: updated,
-            reviewUrl: reviewUrl.href
+        // A retry after a completed request is a successful no-op. This also
+        // prevents a lost HTTP response from causing another email.
+        if (submission.status === finalStatus) return submission;
+        if (!canSubmitSubmission(request.user, submission, permissionContext)) {
+          throw Object.assign(new Error("The submission workflow state changed."), {
+            code: "INVALID_WORKFLOW_STATE",
+            status: 409
           });
-          await database.audit({
-            user: request.user,
-            action: "EXPENSE_NOTIFICATION_SENT",
-            targetType: submission.type,
-            targetId: submission.id,
-            ipHash: auth.clientIpHash(request)
-          });
-        } catch (mailError) {
-          console.error("Expense notification delivery failed:", {
-            submissionId: updated.id,
-            code: mailError?.code || "MAIL_DELIVERY_FAILED"
-          });
+        }
+
+        const data = validateSubmissionData(submission.type, submission.data, { final: true });
+        const attachments = await database.listAttachments(submission.id);
+        if (submission.type === "expense" && !attachments.some((attachment) => attachment.kind === "primary")) {
+          const error = new Error("A primary expense attachment is required.");
+          error.code = "PRIMARY_ATTACHMENT_REQUIRED";
+          error.status = 400;
+          error.fields = ["attachments"];
+          throw error;
+        }
+
+        const prepared = isDeepStrictEqual(submission.data, data)
+          ? submission
+          : await database.updateSubmission({
+              id: submission.id,
+              userId: request.user.id,
+              data,
+              event: "SUBMIT_VALIDATED"
+            });
+        if (!prepared) return null;
+
+        if (prepared.type === "invoice") {
+          // Never confirm an invoice that cannot produce its final document.
           try {
-            await database.audit({
-              user: request.user,
-              action: "EXPENSE_NOTIFICATION_FAILED",
-              targetType: submission.type,
-              targetId: submission.id,
-              metadata: { code: mailError?.code || "MAIL_DELIVERY_FAILED" },
-              ipHash: auth.clientIpHash(request)
+            await documentGenerator("invoice", prepared.data, {
+              submission: prepared,
+              attachments,
+              creator: { name: prepared.creatorName, email: prepared.creatorEmail }
             });
-          } catch (auditError) {
-            console.error("Expense notification failure could not be audited:", {
-              submissionId: updated.id,
-              code: auditError?.code || "AUDIT_FAILED"
+          } catch (error) {
+            console.error("Invoice final document generation failed:", {
+              submissionId: prepared.id,
+              stage: "prepare",
+              ...safeOperationalError(error, "DOCUMENT_GENERATION_FAILED")
             });
+            throw error;
           }
         }
-      }
+
+        if (prepared.type === "expense") {
+          const deliveryKey = expenseDeliveryKey(prepared);
+          let delivered = await database.hasExpenseDelivery(prepared.id, deliveryKey);
+          if (!delivered) {
+            let mailAttachments;
+            try {
+              mailAttachments = await prepareExpenseMailAttachments(prepared, attachments);
+            } catch (error) {
+              console.error("Expense submission preparation failed:", {
+                submissionId: prepared.id,
+                stage: "prepare",
+                ...safeOperationalError(error)
+              });
+              await auditSafely({
+                user: request.user,
+                action: "EXPENSE_NOTIFICATION_FAILED",
+                targetType: prepared.type,
+                targetId: prepared.id,
+                metadata: { stage: "prepare", code: safeOperationalError(error).code, deliveryKey },
+                ipHash: auth.clientIpHash(request)
+              }, "Expense preparation failure could not be audited:");
+              throw submissionDeliveryError(error);
+            }
+
+            const reviewUrl = new URL("/admin", config.baseUrl);
+            reviewUrl.searchParams.set("submission", prepared.id);
+            reviewUrl.searchParams.set("scope", "review");
+            try {
+              await mailService.sendExpenseSubmitted({
+                submission: prepared,
+                reviewUrl: reviewUrl.href,
+                attachments: mailAttachments
+              });
+              delivered = true;
+            } catch (error) {
+              console.error("Expense notification delivery failed:", {
+                submissionId: prepared.id,
+                stage: "smtp",
+                ...safeOperationalError(error, "MAIL_DELIVERY_FAILED")
+              });
+              await auditSafely({
+                user: request.user,
+                action: "EXPENSE_NOTIFICATION_FAILED",
+                targetType: prepared.type,
+                targetId: prepared.id,
+                metadata: {
+                  stage: "smtp",
+                  code: safeOperationalError(error, "MAIL_DELIVERY_FAILED").code,
+                  deliveryKey
+                },
+                ipHash: auth.clientIpHash(request)
+              }, "Expense notification failure could not be audited:");
+              throw submissionDeliveryError(error);
+            }
+
+            if (delivered) {
+              await auditSafely({
+                user: request.user,
+                action: "EXPENSE_NOTIFICATION_SENT",
+                targetType: prepared.type,
+                targetId: prepared.id,
+                metadata: {
+                  deliveryKey,
+                  revision: prepared.revision,
+                  attachmentCount: mailAttachments.length
+                },
+                ipHash: auth.clientIpHash(request)
+              }, "Expense delivery marker could not be audited:");
+            }
+          }
+        }
+
+        let finalized;
+        try {
+          finalized = await database.setSubmissionStatus({
+            id: prepared.id,
+            status: finalStatus,
+            userId: request.user.id,
+            event: prepared.type === "invoice"
+              ? "CONFIRMED"
+              : directNewsPublish
+                ? "PUBLISHED"
+                : "SUBMITTED"
+          });
+        } catch (error) {
+          console.error("Submission final status update failed:", {
+            submissionId: prepared.id,
+            stage: "finalize",
+            ...safeOperationalError(error, "STATUS_UPDATE_FAILED")
+          });
+          throw error;
+        }
+        if (!finalized) return null;
+
+        await auditSafely({
+          user: request.user,
+          action: prepared.type === "invoice"
+            ? "INVOICE_CONFIRMED"
+            : directNewsPublish
+              ? "NEWS_PUBLISHED"
+              : `${auditPrefix[prepared.type]}_SUBMITTED`,
+          targetType: prepared.type,
+          targetId: prepared.id,
+          ipHash: auth.clientIpHash(request)
+        }, "Submission completion could not be audited:");
+        return finalized;
+      });
+      if (!updated) return response.status(404).json({ error: "NOT_FOUND" });
       response.json({ item: await summarizeSubmission(updated, database, true) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
@@ -720,10 +890,14 @@ export function createStaffApp({ config, database, mailService = createMailServi
     if (!opened || opened.statusCode !== 200 || !opened.stream) {
       return response.status(404).json({ error: "NOT_FOUND" });
     }
+    const contentDisposition = downloadFilenameHeader(attachment.originalName);
+    const inlineImage = request.query.inline === "1" && attachment.mimeType.startsWith("image/");
     response.set({
       "Content-Type": attachment.mimeType,
       "Content-Length": String(opened.blob.size),
-      "Content-Disposition": downloadFilenameHeader(attachment.originalName),
+      "Content-Disposition": inlineImage
+        ? contentDisposition.replace(/^attachment;/, "inline;")
+        : contentDisposition,
       "X-Content-Type-Options": "nosniff",
       "Cache-Control": "private, no-store"
     });
@@ -779,17 +953,26 @@ export function createStaffApp({ config, database, mailService = createMailServi
       name: entry.originalName,
       mimeType: entry.mimeType
     }));
-    const document = await generateSubmissionDocument(submission.type, submission.data, {
-      submission,
-      attachments,
-      creator: { name: submission.creatorName, email: submission.creatorEmail }
-    });
-    response.set({
-      "Content-Type": document.contentType,
-      "Content-Disposition": downloadFilenameHeader(document.filename),
-      "Cache-Control": "private, no-store"
-    });
-    response.send(document.buffer);
+    try {
+      const document = await documentGenerator(submission.type, submission.data, {
+        submission,
+        attachments,
+        creator: { name: submission.creatorName, email: submission.creatorEmail }
+      });
+      response.set({
+        "Content-Type": document.contentType,
+        "Content-Disposition": downloadFilenameHeader(document.filename),
+        "Cache-Control": "private, no-store"
+      });
+      response.send(document.buffer);
+    } catch (error) {
+      console.error("Staff document generation failed:", {
+        submissionId: submission.id,
+        type: submission.type,
+        ...safeOperationalError(error, "DOCUMENT_GENERATION_FAILED")
+      });
+      if (!validationResponse(response, error)) throw error;
+    }
   }));
 
   app.post("/api/staff/ai/improve", aiLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
