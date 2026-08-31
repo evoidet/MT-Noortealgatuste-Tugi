@@ -22,11 +22,46 @@ function normalizeEmail(value) {
   return String(value ?? "").trim().toLowerCase();
 }
 
-export function createAuth({ config, database }) {
-  const redirectUri = `${config.baseUrl}/api/staff/auth/google/callback`;
-  const googleClient = config.googleClientId && config.googleClientSecret
+function emailHasExactDomain(email, domain) {
+  const separator = email.lastIndexOf("@");
+  return separator > 0 &&
+    email.indexOf("@") === separator &&
+    email.slice(separator + 1) === domain;
+}
+
+function audienceMatches(value, expected) {
+  return Array.isArray(value) ? value.includes(expected) : value === expected;
+}
+
+function profilePictureUrl(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(String(value));
+    return url.protocol === "https:" && url.href.length <= 2_048 ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+export function createAuth({ config, database, googleClient: suppliedGoogleClient = undefined }) {
+  const redirectUri = config.googleCallbackUrl;
+  const googleClient = suppliedGoogleClient ?? (config.googleClientId && config.googleClientSecret
     ? new OAuth2Client(config.googleClientId, config.googleClientSecret, redirectUri)
-    : null;
+    : null);
+
+  function safeReturnPath(value) {
+    try {
+      const base = new URL(config.baseUrl);
+      const target = new URL(String(value || "/admin"), base);
+      const isAdminPath = target.pathname === "/admin" || target.pathname.startsWith("/admin/");
+      if (target.origin !== base.origin || !isAdminPath) {
+        return "/admin";
+      }
+      return `${target.pathname}${target.search}${target.hash}`;
+    } catch {
+      return "/admin";
+    }
+  }
 
   function requestHash(value, purpose) {
     if (!value) return null;
@@ -45,6 +80,20 @@ export function createAuth({ config, database }) {
     } catch {
       return "";
     }
+  }
+
+  function oauthCookie(request) {
+    try {
+      return parseCookies(request.headers.cookie || "")[config.oauthCookieName] || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function oauthBinding(state) {
+    return createHmac("sha256", config.logHashSecret)
+      .update(`oauth-state:${state}`)
+      .digest("base64url");
   }
 
   function csrfForSessionToken(sessionToken) {
@@ -72,9 +121,28 @@ export function createAuth({ config, database }) {
     });
   }
 
-  function createSession(request, response, user) {
+  function setOauthCookie(response, state) {
+    response.cookie(config.oauthCookieName, oauthBinding(state), {
+      httpOnly: true,
+      secure: config.production,
+      sameSite: "lax",
+      path: "/",
+      maxAge: config.oauthAttemptTtlMs
+    });
+  }
+
+  function clearOauthCookie(response) {
+    response.clearCookie(config.oauthCookieName, {
+      httpOnly: true,
+      secure: config.production,
+      sameSite: "lax",
+      path: "/"
+    });
+  }
+
+  async function createSession(request, response, user) {
     const token = randomBytes(32).toString("base64url");
-    database.createSession({
+    await database.createSession({
       tokenHash: sha256(token),
       userId: user.id,
       expiresAt: futureIso(config.sessionTtlMs),
@@ -85,16 +153,25 @@ export function createAuth({ config, database }) {
     return token;
   }
 
-  function optionalSession(request, _response, next) {
+  async function optionalSession(request, _response, next) {
     const token = sessionCookie(request);
     if (!token) return next();
-    const session = database.getSession(sha256(token));
+    const session = await database.getSession(sha256(token));
     if (session) {
       request.user = session.user;
       request.authSession = session;
       request.sessionToken = token;
     }
     next();
+  }
+
+  async function auditSafely(entry) {
+    try {
+      await database.audit(entry);
+    } catch {
+      // Authentication must not expose sensitive provider or session details if auditing fails.
+      console.error("Authentication audit write failed.");
+    }
   }
 
   function requireSession(request, response, next) {
@@ -134,15 +211,15 @@ export function createAuth({ config, database }) {
     if (!googleClient) {
       return response.redirect("/admin?auth=unavailable");
     }
-    database.pruneExpired();
+    await database.pruneExpired();
     const state = randomBytes(32).toString("base64url");
     const codeVerifier = randomBytes(48).toString("base64url");
     const nonce = randomBytes(32).toString("base64url");
-    database.createOauthAttempt({
+    await database.createOauthAttempt({
       stateHash: sha256(state),
       codeVerifier,
       nonce,
-      redirectPath: "/admin",
+      redirectPath: safeReturnPath(request.query.returnTo),
       expiresAt: futureIso(config.oauthAttemptTtlMs)
     });
     const codeChallenge = sha256(codeVerifier);
@@ -151,11 +228,12 @@ export function createAuth({ config, database }) {
       scope: ["openid", "email", "profile"],
       state,
       nonce,
-      hd: config.googleWorkspaceDomain,
+      hd: config.allowedGoogleDomain,
       prompt: "select_account",
       code_challenge: codeChallenge,
       code_challenge_method: "S256"
     });
+    setOauthCookie(response, state);
     response.redirect(authorizationUrl);
   }
 
@@ -165,7 +243,13 @@ export function createAuth({ config, database }) {
     if (!googleClient || !state || !code) {
       return response.redirect("/admin?auth=failed");
     }
-    const attempt = database.consumeOauthAttempt(sha256(state));
+    const suppliedBinding = oauthCookie(request);
+    const expectedBinding = oauthBinding(state);
+    if (!suppliedBinding || !safeEqual(suppliedBinding, expectedBinding)) {
+      return response.redirect("/admin?auth=failed");
+    }
+    clearOauthCookie(response);
+    const attempt = await database.consumeOauthAttempt(sha256(state));
     if (!attempt) {
       return response.redirect("/admin?auth=expired");
     }
@@ -182,20 +266,21 @@ export function createAuth({ config, database }) {
       });
       const payload = ticket.getPayload();
       const email = normalizeEmail(payload?.email);
+      const googleSubjectId = String(payload?.sub ?? "").trim();
       const expiresAtSeconds = Number(payload?.exp ?? 0);
       const authorizedIdentity = Boolean(
         payload &&
         GOOGLE_ISSUERS.has(payload.iss) &&
-        payload.aud === config.googleClientId &&
+        audienceMatches(payload.aud, config.googleClientId) &&
         payload.email_verified === true &&
         payload.nonce === attempt.nonce &&
-        payload.hd === config.googleWorkspaceDomain &&
-        email.endsWith(`@${config.googleWorkspaceDomain}`) &&
+        googleSubjectId &&
+        emailHasExactDomain(email, config.allowedGoogleDomain) &&
         expiresAtSeconds * 1000 > Date.now()
       );
-      const allowedByList = config.allowedEmails.size === 0 || config.allowedEmails.has(email);
+      const allowedByList = config.allowedStaffEmails.size === 0 || config.allowedStaffEmails.has(email);
       if (!authorizedIdentity || !allowedByList) {
-        database.audit({
+        await auditSafely({
           user: email ? { email } : null,
           action: "LOGIN_REJECTED",
           metadata: { reason: "workspace_identity_not_authorized" },
@@ -203,26 +288,33 @@ export function createAuth({ config, database }) {
         });
         return response.redirect("/admin?auth=denied");
       }
-      const user = database.upsertUser({
+      const suppliedName = String(payload.name ?? "").trim();
+      const user = await database.upsertUser({
+        googleSubjectId,
         email,
-        name: String(payload.name || email.split("@")[0]).slice(0, 160),
-        role: config.roleMap.get(email) ?? config.defaultRole
+        name: (suppliedName || email.split("@")[0]).slice(0, 160),
+        profilePictureUrl: profilePictureUrl(payload.picture),
+        role: config.adminEmails.has(email) ? "admin" : "member"
       });
-      createSession(request, response, user);
-      database.audit({ user, action: "LOGIN_SUCCESS", ipHash: clientIpHash(request) });
+      await createSession(request, response, user);
+      await auditSafely({ user, action: "LOGIN_SUCCESS", ipHash: clientIpHash(request) });
       response.redirect(attempt.redirectPath);
-    } catch (error) {
-      console.error("Google OAuth callback failed:", error?.message || "unknown error");
+    } catch {
+      // Provider errors can contain authorization codes or tokens, so log no error details here.
+      console.error("Google OAuth callback failed.");
       response.redirect("/admin?auth=failed");
     }
   }
 
-  function logout(request, response) {
-    if (request.sessionToken) {
-      database.deleteSession(sha256(request.sessionToken));
-      database.audit({ user: request.user, action: "LOGOUT", ipHash: clientIpHash(request) });
+  async function logout(request, response) {
+    try {
+      if (request.sessionToken) {
+        await database.deleteSession(sha256(request.sessionToken));
+        await auditSafely({ user: request.user, action: "LOGOUT", ipHash: clientIpHash(request) });
+      }
+    } finally {
+      clearSessionCookie(response);
     }
-    clearSessionCookie(response);
     response.status(204).end();
   }
 
@@ -238,4 +330,3 @@ export function createAuth({ config, database }) {
     createSessionForTest: createSession
   };
 }
-

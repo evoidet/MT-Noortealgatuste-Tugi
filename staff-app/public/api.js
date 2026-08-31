@@ -19,6 +19,20 @@ function isStateChanging(method) {
   return !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
 }
 
+function uploadMimeType(file) {
+  const extension = String(file?.name || "").split(".").pop()?.toLowerCase();
+  const known = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    pdf: "application/pdf",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  };
+  return known[extension] || file?.type || "application/octet-stream";
+}
+
 async function parseResponse(response) {
   if (response.status === 204) {
     return null;
@@ -126,14 +140,49 @@ export const api = {
     });
   },
 
-  uploadAttachment(id, file) {
-    const body = new FormData();
-    body.append("file", file, file.name);
-
-    return request(`/submissions/${encodeURIComponent(id)}/attachments`, {
+  async uploadAttachment(id, file, kind = "additional") {
+    const submissionId = encodeURIComponent(id);
+    const intent = await request(`/submissions/${submissionId}/attachments/upload-intent`, {
       method: "POST",
-      body
+      json: {
+        originalName: file.name,
+        mimeType: uploadMimeType(file),
+        size: file.size,
+        kind: kind === "primary" ? "primary" : "additional"
+      }
     });
+    const grant = intent?.upload;
+    if (!grant?.attachmentId || !grant?.uploadUrl || grant.method !== "PUT") {
+      throw new ApiError("invalid_upload_grant", 500, intent);
+    }
+
+    let uploaded = false;
+    try {
+      const uploadResponse = await fetch(grant.uploadUrl, {
+        method: "PUT",
+        headers: grant.headers || {},
+        body: file,
+        credentials: "omit",
+        redirect: "error"
+      });
+      if (!uploadResponse.ok) {
+        throw new ApiError("blob_upload_failed", uploadResponse.status);
+      }
+      uploaded = true;
+      return await request(
+        `/submissions/${submissionId}/attachments/${encodeURIComponent(grant.attachmentId)}/complete`,
+        { method: "POST", json: {} }
+      );
+    } catch (error) {
+      if (!uploaded) {
+        try {
+          await request(`/attachments/${encodeURIComponent(grant.attachmentId)}`, { method: "DELETE" });
+        } catch {
+          // The server keeps the pending row for authenticated reconciliation.
+        }
+      }
+      throw error;
+    }
   },
 
   improveText({ text, field, mode, language }) {
@@ -147,4 +196,3 @@ export const api = {
     return request("/audit");
   }
 };
-

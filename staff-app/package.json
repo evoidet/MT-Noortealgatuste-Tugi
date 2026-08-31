@@ -8,10 +8,17 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "check": "node --check src/server.js && node --check src/app.js && node --check src/auth.js && node --check src/config.js && node --check src/database.js && node --check src/documents.js && node --check src/permissions.js && node --check src/storage.js && node --check src/validation.js && node --check src/ai.js && node --check public/admin.js",
+    "check": "node --check src/server.js && node --check src/vercel.js && node --check src/app.js && node --check src/auth.js && node --check src/config.js && node --check src/database.js && node --check src/documents.js && node --check src/mail.js && node --check src/news-publishing.js && node --check src/permissions.js && node --check src/storage.js && node --check src/validation.js && node --check src/ai.js && node --check scripts/db-migrate.mjs && node --check scripts/import-sqlite.mjs && node --check scripts/import-sqlite-blobs.mjs && node --check public/api.js && node --check public/app.js && node --check public/previews.js && node --check public/staff-translations.js",
+    "lint": "npm run check",
+    "typecheck": "tsc --project jsconfig.json --noEmit",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "db:import-sqlite": "node scripts/import-sqlite.mjs",
+    "db:import-sqlite-blobs": "node scripts/import-sqlite-blobs.mjs",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
+    "@vercel/functions": "^3.9.5",
     "cookie": "^1.0.2",
     "docx": "^9.5.1",
     "docxtemplater": "^3.67.5",
@@ -21,11 +28,18 @@
     "google-auth-library": "^10.4.0",
     "helmet": "^8.1.0",
     "multer": "^2.0.2",
+    "nodemailer": "^9.0.6",
     "openai": "^6.48.0",
+    "pg": "^8.23.0",
     "pizzip": "^3.2.0",
     "zod": "^4.1.5"
   },
   "devDependencies": {
-    "supertest": "^7.1.4"
+    "@types/express": "^5.0.5",
+    "@types/node": "^22.20.1",
+    "@types/nodemailer": "^8.0.1",
+    "@types/pg": "^8.16.0",
+    "supertest": "^7.1.4",
+    "typescript": "^5.9.3"
   }
 }

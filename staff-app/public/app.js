@@ -30,7 +30,8 @@ const state = {
   review: {
     submissionId: null,
     decision: ""
-  }
+  },
+  lastSubmitted: null
 };
 
 const elements = {
@@ -89,6 +90,15 @@ function safeLoginUrl(value) {
   }
 }
 
+function loginUrlForCurrentPage(value) {
+  const url = new URL(safeLoginUrl(value));
+  const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (url.origin === window.location.origin && returnTo.startsWith("/admin")) {
+    url.searchParams.set("returnTo", returnTo);
+  }
+  return url.href;
+}
+
 function normalizePermissions() {
   return new Set(
     (Array.isArray(state.session?.permissions) ? state.session.permissions : [])
@@ -137,8 +147,24 @@ function canReview() {
   ) || ["finance", "admin"].includes(role());
 }
 
+function canReviewType(type) {
+  return hasAnyPermission(`${type}:review`);
+}
+
 function canAudit() {
   return hasAnyPermission("audit:read", "admin:audit") || role() === "admin";
+}
+
+function templateAvailable(type) {
+  const availability = state.session?.documentTemplates;
+  return !availability || availability[type] !== false;
+}
+
+function availableTypes(scope) {
+  const types = ["news", "expense", "invoice"];
+  return scope === "review"
+    ? types.filter(canReviewType)
+    : types.filter(canCreate);
 }
 
 function configureAuthenticatedShell() {
@@ -156,6 +182,8 @@ function configureAuthenticatedShell() {
   document.querySelectorAll('[data-requires="audit"]').forEach((element) => {
     element.hidden = !canAudit();
   });
+
+  void refreshReviewBadge();
 }
 
 function friendlyErrorKey(error) {
@@ -163,6 +191,14 @@ function friendlyErrorKey(error) {
     return "staff.errors.unexpected";
   }
 
+  const code = error.payload?.error || error.message;
+  const codeKeys = {
+    PRIMARY_ATTACHMENT_REQUIRED: "staff.errors.primaryAttachmentRequired",
+    DOCUMENT_TEMPLATE_UNAVAILABLE: "staff.errors.templateUnavailable",
+    DOCUMENT_VALIDATION_ERROR: "staff.errors.documentValidation",
+    SELF_REVIEW_FORBIDDEN: "staff.errors.selfReview"
+  };
+  if (codeKeys[code]) return codeKeys[code];
   if (error.status === 0) return "staff.errors.network";
   if (error.status === 400 || error.status === 422) return "staff.errors.validation";
   if (error.status === 401) return "staff.errors.sessionExpired";
@@ -268,9 +304,18 @@ async function loadSession() {
     const session = await api.session();
 
     if (!session?.authenticated) {
+      const authError = new URLSearchParams(window.location.search).get("auth");
+      if (["denied", "failed", "expired", "unavailable"].includes(authError)) {
+        state.session = null;
+        setCsrfToken("");
+        showOnly("denied");
+        state.view = "denied";
+        elements.deniedMessage.textContent = t(`staff.auth.${authError}`);
+        return;
+      }
       state.session = null;
       setCsrfToken("");
-      elements.loginButton.href = safeLoginUrl(session?.loginUrl);
+      elements.loginButton.href = loginUrlForCurrentPage(session?.loginUrl);
       showOnly("login");
       state.view = "login";
       applyTranslations(elements.login);
@@ -287,7 +332,14 @@ async function loadSession() {
     setCsrfToken(session.csrfToken);
     configureAuthenticatedShell();
     showOnly("shell");
-    await navigate("home");
+    const params = new URLSearchParams(window.location.search);
+    const submissionId = params.get("submission");
+    const requestedScope = params.get("scope") === "review" ? "review" : "mine";
+    if (submissionId && (requestedScope !== "review" || canReview())) {
+      await navigate("detail", { id: submissionId, scope: requestedScope });
+    } else {
+      await navigate("home");
+    }
   } catch (error) {
     showOnly("denied");
     state.view = "denied";
@@ -307,6 +359,7 @@ function resetFormState() {
   state.formType = null;
   state.editingId = null;
   state.preview = null;
+  state.lastSubmitted = null;
 }
 
 async function navigate(view, options = {}) {
@@ -388,22 +441,10 @@ function renderHome() {
         </div>
         <div class="staff-action-grid">
           ${homeCard({
-            type: "news",
-            icon: "✦",
-            title: "staff.home.addNews",
-            text: "staff.home.addNewsText"
-          })}
-          ${homeCard({
             type: "expense",
             icon: "€",
             title: "staff.home.addExpense",
             text: "staff.home.addExpenseText"
-          })}
-          ${homeCard({
-            type: "invoice",
-            icon: "↗",
-            title: "staff.home.addInvoice",
-            text: "staff.home.addInvoiceText"
           })}
           <button class="staff-action-card staff-action-card--mine" type="button" data-action="navigate" data-view="mine">
             <span class="staff-action-icon" aria-hidden="true">▤</span>
@@ -413,7 +454,25 @@ function renderHome() {
             </span>
             <span class="staff-action-arrow" aria-hidden="true">→</span>
           </button>
+          ${homeCard({
+            type: "news",
+            icon: "✦",
+            title: "staff.home.addNews",
+            text: "staff.home.addNewsText"
+          })}
+          ${homeCard({
+            type: "invoice",
+            icon: "↗",
+            title: "staff.home.addInvoice",
+            text: "staff.home.addInvoiceText"
+          })}
         </div>
+        ${availableTypes("mine").some((type) => ["expense", "invoice"].includes(type) && !templateAvailable(type)) ? `
+          <aside class="staff-template-warning" role="status">
+            <span aria-hidden="true">!</span>
+            <p>${escapeHtml(t("staff.templates.configure"))}</p>
+          </aside>
+        ` : ""}
       </section>
 
       <section class="staff-recent" aria-labelledby="recentTitle">
@@ -523,6 +582,22 @@ async function loadRecentSubmissions() {
   }
 }
 
+async function refreshReviewBadge() {
+  const badge = document.getElementById("reviewBadge");
+  if (!badge || !canReview()) {
+    if (badge) badge.hidden = true;
+    return;
+  }
+  try {
+    const payload = await api.listSubmissions({ scope: "review" });
+    const count = extractList(payload).length;
+    badge.textContent = String(count);
+    badge.hidden = count === 0;
+  } catch {
+    badge.hidden = true;
+  }
+}
+
 function emptyState(titleKey, textKey, size = "") {
   return `
     <div class="staff-empty-state${size ? ` staff-empty-state--${size}` : ""}">
@@ -545,8 +620,10 @@ function inlineError(key) {
 
 async function renderList(scope, type = "") {
   state.listScope = scope;
-  state.listType = type;
   const review = scope === "review";
+  const filterTypes = availableTypes(scope);
+  if (type && !filterTypes.includes(type)) type = "";
+  state.listType = type;
 
   elements.viewRoot.innerHTML = `
     <section class="staff-list-view">
@@ -557,7 +634,7 @@ async function renderList(scope, type = "") {
       })}
 
       <div class="staff-filter-row" role="group" aria-label="${escapeHtml(t("staff.list.filterLabel"))}">
-        ${["", "news", "expense", "invoice"].map((value) => `
+        ${["", ...filterTypes].map((value) => `
           <button
             class="staff-filter-button${value === type ? " is-active" : ""}"
             type="button"
@@ -715,7 +792,7 @@ function fileField({ id, label, group, accept, multiple = false, hint }) {
 
 function reviewBanner(record) {
   const reviews = Array.isArray(record?.reviews) ? record.reviews : [];
-  const latest = [...reviews].reverse().find((entry) => entry?.comment);
+  const latest = reviews.find((entry) => entry?.comment);
   const directComment = record?.reviewComment || record?.latestReview?.comment;
   const comment = directComment || latest?.comment;
 
@@ -743,7 +820,7 @@ function newsForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "newsTitle", label: "staff.news.title", value: data.title, required: true, wide: true, placeholder: "staff.news.titlePlaceholder", ai: { field: "title", mode: "news" } })}
+        ${field({ id: "newsTitle", label: "staff.news.title", value: data.title, required: true, wide: true, placeholder: "staff.news.titlePlaceholder", ai: { field: "news.title", mode: "news" } })}
         ${field({ id: "newsSlug", label: "staff.news.slug", value: data.slug || data.id, required: true, placeholder: "staff.news.slugPlaceholder", hint: "staff.news.slugHint" })}
         ${field({ id: "newsDate", label: "staff.news.date", value: data.date, type: "date", required: true })}
         ${selectField({
@@ -759,7 +836,7 @@ function newsForm(data) {
         ${field({ id: "newsProject", label: "staff.news.project", value: data.project, placeholder: "staff.news.projectPlaceholder" })}
         ${field({ id: "newsAuthor", label: "staff.news.author", value: data.author || state.session?.user?.name, required: true, autocomplete: "name" })}
         ${field({ id: "newsAuthorRole", label: "staff.news.authorRole", value: data.authorRole, placeholder: "staff.news.authorRolePlaceholder" })}
-        ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", rows: 4, required: true, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "summary", mode: "news" } })}
+        ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", rows: 4, required: true, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "news.summary", mode: "news" } })}
       </div>
     </section>
 
@@ -772,7 +849,7 @@ function newsForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "newsContent", label: "staff.news.content", value: Array.isArray(data.content) ? data.content.join("\n\n") : data.content, type: "textarea", rows: 14, required: true, wide: true, placeholder: "staff.news.contentPlaceholder", hint: "staff.news.contentHint", ai: { field: "content", mode: "news" } })}
+        ${field({ id: "newsContent", label: "staff.news.content", value: Array.isArray(data.content) ? data.content.join("\n\n") : data.content, type: "textarea", rows: 14, required: true, wide: true, placeholder: "staff.news.contentPlaceholder", hint: "staff.news.contentHint", ai: { field: "news.content", mode: "news" } })}
       </div>
     </section>
 
@@ -839,9 +916,9 @@ function expenseForm(data) {
         ${field({ id: "expensePerson", label: "staff.expense.person", value: data.person || state.session?.user?.name, required: true, autocomplete: "name" })}
         ${field({ id: "expenseDate", label: "staff.expense.date", value: data.date, type: "date", required: true })}
         ${field({ id: "expenseLocation", label: "staff.expense.location", value: data.location, required: true, placeholder: "staff.expense.locationPlaceholder" })}
-        ${field({ id: "expenseActivity", label: "staff.expense.activity", value: data.activity, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.activityPlaceholder", ai: { field: "activity", mode: "formal" } })}
-        ${field({ id: "expensePurpose", label: "staff.expense.purpose", value: data.purpose, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.purposePlaceholder", ai: { field: "purpose", mode: "formal" } })}
-        ${field({ id: "expenseResult", label: "staff.expense.result", value: data.result, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.resultPlaceholder", ai: { field: "result", mode: "formal" } })}
+        ${field({ id: "expenseActivity", label: "staff.expense.activity", value: data.activity, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.activityPlaceholder", ai: { field: "expense.activity", mode: "formal" } })}
+        ${field({ id: "expensePurpose", label: "staff.expense.purpose", value: data.purpose, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.purposePlaceholder", ai: { field: "expense.goal", mode: "formal" } })}
+        ${field({ id: "expenseResult", label: "staff.expense.result", value: data.result, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.resultPlaceholder", ai: { field: "expense.result", mode: "formal" } })}
       </div>
     </section>
 
@@ -888,7 +965,7 @@ function invoiceItemRow(item = {}, index = 0) {
       <legend>${escapeHtml(t("staff.invoice.itemLegend", { number: index + 1 }))}</legend>
       <button class="staff-line-remove" type="button" data-action="remove-line" data-i18n-aria-label="staff.common.remove"><span aria-hidden="true">×</span></button>
       <div class="staff-form-grid">
-        ${field({ id: `invoiceItemDescription${index}`, label: "staff.invoice.itemDescription", value: item.description, required: true, wide: true })}
+        ${field({ id: `invoiceItemDescription${index}`, label: "staff.invoice.itemDescription", value: item.description, required: true, wide: true, ai: { field: "invoice.description", mode: "formal" } })}
         ${field({ id: `invoiceQuantity${index}`, label: "staff.invoice.quantity", value: item.quantity ?? 1, type: "number", required: true, min: "0.01", step: "0.01", inputmode: "decimal" })}
         ${field({ id: `invoiceUnit${index}`, label: "staff.invoice.unit", value: item.unit || t("staff.invoice.defaultUnit"), required: true })}
         ${field({ id: `invoiceUnitPrice${index}`, label: "staff.invoice.unitPrice", value: item.unitPrice, type: "number", required: true, min: "0", step: "0.01", inputmode: "decimal" })}
@@ -973,7 +1050,7 @@ function invoiceForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "invoiceAdditionalInfo", label: "staff.invoice.additionalInfo", value: data.additionalInfo, type: "textarea", rows: 5, wide: true, placeholder: "staff.invoice.additionalInfoPlaceholder", ai: { field: "additionalInfo", mode: "formal" } })}
+        ${field({ id: "invoiceAdditionalInfo", label: "staff.invoice.additionalInfo", value: data.additionalInfo, type: "textarea", rows: 5, wide: true, placeholder: "staff.invoice.additionalInfoPlaceholder", ai: { field: "invoice.additionalInfo", mode: "formal" } })}
       </div>
     </section>
   `;
@@ -1194,11 +1271,13 @@ function pendingFiles() {
 }
 
 async function uploadPendingFiles(submissionId) {
-  const files = pendingFiles().filter((file) => !state.uploadedFiles.has(fileFingerprint(file)));
-
-  for (const file of files) {
-    await api.uploadAttachment(submissionId, file);
-    state.uploadedFiles.add(fileFingerprint(file));
+  for (const [group, groupFiles] of state.pendingFiles.entries()) {
+    const kind = group.endsWith("-primary") || group === "news-main" ? "primary" : "additional";
+    const files = groupFiles.filter((file) => !state.uploadedFiles.has(fileFingerprint(file)));
+    for (const file of files) {
+      await api.uploadAttachment(submissionId, file, kind);
+      state.uploadedFiles.add(fileFingerprint(file));
+    }
   }
 }
 
@@ -1263,7 +1342,7 @@ function renderPreview(type, data) {
         eyebrow: "staff.preview.eyebrow",
         title: "staff.preview.title",
         description: `staff.${type}.previewDescription`,
-        backView: "mine"
+        backView: ""
       })}
       <div class="staff-preview-toolbar">
         <div>
@@ -1275,7 +1354,7 @@ function renderPreview(type, data) {
         </div>
         <button class="staff-button staff-button--ghost" type="button" data-action="edit-preview">
           <span aria-hidden="true">←</span>
-          <span>${escapeHtml(t("staff.preview.edit"))}</span>
+          <span>${escapeHtml(t(type === "expense" ? "staff.preview.back" : "staff.preview.edit"))}</span>
         </button>
       </div>
       <div class="staff-preview-canvas">
@@ -1287,7 +1366,7 @@ function renderPreview(type, data) {
           <span>${escapeHtml(t("staff.form.saveDraft"))}</span>
         </button>
         <button class="staff-button staff-button--primary" type="button" data-action="submit-preview">
-          <span>${escapeHtml(t("staff.preview.submit"))}</span>
+          <span>${escapeHtml(t(type === "invoice" ? "staff.preview.createInvoice" : "staff.preview.confirmSubmit"))}</span>
           <span aria-hidden="true">→</span>
         </button>
       </footer>
@@ -1296,18 +1375,54 @@ function renderPreview(type, data) {
   focusMain();
 }
 
+function hasPrimaryExpenseDocument() {
+  const existing = Array.isArray(state.current?.attachments)
+    ? state.current.attachments.some((attachment) => attachment.kind === "primary")
+    : false;
+  return existing || (state.pendingFiles.get("expense-primary")?.length || 0) > 0;
+}
+
+function renderSubmissionSuccess(type, record) {
+  state.view = "success";
+  state.lastSubmitted = { type, record };
+  setActiveNavigation("mine");
+  elements.viewRoot.innerHTML = `
+    <section class="staff-success-view" role="status">
+      <span class="staff-success-icon" aria-hidden="true">✓</span>
+      <span class="staff-eyebrow">${escapeHtml(t("staff.success.eyebrow"))}</span>
+      <h1>${escapeHtml(t(`staff.success.${type}Title`))}</h1>
+      <p>${escapeHtml(t(`staff.success.${type}Text`))}</p>
+      <div class="staff-success-actions">
+        <button class="staff-button staff-button--primary" type="button" data-action="navigate" data-view="mine">
+          ${escapeHtml(t("staff.home.mySubmissions"))}
+        </button>
+        <button class="staff-button staff-button--ghost" type="button" data-action="navigate" data-view="home">
+          ${escapeHtml(t("staff.navigation.home"))}
+        </button>
+      </div>
+    </section>
+  `;
+  focusMain();
+}
+
 async function savePreview(button, submit = false) {
   if (!state.preview) return;
+  if (submit && state.preview.type === "expense" && !hasPrimaryExpenseDocument()) {
+    showToast("staff.errors.primaryAttachmentRequired", "error");
+    return;
+  }
   setBusy(button, true, submit ? "staff.preview.submitting" : "staff.form.saving");
 
   try {
     const saved = await saveData(state.preview.type, state.preview.data);
 
     if (submit) {
-      await api.submitSubmission(saved.id);
-      showToast("staff.preview.submitted", "success");
+      const payload = await api.submitSubmission(saved.id);
+      const submitted = normalizeSubmission(extractSubmission(payload)) || saved;
+      showToast(`staff.success.${state.preview.type}Toast`, "success");
+      const submittedType = state.preview.type;
       resetFormState();
-      await navigate("mine");
+      renderSubmissionSuccess(submittedType, submitted);
     } else {
       showToast("staff.form.saved", "success");
     }
@@ -1407,11 +1522,14 @@ function attachmentsSection(record, editable = false) {
 function detailActions(record, scope) {
   const editable = isEditableStatus(record.status) && scope !== "review";
   const reviewable = scope === "review" && isReviewableStatus(record.status) && canReview();
-  const documentAction = ["expense", "invoice"].includes(record.type)
+  const hasDocument = ["expense", "invoice"].includes(record.type);
+  const documentAction = hasDocument && templateAvailable(record.type)
     ? `<a class="staff-button staff-button--secondary" href="/api/staff/submissions/${encodeURIComponent(record.id)}/document" target="_blank" rel="noopener">
          <span aria-hidden="true">↓</span><span>${escapeHtml(t("staff.detail.document"))}</span>
        </a>`
-    : "";
+    : hasDocument
+      ? `<p class="staff-template-warning staff-template-warning--inline" role="status">${escapeHtml(t(`staff.templates.${record.type}Missing`))}</p>`
+      : "";
 
   if (reviewable) {
     return `
@@ -1421,9 +1539,6 @@ function detailActions(record, scope) {
         </button>
         <button class="staff-button staff-button--warning" type="button" data-action="open-review" data-decision="needs_changes" data-id="${escapeHtml(record.id)}">
           <span aria-hidden="true">↩</span><span>${escapeHtml(t("staff.review.needsChanges"))}</span>
-        </button>
-        <button class="staff-button staff-button--danger" type="button" data-action="open-review" data-decision="reject" data-id="${escapeHtml(record.id)}">
-          <span aria-hidden="true">×</span><span>${escapeHtml(t("staff.review.reject"))}</span>
         </button>
         ${documentAction}
       </div>
@@ -1435,9 +1550,6 @@ function detailActions(record, scope) {
       ${editable ? `
         <button class="staff-button staff-button--ghost" type="button" data-action="edit-submission" data-id="${escapeHtml(record.id)}">
           <span aria-hidden="true">✎</span><span>${escapeHtml(t("staff.detail.edit"))}</span>
-        </button>
-        <button class="staff-button staff-button--primary" type="button" data-action="submit-existing" data-id="${escapeHtml(record.id)}">
-          <span>${escapeHtml(t("staff.preview.submit"))}</span><span aria-hidden="true">→</span>
         </button>
       ` : ""}
       ${documentAction}
@@ -1579,7 +1691,10 @@ function auditActionKey(action) {
     "expense_submitted",
     "expense_approved",
     "expense_returned",
+    "expense_notification_sent",
+    "expense_notification_failed",
     "invoice_created",
+    "invoice_confirmed",
     "login_success",
     "logout"
   ]);
@@ -1784,7 +1899,7 @@ async function uploadDetailFiles(input) {
 
   try {
     for (const file of files) {
-      await api.uploadAttachment(id, file);
+      await api.uploadAttachment(id, file, "additional");
     }
     showToast("staff.files.uploaded", "success", { count: files.length });
     await renderDetail(id, "mine");
@@ -1811,19 +1926,6 @@ async function editSubmission(id) {
     renderForm(record.type, record);
   } catch (error) {
     handleError(error);
-  }
-}
-
-async function submitExisting(button, id) {
-  setBusy(button, true, "staff.preview.submitting");
-  try {
-    await api.submitSubmission(id);
-    showToast("staff.preview.submitted", "success");
-    await navigate("mine");
-  } catch (error) {
-    handleError(error);
-  } finally {
-    setBusy(button, false);
   }
 }
 
@@ -1907,11 +2009,6 @@ async function handleAction(button) {
 
   if (action === "edit-submission") {
     await editSubmission(button.dataset.id);
-    return;
-  }
-
-  if (action === "submit-existing") {
-    await submitExisting(button, button.dataset.id);
     return;
   }
 
@@ -2030,7 +2127,10 @@ function attachEvents() {
   });
 
   elements.logoutButton.addEventListener("click", () => void handleLogout());
-  elements.deniedRetryButton.addEventListener("click", () => void loadSession());
+  elements.deniedRetryButton.addEventListener("click", () => {
+    window.history.replaceState(null, "", "/admin");
+    void loadSession();
+  });
 
   elements.aiDialog.addEventListener("click", (event) => {
     if (event.target === elements.aiDialog) closeAiDialog();
@@ -2060,4 +2160,3 @@ async function init() {
 }
 
 void init();
-

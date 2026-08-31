@@ -6,6 +6,11 @@ window.SITE_CONFIG = {
   contactFormAction: "https://formspree.io/f/xeebnrje",
   contactSuccessUrl: "",
 
+  staffArea: {
+    url: "/admin",
+    loginUrl: "/api/staff/auth/google"
+  },
+
   socialUrls: {
     facebook: "https://www.facebook.com/profile.php?id=61577836850124"
   }

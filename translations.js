@@ -84,6 +84,7 @@
     ],
     "common.nav.home": ["Avaleht", "Home", "Главная"],
     "common.nav.news": ["Uudised", "News", "Новости"],
+    "common.nav.staffArea": ["Töökeskkond", "Staff area", "Рабочая среда"],
     "common.nav.projects": ["Projektid", "Projects", "Проекты"],
     "common.nav.gala": [
       "Noorte tunnustusgala",

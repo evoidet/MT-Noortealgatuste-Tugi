@@ -1,12 +1,18 @@
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { rateLimit, ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 import { createAiAssistant } from "./ai.js";
 import { createAuth } from "./auth.js";
-import { generateSubmissionDocument } from "./documents.js";
+import {
+  generateSubmissionDocument,
+  getDocumentTemplateAvailability
+} from "./documents.js";
+import { createMailService } from "./mail.js";
+import { normalizeNewsLanguage, toPublicNewsItem } from "./news-publishing.js";
 import {
   canCreateType,
   canEditSubmission,
@@ -15,20 +21,32 @@ import {
   canReviewType,
   canSubmitSubmission,
   hasPermission,
-  permissionsForRole,
+  permissionsForUser,
   requirePermission
 } from "./permissions.js";
 import {
-  attachmentPath,
+  createClientUploadGrant,
   createUploadMiddleware,
+  deleteAttachmentPermanently,
+  deleteStoredFile,
   downloadFilenameHeader,
-  persistUploadedFile
+  openPrivateAttachment,
+  persistUploadedFileWithRecord,
+  verifyClientUploadedFile
 } from "./storage.js";
 import { aiRequestSchema, reviewSchema, validateSubmissionData } from "./validation.js";
 
 const sourceDirectory = dirname(fileURLToPath(import.meta.url));
 const publicDirectory = resolve(sourceDirectory, "../public");
 const adminHtmlPath = resolve(publicDirectory, "index.html");
+const sharedSiteDirectory = resolve(sourceDirectory, "../..");
+const sharedAssetsDirectory = resolve(sharedSiteDirectory, "assets");
+const sharedPublicFiles = new Map([
+  ["/style.css", resolve(sharedSiteDirectory, "style.css")],
+  ["/news.css", resolve(sharedSiteDirectory, "news.css")],
+  ["/translations.js", resolve(sharedSiteDirectory, "translations.js")],
+  ["/i18n.js", resolve(sharedSiteDirectory, "i18n.js")]
+]);
 
 const statusForDecision = Object.freeze({
   approve: "APPROVED",
@@ -46,38 +64,100 @@ function safeSubmissionType(value) {
   return ["news", "expense", "invoice"].includes(value) ? value : null;
 }
 
-function summarizeSubmission(submission, database, detailed = false) {
-  const attachments = database.listAttachments(submission.id).map((attachment) => ({
+function submissionSummaryData(submission) {
+  const data = submission?.data ?? {};
+  if (submission?.type === "news") {
+    return {
+      slug: data.slug,
+      title: data.title,
+      date: data.date,
+      category: data.category,
+      author: data.author,
+      featured: Boolean(data.featured)
+    };
+  }
+  if (submission?.type === "expense") {
+    return {
+      project: data.project,
+      person: data.person || data.claimantName,
+      date: data.date,
+      amount: data.requestedTotalEUR || data.amount || 0
+    };
+  }
+  if (submission?.type === "invoice") {
+    return {
+      invoiceNumber: data.invoiceNumber,
+      client: data.client || data.clientName,
+      invoiceDate: data.invoiceDate,
+      dueDate: data.dueDate,
+      amount: data.amount || 0,
+      currency: data.currency || "EUR"
+    };
+  }
+  return {};
+}
+
+async function summarizeSubmission(submission, database, detailed = false) {
+  const [storedAttachments, reviews] = await Promise.all([
+    database.listAttachments(submission.id),
+    database.listReviews(submission.id)
+  ]);
+  const attachments = storedAttachments.map((attachment) => ({
     id: attachment.id,
     name: attachment.originalName,
     mimeType: attachment.mimeType,
+    kind: attachment.kind,
     size: attachment.size,
     createdAt: attachment.createdAt,
     downloadUrl: `/api/staff/attachments/${attachment.id}/download`
   }));
-  const reviews = database.listReviews(submission.id);
   return {
     ...submission,
-    data: detailed ? submission.data : submission.data,
+    data: detailed ? submission.data : submissionSummaryData(submission),
     attachments,
     reviews: detailed ? reviews : reviews.slice(0, 1)
   };
 }
 
 function validationResponse(response, error) {
+  if (error?.code === "23505" && error?.constraint === "submissions_news_slug_unique") {
+    response.status(409).json({ error: "NEWS_SLUG_CONFLICT" });
+    return true;
+  }
   const knownCodes = new Set([
     "INVALID_SUBMISSION_TYPE",
     "VALIDATION_ERROR",
     "INCOMPLETE_SUBMISSION",
     "FILE_REQUIRED",
+    "FILE_TOO_LARGE",
     "FILE_TYPE_NOT_ALLOWED",
     "FILE_EXTENSION_MISMATCH",
+    "FILE_SIZE_MISMATCH",
+    "BLOB_NOT_CONFIGURED",
+    "BLOB_NOT_FOUND",
+    "BLOB_NOT_PRIVATE",
+    "BLOB_PATH_INVALID",
+    "BLOB_PATH_MISMATCH",
+    "BLOB_READ_FAILED",
+    "BLOB_CLEANUP_REQUIRED",
+    "INVALID_ATTACHMENT_STATE",
     "AI_UNAVAILABLE",
     "AI_EMPTY_RESPONSE",
-    "AI_FACT_GUARD_REJECTED"
+    "AI_FACT_GUARD_REJECTED",
+    "DOCUMENT_VALIDATION_ERROR",
+    "DOCUMENT_TEMPLATE_UNAVAILABLE",
+    "INVALID_WORKFLOW_STATE",
+    "NEWS_SLUG_CONFLICT"
   ]);
   if (!knownCodes.has(error.code)) return false;
-  response.status(error.code === "AI_UNAVAILABLE" ? 503 : 400).json({
+  const status = error.status || (["AI_UNAVAILABLE", "DOCUMENT_TEMPLATE_UNAVAILABLE"].includes(error.code)
+    ? 503
+    : ["INVALID_WORKFLOW_STATE", "NEWS_SLUG_CONFLICT"].includes(error.code)
+      ? 409
+    : error.code === "DOCUMENT_VALIDATION_ERROR"
+      ? 422
+      : 400);
+  response.status(status).json({
     error: error.code,
     fields: error.fields,
     issues: error.issues
@@ -100,7 +180,30 @@ function createLimiter({ windowMs, limit, prefix }) {
   });
 }
 
-export function createStaffApp({ config, database }) {
+async function reconcileBlobStorage({ config, database, limit = 25 }) {
+  const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
+  const [abandoned, deletePending] = await Promise.all([
+    database.listPendingAttachmentsBefore(cutoff, limit),
+    database.listDeletePendingAttachments(limit)
+  ]);
+  let removed = 0;
+  let remaining = 0;
+  for (const attachment of [...abandoned, ...deletePending]) {
+    // SQLite imports remain pending until the explicit Blob transfer script
+    // assigns a pathname. Reconciliation must never discard those records.
+    if (!attachment.blobPathname) continue;
+    try {
+      await deleteStoredFile({ config, attachment });
+      await database.deleteAttachment(attachment.id);
+      removed += 1;
+    } catch {
+      remaining += 1;
+    }
+  }
+  return { removed, remaining };
+}
+
+export function createStaffApp({ config, database, mailService = createMailService(config) }) {
   const app = express();
   const auth = createAuth({ config, database });
   const ai = createAiAssistant(config);
@@ -109,6 +212,8 @@ export function createStaffApp({ config, database }) {
   const mutationLimiter = createLimiter({ windowMs: 15 * 60_000, limit: 180, prefix: "write" });
   const uploadLimiter = createLimiter({ windowMs: 10 * 60_000, limit: 40, prefix: "upload" });
   const aiLimiter = createLimiter({ windowMs: 10 * 60_000, limit: 12, prefix: "ai" });
+  const publicMediaLimiter = createLimiter({ windowMs: 15 * 60_000, limit: 300, prefix: "public-media" });
+  const permissionContext = Object.freeze({ invoiceCreatorEmail: config.invoiceCreatorEmail });
 
   app.disable("x-powered-by");
   if (config.trustProxy) app.set("trust proxy", config.trustProxy);
@@ -117,7 +222,7 @@ export function createStaffApp({ config, database }) {
       directives: {
         defaultSrc: ["'self'"],
         baseUri: ["'self'"],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", "https://blob.vercel-storage.com", "https://*.blob.vercel-storage.com"],
         fontSrc: ["'self'", "data:"],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
@@ -130,18 +235,10 @@ export function createStaffApp({ config, database }) {
     },
     crossOriginEmbedderPolicy: false,
     hsts: config.production ? { maxAge: 31_536_000, includeSubDomains: true } : false,
-    referrerPolicy: { policy: "no-referrer" },
-    permissionsPolicy: {
-      features: {
-        camera: [],
-        geolocation: [],
-        microphone: [],
-        payment: [],
-        usb: []
-      }
-    }
+    referrerPolicy: { policy: "no-referrer" }
   }));
   app.use((request, response, next) => {
+    response.set("Permissions-Policy", "camera=(), geolocation=(), microphone=(), payment=(), usb=()");
     if (request.path.startsWith("/admin") || request.path.startsWith("/api/staff")) {
       response.set("Cache-Control", "no-store, max-age=0");
       response.set("X-Robots-Tag", "noindex, nofollow, noarchive");
@@ -151,119 +248,258 @@ export function createStaffApp({ config, database }) {
   app.use(express.json({ limit: "256kb", strict: true }));
   app.use(auth.optionalSession);
 
+  app.use("/assets", express.static(sharedAssetsDirectory, {
+    dotfiles: "deny",
+    etag: !config.production,
+    fallthrough: false,
+    index: false,
+    maxAge: config.production ? "1h" : 0
+  }));
+  sharedPublicFiles.forEach((filePath, route) => {
+    app.get(route, (_request, response) => response.sendFile(filePath));
+  });
+
   app.get("/healthz", (_request, response) => response.json({ ok: true }));
+  app.get("/api/staff/health", asyncRoute(async (_request, response) => {
+    try {
+      await database.healthCheck();
+      response.json({ ok: true, database: "ok" });
+    } catch {
+      response.status(503).json({ ok: false, database: "unavailable" });
+    }
+  }));
   app.get("/api/staff/auth/google", authLimiter, asyncRoute(auth.beginGoogleLogin));
   app.get("/api/staff/auth/google/callback", authLimiter, asyncRoute(auth.completeGoogleLogin));
-  app.get("/api/staff/session", (request, response) => {
+  app.get("/api/staff/session", asyncRoute(async (request, response) => {
     const payload = auth.sessionPayload(request);
     if (payload.authenticated) {
-      payload.permissions = permissionsForRole(request.user.role);
+      payload.permissions = permissionsForUser(request.user, permissionContext);
       payload.aiAvailable = ai.available;
+      payload.documentTemplates = getDocumentTemplateAvailability();
+      if (request.user.role === "admin") {
+        try {
+          await reconcileBlobStorage({ config, database, limit: 10 });
+        } catch {
+          console.error("Blob reconciliation could not run during admin session bootstrap.");
+        }
+      }
     }
     response.json(payload);
-  });
+  }));
+
+  app.get("/api/staff/public/news", asyncRoute(async (request, response) => {
+    const language = normalizeNewsLanguage(String(request.query.lang ?? "et"));
+    const submissions = await database.listPublishedNews(100);
+    const items = (await Promise.all(submissions.map(async (submission) =>
+      toPublicNewsItem(submission, await database.listAttachments(submission.id), language)
+    ))).filter((item) => item?.id && item?.title && item?.excerpt);
+    response.set("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
+    response.json({ items });
+  }));
+
+  app.get(
+    "/api/staff/public/news/:submissionId/attachments/:attachmentId",
+    publicMediaLimiter,
+    asyncRoute(async (request, response, next) => {
+      const [submission, attachment] = await Promise.all([
+        database.getSubmission(request.params.submissionId),
+        database.getAttachment(request.params.attachmentId)
+      ]);
+      if (
+        !submission ||
+        submission.type !== "news" ||
+        submission.status !== "PUBLISHED" ||
+        !attachment ||
+        attachment.submissionId !== submission.id
+      ) {
+        return response.status(404).json({ error: "NOT_FOUND" });
+      }
+      let opened;
+      try {
+        opened = await openPrivateAttachment({ config, attachment });
+      } catch {
+        return response.status(404).json({ error: "NOT_FOUND" });
+      }
+      if (!opened || opened.statusCode !== 200 || !opened.stream) {
+        return response.status(404).json({ error: "NOT_FOUND" });
+      }
+      response.set({
+        "Content-Type": attachment.mimeType,
+        "Content-Length": String(opened.blob.size),
+        "X-Content-Type-Options": "nosniff",
+        "Cache-Control": "public, max-age=3600, s-maxage=86400, immutable"
+      });
+      const stream = Readable.fromWeb(opened.stream);
+      stream.once("error", next);
+      stream.pipe(response);
+    })
+  );
   app.post("/api/staff/logout", auth.requireSession, auth.verifyCsrf, auth.logout);
 
   app.use("/api/staff", auth.requireSession);
 
-  app.get("/api/staff/submissions", (request, response) => {
+  app.get("/api/staff/submissions", asyncRoute(async (request, response) => {
     const scope = request.query.scope === "review" ? "review" : "mine";
     const type = request.query.type ? safeSubmissionType(String(request.query.type)) : null;
     if (request.query.type && !type) return response.status(400).json({ error: "INVALID_SUBMISSION_TYPE" });
-    const submissions = database.listSubmissions()
-      .filter((submission) => !type || submission.type === type)
-      .filter((submission) => {
-        if (scope === "review") {
-          return canReviewType(request.user, submission.type) &&
-            ["SUBMITTED", "UNDER_REVIEW"].includes(submission.status);
-        }
-        return submission.creatorId === request.user.id && canReadSubmission(request.user, submission);
-      })
-      .map((submission) => summarizeSubmission(submission, database));
-    response.json({ items: submissions });
-  });
+    const submissions = scope === "review"
+      ? await database.listReviewableSubmissions(
+          ["news", "expense", "invoice"].filter((entry) => canReviewType(request.user, entry)),
+          { type }
+        )
+      : await database.listSubmissionsByCreator(request.user.id, { type });
+    response.json({ items: await Promise.all(
+      submissions.map((submission) => summarizeSubmission(submission, database))
+    ) });
+  }));
 
-  app.post("/api/staff/submissions", mutationLimiter, auth.verifyCsrf, (request, response) => {
+  app.post("/api/staff/submissions", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
     const type = safeSubmissionType(request.body?.type);
     if (!type) return response.status(400).json({ error: "INVALID_SUBMISSION_TYPE" });
-    if (!canCreateType(request.user, type)) return response.status(403).json({ error: "FORBIDDEN" });
+    if (!canCreateType(request.user, type, permissionContext)) {
+      return response.status(403).json({ error: "FORBIDDEN" });
+    }
     try {
       const data = validateSubmissionData(type, request.body?.data ?? {});
-      const submission = database.createSubmission({ type, creatorId: request.user.id, data });
-      database.audit({
+      const submission = await database.createSubmission({ type, creatorId: request.user.id, data });
+      await database.audit({
         user: request.user,
         action: `${auditPrefix[type]}_CREATED`,
         targetType: type,
         targetId: submission.id,
         ipHash: auth.clientIpHash(request)
       });
-      response.status(201).json({ item: summarizeSubmission(submission, database, true) });
+      response.status(201).json({ item: await summarizeSubmission(submission, database, true) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
     }
-  });
+  }));
 
-  app.get("/api/staff/submissions/:id", (request, response) => {
-    const submission = database.getSubmission(request.params.id);
+  app.get("/api/staff/submissions/:id", asyncRoute(async (request, response) => {
+    const submission = await database.getSubmission(request.params.id);
     if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-    if (!canReadSubmission(request.user, submission)) return response.status(404).json({ error: "NOT_FOUND" });
-    response.json({ item: summarizeSubmission(submission, database, true) });
-  });
+    if (!canReadSubmission(request.user, submission, permissionContext)) {
+      return response.status(404).json({ error: "NOT_FOUND" });
+    }
+    response.json({ item: await summarizeSubmission(submission, database, true) });
+  }));
 
-  app.patch("/api/staff/submissions/:id", mutationLimiter, auth.verifyCsrf, (request, response) => {
-    const submission = database.getSubmission(request.params.id);
+  app.patch("/api/staff/submissions/:id", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
+    const submission = await database.getSubmission(request.params.id);
     if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-    if (!canEditSubmission(request.user, submission)) return response.status(403).json({ error: "FORBIDDEN" });
+    if (!canEditSubmission(request.user, submission, permissionContext)) {
+      return response.status(403).json({ error: "FORBIDDEN" });
+    }
     try {
       const data = validateSubmissionData(submission.type, request.body?.data ?? {});
-      const updated = database.updateSubmission({ id: submission.id, userId: request.user.id, data });
-      database.audit({
+      const updated = await database.updateSubmission({ id: submission.id, userId: request.user.id, data });
+      await database.audit({
         user: request.user,
         action: `${auditPrefix[submission.type]}_UPDATED`,
         targetType: submission.type,
         targetId: submission.id,
         ipHash: auth.clientIpHash(request)
       });
-      response.json({ item: summarizeSubmission(updated, database, true) });
+      response.json({ item: await summarizeSubmission(updated, database, true) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
     }
-  });
+  }));
 
-  app.post("/api/staff/submissions/:id/submit", mutationLimiter, auth.verifyCsrf, (request, response) => {
-    const submission = database.getSubmission(request.params.id);
+  app.post("/api/staff/submissions/:id/submit", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
+    const submission = await database.getSubmission(request.params.id);
     if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-    if (!canSubmitSubmission(request.user, submission)) return response.status(403).json({ error: "FORBIDDEN" });
+    if (!canSubmitSubmission(request.user, submission, permissionContext)) {
+      return response.status(403).json({ error: "FORBIDDEN" });
+    }
     try {
       const data = validateSubmissionData(submission.type, submission.data, { final: true });
-      if (submission.type === "expense" && database.listAttachments(submission.id).length === 0) {
+      if (
+        submission.type === "expense" &&
+        !(await database.listAttachments(submission.id)).some((attachment) => attachment.kind === "primary")
+      ) {
         return response.status(400).json({ error: "PRIMARY_ATTACHMENT_REQUIRED", fields: ["attachments"] });
       }
-      database.updateSubmission({ id: submission.id, userId: request.user.id, data, event: "SUBMIT_VALIDATED" });
-      const finalStatus = submission.type === "invoice" ? "APPROVED" : "SUBMITTED";
-      const updated = database.setSubmissionStatus({
+      await database.updateSubmission({ id: submission.id, userId: request.user.id, data, event: "SUBMIT_VALIDATED" });
+      const directNewsPublish = submission.type === "news" && canReviewType(request.user, "news");
+      const finalStatus = submission.type === "invoice"
+        ? "APPROVED"
+        : directNewsPublish
+          ? "PUBLISHED"
+          : "SUBMITTED";
+      const updated = await database.setSubmissionStatus({
         id: submission.id,
         status: finalStatus,
         userId: request.user.id,
-        event: submission.type === "invoice" ? "CONFIRMED" : "SUBMITTED"
+        event: submission.type === "invoice"
+          ? "CONFIRMED"
+          : directNewsPublish
+            ? "PUBLISHED"
+            : "SUBMITTED"
       });
-      database.audit({
+      await database.audit({
         user: request.user,
-        action: submission.type === "invoice" ? "INVOICE_CONFIRMED" : `${auditPrefix[submission.type]}_SUBMITTED`,
+        action: submission.type === "invoice"
+          ? "INVOICE_CONFIRMED"
+          : directNewsPublish
+            ? "NEWS_PUBLISHED"
+            : `${auditPrefix[submission.type]}_SUBMITTED`,
         targetType: submission.type,
         targetId: submission.id,
         ipHash: auth.clientIpHash(request)
       });
-      response.json({ item: summarizeSubmission(updated, database, true) });
+
+      if (submission.type === "expense") {
+        const reviewUrl = new URL("/admin", config.baseUrl);
+        reviewUrl.searchParams.set("submission", updated.id);
+        reviewUrl.searchParams.set("scope", "review");
+        try {
+          await mailService.sendExpenseSubmitted({
+            submission: updated,
+            reviewUrl: reviewUrl.href
+          });
+          await database.audit({
+            user: request.user,
+            action: "EXPENSE_NOTIFICATION_SENT",
+            targetType: submission.type,
+            targetId: submission.id,
+            ipHash: auth.clientIpHash(request)
+          });
+        } catch (mailError) {
+          console.error("Expense notification delivery failed:", {
+            submissionId: updated.id,
+            code: mailError?.code || "MAIL_DELIVERY_FAILED"
+          });
+          try {
+            await database.audit({
+              user: request.user,
+              action: "EXPENSE_NOTIFICATION_FAILED",
+              targetType: submission.type,
+              targetId: submission.id,
+              metadata: { code: mailError?.code || "MAIL_DELIVERY_FAILED" },
+              ipHash: auth.clientIpHash(request)
+            });
+          } catch (auditError) {
+            console.error("Expense notification failure could not be audited:", {
+              submissionId: updated.id,
+              code: auditError?.code || "AUDIT_FAILED"
+            });
+          }
+        }
+      }
+      response.json({ item: await summarizeSubmission(updated, database, true) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
     }
-  });
+  }));
 
-  app.post("/api/staff/submissions/:id/review", mutationLimiter, auth.verifyCsrf, (request, response) => {
-    const submission = database.getSubmission(request.params.id);
+  app.post("/api/staff/submissions/:id/review", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
+    const submission = await database.getSubmission(request.params.id);
     if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
     if (!canReviewType(request.user, submission.type)) return response.status(403).json({ error: "FORBIDDEN" });
+    if (submission.creatorId === request.user.id) {
+      return response.status(403).json({ error: "SELF_REVIEW_FORBIDDEN" });
+    }
     if (!["SUBMITTED", "UNDER_REVIEW"].includes(submission.status)) {
       return response.status(409).json({ error: "INVALID_WORKFLOW_STATE" });
     }
@@ -274,9 +510,10 @@ export function createStaffApp({ config, database }) {
         issues: parsed.error.issues.map((issue) => ({ path: issue.path.join("."), code: issue.code }))
       });
     }
+    /** @type {string} */
     let nextStatus = statusForDecision[parsed.data.decision];
-    if (submission.type === "news" && parsed.data.decision === "approve") nextStatus = "READY_FOR_EXPORT";
-    const updated = database.addReview({
+    if (submission.type === "news" && parsed.data.decision === "approve") nextStatus = "PUBLISHED";
+    const updated = await database.addReview({
       submissionId: submission.id,
       reviewerId: request.user.id,
       decision: parsed.data.decision,
@@ -288,7 +525,7 @@ export function createStaffApp({ config, database }) {
       : parsed.data.decision === "needs_changes"
         ? `${auditPrefix[submission.type]}_RETURNED`
         : `${auditPrefix[submission.type]}_REJECTED`;
-    database.audit({
+    await database.audit({
       user: request.user,
       action,
       targetType: submission.type,
@@ -296,8 +533,8 @@ export function createStaffApp({ config, database }) {
       metadata: { decision: parsed.data.decision },
       ipHash: auth.clientIpHash(request)
     });
-    response.json({ item: summarizeSubmission(updated, database, true) });
-  });
+    response.json({ item: await summarizeSubmission(updated, database, true) });
+  }));
 
   app.post(
     "/api/staff/submissions/:id/attachments",
@@ -305,17 +542,25 @@ export function createStaffApp({ config, database }) {
     auth.verifyCsrf,
     (request, response, next) => upload(request, response, (error) => error ? next(error) : next()),
     asyncRoute(async (request, response) => {
-      const submission = database.getSubmission(request.params.id);
+      const submission = await database.getSubmission(request.params.id);
       if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-      if (!canEditSubmission(request.user, submission)) return response.status(403).json({ error: "FORBIDDEN" });
+      if (!canEditSubmission(request.user, submission, permissionContext)) {
+        return response.status(403).json({ error: "FORBIDDEN" });
+      }
       try {
-        const stored = await persistUploadedFile({ config, submission, file: request.file });
-        const attachment = database.createAttachment({
-          submissionId: submission.id,
-          uploaderId: request.user.id,
-          ...stored
+        const kind = request.body?.kind === "primary" ? "primary" : "additional";
+        const attachment = await persistUploadedFileWithRecord({
+          config,
+          submission,
+          file: request.file,
+          createRecord: (stored) => database.createAttachment({
+            submissionId: submission.id,
+            uploaderId: request.user.id,
+            kind,
+            ...stored
+          })
         });
-        database.audit({
+        await database.audit({
           user: request.user,
           action: `${auditPrefix[submission.type]}_ATTACHMENT_ADDED`,
           targetType: submission.type,
@@ -328,6 +573,7 @@ export function createStaffApp({ config, database }) {
             id: attachment.id,
             name: attachment.originalName,
             mimeType: attachment.mimeType,
+            kind: attachment.kind,
             size: attachment.size,
             downloadUrl: `/api/staff/attachments/${attachment.id}/download`
           }
@@ -338,32 +584,197 @@ export function createStaffApp({ config, database }) {
     })
   );
 
-  app.get("/api/staff/attachments/:id/download", asyncRoute(async (request, response) => {
-    const attachment = database.getAttachment(request.params.id);
+  app.post(
+    "/api/staff/submissions/:id/attachments/upload-intent",
+    uploadLimiter,
+    auth.verifyCsrf,
+    asyncRoute(async (request, response) => {
+      const submission = await database.getSubmission(request.params.id);
+      if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
+      if (!canEditSubmission(request.user, submission, permissionContext)) {
+        return response.status(403).json({ error: "FORBIDDEN" });
+      }
+      try {
+        // Opportunistically finish durable cleanup left by interrupted uploads
+        // or deletions. Failures remain retryable and do not block a new grant.
+        try {
+          await reconcileBlobStorage({ config, database });
+        } catch {
+          console.error("Blob reconciliation could not run.");
+        }
+        const grant = await createClientUploadGrant({
+          config,
+          submission,
+          originalName: request.body?.originalName,
+          mimeType: request.body?.mimeType,
+          size: request.body?.size
+        });
+        const attachment = await database.createPendingAttachment({
+          submissionId: submission.id,
+          uploaderId: request.user.id,
+          blobPathname: grant.pathname,
+          originalName: grant.originalName,
+          mimeType: grant.mimeType,
+          size: grant.size,
+          kind: request.body?.kind === "primary" ? "primary" : "additional"
+        });
+        response.status(201).json({
+          upload: {
+            attachmentId: attachment.id,
+            uploadUrl: grant.uploadUrl,
+            method: grant.method,
+            headers: grant.headers,
+            expiresAt: grant.expiresAt
+          }
+        });
+      } catch (error) {
+        if (!validationResponse(response, error)) throw error;
+      }
+    })
+  );
+
+  app.post(
+    "/api/staff/submissions/:id/attachments/:attachmentId/complete",
+    uploadLimiter,
+    auth.verifyCsrf,
+    asyncRoute(async (request, response) => {
+      const [submission, pending] = await Promise.all([
+        database.getSubmission(request.params.id),
+        database.getAttachment(request.params.attachmentId, { includePending: true })
+      ]);
+      if (!submission || !pending || pending.submissionId !== submission.id) {
+        return response.status(404).json({ error: "NOT_FOUND" });
+      }
+      if (
+        !canEditSubmission(request.user, submission, permissionContext) ||
+        (pending.uploaderId !== request.user.id && request.user.role !== "admin")
+      ) {
+        return response.status(403).json({ error: "FORBIDDEN" });
+      }
+      if (pending.storageStatus === "ready") {
+        return response.json({
+          attachment: {
+            id: pending.id,
+            name: pending.originalName,
+            mimeType: pending.mimeType,
+            kind: pending.kind,
+            size: pending.size,
+            downloadUrl: `/api/staff/attachments/${pending.id}/download`
+          }
+        });
+      }
+      if (pending.storageStatus !== "pending") {
+        return response.status(409).json({ error: "INVALID_ATTACHMENT_STATE" });
+      }
+      try {
+        const stored = await verifyClientUploadedFile({
+          config,
+          submission,
+          attachment: pending
+        });
+        const attachment = await database.markAttachmentReady(pending.id, stored);
+        if (!attachment) throw Object.assign(new Error("Attachment state changed."), {
+          code: "INVALID_ATTACHMENT_STATE",
+          status: 409
+        });
+        await database.audit({
+          user: request.user,
+          action: `${auditPrefix[submission.type]}_ATTACHMENT_ADDED`,
+          targetType: submission.type,
+          targetId: submission.id,
+          metadata: { attachmentId: attachment.id, mimeType: attachment.mimeType, size: attachment.size },
+          ipHash: auth.clientIpHash(request)
+        });
+        response.status(201).json({
+          attachment: {
+            id: attachment.id,
+            name: attachment.originalName,
+            mimeType: attachment.mimeType,
+            kind: attachment.kind,
+            size: attachment.size,
+            downloadUrl: `/api/staff/attachments/${attachment.id}/download`
+          }
+        });
+      } catch (error) {
+        if (error?.code !== "BLOB_CLEANUP_REQUIRED") {
+          try {
+            if (pending.blobPathname) await deleteStoredFile({ config, attachment: pending });
+            await database.deleteAttachment(pending.id);
+          } catch {
+            // The pending row remains durable for reconcileBlobStorage().
+          }
+        }
+        if (!validationResponse(response, error)) throw error;
+      }
+    })
+  );
+
+  app.get("/api/staff/attachments/:id/download", asyncRoute(async (request, response, next) => {
+    const attachment = await database.getAttachment(request.params.id);
     if (!attachment) return response.status(404).json({ error: "NOT_FOUND" });
-    const submission = database.getSubmission(attachment.submissionId);
-    if (!submission || !canReadAttachment(request.user, submission)) {
+    const submission = await database.getSubmission(attachment.submissionId);
+    if (!submission || !canReadAttachment(request.user, submission, permissionContext)) {
+      return response.status(404).json({ error: "NOT_FOUND" });
+    }
+    const opened = await openPrivateAttachment({ config, attachment });
+    if (!opened || opened.statusCode !== 200 || !opened.stream) {
       return response.status(404).json({ error: "NOT_FOUND" });
     }
     response.set({
       "Content-Type": attachment.mimeType,
-      "Content-Length": String(attachment.size),
+      "Content-Length": String(opened.blob.size),
       "Content-Disposition": downloadFilenameHeader(attachment.originalName),
       "X-Content-Type-Options": "nosniff",
       "Cache-Control": "private, no-store"
     });
-    response.send(await readFile(attachmentPath(config, attachment)));
+    const stream = Readable.fromWeb(opened.stream);
+    stream.once("error", next);
+    stream.pipe(response);
+  }));
+
+  app.delete("/api/staff/attachments/:id", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
+    const attachment = await database.getAttachment(request.params.id, { includePending: true });
+    if (!attachment) return response.status(404).json({ error: "NOT_FOUND" });
+    const submission = await database.getSubmission(attachment.submissionId);
+    if (!submission || !canEditSubmission(request.user, submission, permissionContext)) {
+      return response.status(404).json({ error: "NOT_FOUND" });
+    }
+    if (attachment.storageStatus === "ready") {
+      await deleteAttachmentPermanently({
+        config,
+        attachment,
+        markDeletePending: () => database.markAttachmentDeletePending(attachment.id),
+        deleteRecord: () => database.deleteAttachment(attachment.id)
+      });
+    } else {
+      if (attachment.blobPathname) await deleteStoredFile({ config, attachment });
+      await database.deleteAttachment(attachment.id);
+    }
+    await database.audit({
+      user: request.user,
+      action: `${auditPrefix[submission.type]}_ATTACHMENT_DELETED`,
+      targetType: submission.type,
+      targetId: submission.id,
+      metadata: { attachmentId: attachment.id },
+      ipHash: auth.clientIpHash(request)
+    });
+    response.status(204).end();
+  }));
+
+  app.post("/api/staff/storage/reconcile", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
+    if (request.user.role !== "admin") return response.status(403).json({ error: "FORBIDDEN" });
+    response.json(await reconcileBlobStorage({ config, database, limit: 100 }));
   }));
 
   app.get("/api/staff/submissions/:id/document", asyncRoute(async (request, response) => {
-    const submission = database.getSubmission(request.params.id);
-    if (!submission || !canReadSubmission(request.user, submission)) {
+    const submission = await database.getSubmission(request.params.id);
+    if (!submission || !canReadSubmission(request.user, submission, permissionContext)) {
       return response.status(404).json({ error: "NOT_FOUND" });
     }
     if (!["expense", "invoice"].includes(submission.type)) {
       return response.status(400).json({ error: "DOCUMENT_NOT_AVAILABLE" });
     }
-    const attachments = database.listAttachments(submission.id).map((entry) => ({
+    const attachments = (await database.listAttachments(submission.id)).map((entry) => ({
       id: entry.id,
       name: entry.originalName,
       mimeType: entry.mimeType
@@ -386,9 +797,13 @@ export function createStaffApp({ config, database }) {
     if (!parsed.success) {
       return response.status(400).json({ error: "VALIDATION_ERROR" });
     }
+    const submissionType = parsed.data.field.split(".")[0];
+    if (!canCreateType(request.user, submissionType, permissionContext)) {
+      return response.status(403).json({ error: "FORBIDDEN" });
+    }
     try {
       const suggestion = await ai.improve(parsed.data);
-      database.audit({
+      await database.audit({
         user: request.user,
         action: "AI_TEXT_IMPROVED",
         targetType: parsed.data.field.split(".")[0],
@@ -401,28 +816,28 @@ export function createStaffApp({ config, database }) {
     }
   }));
 
-  app.get("/api/staff/audit", requirePermission("audit:read"), (request, response) => {
-    response.json({ items: database.listAudit() });
-  });
+  app.get("/api/staff/audit", requirePermission("audit:read"), asyncRoute(async (_request, response) => {
+    response.json({ items: await database.listAudit() });
+  }));
 
-  app.get("/api/staff/export/news", requirePermission("news:export"), (request, response) => {
-    const items = database.listSubmissions()
-      .filter((submission) => submission.type === "news" && submission.status === "READY_FOR_EXPORT")
-      .map((submission) => ({
+  app.get("/api/staff/export/news", requirePermission("news:export"), asyncRoute(async (_request, response) => {
+    const submissions = (await database.listSubmissions())
+      .filter((submission) => submission.type === "news" && submission.status === "READY_FOR_EXPORT");
+    const items = await Promise.all(submissions.map(async (submission) => ({
         id: submission.id,
         approvedAt: submission.updatedAt,
         revision: submission.revision,
         data: submission.data,
-        attachments: database.listAttachments(submission.id).map((attachment) => ({
+        attachments: (await database.listAttachments(submission.id)).map((attachment) => ({
           id: attachment.id,
           name: attachment.originalName,
           mimeType: attachment.mimeType,
           size: attachment.size,
           downloadUrl: `/api/staff/attachments/${attachment.id}/download`
         }))
-      }));
+      })));
     response.json({ schemaVersion: 1, exportedAt: new Date().toISOString(), items });
-  });
+  }));
 
   app.use("/admin", express.static(publicDirectory, {
     dotfiles: "deny",
@@ -448,11 +863,10 @@ export function createStaffApp({ config, database }) {
     console.error("Staff app request failed:", {
       method: request.method,
       path: request.path,
-      message: error?.message || "unknown error"
+      code: typeof error?.code === "string" ? error.code : "UNEXPECTED_ERROR"
     });
     response.status(500).json({ error: "REQUEST_FAILED" });
   });
 
-  return { app, auth, ai };
+  return { app, auth, ai, mailService };
 }
-

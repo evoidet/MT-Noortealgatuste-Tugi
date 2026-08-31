@@ -1,5 +1,9 @@
 # MTÜ Noortealgatuste Tugi website
 
+Production deployment of the staff application, Neon migrations, Google OAuth,
+Private Vercel Blob, and safe SQLite import are documented in
+[`staff-app/DEPLOYMENT.md`](staff-app/DEPLOYMENT.md).
+
 ## Translating a new news article
 
 The public website never calls a translation API. Estonian is the source

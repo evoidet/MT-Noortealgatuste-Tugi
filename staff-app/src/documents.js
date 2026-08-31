@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -22,6 +23,15 @@ export class DocumentValidationError extends Error {
     this.name = "DocumentValidationError";
     this.code = "DOCUMENT_VALIDATION_ERROR";
     this.details = details;
+  }
+}
+
+export class DocumentTemplateUnavailableError extends Error {
+  constructor(kind, cause = undefined) {
+    super(`The ${kind} document template is unavailable.`, { cause });
+    this.name = "DocumentTemplateUnavailableError";
+    this.code = "DOCUMENT_TEMPLATE_UNAVAILABLE";
+    this.kind = kind;
   }
 }
 
@@ -51,6 +61,10 @@ function cleanText(value, { fallback = "—", maxLength = 2_000, required = fals
   return cleaned;
 }
 
+/**
+ * @param {unknown} value
+ * @param {{field?: string, min?: number, max?: number, required?: boolean}} [options]
+ */
 function parseDecimal(value, { field, min = 0, max = 1_000_000_000, required = true } = {}) {
   if ((value === undefined || value === null || value === "") && !required) {
     return undefined;
@@ -106,26 +120,36 @@ async function loadTemplate(kind) {
     if (!templatePath) {
       throw new Error(`Unknown document template kind: ${kind}`);
     }
-    templateCache.set(kind, readFile(templatePath));
+    const pending = readFile(templatePath).catch((error) => {
+      templateCache.delete(kind);
+      throw new DocumentTemplateUnavailableError(kind, error);
+    });
+    templateCache.set(kind, pending);
   }
   const template = await templateCache.get(kind);
   return Buffer.from(template);
 }
 
 async function renderTemplate(kind, values) {
-  const template = await loadTemplate(kind);
-  const zip = new PizZip(template);
-  const document = new Docxtemplater(zip, {
-    paragraphLoop: true,
-    linebreaks: true,
-    nullGetter: () => "",
-  });
-  document.render(values);
-  return document.getZip().generate({
-    type: "nodebuffer",
-    compression: "DEFLATE",
-    mimeType: DOCX_CONTENT_TYPE,
-  });
+  try {
+    const template = await loadTemplate(kind);
+    const zip = new PizZip(template);
+    const document = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      nullGetter: () => "",
+    });
+    document.render(values);
+    return document.getZip().generate({
+      type: "nodebuffer",
+      compression: "DEFLATE",
+      mimeType: DOCX_CONTENT_TYPE,
+    });
+  } catch (error) {
+    if (error instanceof DocumentTemplateUnavailableError) throw error;
+    templateCache.delete(kind);
+    throw new DocumentTemplateUnavailableError(kind, error);
+  }
 }
 
 function normalizeInvoice(data = {}) {
@@ -193,22 +217,32 @@ function normalizeInvoice(data = {}) {
       transactionTime: cleanText(firstDefined(data.transactionTime, data.servicePeriod, data.transactionDate), {
         maxLength: 150,
       }),
-      projectReference: cleanText(firstDefined(data.projectReference, data.contractReference, data.projectCode), {
+      projectReference: cleanText(firstDefined(data.projectReference, data.contractReference, data.projectCode, data.project), {
         maxLength: 200,
       }),
-      buyerName: cleanText(firstDefined(buyer.name, data.buyerName), {
+      buyerName: cleanText(firstDefined(buyer.name, data.buyerName, data.clientName, data.client), {
         required: true,
         field: "buyer.name",
         maxLength: 250,
       }),
-      buyerRegistryCode: cleanText(firstDefined(buyer.registryCode, data.buyerRegistryCode), { maxLength: 80 }),
-      buyerAddress: cleanText(firstDefined(buyer.address, data.buyerAddress), { maxLength: 300 }),
+      buyerRegistryCode: cleanText(firstDefined(
+        buyer.registryCode,
+        data.buyerRegistryCode,
+        data.registryCode,
+        data.registrationCode
+      ), { maxLength: 80 }),
+      buyerAddress: cleanText(firstDefined(buyer.address, data.buyerAddress, data.address), { maxLength: 300 }),
       buyerContact: cleanText(firstDefined(buyer.contact, buyer.contactPerson, data.buyerContact), { maxLength: 250 }),
       items: items.map(({ lineTotalCents: _lineTotalCents, ...item }) => item),
       subtotal: formatMoney(subtotalCents),
       vatText: vatRate === 0 ? "Ei lisandu" : `${String(vatRate).replace(".", ",")}% (${formatMoney(vatCents)})`,
       total: formatMoney(totalCents),
-      paymentDescription: cleanText(firstDefined(data.paymentDescription, `Arve ${invoiceNumber}`), { maxLength: 250 }),
+      paymentDescription: cleanText(firstDefined(
+        data.paymentDescription,
+        data.additionalInfo,
+        `Arve ${invoiceNumber}`
+      ), { maxLength: 250 }),
+      additionalInfo: cleanText(data.additionalInfo, { maxLength: 2_000 }),
       referenceNumber: cleanText(data.referenceNumber, { maxLength: 50 }),
     },
     invoiceNumber,
@@ -227,10 +261,23 @@ function normalizeExpense(data = {}, meta = {}) {
       throw new DocumentValidationError(`Expense item ${index + 1} is invalid`, { field: `items[${index}]` });
     }
     const grossCents = toCents(
-      firstDefined(item.grossAmountEur, item.grossAmount, item.totalAmount, item.amount),
+      firstDefined(
+        item.grossAmountEur,
+        item.grossAmount,
+        item.totalAmount,
+        item.totalEUR,
+        item.originalTotal,
+        item.amount
+      ),
       { field: `items[${index}].grossAmount`, min: 0, max: 100_000_000 },
     );
-    const requestedCents = toCents(firstDefined(item.requestedAmount, item.reimbursementAmount, grossCents / 100), {
+    const requestedCents = toCents(firstDefined(
+      item.requestedAmount,
+      item.reimbursementAmount,
+      item.requestedEUR,
+      item.amount,
+      grossCents / 100
+    ), {
       field: `items[${index}].requestedAmount`,
       min: 0,
       max: 100_000_000,
@@ -259,8 +306,13 @@ function normalizeExpense(data = {}, meta = {}) {
       grossAmount = `${originalText} ${currency} / ${formatMoney(grossCents)}`;
     }
 
+    const combinedDescription = [item.vendor || item.provider, item.description]
+      .map((entry) => String(entry || "").trim())
+      .filter((entry, position, entries) => entry && entries.indexOf(entry) === position)
+      .join(" — ");
+
     return {
-      description: cleanText(firstDefined(item.description, item.vendor), {
+      description: cleanText(firstDefined(combinedDescription, item.description, item.vendor), {
         required: true,
         field: `items[${index}].description`,
         maxLength: 500,
@@ -269,7 +321,12 @@ function normalizeExpense(data = {}, meta = {}) {
         required: true,
         field: `items[${index}].date`,
       }),
-      documentReference: cleanText(firstDefined(item.documentReference, item.documentNumber, item.fileName), {
+      documentReference: cleanText(firstDefined(
+        item.documentReference,
+        item.sourceDocumentNumber,
+        item.documentNumber,
+        item.fileName
+      ), {
         required: true,
         field: `items[${index}].documentReference`,
         maxLength: 250,
@@ -286,17 +343,29 @@ function normalizeExpense(data = {}, meta = {}) {
   const grossTotalCents = items.reduce((sum, item) => sum + item.grossCents, 0);
   const requestedTotalCents = items.reduce((sum, item) => sum + item.requestedCents, 0);
   const excludedTotalCents = items.reduce((sum, item) => sum + item.excludedCents, 0);
-  const recipientName = cleanText(firstDefined(recipient.name, data.recipientName, data.claimantName), {
+  const recipientName = cleanText(firstDefined(
+    recipient.name,
+    data.recipientName,
+    data.claimantName,
+    data.person
+  ), {
     required: true,
     field: "recipient.name",
     maxLength: 250,
   });
-  const iban = cleanText(firstDefined(recipient.iban, data.iban), {
-    required: true,
+  const rawIban = firstDefined(recipient.iban, data.iban);
+  const iban = cleanText(rawIban, {
+    fallback: "—",
     field: "recipient.iban",
     maxLength: 80,
   }).toUpperCase();
-  const documentNumber = cleanText(firstDefined(data.documentNumber, data.number), { fallback: "—", maxLength: 80 });
+  const generatedDocumentNumber = meta.submission?.id
+    ? `KA-${String(meta.submission.id).slice(0, 8).toUpperCase()}`
+    : undefined;
+  const documentNumber = cleanText(
+    firstDefined(data.documentNumber, data.number, generatedDocumentNumber),
+    { fallback: "—", maxLength: 80 }
+  );
   const documentDate = formatDate(firstDefined(data.documentDate, data.date), {
     required: true,
     field: "documentDate",
@@ -308,7 +377,7 @@ function normalizeExpense(data = {}, meta = {}) {
     firstDefined(recipient.accountHolder, data.accountHolder)
       ? `Kontoomanik: ${cleanText(firstDefined(recipient.accountHolder, data.accountHolder), { maxLength: 250 })}`
       : undefined,
-    `IBAN: ${iban}`,
+    rawIban ? `IBAN: ${iban}` : undefined,
   ].filter(Boolean);
 
   const rawAttachments = firstDefined(data.attachments, meta.attachments, []);
@@ -333,7 +402,7 @@ function normalizeExpense(data = {}, meta = {}) {
       recipientName,
       recipientRole: cleanText(firstDefined(recipient.role, data.recipientRole, data.role), { maxLength: 200 }),
       contactAccountIban: cleanText(firstDefined(data.contactAccountIban, contactParts.join("; ")), { maxLength: 500 }),
-      activityName: cleanText(firstDefined(data.activityName, data.activity, data.projectName), {
+      activityName: cleanText(firstDefined(data.project, data.activityName, data.activity, data.projectName), {
         required: true,
         field: "activityName",
         maxLength: 500,
@@ -343,17 +412,26 @@ function normalizeExpense(data = {}, meta = {}) {
         maxLength: 700,
       }),
       fundingSource: cleanText(firstDefined(data.fundingSource, data.budgetLine), { maxLength: 300 }),
-      whereWhen: cleanText(firstDefined(data.whereWhen, data.locationAndDates), {
+      whereWhen: cleanText(firstDefined(
+        data.whereWhen,
+        data.locationAndDates,
+        [data.date, data.location].filter(Boolean).join(" — ")
+      ), {
         required: true,
         field: "whereWhen",
         maxLength: 2_000,
       }),
-      activitiesAndRole: cleanText(firstDefined(data.activitiesAndRole, data.activities, data.activityDescription), {
+      activitiesAndRole: cleanText(firstDefined(
+        data.activitiesAndRole,
+        data.activities,
+        data.activityDescription,
+        data.activity
+      ), {
         required: true,
         field: "activitiesAndRole",
         maxLength: 4_000,
       }),
-      necessity: cleanText(firstDefined(data.necessity, data.whyNecessary), {
+      necessity: cleanText(firstDefined(data.necessity, data.whyNecessary, data.goal, data.purpose), {
         required: true,
         field: "necessity",
         maxLength: 4_000,
@@ -408,6 +486,12 @@ export async function generateSubmissionDocument(type, data, meta = {}) {
     return generateExpenseReportDocument(data, meta);
   }
   throw new DocumentValidationError(`Unsupported document type: ${type || "(empty)"}`, { field: "type" });
+}
+
+export function getDocumentTemplateAvailability() {
+  return Object.fromEntries(
+    Object.entries(TEMPLATE_PATHS).map(([kind, templatePath]) => [kind, existsSync(templatePath)])
+  );
 }
 
 export const __documentTestUtils = Object.freeze({

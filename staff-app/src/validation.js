@@ -2,11 +2,30 @@ import { z } from "zod";
 
 const optionalText = (maximum) => z.string().trim().max(maximum).optional().default("");
 const requiredText = (maximum) => z.string().trim().min(1).max(maximum);
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const isoDate = z.string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  });
 const optionalDate = isoDate.optional().or(z.literal(""));
 const money = z.coerce.number().finite().min(0).max(10_000_000);
 const optionalMoney = z.union([money, z.literal(""), z.null()]).optional().transform((value) => value === "" || value === null || value === undefined ? 0 : value);
 const identifier = z.string().trim().max(100).regex(/^[\p{L}\p{N} ._\-/]*$/u).optional().default("");
+
+function isSafePublicImageUrl(value) {
+  if (!value) return true;
+  if (value.startsWith("/") && !value.startsWith("//")) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+const imagePositionToken = "(?:left|center|right|top|bottom|(?:100|[1-9]?\\d)%)";
+const imagePositionPattern = new RegExp(`^${imagePositionToken}(?:\\s+${imagePositionToken})?$`);
 
 const localizedNews = z.object({
   title: optionalText(180),
@@ -31,9 +50,9 @@ const newsDraft = z.object({
     z.array(z.string().trim().max(6_000)).max(60)
   ]).optional().default([]),
   project: optionalText(160),
-  image: optionalText(500),
+  image: optionalText(500).refine(isSafePublicImageUrl, { message: "Unsafe image URL." }),
   imageAlt: optionalText(240),
-  imagePosition: z.string().trim().max(60).optional().default("center center"),
+  imagePosition: z.string().trim().max(60).regex(imagePositionPattern).optional().default("center center"),
   imageFit: z.enum(["cover", "contain"]).optional().default("cover"),
   featured: z.boolean().optional().default(false),
   placeholder: z.literal(false).optional().default(false),
@@ -147,10 +166,12 @@ function ensureFinal(type, data) {
     }
   };
   if (type === "news") {
+    requireValue("slug", data.slug);
     requireValue("title", data.title);
     requireValue("date", data.date);
     requireValue("summary", data.summary || data.excerpt);
     requireValue("content", paragraphs(data.content));
+    requireValue("author", data.author);
   } else if (type === "expense") {
     requireValue("project", data.project);
     requireValue("person", data.person || data.claimantName);
@@ -159,18 +180,40 @@ function ensureFinal(type, data) {
     requireValue("activity", data.activity);
     requireValue("goal", data.goal);
     requireValue("result", data.result);
+    requireValue("items", data.items);
+    data.items.forEach((item, index) => {
+      requireValue(`items.${index}.date`, item.date || item.expenseDate);
+      requireValue(`items.${index}.documentNumber`, item.documentNumber || item.sourceDocumentNumber);
+      requireValue(`items.${index}.vendor`, item.vendor || item.provider);
+      requireValue(`items.${index}.description`, item.description);
+      if (!(item.requestedEUR > 0 || item.amount > 0)) {
+        missing.push(`items.${index}.amount`);
+      }
+    });
     if (!(data.requestedTotalEUR > 0 || data.amount > 0 || data.items.some((item) => item.requestedEUR > 0))) {
       missing.push("amount");
     }
   } else if (type === "invoice") {
+    requireValue("invoiceNumber", data.invoiceNumber);
     requireValue("client", data.client || data.clientName);
+    requireValue("registrationCode", data.registrationCode || data.registryCode);
     requireValue("address", data.address);
     requireValue("invoiceDate", data.invoiceDate);
     requireValue("dueDate", data.dueDate);
+    requireValue("project", data.project);
+    requireValue("items", data.items);
+    data.items.forEach((item, index) => {
+      requireValue(`items.${index}.description`, item.description);
+      if (!(item.quantity > 0)) missing.push(`items.${index}.quantity`);
+      if (!(item.unitPrice > 0)) missing.push(`items.${index}.unitPrice`);
+    });
     if (!(data.amount > 0 || data.items.some((item) => item.amount > 0 || item.unitPrice > 0))) {
       missing.push("amount");
     }
     if (!data.description && data.items.every((item) => !item.description)) missing.push("description");
+    if (data.invoiceDate && data.dueDate && data.dueDate < data.invoiceDate) {
+      missing.push("dueDate");
+    }
   }
   if (missing.length) {
     const error = new Error("Submission is incomplete.");

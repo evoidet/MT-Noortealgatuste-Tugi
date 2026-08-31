@@ -156,6 +156,124 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   /* =========================================================
+     STAFF AREA ACCESS
+     The link reuses the existing server-side Google OAuth flow.
+     ========================================================= */
+
+  (function initStaffAccess() {
+    const staffConfig = siteConfig.staffArea || {};
+
+    function safeStaffUrl(value, fallback) {
+      try {
+        const url = new URL(value || fallback, window.location.origin);
+        return url.origin === window.location.origin || url.protocol === "https:"
+          ? url
+          : new URL(fallback, window.location.origin);
+      } catch (error) {
+        return new URL(fallback, window.location.origin);
+      }
+    }
+
+    const areaUrl = safeStaffUrl(staffConfig.url, "/admin");
+    const loginUrl = safeStaffUrl(staffConfig.loginUrl, "/api/staff/auth/google");
+    const returnTo = `${areaUrl.pathname}${areaUrl.search}${areaUrl.hash}`;
+    loginUrl.searchParams.set("returnTo", returnTo);
+    const label = t("common.nav.staffArea");
+    const links = [];
+
+    const navigation = document.querySelector(".header .nav");
+
+    if (navigation && !navigation.querySelector(".nav-staff-access")) {
+      const link = document.createElement("a");
+      const icon = document.createElement("span");
+      const copy = document.createElement("span");
+
+      link.className = "nav-staff-access";
+      link.href = loginUrl.href;
+      link.setAttribute("aria-label", label);
+      link.title = label;
+      link.dataset.staffAccess = "true";
+
+      icon.className = "nav-staff-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = [
+        '<svg viewBox="0 0 24 24" focusable="false">',
+        '<path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10"></path>',
+        '<rect x="5" y="10" width="14" height="10" rx="2.5"></rect>',
+        '<path d="M12 14v2.5"></path>',
+        "</svg>"
+      ].join("");
+
+      copy.className = "nav-staff-label";
+      copy.textContent = label;
+      link.append(icon, copy);
+      navigation.appendChild(link);
+      links.push(link);
+    }
+
+    document.querySelectorAll(".site-footer").forEach(function (footer) {
+      const quickLinksHeading = footer.querySelector(
+        '[data-i18n="common.footer.quickLinks"]'
+      );
+      const quickLinks = quickLinksHeading?.closest(".footer-column");
+
+      if (!quickLinks || quickLinks.querySelector(".footer-staff-link")) {
+        return;
+      }
+
+      const link = document.createElement("a");
+      const contactLink = quickLinks.querySelector('a[href^="mailto:"]');
+
+      link.className = "footer-staff-link";
+      link.href = loginUrl.href;
+      link.textContent = label;
+      link.dataset.staffAccess = "true";
+      link.setAttribute("aria-label", label);
+
+      if (contactLink) {
+        quickLinks.insertBefore(link, contactLink);
+      } else {
+        quickLinks.appendChild(link);
+      }
+      links.push(link);
+    });
+
+    if (!links.length) {
+      return;
+    }
+
+    const sessionUrl = new URL("/api/staff/session", areaUrl.origin);
+
+    fetch(sessionUrl.href, {
+      method: "GET",
+      credentials: "include",
+      headers: { Accept: "application/json" }
+    })
+      .then(function (response) {
+        return response.ok ? response.json() : null;
+      })
+      .then(function (session) {
+        let destination = areaUrl.href;
+
+        if (!session?.authenticated) {
+          const checkedLoginUrl = safeStaffUrl(
+            session?.loginUrl || loginUrl.href,
+            loginUrl.href
+          );
+          checkedLoginUrl.searchParams.set("returnTo", returnTo);
+          destination = checkedLoginUrl.href;
+        }
+
+        links.forEach(function (link) {
+          link.href = destination;
+        });
+      })
+      .catch(function () {
+        // Keep the secure login URL when the staff service is temporarily unavailable.
+      });
+  })();
+
+  /* =========================================================
      ÜHINE JALUS
      ========================================================= */
 

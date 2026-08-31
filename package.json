@@ -1,8 +1,17 @@
 {
   "name": "noortealgatuste-tugi-website",
   "private": true,
+  "type": "module",
+  "workspaces": [
+    "staff-app"
+  ],
   "scripts": {
-    "check": "node tools/check-site.mjs && node --check translations.js && node --check i18n.js && node --check sender-init.js && node --check script.js && node --check site-config.js && node --check news-data.js && node --check news-home.js && node --check news.js && node --check news-photo-lightbox.js && node --check scripts/translate-news.mjs && node --check scripts/lib/news-catalog.mjs && node --check scripts/providers/openai-translation-provider.mjs",
+    "build": "npm run check && npm run check --workspace noortetugi-staff-app && node tools/build-vercel.mjs",
+    "check": "node tools/check-site.mjs && node --check translations.js && node --check i18n.js && node --check sender-init.js && node --check script.js && node --check site-config.js && node --check news-data.js && node --check news-home.js && node --check news.js && node --check news-photo-lightbox.js && node --check scripts/translate-news.mjs && node --check scripts/lib/news-catalog.mjs && node --check scripts/providers/openai-translation-provider.mjs && node --check tools/build-vercel.mjs && node --check api/index.js",
+    "lint": "npm run check && npm run lint --workspace noortetugi-staff-app",
+    "typecheck": "npm run typecheck --workspace noortetugi-staff-app",
+    "test": "npm test --workspace noortetugi-staff-app",
+    "db:migrate": "npm run db:migrate --workspace noortetugi-staff-app",
     "translate-news": "node scripts/translate-news.mjs"
   },
   "dependencies": {
