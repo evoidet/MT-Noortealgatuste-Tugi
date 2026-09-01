@@ -126,8 +126,8 @@
 
     "staff.success.eyebrow": ["Valmis", "Complete", "Готово"],
     "staff.success.expenseTitle": ["Kuluaruanne on saadetud", "Expense report submitted", "Отчёт отправлен"],
-    "staff.success.expenseText": ["Kuluaruanne on edukalt saadetud kontrollimiseks.", "The expense report has been successfully submitted for review.", "Отчёт успешно отправлен на проверку."],
-    "staff.success.expenseToast": ["Kuluaruanne on saadetud kontrollimiseks.", "Expense report submitted for review.", "Отчёт отправлен на проверку."],
+    "staff.success.expenseText": ["Dokument on edukalt saadetud.", "The document was sent successfully.", "Документ успешно отправлен."],
+    "staff.success.expenseToast": ["Dokument on edukalt saadetud.", "The document was sent successfully.", "Документ успешно отправлен."],
     "staff.success.invoiceTitle": ["Arve on loodud", "Invoice created", "Счёт создан"],
     "staff.success.invoiceText": ["Arve on kinnitatud ja valmis turvaliseks allalaadimiseks.", "The invoice is confirmed and ready for secure download.", "Счёт подтверждён и готов к безопасному скачиванию."],
     "staff.success.invoiceToast": ["Arve on loodud.", "Invoice created.", "Счёт создан."],
@@ -175,6 +175,7 @@
     "staff.errors.primaryAttachmentRequired": ["Lisa enne saatmist peamine kuludokument.", "Add the primary expense document before submitting.", "Перед отправкой добавьте основной расходный документ."],
     "staff.errors.templateUnavailable": ["Dokumendimall ei ole veel seadistatud.", "The document template is not configured yet.", "Шаблон документа ещё не настроен."],
     "staff.errors.documentValidation": ["Dokumenti ei saa nende andmetega luua. Kontrolli välju.", "The document cannot be created from these details. Check the fields.", "Документ нельзя создать с этими данными. Проверьте поля."],
+    "staff.errors.correctFields": ["Paranda välju", "Correct the fields", "Исправить поля"],
     "staff.errors.previewFailed": ["Dokumendi eelvaate loomine ebaõnnestus. Palun proovi uuesti.", "The document preview could not be created. Please try again.", "Не удалось создать предпросмотр документа. Попробуйте ещё раз."],
     "staff.errors.submissionFailed": ["Dokumendi saatmine ebaõnnestus. Sinu sisestatud andmed on salvestatud. Palun proovi uuesti.", "The document could not be sent. Your entered data has been saved. Please try again.", "Не удалось отправить документ. Введённые данные сохранены. Попробуйте ещё раз."],
     "staff.errors.submissionInProgress": ["Dokumendi saatmine juba käib. Palun oota.", "The document is already being sent. Please wait.", "Документ уже отправляется. Подождите."],

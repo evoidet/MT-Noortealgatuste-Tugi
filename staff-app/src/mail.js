@@ -45,7 +45,14 @@ function normalizedAttachments(value) {
   return value.map((attachment) => {
     const filename = cleanHeader(attachment?.filename);
     const contentType = cleanHeader(attachment?.contentType, "application/octet-stream");
-    if (!filename || !attachment?.content || !contentType) throw mailAttachmentError();
+    const contentLength = Buffer.isBuffer(attachment?.content)
+      ? attachment.content.length
+      : typeof attachment?.content === "string"
+        ? Buffer.byteLength(attachment.content)
+        : attachment?.content?.byteLength;
+    if (!filename || !attachment?.content || !contentType || contentLength === 0) {
+      throw mailAttachmentError();
+    }
     return { filename, content: attachment.content, contentType };
   });
 }

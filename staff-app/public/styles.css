@@ -60,7 +60,7 @@ body.staff-page select {
   -webkit-tap-highlight-color: transparent;
 }
 
-body.staff-page button {
+:where(body.staff-page) button {
   color: inherit;
 }
 
@@ -309,6 +309,12 @@ body.staff-page button {
 .staff-button--success {
   background: var(--staff-success);
   color: #fff;
+}
+
+.staff-button--primary .staff-button-spinner,
+.staff-button--success .staff-button-spinner {
+  border-color: rgba(255, 255, 255, 0.34);
+  border-top-color: #fff;
 }
 
 .staff-button--warning {
@@ -1291,6 +1297,52 @@ body.staff-page button {
 
 .staff-form.was-validated :invalid {
   border-color: rgba(166, 41, 41, 0.72);
+}
+
+.staff-validation-summary {
+  display: grid;
+  margin: 18px 0;
+  padding: 18px;
+  gap: 12px;
+  border: 1px solid rgba(166, 41, 41, 0.28);
+  border-left: 5px solid var(--staff-danger);
+  border-radius: 14px;
+  background: var(--staff-danger-soft);
+  color: var(--staff-text);
+}
+
+.staff-validation-summary:focus {
+  outline: 3px solid rgba(166, 41, 41, 0.28);
+  outline-offset: 3px;
+}
+
+.staff-validation-summary strong,
+.staff-validation-summary ul {
+  margin: 0;
+}
+
+.staff-validation-summary ul {
+  display: grid;
+  padding-left: 22px;
+  gap: 6px;
+}
+
+.staff-validation-summary .staff-button {
+  width: fit-content;
+}
+
+.staff-field--invalid input,
+.staff-field--invalid textarea,
+.staff-field--invalid select,
+.staff-file-field.staff-field--invalid {
+  border-color: rgba(166, 41, 41, 0.78);
+  box-shadow: 0 0 0 3px rgba(166, 41, 41, 0.1);
+}
+
+.staff-field .staff-field-error,
+.staff-file-field .staff-field-error {
+  color: var(--staff-danger);
+  font-weight: 750;
 }
 
 .staff-ai-button {

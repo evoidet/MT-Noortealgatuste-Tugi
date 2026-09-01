@@ -57,6 +57,150 @@ const statusForDecision = Object.freeze({
 });
 
 const auditPrefix = Object.freeze({ news: "NEWS", expense: "EXPENSE", invoice: "INVOICE" });
+const userValidationCodes = new Set([
+  "VALIDATION_ERROR",
+  "INCOMPLETE_SUBMISSION",
+  "DOCUMENT_VALIDATION_ERROR",
+  "PRIMARY_ATTACHMENT_REQUIRED"
+]);
+const validationFieldAliases = Object.freeze({
+  documentDate: "date",
+  "recipient.name": "person",
+  activityName: "project",
+  whereWhen: "location",
+  activitiesAndRole: "activity",
+  necessity: "goal"
+});
+const validationFieldLabels = Object.freeze({
+  slug: "URL-i tunnus",
+  title: "Pealkiri",
+  date: "Aruande kuupäev",
+  summary: "Kokkuvõte",
+  content: "Sisu",
+  author: "Autor",
+  project: "Projekt",
+  person: "Esitaja",
+  location: "Koht",
+  activity: "Tegevuse kirjeldus",
+  goal: "Kulu eesmärk ja vajalikkus",
+  result: "Tulemus",
+  items: "Kuluread",
+  amount: "Kogusumma",
+  attachments: "Peamine kuludokument",
+  invoiceNumber: "Arve number",
+  client: "Klient",
+  registrationCode: "Registrikood",
+  address: "Aadress",
+  invoiceDate: "Arve kuupäev",
+  dueDate: "Maksetähtpäev",
+  currency: "Valuuta"
+});
+
+function normalizedValidationField(value) {
+  let field = String(value || "document")
+    .replace(/\[(\d+)\]/g, ".$1")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 180) || "document";
+  field = validationFieldAliases[field] || field;
+  const item = /^items\.(\d+)\.(.+)$/.exec(field);
+  if (item) {
+    const aliases = {
+      expenseDate: "date",
+      documentReference: "documentNumber",
+      sourceDocument: "documentNumber",
+      sourceDocumentNumber: "documentNumber",
+      provider: "vendor",
+      grossAmount: "amount",
+      requestedAmount: "amount",
+      excludedAmount: "amount"
+    };
+    field = `items.${item[1]}.${aliases[item[2]] || item[2]}`;
+  }
+  if (/^attachments\.\d+\.name$/.test(field)) field = "attachments";
+  return field;
+}
+
+function validationReason(error, issue = {}) {
+  if (typeof issue.reason === "string" && issue.reason) return issue.reason.slice(0, 80);
+  if (typeof issue.code === "string" && issue.code) return issue.code.slice(0, 80);
+  if (error?.code === "INCOMPLETE_SUBMISSION" || error?.code === "PRIMARY_ATTACHMENT_REQUIRED") {
+    return "required";
+  }
+  return "invalid";
+}
+
+function rawValidationIssues(error) {
+  if (error?.code === "PRIMARY_ATTACHMENT_REQUIRED") {
+    return [{ field: "attachments", reason: "required" }];
+  }
+  if (error?.code === "DOCUMENT_VALIDATION_ERROR") {
+    const details = error?.details;
+    if (Array.isArray(details?.issues)) return details.issues;
+    return details && typeof details === "object" ? [details] : [{ field: "document", reason: "invalid" }];
+  }
+  if (Array.isArray(error?.fields)) {
+    return error.fields.map((field) => typeof field === "string" ? { field } : field);
+  }
+  if (Array.isArray(error?.issues)) return error.issues.map((issue) => ({ field: issue.path, ...issue }));
+  return [];
+}
+
+function validationFieldLabel(field) {
+  const item = /^items\.(\d+)\.(.+)$/.exec(field);
+  if (item) {
+    const number = Number(item[1]) + 1;
+    const labels = {
+      date: "kuupäev",
+      documentNumber: "dokumendi number",
+      vendor: "müüja või teenuseosutaja",
+      description: "kirjeldus",
+      amount: "summa"
+    };
+    return `Kulu ${number} ${labels[item[2]] || "väli"}`;
+  }
+  return validationFieldLabels[field] || field;
+}
+
+function userValidationMessage(field, reason) {
+  const label = validationFieldLabel(field);
+  if (field === "attachments") return "Palun lisa peamine kuludokument.";
+  if (field === "items") return "Palun lisa vähemalt üks korrektne kulurida.";
+  if (reason === "amount_reconciliation") {
+    return `${label}: hüvitatav ja mittehüvitatav osa ei tohi kokku ületada kulu kogusummat.`;
+  }
+  if (field.endsWith("amount") || field === "amount") {
+    return `Palun sisesta väljale „${label}“ nullist suurem korrektne summa.`;
+  }
+  if ((field.endsWith("date") || field.endsWith("Date")) && reason !== "required") {
+    return `Palun sisesta väljale „${label}“ korrektne kuupäev.`;
+  }
+  if (reason === "required") return `Palun täida väli „${label}“.`;
+  if (reason === "too_long" || reason === "too_big") return `Väli „${label}“ on liiga pikk.`;
+  if (reason === "unsupported_currency") return "Dokumendis saab kasutada ainult toetatud valuutat.";
+  return `Palun kontrolli välja „${label}“.`;
+}
+
+function userValidationIssues(error) {
+  const seen = new Set();
+  const issues = [];
+  for (const issue of rawValidationIssues(error)) {
+    const field = normalizedValidationField(issue?.field ?? issue?.path);
+    const reason = validationReason(error, issue);
+    const key = `${field}:${reason}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    issues.push({ field, message: userValidationMessage(field, reason) });
+  }
+  return issues;
+}
+
+function safeDocumentValidationIssues(error) {
+  if (error?.code !== "DOCUMENT_VALIDATION_ERROR") return [];
+  return rawValidationIssues(error).map((issue) => ({
+    field: String(issue?.field || "document").slice(0, 180),
+    reason: validationReason(error, issue)
+  }));
+}
 
 function asyncRoute(handler) {
   return (request, response, next) => Promise.resolve(handler(request, response, next)).catch(next);
@@ -130,6 +274,7 @@ function validationResponse(response, error) {
     "INVALID_SUBMISSION_TYPE",
     "VALIDATION_ERROR",
     "INCOMPLETE_SUBMISSION",
+    "PRIMARY_ATTACHMENT_REQUIRED",
     "FILE_REQUIRED",
     "FILE_TOO_LARGE",
     "FILE_TYPE_NOT_ALLOWED",
@@ -155,20 +300,24 @@ function validationResponse(response, error) {
     "NEWS_SLUG_CONFLICT"
   ]);
   if (!knownCodes.has(error.code)) return false;
-  const status = error.status || (error.code === "SUBMISSION_DELIVERY_FAILED"
+  const status = error.status || (userValidationCodes.has(error.code)
+    ? 422
+    : error.code === "SUBMISSION_DELIVERY_FAILED"
     ? 502
     : ["AI_UNAVAILABLE", "DOCUMENT_TEMPLATE_UNAVAILABLE", "BLOB_INTEGRITY_FAILED"].includes(error.code)
     ? 503
     : ["INVALID_WORKFLOW_STATE", "NEWS_SLUG_CONFLICT"].includes(error.code)
       ? 409
-    : error.code === "DOCUMENT_VALIDATION_ERROR"
-      ? 422
       : 400);
-  response.status(status).json({
-    error: error.code,
-    fields: error.fields,
-    issues: error.issues
-  });
+  const payload = { error: error.code };
+  if (userValidationCodes.has(error.code)) {
+    payload.message = "Dokumendis on parandamist vajavaid välju.";
+    payload.fields = userValidationIssues(error);
+  } else {
+    if (Array.isArray(error.fields)) payload.fields = error.fields;
+    if (Array.isArray(error.issues)) payload.issues = error.issues;
+  }
+  response.status(status).json(payload);
   return true;
 }
 
@@ -264,7 +413,12 @@ export function createStaffApp({
       attachments,
       creator: { name: submission.creatorName, email: submission.creatorEmail }
     });
-    if (!generated?.buffer || !generated?.filename || !generated?.contentType) {
+    const generatedBuffer = Buffer.isBuffer(generated?.buffer)
+      ? generated.buffer
+      : generated?.buffer
+        ? Buffer.from(generated.buffer)
+        : null;
+    if (!generatedBuffer?.length || !generated?.filename || !generated?.contentType) {
       throw Object.assign(new Error("The generated expense document is invalid."), {
         code: "DOCUMENT_GENERATION_INVALID"
       });
@@ -273,11 +427,11 @@ export function createStaffApp({
     const mailAttachments = [{
       filename: generated.filename,
       contentType: generated.contentType,
-      content: Buffer.isBuffer(generated.buffer) ? generated.buffer : Buffer.from(generated.buffer)
+      content: generatedBuffer
     }];
     for (const attachment of attachments) {
       const opened = await privateAttachmentReader({ config, attachment });
-      if (!Buffer.isBuffer(opened?.buffer)) {
+      if (!Buffer.isBuffer(opened?.buffer) || opened.buffer.length === 0) {
         throw Object.assign(new Error("A private attachment returned invalid content."), {
           code: "BLOB_READ_FAILED"
         });
@@ -516,7 +670,7 @@ export function createStaffApp({
         if (submission.type === "expense" && !attachments.some((attachment) => attachment.kind === "primary")) {
           const error = new Error("A primary expense attachment is required.");
           error.code = "PRIMARY_ATTACHMENT_REQUIRED";
-          error.status = 400;
+          error.status = 422;
           error.fields = ["attachments"];
           throw error;
         }
@@ -540,10 +694,12 @@ export function createStaffApp({
               creator: { name: prepared.creatorName, email: prepared.creatorEmail }
             });
           } catch (error) {
+            const validationIssues = safeDocumentValidationIssues(error);
             console.error("Invoice final document generation failed:", {
               submissionId: prepared.id,
               stage: "prepare",
-              ...safeOperationalError(error, "DOCUMENT_GENERATION_FAILED")
+              ...safeOperationalError(error, "DOCUMENT_GENERATION_FAILED"),
+              ...(validationIssues.length ? { validationIssues } : {})
             });
             throw error;
           }
@@ -557,10 +713,12 @@ export function createStaffApp({
             try {
               mailAttachments = await prepareExpenseMailAttachments(prepared, attachments);
             } catch (error) {
+              const validationIssues = safeDocumentValidationIssues(error);
               console.error("Expense submission preparation failed:", {
                 submissionId: prepared.id,
                 stage: "prepare",
-                ...safeOperationalError(error)
+                ...safeOperationalError(error),
+                ...(validationIssues.length ? { validationIssues } : {})
               });
               await auditSafely({
                 user: request.user,
@@ -570,6 +728,7 @@ export function createStaffApp({
                 metadata: { stage: "prepare", code: safeOperationalError(error).code, deliveryKey },
                 ipHash: auth.clientIpHash(request)
               }, "Expense preparation failure could not be audited:");
+              if (error?.code === "DOCUMENT_VALIDATION_ERROR") throw error;
               throw submissionDeliveryError(error);
             }
 

@@ -11,6 +11,11 @@ const isoDate = z.string()
 const optionalDate = isoDate.optional().or(z.literal(""));
 const money = z.coerce.number().finite().min(0).max(10_000_000);
 const optionalMoney = z.union([money, z.literal(""), z.null()]).optional().transform((value) => value === "" || value === null || value === undefined ? 0 : value);
+// Expense rows have several legacy monetary aliases. Preserve an omitted alias
+// as omitted so document preparation cannot mistake a schema default of 0 for
+// an explicitly supplied gross amount.
+const optionalExpenseMoney = z.union([money, z.literal(""), z.null()]).optional()
+  .transform((value) => value === "" || value === null || value === undefined ? undefined : value);
 const identifier = z.string().trim().max(100).regex(/^[\p{L}\p{N} ._\-/]*$/u).optional().default("");
 
 function isSafePublicImageUrl(value) {
@@ -75,13 +80,13 @@ const expenseItem = z.object({
   documentNumber: optionalText(120),
   sourceDocument: optionalText(240),
   sourceDocumentNumber: optionalText(120),
-  originalTotal: optionalMoney,
+  originalTotal: optionalExpenseMoney,
   currency: z.string().trim().toUpperCase().max(3).optional().default("EUR"),
-  totalEUR: optionalMoney,
-  requestedEUR: optionalMoney,
-  ineligibleEUR: optionalMoney,
-  previouslyReimbursedEUR: optionalMoney,
-  amount: optionalMoney
+  totalEUR: optionalExpenseMoney,
+  requestedEUR: optionalExpenseMoney,
+  ineligibleEUR: optionalExpenseMoney,
+  previouslyReimbursedEUR: optionalExpenseMoney,
+  amount: optionalExpenseMoney
 }).strict();
 
 const expenseDraft = z.object({
@@ -106,8 +111,8 @@ const expenseDraft = z.object({
   expenseCategory: optionalText(240),
   fundingSource: optionalText(240),
   budgetLine: optionalText(240),
-  amount: optionalMoney,
-  requestedTotalEUR: optionalMoney,
+  amount: optionalExpenseMoney,
+  requestedTotalEUR: optionalExpenseMoney,
   email: z.string().trim().email().max(254).optional().or(z.literal("")),
   phone: optionalText(60),
   accountHolder: optionalText(200),
@@ -183,7 +188,10 @@ function ensureFinal(type, data) {
     requireValue("items", data.items);
     data.items.forEach((item, index) => {
       requireValue(`items.${index}.date`, item.date || item.expenseDate);
-      requireValue(`items.${index}.documentNumber`, item.documentNumber || item.sourceDocumentNumber);
+      requireValue(
+        `items.${index}.documentNumber`,
+        item.documentNumber || item.sourceDocumentNumber || item.sourceDocument
+      );
       requireValue(`items.${index}.vendor`, item.vendor || item.provider);
       requireValue(`items.${index}.description`, item.description);
       if (!(item.requestedEUR > 0 || item.amount > 0)) {
@@ -247,12 +255,21 @@ export function validateSubmissionData(type, input, { final = false } = {}) {
   if (type === "expense") {
     if (!result.data.goal && result.data.purpose) result.data.goal = result.data.purpose;
     if (result.data.items.length) {
-      result.data.items = result.data.items.map((item) => ({
-        ...item,
-        provider: item.provider || item.vendor,
-        sourceDocumentNumber: item.sourceDocumentNumber || item.documentNumber,
-        requestedEUR: Number((item.requestedEUR || item.amount || 0).toFixed(2))
-      }));
+      result.data.items = result.data.items.map((item) => {
+        const requestedEUR = Number((item.requestedEUR || item.amount || 0).toFixed(2));
+        // Old drafts can already contain synthetic zeroes for totalEUR and
+        // originalTotal. Prefer the first positive gross alias, then the UI's
+        // single amount field, and persist one canonical gross value.
+        const grossSource = [item.totalEUR, item.originalTotal, item.amount, requestedEUR]
+          .find((value) => Number(value) > 0) || 0;
+        return {
+          ...item,
+          provider: item.provider || item.vendor,
+          sourceDocumentNumber: item.sourceDocumentNumber || item.documentNumber || item.sourceDocument,
+          totalEUR: Number(Number(grossSource).toFixed(2)),
+          requestedEUR
+        };
+      });
       result.data.amount = Number(
         result.data.items.reduce((sum, item) => sum + item.requestedEUR, 0).toFixed(2)
       );

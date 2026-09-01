@@ -66,7 +66,9 @@ test("final expense validation accepts current UI fields and recalculates totals
   assert.equal(result.goal, result.purpose);
   assert.equal(result.items[0].provider, "Näide OÜ");
   assert.equal(result.items[0].sourceDocumentNumber, "TSEKK-1");
+  assert.equal(result.items[0].totalEUR, 12.35);
   assert.equal(result.items[0].requestedEUR, 12.35);
+  assert.equal(Object.hasOwn(result.items[0], "originalTotal"), false);
   assert.equal(result.amount, 12.35);
   assert.equal(result.requestedTotalEUR, 12.35);
 });
@@ -88,6 +90,23 @@ test("final expense validation reports every incomplete line-item field", () => 
   ]) {
     assert.ok(fields.has(field), `Expected missing field: ${field}`);
   }
+});
+
+test("final expense validation rejects a zero reimbursement amount", () => {
+  const error = captureValidationError(
+    () => validateSubmissionData("expense", validExpense({
+      items: [{
+        date: "2026-08-28",
+        documentNumber: "TSEKK-1",
+        vendor: "Näide OÜ",
+        description: "Töötoa materjalid",
+        amount: 0,
+      }],
+    }), { final: true }),
+    "INCOMPLETE_SUBMISSION",
+  );
+  assert.ok(error.fields.includes("items.0.amount"));
+  assert.ok(error.fields.includes("amount"));
 });
 
 test("calendar-invalid dates are rejected before final workflow validation", () => {
@@ -151,10 +170,12 @@ test("final invoice validation rejects a due date before the invoice date", () =
 
 test("final news validation normalizes paragraphs and requires publishable content", () => {
   const result = validateSubmissionData("news", {
+    slug: "noorte-arengupaev",
     title: "Noorte arengupäev",
     date: "2026-08-29",
     summary: "Lühikokkuvõte",
     content: "Esimene lõik.\n\nTeine lõik.",
+    author: "Mari Maasikas",
   }, { final: true });
   assert.deepEqual(result.content, ["Esimene lõik.", "Teine lõik."]);
 
@@ -162,5 +183,5 @@ test("final news validation normalizes paragraphs and requires publishable conte
     () => validateSubmissionData("news", { title: "Pealkiri" }, { final: true }),
     "INCOMPLETE_SUBMISSION",
   );
-  assert.deepEqual(new Set(error.fields), new Set(["date", "summary", "content"]));
+  assert.deepEqual(new Set(error.fields), new Set(["slug", "date", "summary", "content", "author"]));
 });

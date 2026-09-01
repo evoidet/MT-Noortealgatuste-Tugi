@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import pg from "pg";
 
 const { Pool } = pg;
@@ -478,6 +479,11 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         if (!["DRAFT", "NEEDS_CHANGES"].includes(currentSubmission.status)) {
           throw createWorkflowStateError();
         }
+        // Do not create a new revision for an identical retry. The expense
+        // delivery idempotency key includes revision/updatedAt, so preserving
+        // both prevents a retry after an ambiguous final-status failure from
+        // sending the same email again.
+        if (isDeepStrictEqual(currentSubmission.data, data ?? {})) return currentSubmission;
         const nextRevision = currentSubmission.revision + 1;
         await client.query(`
           UPDATE submissions

@@ -33,7 +33,8 @@ const state = {
   },
   lastSubmitted: null,
   previewing: false,
-  submitting: false
+  submitting: false,
+  validationIssues: []
 };
 
 const elements = {
@@ -257,6 +258,7 @@ function handlePreviewError(error) {
 }
 
 function handleSubmissionError(error) {
+  if (renderSubmissionValidation(error)) return;
   if (error instanceof ApiError && [400, 401, 403, 413, 415, 422, 429].includes(error.status)) {
     handleError(error);
     return;
@@ -265,6 +267,144 @@ function handleSubmissionError(error) {
   showToast(friendlyErrorKey(error) === "staff.errors.submissionInProgress"
     ? "staff.errors.submissionInProgress"
     : "staff.errors.submissionFailed", "error");
+}
+
+function structuredValidation(error) {
+  if (!(error instanceof ApiError) || ![400, 422].includes(error.status)) return null;
+  const fields = Array.isArray(error.payload?.fields)
+    ? error.payload.fields
+      .map((issue) => ({
+        field: String(issue?.field || "").slice(0, 180),
+        message: String(issue?.message || "").trim().slice(0, 500)
+      }))
+      .filter((issue) => issue.field || issue.message)
+    : [];
+  if (!fields.length) return null;
+  return {
+    message: String(error.payload?.message || t("staff.errors.documentValidation")).trim().slice(0, 500),
+    fields
+  };
+}
+
+function renderSubmissionValidation(error) {
+  const validation = structuredValidation(error);
+  const preview = document.querySelector(".staff-preview-view");
+  if (!validation || !preview) return false;
+  preview.querySelector(".staff-validation-summary")?.remove();
+  state.validationIssues = validation.fields;
+  const summary = document.createElement("section");
+  summary.className = "staff-validation-summary";
+  summary.setAttribute("role", "alert");
+  summary.setAttribute("tabindex", "-1");
+
+  const heading = document.createElement("strong");
+  heading.textContent = validation.message;
+  summary.append(heading);
+  const list = document.createElement("ul");
+  validation.fields.forEach((issue) => {
+    const item = document.createElement("li");
+    item.textContent = issue.message || t("staff.errors.validation");
+    list.append(item);
+  });
+  summary.append(list);
+
+  const edit = document.createElement("button");
+  edit.className = "staff-button staff-button--ghost";
+  edit.type = "button";
+  edit.dataset.action = "edit-preview";
+  edit.textContent = t("staff.errors.correctFields");
+  summary.append(edit);
+  preview.querySelector(".staff-preview-actions")?.before(summary);
+  summary.focus({ preventScroll: true });
+  summary.scrollIntoView({ behavior: "smooth", block: "center" });
+  return true;
+}
+
+function validationControlId(type, field) {
+  const direct = {
+    expense: {
+      project: "expenseProject",
+      person: "expensePerson",
+      date: "expenseDate",
+      location: "expenseLocation",
+      activity: "expenseActivity",
+      goal: "expensePurpose",
+      result: "expenseResult",
+      amount: "expenseItemAmount0",
+      attachments: "expensePrimaryDocument"
+    },
+    invoice: {
+      invoiceNumber: "invoiceNumber",
+      client: "invoiceClient",
+      registrationCode: "invoiceRegistrationCode",
+      address: "invoiceAddress",
+      invoiceDate: "invoiceDate",
+      dueDate: "invoiceDueDate",
+      project: "invoiceProject",
+      amount: "invoiceUnitPrice0"
+    },
+    news: {
+      slug: "newsSlug",
+      title: "newsTitle",
+      date: "newsDate",
+      summary: "newsSummary",
+      content: "newsContent",
+      author: "newsAuthor"
+    }
+  };
+  if (direct[type]?.[field]) return direct[type][field];
+  const item = /^items\.(\d+)\.(.+)$/.exec(field);
+  if (!item) return "";
+  const index = item[1];
+  const prefixes = type === "expense"
+    ? {
+      date: "expenseItemDate",
+      documentNumber: "expenseDocumentNumber",
+      vendor: "expenseVendor",
+      description: "expenseItemDescription",
+      amount: "expenseItemAmount"
+    }
+    : {
+      description: "invoiceItemDescription",
+      quantity: "invoiceQuantity",
+      unitPrice: "invoiceUnitPrice"
+    };
+  return prefixes[item[2]] ? `${prefixes[item[2]]}${index}` : "";
+}
+
+function applyFormValidationIssues(type) {
+  if (!state.validationIssues.length) return;
+  let firstControl = null;
+  state.validationIssues.forEach((issue, index) => {
+    const control = document.getElementById(validationControlId(type, issue.field));
+    if (!control) return;
+    firstControl ||= control;
+    const descriptionId = `staffServerValidation${index}`;
+    control.setAttribute("aria-invalid", "true");
+    control.setAttribute("aria-describedby", descriptionId);
+    const container = control.closest(".staff-field, .staff-file-field");
+    container?.classList.add("staff-field--invalid");
+    if (container && issue.message) {
+      const message = document.createElement("small");
+      message.id = descriptionId;
+      message.className = "staff-field-error";
+      message.textContent = issue.message;
+      container.append(message);
+    }
+  });
+  if (firstControl) {
+    firstControl.focus({ preventScroll: true });
+    firstControl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+function clearControlValidation(control) {
+  if (!control?.matches?.("[aria-invalid='true']")) return;
+  const container = control.closest(".staff-field, .staff-file-field");
+  control.removeAttribute("aria-invalid");
+  control.removeAttribute("aria-describedby");
+  container?.classList.remove("staff-field--invalid");
+  container?.querySelector(".staff-field-error")?.remove();
 }
 
 function setBusy(button, busy, key = "staff.common.working") {
@@ -396,6 +536,7 @@ function resetFormState() {
   state.lastSubmitted = null;
   state.previewing = false;
   state.submitting = false;
+  state.validationIssues = [];
 }
 
 async function navigate(view, options = {}) {
@@ -930,7 +1071,7 @@ function expenseItemRow(item = {}, index = 0) {
         ${field({ id: `expenseDocumentNumber${index}`, label: "staff.expense.documentNumber", value: item.documentNumber, required: true })}
         ${field({ id: `expenseVendor${index}`, label: "staff.expense.vendor", value: item.vendor, required: true })}
         ${field({ id: `expenseItemDescription${index}`, label: "staff.expense.itemDescription", value: item.description, required: true, wide: true })}
-        ${field({ id: `expenseItemAmount${index}`, label: "staff.common.amount", value: item.amount, type: "number", required: true, min: "0", step: "0.01", inputmode: "decimal" })}
+        ${field({ id: `expenseItemAmount${index}`, label: "staff.common.amount", value: item.amount, type: "number", required: true, min: "0.01", step: "0.01", inputmode: "decimal" })}
       </div>
     </fieldset>
   `;
@@ -1004,7 +1145,7 @@ function invoiceItemRow(item = {}, index = 0) {
         ${field({ id: `invoiceItemDescription${index}`, label: "staff.invoice.itemDescription", value: item.description, required: true, wide: true, ai: { field: "invoice.description", mode: "formal" } })}
         ${field({ id: `invoiceQuantity${index}`, label: "staff.invoice.quantity", value: item.quantity ?? 1, type: "number", required: true, min: "0.01", step: "0.01", inputmode: "decimal" })}
         ${field({ id: `invoiceUnit${index}`, label: "staff.invoice.unit", value: item.unit || t("staff.invoice.defaultUnit"), required: true })}
-        ${field({ id: `invoiceUnitPrice${index}`, label: "staff.invoice.unitPrice", value: item.unitPrice, type: "number", required: true, min: "0", step: "0.01", inputmode: "decimal" })}
+        ${field({ id: `invoiceUnitPrice${index}`, label: "staff.invoice.unitPrice", value: item.unitPrice, type: "number", required: true, min: "0.01", step: "0.01", inputmode: "decimal" })}
         <div class="staff-line-total">
           <span>${escapeHtml(t("staff.common.lineTotal"))}</span>
           <strong data-invoice-line-total>${escapeHtml(formatMoney(0))}</strong>
@@ -1149,6 +1290,7 @@ function renderForm(type, record = null) {
   applyTranslations(elements.viewRoot);
   updateLiveTotals();
   focusMain();
+  applyFormValidationIssues(type);
 }
 
 function inputValue(id) {
@@ -1453,6 +1595,7 @@ async function openPreview(button) {
     if (!refreshed?.id) throw new ApiError("missing_submission_id", 500, payload);
     state.current = refreshed;
     state.editingId = refreshed.id;
+    state.validationIssues = [];
     renderPreview(type, { ...refreshed.data, ...transientData }, previewAttachments());
   } catch (error) {
     handlePreviewError(error);
@@ -1492,6 +1635,29 @@ function renderSubmissionSuccess(type, record) {
   focusMain();
 }
 
+async function recoverCompletedSubmission(error) {
+  if (!(error instanceof ApiError) || ![403, 409].includes(error.status) || !state.editingId || !state.preview) {
+    return false;
+  }
+  try {
+    const payload = await api.getSubmission(state.editingId);
+    const record = normalizeSubmission(extractSubmission(payload));
+    const completedStatuses = state.preview.type === "invoice"
+      ? ["approved"]
+      : state.preview.type === "news"
+        ? ["submitted", "published"]
+        : ["submitted"];
+    if (!record || !completedStatuses.includes(String(record.status || "").toLowerCase())) return false;
+    const type = state.preview.type;
+    showToast(`staff.success.${type}Toast`, "success");
+    resetFormState();
+    renderSubmissionSuccess(type, record);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function savePreview(button, submit = false) {
   if (!state.preview) return;
   if (submit && state.submitting) return;
@@ -1499,7 +1665,11 @@ async function savePreview(button, submit = false) {
     showToast("staff.errors.primaryAttachmentRequired", "error");
     return;
   }
-  if (submit) state.submitting = true;
+  if (submit) {
+    state.submitting = true;
+    state.validationIssues = [];
+    document.querySelector(".staff-validation-summary")?.remove();
+  }
   setBusy(button, true, submit ? "staff.preview.submitting" : "staff.form.saving");
 
   try {
@@ -1516,8 +1686,11 @@ async function savePreview(button, submit = false) {
       showToast("staff.form.saved", "success");
     }
   } catch (error) {
-    if (submit) handleSubmissionError(error);
-    else handleError(error);
+    if (submit) {
+      if (!await recoverCompletedSubmission(error)) handleSubmissionError(error);
+    } else {
+      handleError(error);
+    }
   } finally {
     if (submit) state.submitting = false;
     setBusy(button, false);
@@ -2172,6 +2345,7 @@ function attachEvents() {
 
   document.addEventListener("change", (event) => {
     const target = event.target;
+    clearControlValidation(target);
 
     if (target.matches("[data-file-group]")) {
       updateSelectedFiles(target);
@@ -2187,6 +2361,7 @@ function attachEvents() {
   });
 
   document.addEventListener("input", (event) => {
+    clearControlValidation(event.target);
     if (
       event.target.matches('[id^="expenseItemAmount"]') ||
       event.target.matches('[id^="invoiceQuantity"]') ||

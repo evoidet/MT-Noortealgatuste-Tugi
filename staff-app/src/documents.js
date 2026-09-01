@@ -49,13 +49,13 @@ function cleanText(value, { fallback = "—", maxLength = 2_000, required = fals
 
   if (!cleaned) {
     if (required) {
-      throw new DocumentValidationError(`${field} is required`, { field });
+      throw new DocumentValidationError(`${field} is required`, { field, reason: "required" });
     }
     return fallback;
   }
 
   if (cleaned.length > maxLength) {
-    throw new DocumentValidationError(`${field} is too long`, { field, maxLength });
+    throw new DocumentValidationError(`${field} is too long`, { field, reason: "too_long", maxLength });
   }
 
   return cleaned;
@@ -72,7 +72,12 @@ function parseDecimal(value, { field, min = 0, max = 1_000_000_000, required = t
   const normalized = typeof value === "string" ? value.replace(/\s/g, "").replace(",", ".") : value;
   const number = Number(normalized);
   if (!Number.isFinite(number) || number < min || number > max) {
-    throw new DocumentValidationError(`${field} must be a finite number between ${min} and ${max}`, { field });
+    throw new DocumentValidationError(`${field} must be a finite number between ${min} and ${max}`, {
+      field,
+      reason: "invalid_number",
+      min,
+      max,
+    });
   }
   return number;
 }
@@ -156,12 +161,18 @@ function normalizeInvoice(data = {}) {
   const buyer = data.buyer && typeof data.buyer === "object" ? data.buyer : {};
   const rawItems = firstDefined(data.items, data.lineItems);
   if (!Array.isArray(rawItems) || rawItems.length < 1 || rawItems.length > 100) {
-    throw new DocumentValidationError("Invoice must contain between 1 and 100 line items", { field: "items" });
+    throw new DocumentValidationError("Invoice must contain between 1 and 100 line items", {
+      field: "items",
+      reason: "invalid_item_count",
+    });
   }
 
   const items = rawItems.map((item, index) => {
     if (!item || typeof item !== "object") {
-      throw new DocumentValidationError(`Invoice item ${index + 1} is invalid`, { field: `items[${index}]` });
+      throw new DocumentValidationError(`Invoice item ${index + 1} is invalid`, {
+        field: `items[${index}]`,
+        reason: "invalid_item",
+      });
     }
     const quantityValue = firstDefined(item.quantity, item.amount, 1);
     const quantity = parseDecimal(quantityValue, {
@@ -205,7 +216,10 @@ function normalizeInvoice(data = {}) {
   });
   const currency = cleanText(firstDefined(data.currency, "EUR"), { maxLength: 3 }).toUpperCase();
   if (currency !== "EUR") {
-    throw new DocumentValidationError("Invoice template supports EUR only", { field: "currency" });
+    throw new DocumentValidationError("Invoice template supports EUR only", {
+      field: "currency",
+      reason: "unsupported_currency",
+    });
   }
 
   return {
@@ -253,12 +267,18 @@ function normalizeExpense(data = {}, meta = {}) {
   const recipient = data.recipient && typeof data.recipient === "object" ? data.recipient : {};
   const rawItems = firstDefined(data.items, data.expenses);
   if (!Array.isArray(rawItems) || rawItems.length < 1 || rawItems.length > 100) {
-    throw new DocumentValidationError("Expense report must contain between 1 and 100 cost items", { field: "items" });
+    throw new DocumentValidationError("Expense report must contain between 1 and 100 cost items", {
+      field: "items",
+      reason: "invalid_item_count",
+    });
   }
 
   const items = rawItems.map((item, index) => {
     if (!item || typeof item !== "object") {
-      throw new DocumentValidationError(`Expense item ${index + 1} is invalid`, { field: `items[${index}]` });
+      throw new DocumentValidationError(`Expense item ${index + 1} is invalid`, {
+        field: `items[${index}]`,
+        reason: "invalid_item",
+      });
     }
     const grossCents = toCents(
       firstDefined(
@@ -283,21 +303,31 @@ function normalizeExpense(data = {}, meta = {}) {
       max: 100_000_000,
     });
     const defaultExcluded = Math.max(0, grossCents - requestedCents) / 100;
+    const schemaExcluded = Number(item.ineligibleEUR || 0) + Number(item.previouslyReimbursedEUR || 0);
     const excludedCents = toCents(
-      firstDefined(item.excludedAmount, item.nonReimbursableAmount, item.previouslyReimbursedAmount, defaultExcluded),
+      firstDefined(
+        item.excludedAmount,
+        item.nonReimbursableAmount,
+        item.previouslyReimbursedAmount,
+        schemaExcluded > 0 ? schemaExcluded : undefined,
+        defaultExcluded
+      ),
       { field: `items[${index}].excludedAmount`, min: 0, max: 100_000_000 },
     );
     if (requestedCents > grossCents || requestedCents + excludedCents > grossCents) {
       throw new DocumentValidationError(
         `Expense item ${index + 1} requested and excluded amounts cannot exceed its gross amount`,
-        { field: `items[${index}]` },
+        { field: `items[${index}].amount`, reason: "amount_reconciliation" },
       );
     }
 
-    const currency = cleanText(firstDefined(item.currency, "EUR"), { maxLength: 3 }).toUpperCase();
+    const currency = cleanText(firstDefined(item.currency, "EUR"), {
+      field: `items[${index}].currency`,
+      maxLength: 3,
+    }).toUpperCase();
     let grossAmount = formatMoney(grossCents);
     if (currency !== "EUR") {
-      const originalAmount = parseDecimal(item.originalAmount, {
+      const originalAmount = parseDecimal(firstDefined(item.originalAmount, item.originalTotal), {
         field: `items[${index}].originalAmount`,
         min: 0,
         max: 1_000_000_000,
@@ -315,7 +345,7 @@ function normalizeExpense(data = {}, meta = {}) {
       description: cleanText(firstDefined(combinedDescription, item.description, item.vendor), {
         required: true,
         field: `items[${index}].description`,
-        maxLength: 500,
+        maxLength: 750,
       }),
       date: formatDate(firstDefined(item.date, item.expenseDate, item.period), {
         required: true,
@@ -324,6 +354,7 @@ function normalizeExpense(data = {}, meta = {}) {
       documentReference: cleanText(firstDefined(
         item.documentReference,
         item.sourceDocumentNumber,
+        item.sourceDocument,
         item.documentNumber,
         item.fileName
       ), {
@@ -364,7 +395,7 @@ function normalizeExpense(data = {}, meta = {}) {
     : undefined;
   const documentNumber = cleanText(
     firstDefined(data.documentNumber, data.number, generatedDocumentNumber),
-    { fallback: "—", maxLength: 80 }
+    { fallback: "—", field: "documentNumber", maxLength: 100 }
   );
   const documentDate = formatDate(firstDefined(data.documentDate, data.date), {
     required: true,
@@ -382,7 +413,10 @@ function normalizeExpense(data = {}, meta = {}) {
 
   const rawAttachments = firstDefined(data.attachments, meta.attachments, []);
   if (!Array.isArray(rawAttachments) || rawAttachments.length > 100) {
-    throw new DocumentValidationError("attachments must be an array with at most 100 entries", { field: "attachments" });
+    throw new DocumentValidationError("attachments must be an array with at most 100 entries", {
+      field: "attachments",
+      reason: "invalid_attachment_count",
+    });
   }
   const attachments = rawAttachments.map((attachment, index) => ({
     name: cleanText(
@@ -400,18 +434,31 @@ function normalizeExpense(data = {}, meta = {}) {
     values: {
       documentNumberAndDate: `${documentNumber} / ${documentDate}`,
       recipientName,
-      recipientRole: cleanText(firstDefined(recipient.role, data.recipientRole, data.role), { maxLength: 200 }),
-      contactAccountIban: cleanText(firstDefined(data.contactAccountIban, contactParts.join("; ")), { maxLength: 500 }),
+      recipientRole: cleanText(firstDefined(recipient.role, data.recipientRole, data.role), {
+        field: "recipient.role",
+        maxLength: 200,
+      }),
+      contactAccountIban: cleanText(firstDefined(data.contactAccountIban, contactParts.join("; ")), {
+        field: "contactAccountIban",
+        maxLength: 700,
+      }),
       activityName: cleanText(firstDefined(data.project, data.activityName, data.activity, data.projectName), {
         required: true,
         field: "activityName",
         maxLength: 500,
       }),
-      expenseType: cleanText(firstDefined(data.expenseType, data.costType), { maxLength: 300 }),
+      expenseType: cleanText(firstDefined(data.expenseType, data.costType), {
+        field: "expenseType",
+        maxLength: 300,
+      }),
       locationPeriodRoute: cleanText(firstDefined(data.locationPeriodRoute, data.locationAndPeriod, data.route), {
+        field: "locationPeriodRoute",
         maxLength: 700,
       }),
-      fundingSource: cleanText(firstDefined(data.fundingSource, data.budgetLine), { maxLength: 300 }),
+      fundingSource: cleanText(firstDefined(data.fundingSource, data.budgetLine), {
+        field: "fundingSource",
+        maxLength: 300,
+      }),
       whereWhen: cleanText(firstDefined(
         data.whereWhen,
         data.locationAndDates,
@@ -441,7 +488,10 @@ function normalizeExpense(data = {}, meta = {}) {
         field: "result",
         maxLength: 4_000,
       }),
-      participants: cleanText(firstDefined(data.participants, data.beneficiaries), { maxLength: 2_000 }),
+      participants: cleanText(firstDefined(data.participants, data.beneficiaries), {
+        field: "participants",
+        maxLength: 2_000,
+      }),
       items: items.map(({ grossCents: _grossCents, requestedCents: _requestedCents, excludedCents: _excludedCents, ...item }) => item),
       grossTotal: formatMoney(grossTotalCents),
       requestedTotal: formatMoney(requestedTotalCents),
@@ -449,9 +499,10 @@ function normalizeExpense(data = {}, meta = {}) {
       iban,
       signatureStatus: cleanText(firstDefined(data.signatureStatus, meta.signatureStatus), {
         fallback: "Allkirjastamata",
+        field: "signatureStatus",
         maxLength: 100,
       }),
-      signatureDate: formatDate(firstDefined(data.signatureDate, meta.signatureDate)),
+      signatureDate: formatDate(firstDefined(data.signatureDate, meta.signatureDate), { field: "signatureDate" }),
       attachments,
     },
     documentNumber,
@@ -485,7 +536,10 @@ export async function generateSubmissionDocument(type, data, meta = {}) {
   if (["expense", "expensereport", "kulu", "kuluaruanne"].includes(normalizedType)) {
     return generateExpenseReportDocument(data, meta);
   }
-  throw new DocumentValidationError(`Unsupported document type: ${type || "(empty)"}`, { field: "type" });
+  throw new DocumentValidationError(`Unsupported document type: ${type || "(empty)"}`, {
+    field: "type",
+    reason: "unsupported_type",
+  });
 }
 
 export function getDocumentTemplateAvailability() {

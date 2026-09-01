@@ -10,6 +10,7 @@ import {
   generateInvoiceDocument,
   generateSubmissionDocument,
 } from "../src/documents.js";
+import { validateSubmissionData } from "../src/validation.js";
 
 const FORBIDDEN_INVOICE_TEXT = ["TÄITMISE ABI", "KUSTUTA ENNE SAATMIST", "AAAA-JRK"];
 const FORBIDDEN_EXPENSE_TEXT = [
@@ -161,6 +162,68 @@ test("expense output contains actual values and attachments but no sample instru
   assert.equal(documentXml.includes("2F75B5"), false, "blue italic example styling remained in body values");
   assert.equal(documentXml.includes("{#items}"), false);
   assert.equal(documentXml.includes("{/attachments}"), false);
+});
+
+test("current UI expense data remains generator-valid after final normalization", async () => {
+  const normalized = validateSubmissionData("expense", {
+    project: "Noorte arengupäev",
+    person: "Mari Maasikas",
+    date: "2026-08-29",
+    location: "Narva",
+    activity: "Korraldasin noortele töötoa.",
+    purpose: "Kulu oli töötoa läbiviimiseks vajalik.",
+    result: "Töötoas osales 18 noort.",
+    items: [{
+      date: "2026-08-28",
+      documentNumber: "TSEKK-1",
+      vendor: "Näide OÜ",
+      description: "Töötoa materjalid",
+      amount: 12.345,
+      // Existing production drafts can contain these former schema defaults.
+      originalTotal: 0,
+      totalEUR: 0,
+    }],
+  }, { final: true });
+
+  assert.equal(normalized.items[0].totalEUR, 12.35);
+  assert.equal(normalized.items[0].requestedEUR, 12.35);
+  const result = await generateExpenseReportDocument(normalized, {
+    submission: { id: "60a25fad-becd-4942-b0f6-979f71bb9960" },
+    attachments: [{ originalName: "tsekk.pdf" }],
+  });
+  assert.ok(result.buffer.length > 0);
+  assert.match(decodeXmlText(documentParts(result.buffer).xml), /12,35 €/);
+});
+
+test("accepted foreign-currency and reimbursement aliases render consistently", async () => {
+  const normalized = validateSubmissionData("expense", {
+    project: "Rahvusvaheline noortekohtumine",
+    person: "Mari Maasikas",
+    date: "2026-08-29",
+    location: "Helsingi",
+    activity: "Korraldasin kohtumise.",
+    purpose: "Kulu oli vajalik osalemiseks.",
+    result: "Kohtumine toimus edukalt.",
+    items: [{
+      date: "2026-08-28",
+      sourceDocument: "receipt.pdf",
+      vendor: "Example Oy",
+      description: "Materjalid",
+      currency: "USD",
+      originalTotal: 100,
+      totalEUR: 92,
+      requestedEUR: 90,
+      ineligibleEUR: 1,
+      previouslyReimbursedEUR: 1,
+    }],
+  }, { final: true });
+
+  const result = await generateExpenseReportDocument(normalized);
+  const text = decodeXmlText(documentParts(result.buffer).xml);
+  assert.match(text, /100 USD \/ 92,00 €/);
+  assert.match(text, /90,00 €/);
+  assert.match(text, /2,00 €/);
+  assert.match(text, /receipt\.pdf/);
 });
 
 test("dispatch accepts Estonian and English type names", async () => {

@@ -7,6 +7,7 @@ import {
   deleteAttachmentPermanently,
   persistUploadedFile,
   persistUploadedFileWithRecord,
+  readPrivateAttachment,
   validateClientUploadMetadata,
   verifyClientUploadedFile
 } from "../src/storage.js";
@@ -228,6 +229,69 @@ test("download grants are private, short-lived, and pathname-scoped", async () =
   assert.deepEqual(issueOptions.operations, ["get"]);
   assert.equal(issueOptions.pathname, pathname);
   assert.equal(issueOptions.token, "unit-test-token");
+});
+
+test("send-time attachment reads use private Blob access and verify size and hash", async () => {
+  const pathname = `staff-attachments/${"d".repeat(64)}.pdf`;
+  const pdf = Buffer.from("%PDF-1.7\nverified test PDF\n", "utf8");
+  let getCall;
+  const result = await readPrivateAttachment({
+    config,
+    attachment: {
+      blobPathname: pathname,
+      size: pdf.length,
+      sha256: createHash("sha256").update(pdf).digest("hex"),
+    },
+    blobClient: {
+      async get(value, options) {
+        getCall = { value, options };
+        return {
+          statusCode: 200,
+          stream: streamOf(pdf),
+          blob: { pathname, url: privateUrl(pathname), size: pdf.length },
+        };
+      },
+    },
+  });
+  assert.deepEqual(result.buffer, pdf);
+  assert.deepEqual(getCall, {
+    value: pathname,
+    options: { access: "private", token: "unit-test-token" },
+  });
+});
+
+test("send-time attachment reads reject missing and hash-mismatched Blobs", async () => {
+  const pathname = `staff-attachments/${"e".repeat(64)}.pdf`;
+  await assert.rejects(
+    readPrivateAttachment({
+      config,
+      attachment: { blobPathname: pathname },
+      blobClient: { async get() { return null; } },
+    }),
+    { code: "BLOB_NOT_FOUND" },
+  );
+
+  const pdf = Buffer.from("%PDF-1.7\nchanged\n", "utf8");
+  await assert.rejects(
+    readPrivateAttachment({
+      config,
+      attachment: {
+        blobPathname: pathname,
+        size: pdf.length,
+        sha256: "f".repeat(64),
+      },
+      blobClient: {
+        async get() {
+          return {
+            statusCode: 200,
+            stream: streamOf(pdf),
+            blob: { pathname, url: privateUrl(pathname), size: pdf.length },
+          };
+        },
+      },
+    }),
+    { code: "BLOB_INTEGRITY_FAILED" },
+  );
 });
 
 test("permanent deletion marks the row before Blob deletion and removes the row last", async () => {

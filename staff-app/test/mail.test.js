@@ -23,6 +23,8 @@ function expenseSubmission(overrides = {}) {
     id: "9f71c168-43d7-4c51-aa5f-e4b6384db777",
     creatorName: "Mari Maasikas",
     creatorEmail: "mari@noortetugi.ee",
+    revision: 3,
+    updatedAt: "2026-08-30T10:14:00.000Z",
     submittedAt: "2026-08-30T10:15:00.000Z",
     data: {
       project: "Noorte arengupäev",
@@ -31,6 +33,21 @@ function expenseSubmission(overrides = {}) {
     },
     ...overrides,
   };
+}
+
+function expenseAttachments() {
+  return [
+    {
+      filename: "kuluaruanne-KA-TEST.docx",
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      content: Buffer.from("generated-docx"),
+    },
+    {
+      filename: "tsekk.pdf",
+      contentType: "application/pdf",
+      content: Buffer.from("%PDF-1.7 test attachment"),
+    },
+  ];
 }
 
 test("mail service reports unavailable configuration without creating a transport", async () => {
@@ -61,14 +78,30 @@ test("mail service sends a plain-text expense summary to the configured finance 
   await service.sendExpenseSubmitted({
     submission: expenseSubmission(),
     reviewUrl: "https://staff.example.test/admin?submission=9f71c168-43d7-4c51-aa5f-e4b6384db777",
+    attachments: expenseAttachments(),
   });
 
   assert.equal(sent.length, 1);
   const [message] = sent;
   assert.equal(message.from, "Noorte Tugi <staff@example.test>");
   assert.equal(message.to, "egor@noortetugi.ee");
+  assert.equal(
+    message.messageId,
+    "<expense-9f71c168-43d7-4c51-aa5f-e4b6384db777-r3-1788084840000@noortetugi.ee>",
+  );
   assert.equal(message.html, undefined);
-  assert.equal(message.attachments, undefined);
+  assert.equal(message.attachments.length, 2);
+  assert.deepEqual(
+    message.attachments.map(({ filename, contentType, content }) => ({ filename, contentType, size: content.length })),
+    [
+      {
+        filename: "kuluaruanne-KA-TEST.docx",
+        contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        size: 14,
+      },
+      { filename: "tsekk.pdf", contentType: "application/pdf", size: 24 },
+    ],
+  );
   assert.match(message.subject, /Mari Maasikas/);
   assert.match(message.subject, /Noorte arengupäev/);
   assert.match(message.text, /Esitaja: Mari Maasikas/);
@@ -76,7 +109,7 @@ test("mail service sends a plain-text expense summary to the configured finance 
   assert.match(message.text, /42,50\s*€/u);
   assert.match(message.text, /9f71c168-43d7-4c51-aa5f-e4b6384db777/);
   assert.match(message.text, /https:\/\/staff\.example\.test\/admin\?submission=/);
-  assert.match(message.text, /Manuseid ei ole sellele kirjale lisatud/);
+  assert.match(message.text, /Manuseid: 2/);
 });
 
 test("mail subject strips header injection and recipient cannot be overridden by submission data", async () => {
@@ -95,12 +128,13 @@ test("mail subject strips header injection and recipient cannot be overridden by
       },
     }),
     reviewUrl: "https://staff.example.test/admin?submission=safe-id",
+    attachments: expenseAttachments(),
   });
 
   assert.equal(sent.length, 1);
   assert.equal(sent[0].to, "egor@noortetugi.ee");
   assert.equal(/[\r\n]/.test(sent[0].subject), false);
-  assert.equal(sent[0].attachments, undefined);
+  assert.equal(sent[0].attachments.length, 2);
 });
 
 test("mail transport failures are propagated to the asynchronous notification caller", async () => {
@@ -116,7 +150,26 @@ test("mail transport failures are propagated to the asynchronous notification ca
     () => service.sendExpenseSubmitted({
       submission: expenseSubmission(),
       reviewUrl: "https://staff.example.test/admin?submission=safe-id",
+      attachments: expenseAttachments(),
     }),
     (error) => error === providerError,
+  );
+});
+
+test("mail service rejects empty generated or uploaded attachments", async () => {
+  const service = createMailService(mailConfig(), {
+    transport: { async sendMail() {} },
+  });
+  await assert.rejects(
+    () => service.sendExpenseSubmitted({
+      submission: expenseSubmission(),
+      reviewUrl: "https://staff.example.test/admin?submission=safe-id",
+      attachments: [{
+        filename: "empty.pdf",
+        contentType: "application/pdf",
+        content: Buffer.alloc(0),
+      }],
+    }),
+    (error) => error?.code === "MAIL_ATTACHMENT_INVALID",
   );
 });
