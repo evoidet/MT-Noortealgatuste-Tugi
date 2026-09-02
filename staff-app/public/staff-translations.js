@@ -191,7 +191,7 @@
     "staff.ai.original": ["Algne tekst", "Original", "Исходный текст"],
     "staff.ai.suggestion": ["Ettepanek", "Suggestion", "Предложение"],
     "staff.ai.suggestionEmpty": ["Ettepanek ilmub siia pärast loomist.", "The suggestion will appear here.", "Предложенный вариант появится здесь."],
-    "staff.ai.safetyNote": ["Selles vaates rakendub ettepanek ainult sinu kinnitusel. Lõplikul esitamisel võib AI parandada aruande tekstiväljade keelt, kuid faktilisi andmeid ei muudeta.", "Suggestions in this view are applied only after you accept them. On final submission, AI may correct language in report text fields, but factual data is not changed.", "В этом окне вариант применяется только после вашего подтверждения. При финальной отправке ИИ может исправить язык в текстовых полях отчёта, но не изменяет фактические данные."],
+    "staff.ai.safetyNote": ["AI ei muuda teksti automaatselt. Kontrolli tulemus üle ja kinnita kasutamine ise.", "AI never replaces your text automatically. Review the suggestion and accept it yourself.", "ИИ не заменяет текст автоматически. Проверьте вариант и подтвердите его использование."],
     "staff.ai.generate": ["Loo ettepanek", "Generate suggestion", "Создать вариант"],
     "staff.ai.keepOriginal": ["Jäta algne tekst", "Keep original", "Оставить исходный текст"],
     "staff.ai.useSuggestion": ["Kasuta ettepanekut", "Use suggestion", "Использовать вариант"],

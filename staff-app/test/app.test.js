@@ -244,7 +244,7 @@ test("missing primary expense attachment is a field-level 422 error", async () =
   assert.equal(database.operations.includes("status"), false);
 });
 
-test("successful expense submission sends generated and uploaded attachments before status changes", async () => {
+test("successful expense submission without an OpenAI key sends generated and uploaded attachments before status changes", async () => {
   const config = testConfig();
   const database = expenseRouteDatabase({
     attachments: [
@@ -290,6 +290,7 @@ test("successful expense submission sends generated and uploaded attachments bef
 
   const response = await authenticatedSubmissionRequest(app, config, database.current.id);
   assert.equal(response.status, 200);
+  assert.equal(config.openAiApiKey, "");
   assert.equal(response.body.item.status, "SUBMITTED");
   assert.deepEqual(sent.attachments.map(({ filename, contentType, content }) => ({
     filename,
@@ -377,10 +378,10 @@ test("retry after email success and status failure does not send a duplicate", a
   }
 });
 
-test("expense submission executes AI correction and uses corrected prose downstream", async () => {
+test("final expense submission never invokes AI or rewrites user prose", async () => {
   const config = testConfig();
   const database = expenseRouteDatabase();
-  const originalItems = structuredClone(database.current.data.items);
+  const original = structuredClone(database.current.data);
   let aiCalls = 0;
   let documentData;
   let mailedData;
@@ -389,17 +390,13 @@ test("expense submission executes AI correction and uses corrected prose downstr
     database,
     aiAssistant: {
       available: true,
-      async correctExpense(data) {
+      async improve() {
         aiCalls += 1;
-        database.operations.push("ai-correction");
-        return {
-          data: {
-            ...data,
-            activity: "Korraldasin noortele korrektse töötoa.",
-            goal: "Kulu oli vajalik töötoa läbiviimiseks."
-          },
-          correctedFields: ["activity"]
-        };
+        throw new Error("Final submission must not request an AI suggestion.");
+      },
+      async correctExpense() {
+        aiCalls += 1;
+        throw new Error("Final submission must not invoke automatic AI correction.");
       }
     },
     documentGenerator: async (_type, data) => {
@@ -423,68 +420,66 @@ test("expense submission executes AI correction and uses corrected prose downstr
   const response = await authenticatedSubmissionRequest(app, config, database.current.id);
 
   assert.equal(response.status, 200);
-  assert.equal(aiCalls, 1);
-  assert.equal(documentData.activity, "Korraldasin noortele korrektse töötoa.");
-  assert.equal(mailedData.activity, documentData.activity);
-  assert.equal(database.current.data.activity, documentData.activity);
-  assert.deepEqual(
-    Object.fromEntries(["date", "documentNumber", "vendor", "description", "amount"].map((field) => [
-      field,
-      documentData.items[0][field]
-    ])),
-    originalItems[0]
-  );
-  assert.equal(documentData.date, "2026-08-29");
-  assert.equal(documentData.amount, 12.35);
-  assert.ok(database.operations.indexOf("ai-correction") < database.operations.indexOf("document"));
+  assert.equal(aiCalls, 0);
+  assert.equal(documentData.activity, original.activity);
+  assert.equal(documentData.purpose, original.purpose);
+  assert.equal(documentData.result, original.result);
+  assert.equal(documentData.project, original.project);
+  assert.equal(documentData.person, original.person);
+  assert.equal(documentData.date, original.date);
+  assert.equal(documentData.location, original.location);
+  assert.equal(documentData.items[0].date, original.items[0].date);
+  assert.equal(documentData.items[0].documentNumber, original.items[0].documentNumber);
+  assert.equal(documentData.items[0].vendor, original.items[0].vendor);
+  assert.equal(documentData.items[0].description, original.items[0].description);
+  assert.equal(documentData.items[0].amount, original.items[0].amount);
+  assert.deepEqual(mailedData, documentData);
+  assert.deepEqual(database.current.data, documentData);
+  assert.equal(database.operations.some((entry) => entry.includes("EXPENSE_AI_")), false);
   assert.ok(database.operations.indexOf("document") < database.operations.indexOf("mail"));
 });
 
-test("expense submission rejects AI changes to protected financial data and safely uses validated input", async () => {
+test("manual expense AI returns a suggestion without mutating the saved draft", async () => {
   const config = testConfig();
   const database = expenseRouteDatabase();
-  let documentData;
-  const logs = [];
-  const originalConsoleError = console.error;
-  console.error = (...entries) => logs.push(entries);
-  try {
-    const { app } = createStaffApp({
-      config,
-      database,
-      aiAssistant: {
-        available: true,
-        async correctExpense(data) {
-          return {
-            data: {
-              ...data,
-              items: data.items.map((item) => ({ ...item, requestedEUR: 999 }))
-            },
-            correctedFields: []
-          };
-        }
-      },
-      documentGenerator: async (_type, data) => {
-        documentData = structuredClone(data);
-        return {
-          buffer: Buffer.from("generated document"),
-          filename: "kuluaruanne-KA-TEST.docx",
-          contentType: DOCX_CONTENT_TYPE
-        };
-      },
-      privateAttachmentReader: async () => ({ buffer: Buffer.from("%PDF-1.7 attachment") }),
-      mailService: { async sendExpenseSubmitted() {} }
+  const original = structuredClone(database.current.data);
+  const aiRequests = [];
+  const { app } = createStaffApp({
+    config,
+    database,
+    aiAssistant: {
+      available: true,
+      async improve(input) {
+        aiRequests.push(input);
+        return "Korraldasin noortele keeleliselt parandatud töötoa.";
+      }
+    },
+    mailService
+  });
+  const cookie = `${config.cookieName}=test-session-token`;
+  const session = await request(app).get("/api/staff/session").set("Cookie", cookie);
+
+  const response = await request(app)
+    .post("/api/staff/ai/improve")
+    .set("Cookie", cookie)
+    .set("X-CSRF-Token", session.body.csrfToken)
+    .send({
+      text: original.activity,
+      field: "expense.activity",
+      mode: "fix_language",
+      language: "et"
     });
 
-    const response = await authenticatedSubmissionRequest(app, config, database.current.id);
-
-    assert.equal(response.status, 200);
-    assert.equal(documentData.items[0].requestedEUR, 12.35);
-    const correctionLog = logs.find(([message]) => message === "Expense AI correction failed:");
-    assert.equal(correctionLog?.[1]?.stage, "ai-correction");
-    assert.equal(correctionLog?.[1]?.code, "AI_FACT_GUARD_REJECTED");
-  } finally {
-    console.error = originalConsoleError;
-  }
+  assert.equal(response.status, 200);
+  assert.equal(response.body.suggestion, "Korraldasin noortele keeleliselt parandatud töötoa.");
+  assert.deepEqual(aiRequests, [{
+    text: original.activity,
+    field: "expense.activity",
+    mode: "fix_language",
+    language: "et"
+  }]);
+  assert.deepEqual(database.current.data, original);
+  assert.equal(database.operations.includes("audit:AI_TEXT_IMPROVED"), true);
 });
 
 test("expense submission reaches a mocked Nodemailer transport with safe Gmail options", async () => {

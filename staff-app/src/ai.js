@@ -15,15 +15,6 @@ const currencyCodes = new Set([
   "SGD", "TRY", "UAH", "USD", "ZAR"
 ]);
 
-const expenseProseFields = Object.freeze([
-  { key: "activity", field: "expense.activity" },
-  { key: "purpose", field: "expense.goal" },
-  { key: "goal", field: "expense.goal" },
-  { key: "result", field: "expense.result" },
-  { key: "necessity", field: "expense.necessity" },
-  { key: "participants", field: "expense.participants" }
-]);
-
 function matches(value, pattern, normalize = (entry) => entry) {
   return [...String(value).matchAll(pattern)].map((match) => normalize(match[0]));
 }
@@ -127,36 +118,6 @@ export function createAiAssistant(config, {
 
   return {
     available: Boolean(client),
-    improve,
-    async correctExpense(data, { language = "et" } = {}) {
-      if (!client) throw unavailableError();
-      if (!data || typeof data !== "object" || Array.isArray(data)) {
-        const error = new TypeError("Expense data must be an object.");
-        error.code = "AI_INVALID_INPUT";
-        throw error;
-      }
-
-      const requests = new Map();
-      const candidates = expenseProseFields
-        .map(({ key, field }) => ({ key, field, text: data[key] }))
-        .filter(({ text }) => typeof text === "string" && text.trim());
-      const corrections = await Promise.all(candidates.map(async ({ key, field, text }) => {
-        const requestKey = JSON.stringify([field, text]);
-        if (!requests.has(requestKey)) {
-          requests.set(requestKey, improve({ text, field, mode: "fix_language", language }));
-        }
-        return { key, original: text, suggestion: await requests.get(requestKey) };
-      }));
-
-      let correctedData = data;
-      const correctedFields = [];
-      for (const { key, original, suggestion } of corrections) {
-        if (suggestion === original) continue;
-        if (correctedData === data) correctedData = { ...data };
-        correctedData[key] = suggestion;
-        correctedFields.push(key);
-      }
-      return { data: correctedData, correctedFields };
-    }
+    improve
   };
 }

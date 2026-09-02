@@ -57,14 +57,6 @@ const statusForDecision = Object.freeze({
 });
 
 const auditPrefix = Object.freeze({ news: "NEWS", expense: "EXPENSE", invoice: "INVOICE" });
-const expenseAiTextFields = new Set([
-  "activity",
-  "goal",
-  "purpose",
-  "result",
-  "necessity",
-  "participants"
-]);
 const userValidationCodes = new Set([
   "VALIDATION_ERROR",
   "INCOMPLETE_SUBMISSION",
@@ -367,25 +359,6 @@ function expenseDeliveryKey(submission) {
   return `${Number(submission?.revision) || 0}:${String(submission?.updatedAt || "")}`;
 }
 
-function verifiedExpenseCorrection(original, candidate) {
-  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
-    const error = new Error("AI expense correction did not return structured data.");
-    error.code = "AI_INVALID_RESPONSE";
-    throw error;
-  }
-
-  const immutableEntries = (value) => Object.fromEntries(
-    Object.entries(value).filter(([key]) => !expenseAiTextFields.has(key))
-  );
-  if (!isDeepStrictEqual(immutableEntries(original), immutableEntries(candidate))) {
-    const error = new Error("AI expense correction attempted to change protected facts.");
-    error.code = "AI_FACT_GUARD_REJECTED";
-    throw error;
-  }
-
-  return validateSubmissionData("expense", candidate, { final: true });
-}
-
 async function reconcileBlobStorage({ config, database, limit = 25 }) {
   const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
   const [abandoned, deletePending] = await Promise.all([
@@ -441,53 +414,6 @@ export function createStaffApp({
   function logExpenseStage(submissionId, stage, status, metadata = {}) {
     if (config.environment === "test") return;
     console.info("Expense submission stage:", { submissionId, stage, status, ...metadata });
-  }
-
-  async function correctExpenseData(submission, data, request) {
-    if (!ai?.available || typeof ai.correctExpense !== "function") {
-      logExpenseStage(submission.id, "ai-correction", "skipped", { code: "AI_UNAVAILABLE" });
-      return data;
-    }
-
-    try {
-      const correction = await ai.correctExpense(data, { language: "et" });
-      const corrected = verifiedExpenseCorrection(data, correction?.data);
-      const correctedFields = [...expenseAiTextFields].filter((field) =>
-        !isDeepStrictEqual(data[field], corrected[field])
-      );
-      logExpenseStage(submission.id, "ai-correction", "complete", {
-        correctedFieldCount: correctedFields.length
-      });
-      if (correctedFields.length) {
-        await auditSafely({
-          user: request.user,
-          action: "EXPENSE_AI_CORRECTED",
-          targetType: submission.type,
-          targetId: submission.id,
-          metadata: { correctedFields },
-          ipHash: auth.clientIpHash(request)
-        }, "Expense AI correction audit failed:");
-      }
-      return corrected;
-    } catch (error) {
-      console.error("Expense AI correction failed:", {
-        submissionId: submission.id,
-        stage: "ai-correction",
-        ...safeOperationalError(error, "AI_CORRECTION_FAILED")
-      });
-      await auditSafely({
-        user: request.user,
-        action: "EXPENSE_AI_CORRECTION_FAILED",
-        targetType: submission.type,
-        targetId: submission.id,
-        metadata: {
-          stage: "ai-correction",
-          code: safeOperationalError(error, "AI_CORRECTION_FAILED").code
-        },
-        ipHash: auth.clientIpHash(request)
-      }, "Expense AI correction failure could not be audited:");
-      return data;
-    }
   }
 
   async function prepareExpenseMailAttachments(submission, attachments) {
@@ -785,10 +711,6 @@ export function createStaffApp({
           error.status = 422;
           error.fields = ["attachments"];
           throw error;
-        }
-
-        if (submission.type === "expense") {
-          data = await correctExpenseData(submission, data, request);
         }
 
         const prepared = isDeepStrictEqual(submission.data, data)

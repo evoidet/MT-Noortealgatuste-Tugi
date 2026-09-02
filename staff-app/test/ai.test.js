@@ -47,67 +47,6 @@ test("AI assistant executes an injected Responses client without storing the res
   });
 });
 
-test("correctExpense concurrently corrects only whitelisted prose and preserves structured facts", async () => {
-  let activeCalls = 0;
-  let maximumActiveCalls = 0;
-  const client = fakeClient(async ({ text }) => {
-    activeCalls += 1;
-    maximumActiveCalls = Math.max(maximumActiveCalls, activeCalls);
-    await new Promise((resolve) => setImmediate(resolve));
-    activeCalls -= 1;
-    return text.replace("vigane", "parandatud");
-  });
-  const assistant = assistantWith(client);
-  const original = {
-    documentNumber: "KA-2026-042",
-    date: "2026-09-02",
-    project: "Projekt PRJ-42",
-    person: "Mari Maasikas",
-    email: "mari@example.ee",
-    phone: "+372 5555 1234",
-    amount: 125.5,
-    activity: "vigane tegevuse kirjeldus",
-    purpose: "vigane eesmärgi kirjeldus",
-    goal: "vigane eesmärgi kirjeldus",
-    result: "vigane tulemuse kirjeldus",
-    necessity: "Kulu oli vajalik.",
-    participants: "12 noort",
-    location: "Tallinn",
-    items: [{
-      date: "2026-09-01",
-      documentNumber: "TSEKK-19",
-      vendor: "Näide OÜ",
-      description: "Materjalid",
-      amount: 125.5,
-      currency: "EUR"
-    }]
-  };
-  const originalSnapshot = structuredClone(original);
-
-  const corrected = await assistant.correctExpense(original);
-
-  assert.ok(maximumActiveCalls > 1, "expense prose corrections should start concurrently");
-  assert.deepEqual(corrected.correctedFields, ["activity", "purpose", "goal", "result"]);
-  assert.equal(corrected.data.activity, "parandatud tegevuse kirjeldus");
-  assert.equal(corrected.data.purpose, "parandatud eesmärgi kirjeldus");
-  assert.equal(corrected.data.goal, "parandatud eesmärgi kirjeldus");
-  assert.equal(corrected.data.result, "parandatud tulemuse kirjeldus");
-  assert.equal(corrected.data.documentNumber, original.documentNumber);
-  assert.equal(corrected.data.date, original.date);
-  assert.equal(corrected.data.project, original.project);
-  assert.equal(corrected.data.person, original.person);
-  assert.equal(corrected.data.email, original.email);
-  assert.equal(corrected.data.phone, original.phone);
-  assert.equal(corrected.data.amount, original.amount);
-  assert.strictEqual(corrected.data.items, original.items);
-  assert.deepEqual(corrected.data.items, originalSnapshot.items);
-  assert.deepEqual(original, originalSnapshot, "the source expense must not be mutated");
-  assert.deepEqual(
-    [...new Set(client.calls.map((call) => JSON.parse(call.input).field))],
-    ["expense.activity", "expense.goal", "expense.result", "expense.necessity", "expense.participants"]
-  );
-});
-
 test("non-completed Responses output is rejected even when partial text is present", async () => {
   const client = fakeClient();
   client.responses.create = async () => ({
@@ -161,7 +100,12 @@ test("missing AI configuration remains an explicit service error", async () => {
 
   assert.equal(assistant.available, false);
   await assert.rejects(
-    () => assistant.correctExpense({ activity: "Tekst" }),
+    () => assistant.improve({
+      text: "Tekst",
+      field: "expense.activity",
+      mode: "fix_language",
+      language: "et"
+    }),
     (error) => error?.code === "AI_UNAVAILABLE"
   );
 });
