@@ -64,6 +64,40 @@ test("mail service reports unavailable configuration without creating a transpor
   );
 });
 
+test("mail service passes exact Gmail direct-TLS auth to an injectable transport factory", () => {
+  let options;
+  const transport = { async sendMail() {} };
+  const service = createMailService(mailConfig({
+    smtpHost: "smtp.gmail.com",
+    smtpPort: 465,
+    smtpSecure: true,
+    smtpRequireTls: false,
+    smtpUser: "staff@noortetugi.ee",
+    smtpPassword: "test-google-app-password",
+    mailFrom: "Noorte Tugi <staff@noortetugi.ee>",
+  }), {
+    createTransport(value) {
+      options = value;
+      return transport;
+    },
+  });
+
+  assert.equal(service.available, true);
+  assert.equal(options.host, "smtp.gmail.com");
+  assert.equal(options.port, 465);
+  assert.equal(options.secure, true);
+  assert.equal(options.requireTLS, false);
+  assert.deepEqual(options.auth, {
+    user: "staff@noortetugi.ee",
+    pass: "test-google-app-password",
+  });
+  assert.equal(options.connectionTimeout, 5_000);
+  assert.equal(options.greetingTimeout, 5_000);
+  assert.equal(options.socketTimeout, 20_000);
+  assert.equal(options.logger, false);
+  assert.equal(options.debug, false);
+});
+
 test("mail service sends a plain-text expense summary to the configured finance recipient", async () => {
   const sent = [];
   const transport = {

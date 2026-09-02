@@ -4,6 +4,7 @@ import request from "supertest";
 import { createStaffApp } from "../src/app.js";
 import { loadConfig } from "../src/config.js";
 import { DOCX_CONTENT_TYPE, DocumentValidationError } from "../src/documents.js";
+import { createMailService } from "../src/mail.js";
 
 function testConfig() {
   return loadConfig({
@@ -371,6 +372,241 @@ test("retry after email success and status failure does not send a duplicate", a
     assert.equal(second.body.item.status, "SUBMITTED");
     assert.equal(documentCalls, 1);
     assert.equal(mailCalls, 1);
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
+test("expense submission executes AI correction and uses corrected prose downstream", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase();
+  const originalItems = structuredClone(database.current.data.items);
+  let aiCalls = 0;
+  let documentData;
+  let mailedData;
+  const { app } = createStaffApp({
+    config,
+    database,
+    aiAssistant: {
+      available: true,
+      async correctExpense(data) {
+        aiCalls += 1;
+        database.operations.push("ai-correction");
+        return {
+          data: {
+            ...data,
+            activity: "Korraldasin noortele korrektse töötoa.",
+            goal: "Kulu oli vajalik töötoa läbiviimiseks."
+          },
+          correctedFields: ["activity"]
+        };
+      }
+    },
+    documentGenerator: async (_type, data) => {
+      database.operations.push("document");
+      documentData = structuredClone(data);
+      return {
+        buffer: Buffer.from("generated document"),
+        filename: "kuluaruanne-KA-TEST.docx",
+        contentType: DOCX_CONTENT_TYPE
+      };
+    },
+    privateAttachmentReader: async () => ({ buffer: Buffer.from("%PDF-1.7 attachment") }),
+    mailService: {
+      async sendExpenseSubmitted({ submission }) {
+        database.operations.push("mail");
+        mailedData = structuredClone(submission.data);
+      }
+    }
+  });
+
+  const response = await authenticatedSubmissionRequest(app, config, database.current.id);
+
+  assert.equal(response.status, 200);
+  assert.equal(aiCalls, 1);
+  assert.equal(documentData.activity, "Korraldasin noortele korrektse töötoa.");
+  assert.equal(mailedData.activity, documentData.activity);
+  assert.equal(database.current.data.activity, documentData.activity);
+  assert.deepEqual(
+    Object.fromEntries(["date", "documentNumber", "vendor", "description", "amount"].map((field) => [
+      field,
+      documentData.items[0][field]
+    ])),
+    originalItems[0]
+  );
+  assert.equal(documentData.date, "2026-08-29");
+  assert.equal(documentData.amount, 12.35);
+  assert.ok(database.operations.indexOf("ai-correction") < database.operations.indexOf("document"));
+  assert.ok(database.operations.indexOf("document") < database.operations.indexOf("mail"));
+});
+
+test("expense submission rejects AI changes to protected financial data and safely uses validated input", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase();
+  let documentData;
+  const logs = [];
+  const originalConsoleError = console.error;
+  console.error = (...entries) => logs.push(entries);
+  try {
+    const { app } = createStaffApp({
+      config,
+      database,
+      aiAssistant: {
+        available: true,
+        async correctExpense(data) {
+          return {
+            data: {
+              ...data,
+              items: data.items.map((item) => ({ ...item, requestedEUR: 999 }))
+            },
+            correctedFields: []
+          };
+        }
+      },
+      documentGenerator: async (_type, data) => {
+        documentData = structuredClone(data);
+        return {
+          buffer: Buffer.from("generated document"),
+          filename: "kuluaruanne-KA-TEST.docx",
+          contentType: DOCX_CONTENT_TYPE
+        };
+      },
+      privateAttachmentReader: async () => ({ buffer: Buffer.from("%PDF-1.7 attachment") }),
+      mailService: { async sendExpenseSubmitted() {} }
+    });
+
+    const response = await authenticatedSubmissionRequest(app, config, database.current.id);
+
+    assert.equal(response.status, 200);
+    assert.equal(documentData.items[0].requestedEUR, 12.35);
+    const correctionLog = logs.find(([message]) => message === "Expense AI correction failed:");
+    assert.equal(correctionLog?.[1]?.stage, "ai-correction");
+    assert.equal(correctionLog?.[1]?.code, "AI_FACT_GUARD_REJECTED");
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
+test("expense submission reaches a mocked Nodemailer transport with safe Gmail options", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase();
+  const smtpPassword = "unit-test-app-password";
+  let transportOptions;
+  const messages = [];
+  const service = createMailService({
+    smtpHost: "smtp.gmail.com",
+    smtpPort: 465,
+    smtpSecure: true,
+    smtpRequireTls: false,
+    smtpUser: "staff@noortetugi.ee",
+    smtpPassword,
+    mailConnectionTimeoutMs: 5_000,
+    mailFrom: "MTÜ Noortealgatuste Tugi <staff@noortetugi.ee>",
+    financeNotificationEmail: "finance@noortetugi.ee"
+  }, {
+    createTransport(options) {
+      transportOptions = options;
+      return {
+        async sendMail(message) {
+          messages.push(message);
+          return { messageId: "mocked-message" };
+        }
+      };
+    }
+  });
+  const { app } = createStaffApp({
+    config,
+    database,
+    mailService: service,
+    documentGenerator: async () => ({
+      buffer: Buffer.from("generated document"),
+      filename: "kuluaruanne-KA-TEST.docx",
+      contentType: DOCX_CONTENT_TYPE
+    }),
+    privateAttachmentReader: async () => ({ buffer: Buffer.from("%PDF-1.7 attachment") })
+  });
+
+  const response = await authenticatedSubmissionRequest(app, config, database.current.id);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual({
+    host: transportOptions.host,
+    port: transportOptions.port,
+    secure: transportOptions.secure,
+    requireTLS: transportOptions.requireTLS,
+    user: transportOptions.auth.user,
+    pass: transportOptions.auth.pass
+  }, {
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    requireTLS: false,
+    user: "staff@noortetugi.ee",
+    pass: smtpPassword
+  });
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0].to, "finance@noortetugi.ee");
+  assert.equal(messages[0].attachments.length, 2);
+});
+
+test("SMTP authentication failure logging contains metadata but never credentials", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase();
+  const smtpPassword = "never-log-this-test-password";
+  const service = createMailService({
+    smtpHost: "smtp.gmail.com",
+    smtpPort: 465,
+    smtpSecure: true,
+    smtpRequireTls: false,
+    smtpUser: "staff@noortetugi.ee",
+    smtpPassword,
+    mailConnectionTimeoutMs: 5_000,
+    mailFrom: "staff@noortetugi.ee",
+    financeNotificationEmail: "finance@noortetugi.ee"
+  }, {
+    createTransport() {
+      return {
+        async sendMail() {
+          throw Object.assign(new Error("Authentication failed"), {
+            code: "EAUTH",
+            command: "AUTH PLAIN",
+            responseCode: 535,
+            password: smtpPassword
+          });
+        }
+      };
+    }
+  });
+  const logs = [];
+  const originalConsoleError = console.error;
+  console.error = (...entries) => logs.push(entries);
+  try {
+    const { app } = createStaffApp({
+      config,
+      database,
+      mailService: service,
+      documentGenerator: async () => ({
+        buffer: Buffer.from("generated document"),
+        filename: "kuluaruanne-KA-TEST.docx",
+        contentType: DOCX_CONTENT_TYPE
+      }),
+      privateAttachmentReader: async () => ({ buffer: Buffer.from("%PDF-1.7 attachment") })
+    });
+
+    const response = await authenticatedSubmissionRequest(app, config, database.current.id);
+
+    assert.equal(response.status, 502);
+    assert.equal(database.current.status, "DRAFT");
+    const smtpLog = logs.find(([message]) => message === "Expense notification delivery failed:");
+    assert.deepEqual(smtpLog?.[1], {
+      submissionId: database.current.id,
+      stage: "smtp",
+      code: "EAUTH",
+      name: "Error",
+      command: "AUTH PLAIN",
+      responseCode: 535
+    });
+    assert.equal(JSON.stringify(logs).includes(smtpPassword), false);
   } finally {
     console.error = originalConsoleError;
   }

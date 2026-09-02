@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { loadConfig } from "../src/config.js";
+import { __configTestUtils, loadConfig } from "../src/config.js";
 
 function productionOverrides(overrides = {}) {
   return {
@@ -13,7 +13,12 @@ function productionOverrides(overrides = {}) {
     googleClientSecret: "test-client-secret",
     sessionSecret: "test-session-secret-with-sufficient-entropy",
     blobReadWriteToken: "test-blob-token",
+    openAiApiKey: "",
     financeNotificationEmail: "finance@noortetugi.ee",
+    smtpHost: "smtp.gmail.com",
+    smtpUser: "staff@noortetugi.ee",
+    smtpPassword: "test-google-app-password",
+    mailFrom: "Noorte Tugi <staff@noortetugi.ee>",
     ...overrides
   };
 }
@@ -35,6 +40,9 @@ test("production config uses the Vercel URLs, persistent services, and secure co
   assert.deepEqual([...config.allowedStaffEmails], ["member@noortetugi.ee"]);
   assert.deepEqual([...config.adminEmails], ["admin@noortetugi.ee"]);
   assert.equal(config.defaultRole, "member");
+  assert.equal(config.smtpPort, 465);
+  assert.equal(config.smtpSecure, true);
+  assert.equal(config.smtpRequireTls, false);
   assert.notEqual(config.csrfSecret, config.sessionSecret);
   assert.notEqual(config.logHashSecret, config.sessionSecret);
   assert.equal("databasePath" in config, false);
@@ -49,7 +57,12 @@ test("production config requires each deployment secret and canonical URL", () =
     ["googleClientId", "GOOGLE_CLIENT_ID"],
     ["googleClientSecret", "GOOGLE_CLIENT_SECRET"],
     ["sessionSecret", "SESSION_SECRET"],
-    ["blobReadWriteToken", "BLOB_READ_WRITE_TOKEN"]
+    ["blobReadWriteToken", "BLOB_READ_WRITE_TOKEN"],
+    ["financeNotificationEmail", "FINANCE_NOTIFICATION_EMAIL"],
+    ["smtpHost", "STAFF_SMTP_HOST"],
+    ["smtpUser", "STAFF_SMTP_USER"],
+    ["smtpPassword", "STAFF_SMTP_PASSWORD"],
+    ["mailFrom", "STAFF_MAIL_FROM"]
   ]) {
     assert.throws(
       () => loadConfig(productionOverrides({ [property]: "" })),
@@ -59,6 +72,47 @@ test("production config requires each deployment secret and canonical URL", () =
   assert.throws(
     () => loadConfig(productionOverrides({ sessionSecret: "too-short" })),
     /at least 32 bytes/
+  );
+});
+
+test("canonical SMTP password takes precedence over the temporary legacy alias", () => {
+  assert.equal(__configTestUtils.smtpPasswordValue(undefined, {
+    STAFF_SMTP_PASSWORD: "canonical-test-password",
+    STAFF_SMTP_PASS: "legacy-test-password"
+  }), "canonical-test-password");
+});
+
+test("temporary STAFF_SMTP_PASS fallback works only when the canonical password is absent", () => {
+  assert.equal(__configTestUtils.smtpPasswordValue(undefined, {
+    STAFF_SMTP_PASS: "legacy-test-password"
+  }), "legacy-test-password");
+});
+
+test("SMTP port and TLS booleans preserve explicit direct-TLS and STARTTLS values", () => {
+  for (const smtp of [
+    { smtpPort: "465", smtpSecure: "true", smtpRequireTls: "false", expected: [465, true, false] },
+    { smtpPort: "587", smtpSecure: "false", smtpRequireTls: "true", expected: [587, false, true] }
+  ]) {
+    const config = loadConfig(productionOverrides(smtp));
+    assert.deepEqual(
+      [config.smtpPort, config.smtpSecure, config.smtpRequireTls],
+      smtp.expected
+    );
+  }
+});
+
+test("invalid SMTP booleans and missing credentials fail with safe exact variable names", () => {
+  assert.throws(
+    () => loadConfig(productionOverrides({ smtpSecure: "sometimes" })),
+    /STAFF_SMTP_SECURE must be a boolean value/
+  );
+  assert.throws(
+    () => loadConfig(productionOverrides({ smtpPassword: "" })),
+    /STAFF_SMTP_PASSWORD is required in production/
+  );
+  assert.throws(
+    () => loadConfig(productionOverrides({ smtpUser: "" })),
+    /STAFF_SMTP_USER is required in production/
   );
 });
 

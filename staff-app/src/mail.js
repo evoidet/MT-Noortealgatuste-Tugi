@@ -68,8 +68,9 @@ function expenseMessageId(submission, recipient) {
 
 export function createMailService(config, overrides = {}) {
   const configured = Boolean(config.smtpHost && config.mailFrom && config.financeNotificationEmail);
+  const createTransport = overrides.createTransport ?? ((options) => nodemailer.createTransport(options));
   const transport = overrides.transport ?? (configured
-    ? nodemailer.createTransport({
+    ? createTransport({
         host: config.smtpHost,
         port: config.smtpPort,
         secure: config.smtpSecure,
@@ -79,7 +80,9 @@ export function createMailService(config, overrides = {}) {
           : undefined,
         connectionTimeout: config.mailConnectionTimeoutMs,
         greetingTimeout: config.mailConnectionTimeoutMs,
-        socketTimeout: Math.max(config.mailConnectionTimeoutMs * 2, 20_000)
+        socketTimeout: Math.max(config.mailConnectionTimeoutMs * 2, 20_000),
+        logger: false,
+        debug: false
       })
     : null);
 

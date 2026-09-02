@@ -50,6 +50,14 @@ APP_URL=https://www.noortetugi.ee
 SESSION_SECRET
 ALLOWED_GOOGLE_DOMAIN=noortetugi.ee
 BLOB_READ_WRITE_TOKEN
+FINANCE_NOTIFICATION_EMAIL=finance@noortetugi.ee
+STAFF_SMTP_HOST=smtp.gmail.com
+STAFF_SMTP_PORT=465
+STAFF_SMTP_SECURE=true
+STAFF_SMTP_REQUIRE_TLS=false
+STAFF_SMTP_USER=staff@noortetugi.ee
+STAFF_SMTP_PASSWORD=<Google App Password for STAFF_SMTP_USER>
+STAFF_MAIL_FROM=Noorte Tugi <staff@noortetugi.ee>
 ```
 
 `SESSION_SECRET` must contain at least 32 bytes of unpredictable data. Generate
@@ -71,9 +79,52 @@ Both are comma-separated exact `@noortetugi.ee` addresses. An empty
 New users receive `member`; only exact entries in `ADMIN_EMAILS` can receive
 `admin` automatically. Existing non-admin roles are preserved.
 
-Optional existing features continue to use the `OPENAI_*`, `PUBLIC_SITE_ORIGIN`,
-`FINANCE_NOTIFICATION_EMAIL`, and `STAFF_SMTP_*` variables listed with blank
-values in `.env.example`.
+### Expense email configuration
+
+The expense recipient variable is exactly `FINANCE_NOTIFICATION_EMAIL`; there
+is no `STAFF_MAIL_TO` variable. The recipient must be an address in
+`ALLOWED_GOOGLE_DOMAIN`.
+
+`STAFF_SMTP_USER` must be the complete Google Workspace mailbox that owns the
+credential. Set `STAFF_SMTP_PASSWORD` to a Google App Password created for that
+same account, not the account's normal password. The account must have 2-Step
+Verification enabled and the Workspace policy must allow App Passwords. Paste
+the generated 16-character value without display spaces, surrounding quotes,
+or a trailing newline, and store it as a sensitive Production variable in
+Vercel.
+
+`smtp.gmail.com` defaults to port 465 with direct TLS (`STAFF_SMTP_SECURE=true`
+and `STAFF_SMTP_REQUIRE_TLS=false`), but the explicit values above are
+recommended for an auditable deployment. To use Gmail STARTTLS on port 587,
+set `STAFF_SMTP_PORT=587`, `STAFF_SMTP_SECURE=false`, and
+`STAFF_SMTP_REQUIRE_TLS=true` together. `STAFF_MAIL_FROM` must be the
+authenticated mailbox or an alias that mailbox is authorized to send as.
+
+`STAFF_SMTP_PASSWORD` is the canonical password name. `STAFF_SMTP_PASS` is a
+temporary backwards-compatible fallback used only when the canonical variable
+is absent; migrate it to `STAFF_SMTP_PASSWORD` and do not configure both. The
+canonical variable always wins. `STAFF_MAIL_CONNECTION_TIMEOUT_MS` is optional
+and defaults to 10000 milliseconds.
+
+Vercel environment changes apply only to new deployments. After adding or
+rotating any SMTP variable, create a new Production deployment before testing
+the expense submission flow.
+
+### Expense AI correction
+
+Set `OPENAI_API_KEY` as a sensitive Production variable to enable expense
+prose correction during final submission. `OPENAI_MODEL` is optional and
+defaults to `gpt-5-mini`. When the key is absent, the `ai-correction` stage is
+logged as skipped and the already validated expense continues unchanged.
+
+Automatic correction is limited to the narrative expense fields. Dates,
+amounts, currencies, document and project identifiers, contacts, line items,
+attachments, and other structured facts are copied unchanged. Corrected data
+is validated again before document generation. An incomplete response, a fact
+guard rejection, or an upstream AI failure is logged with safe metadata and
+falls back to the validated original data.
+
+`PUBLIC_SITE_ORIGIN` remains optional for the existing public-site feature.
 
 ## First deployment
 

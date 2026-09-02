@@ -57,6 +57,14 @@ const statusForDecision = Object.freeze({
 });
 
 const auditPrefix = Object.freeze({ news: "NEWS", expense: "EXPENSE", invoice: "INVOICE" });
+const expenseAiTextFields = new Set([
+  "activity",
+  "goal",
+  "purpose",
+  "result",
+  "necessity",
+  "participants"
+]);
 const userValidationCodes = new Set([
   "VALIDATION_ERROR",
   "INCOMPLETE_SUBMISSION",
@@ -291,6 +299,7 @@ function validationResponse(response, error) {
     "INVALID_ATTACHMENT_STATE",
     "AI_UNAVAILABLE",
     "AI_EMPTY_RESPONSE",
+    "AI_INCOMPLETE_RESPONSE",
     "AI_FACT_GUARD_REJECTED",
     "DOCUMENT_VALIDATION_ERROR",
     "DOCUMENT_TEMPLATE_UNAVAILABLE",
@@ -303,6 +312,8 @@ function validationResponse(response, error) {
   const status = error.status || (userValidationCodes.has(error.code)
     ? 422
     : error.code === "SUBMISSION_DELIVERY_FAILED"
+    ? 502
+    : ["AI_EMPTY_RESPONSE", "AI_INCOMPLETE_RESPONSE"].includes(error.code)
     ? 502
     : ["AI_UNAVAILABLE", "DOCUMENT_TEMPLATE_UNAVAILABLE", "BLOB_INTEGRITY_FAILED"].includes(error.code)
     ? 503
@@ -356,6 +367,25 @@ function expenseDeliveryKey(submission) {
   return `${Number(submission?.revision) || 0}:${String(submission?.updatedAt || "")}`;
 }
 
+function verifiedExpenseCorrection(original, candidate) {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+    const error = new Error("AI expense correction did not return structured data.");
+    error.code = "AI_INVALID_RESPONSE";
+    throw error;
+  }
+
+  const immutableEntries = (value) => Object.fromEntries(
+    Object.entries(value).filter(([key]) => !expenseAiTextFields.has(key))
+  );
+  if (!isDeepStrictEqual(immutableEntries(original), immutableEntries(candidate))) {
+    const error = new Error("AI expense correction attempted to change protected facts.");
+    error.code = "AI_FACT_GUARD_REJECTED";
+    throw error;
+  }
+
+  return validateSubmissionData("expense", candidate, { final: true });
+}
+
 async function reconcileBlobStorage({ config, database, limit = 25 }) {
   const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
   const [abandoned, deletePending] = await Promise.all([
@@ -383,12 +413,13 @@ export function createStaffApp({
   config,
   database,
   mailService = createMailService(config),
+  aiAssistant = createAiAssistant(config),
   documentGenerator = generateSubmissionDocument,
   privateAttachmentReader = readPrivateAttachment
 }) {
   const app = express();
   const auth = createAuth({ config, database });
-  const ai = createAiAssistant(config);
+  const ai = aiAssistant;
   const upload = createUploadMiddleware(config);
   const authLimiter = createLimiter({ windowMs: 15 * 60_000, limit: 30, prefix: "auth" });
   const mutationLimiter = createLimiter({ windowMs: 15 * 60_000, limit: 180, prefix: "write" });
@@ -407,12 +438,70 @@ export function createStaffApp({
     }
   }
 
+  function logExpenseStage(submissionId, stage, status, metadata = {}) {
+    if (config.environment === "test") return;
+    console.info("Expense submission stage:", { submissionId, stage, status, ...metadata });
+  }
+
+  async function correctExpenseData(submission, data, request) {
+    if (!ai?.available || typeof ai.correctExpense !== "function") {
+      logExpenseStage(submission.id, "ai-correction", "skipped", { code: "AI_UNAVAILABLE" });
+      return data;
+    }
+
+    try {
+      const correction = await ai.correctExpense(data, { language: "et" });
+      const corrected = verifiedExpenseCorrection(data, correction?.data);
+      const correctedFields = [...expenseAiTextFields].filter((field) =>
+        !isDeepStrictEqual(data[field], corrected[field])
+      );
+      logExpenseStage(submission.id, "ai-correction", "complete", {
+        correctedFieldCount: correctedFields.length
+      });
+      if (correctedFields.length) {
+        await auditSafely({
+          user: request.user,
+          action: "EXPENSE_AI_CORRECTED",
+          targetType: submission.type,
+          targetId: submission.id,
+          metadata: { correctedFields },
+          ipHash: auth.clientIpHash(request)
+        }, "Expense AI correction audit failed:");
+      }
+      return corrected;
+    } catch (error) {
+      console.error("Expense AI correction failed:", {
+        submissionId: submission.id,
+        stage: "ai-correction",
+        ...safeOperationalError(error, "AI_CORRECTION_FAILED")
+      });
+      await auditSafely({
+        user: request.user,
+        action: "EXPENSE_AI_CORRECTION_FAILED",
+        targetType: submission.type,
+        targetId: submission.id,
+        metadata: {
+          stage: "ai-correction",
+          code: safeOperationalError(error, "AI_CORRECTION_FAILED").code
+        },
+        ipHash: auth.clientIpHash(request)
+      }, "Expense AI correction failure could not be audited:");
+      return data;
+    }
+  }
+
   async function prepareExpenseMailAttachments(submission, attachments) {
-    const generated = await documentGenerator("expense", submission.data, {
-      submission,
-      attachments,
-      creator: { name: submission.creatorName, email: submission.creatorEmail }
-    });
+    let generated;
+    try {
+      generated = await documentGenerator("expense", submission.data, {
+        submission,
+        attachments,
+        creator: { name: submission.creatorName, email: submission.creatorEmail }
+      });
+    } catch (error) {
+      if (error && typeof error === "object") error.expenseStage = "document-generation";
+      throw error;
+    }
     const generatedBuffer = Buffer.isBuffer(generated?.buffer)
       ? generated.buffer
       : generated?.buffer
@@ -420,9 +509,11 @@ export function createStaffApp({
         : null;
     if (!generatedBuffer?.length || !generated?.filename || !generated?.contentType) {
       throw Object.assign(new Error("The generated expense document is invalid."), {
-        code: "DOCUMENT_GENERATION_INVALID"
+        code: "DOCUMENT_GENERATION_INVALID",
+        expenseStage: "document-generation"
       });
     }
+    logExpenseStage(submission.id, "document-generation", "complete");
 
     const mailAttachments = [{
       filename: generated.filename,
@@ -442,6 +533,9 @@ export function createStaffApp({
         content: opened.buffer
       });
     }
+    logExpenseStage(submission.id, "prepare", "complete", {
+      attachmentCount: mailAttachments.length
+    });
     return mailAttachments;
   }
 
@@ -665,7 +759,25 @@ export function createStaffApp({
           });
         }
 
-        const data = validateSubmissionData(submission.type, submission.data, { final: true });
+        if (submission.type === "expense") {
+          logExpenseStage(submission.id, "prepare", "started");
+        }
+        let data;
+        try {
+          data = validateSubmissionData(submission.type, submission.data, { final: true });
+          if (submission.type === "expense") {
+            logExpenseStage(submission.id, "validate", "complete");
+          }
+        } catch (error) {
+          if (submission.type === "expense") {
+            console.error("Expense submission validation failed:", {
+              submissionId: submission.id,
+              stage: "validate",
+              ...safeOperationalError(error, "VALIDATION_FAILED")
+            });
+          }
+          throw error;
+        }
         const attachments = await database.listAttachments(submission.id);
         if (submission.type === "expense" && !attachments.some((attachment) => attachment.kind === "primary")) {
           const error = new Error("A primary expense attachment is required.");
@@ -673,6 +785,10 @@ export function createStaffApp({
           error.status = 422;
           error.fields = ["attachments"];
           throw error;
+        }
+
+        if (submission.type === "expense") {
+          data = await correctExpenseData(submission, data, request);
         }
 
         const prepared = isDeepStrictEqual(submission.data, data)
@@ -714,9 +830,12 @@ export function createStaffApp({
               mailAttachments = await prepareExpenseMailAttachments(prepared, attachments);
             } catch (error) {
               const validationIssues = safeDocumentValidationIssues(error);
+              const stage = error?.expenseStage === "document-generation"
+                ? "document-generation"
+                : "prepare";
               console.error("Expense submission preparation failed:", {
                 submissionId: prepared.id,
-                stage: "prepare",
+                stage,
                 ...safeOperationalError(error),
                 ...(validationIssues.length ? { validationIssues } : {})
               });
@@ -725,7 +844,7 @@ export function createStaffApp({
                 action: "EXPENSE_NOTIFICATION_FAILED",
                 targetType: prepared.type,
                 targetId: prepared.id,
-                metadata: { stage: "prepare", code: safeOperationalError(error).code, deliveryKey },
+                metadata: { stage, code: safeOperationalError(error).code, deliveryKey },
                 ipHash: auth.clientIpHash(request)
               }, "Expense preparation failure could not be audited:");
               if (error?.code === "DOCUMENT_VALIDATION_ERROR") throw error;
@@ -742,6 +861,7 @@ export function createStaffApp({
                 attachments: mailAttachments
               });
               delivered = true;
+              logExpenseStage(prepared.id, "smtp", "complete");
             } catch (error) {
               console.error("Expense notification delivery failed:", {
                 submissionId: prepared.id,

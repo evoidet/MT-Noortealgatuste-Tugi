@@ -106,6 +106,15 @@ function requiredInProduction(name, value, production) {
   return value;
 }
 
+function smtpPasswordValue(override, environment = process.env) {
+  return String(
+    override ??
+    environment.STAFF_SMTP_PASSWORD ??
+    environment.STAFF_SMTP_PASS ??
+    ""
+  );
+}
+
 function absoluteHttpUrl(value, name, production) {
   let parsed;
   try {
@@ -183,8 +192,8 @@ export function loadConfig(overrides = {}) {
   const blobReadWriteToken = overrides.blobReadWriteToken ?? process.env.BLOB_READ_WRITE_TOKEN ?? "";
   const googleClientId = overrides.googleClientId ?? process.env.GOOGLE_CLIENT_ID ?? "";
   const googleClientSecret = overrides.googleClientSecret ?? process.env.GOOGLE_CLIENT_SECRET ?? "";
-  const smtpUser = overrides.smtpUser ?? process.env.STAFF_SMTP_USER ?? "";
-  const smtpPassword = overrides.smtpPassword ?? process.env.STAFF_SMTP_PASSWORD ?? "";
+  const smtpUser = String(overrides.smtpUser ?? process.env.STAFF_SMTP_USER ?? "").trim();
+  const smtpPassword = smtpPasswordValue(overrides.smtpPassword);
   const maxUploadBytes = overrides.maxUploadBytes ??
     strictInteger(process.env.STAFF_MAX_UPLOAD_MB, 15, 1, 1_024, "STAFF_MAX_UPLOAD_MB") * 1024 * 1024;
 
@@ -207,6 +216,32 @@ export function loadConfig(overrides = {}) {
   const configuredMailFrom = overrides.mailFrom ?? process.env.STAFF_MAIL_FROM ?? smtpUser;
   const mailFromValue = requiredInProduction("STAFF_MAIL_FROM", configuredMailFrom, production);
   const mailFrom = mailFromValue ? mailbox(mailFromValue, "STAFF_MAIL_FROM") : "";
+  const smtpPort = strictInteger(
+    overrides.smtpPort ?? process.env.STAFF_SMTP_PORT,
+    smtpHost.toLowerCase() === "smtp.gmail.com" ? 465 : 587,
+    1,
+    65_535,
+    "STAFF_SMTP_PORT"
+  );
+  const smtpSecure = strictBoolean(
+    overrides.smtpSecure ?? process.env.STAFF_SMTP_SECURE,
+    smtpPort === 465,
+    "STAFF_SMTP_SECURE"
+  );
+  const smtpRequireTls = strictBoolean(
+    overrides.smtpRequireTls ?? process.env.STAFF_SMTP_REQUIRE_TLS,
+    !smtpSecure,
+    "STAFF_SMTP_REQUIRE_TLS"
+  );
+
+  requiredInProduction("STAFF_SMTP_USER", smtpUser, production);
+  requiredInProduction("STAFF_SMTP_PASSWORD", smtpPassword, production);
+  if (smtpUser && !smtpPassword) {
+    throw new Error("STAFF_SMTP_PASSWORD is required when STAFF_SMTP_USER is configured.");
+  }
+  if (!smtpUser && smtpPassword) {
+    throw new Error("STAFF_SMTP_USER is required when STAFF_SMTP_PASSWORD is configured.");
+  }
 
   const config = {
     appRoot,
@@ -254,23 +289,9 @@ export function loadConfig(overrides = {}) {
     // Keeping one source of truth avoids a second identity environment variable.
     invoiceCreatorEmail: financeNotificationEmail,
     smtpHost,
-    smtpPort: strictInteger(
-      overrides.smtpPort ?? process.env.STAFF_SMTP_PORT,
-      587,
-      1,
-      65_535,
-      "STAFF_SMTP_PORT"
-    ),
-    smtpSecure: strictBoolean(
-      overrides.smtpSecure ?? process.env.STAFF_SMTP_SECURE,
-      false,
-      "STAFF_SMTP_SECURE"
-    ),
-    smtpRequireTls: strictBoolean(
-      overrides.smtpRequireTls ?? process.env.STAFF_SMTP_REQUIRE_TLS,
-      true,
-      "STAFF_SMTP_REQUIRE_TLS"
-    ),
+    smtpPort,
+    smtpSecure,
+    smtpRequireTls,
     smtpUser,
     smtpPassword,
     mailFrom,
@@ -286,9 +307,7 @@ export function loadConfig(overrides = {}) {
   if (config.enableDevAuth && production) {
     throw new Error("STAFF_ENABLE_DEV_AUTH cannot be enabled in production.");
   }
-  if (Boolean(config.smtpUser) !== Boolean(config.smtpPassword)) {
-    throw new Error("STAFF_SMTP_USER and STAFF_SMTP_PASSWORD must be configured together.");
-  }
-
   return Object.freeze(config);
 }
+
+export const __configTestUtils = Object.freeze({ smtpPasswordValue });
