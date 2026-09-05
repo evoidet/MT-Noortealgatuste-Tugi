@@ -125,7 +125,7 @@ ADMIN_EMAILS
 Optional expense archival variables are listed in
 [GOOGLE-DRIVE-ARCHIVE.md](GOOGLE-DRIVE-ARCHIVE.md). Leave
 `GOOGLE_DRIVE_ARCHIVE_ENABLED` absent or false until migration 006 and the
-Shared Drive setup are complete.
+Drive folder permissions are configured.
 
 Both are comma-separated exact `@noortetugi.ee` addresses. An empty
 `ALLOWED_STAFF_EMAILS` allows every verified address in the configured domain.

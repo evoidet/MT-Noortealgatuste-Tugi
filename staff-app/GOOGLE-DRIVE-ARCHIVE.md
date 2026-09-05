@@ -14,23 +14,26 @@ finance email remains the required delivery path.
    download the key once. The JSON `client_email` and `private_key` fields are
    used below. Store the downloaded file securely and delete local copies after
    the values have been entered into Vercel.
-4. The archive root and its staff folders must be in a **Google Shared Drive**.
-   Google service accounts have no storage quota and cannot own uploaded files;
-   a folder in an individual's My Drive is therefore not a reliable target.
-5. Share the archive root folder configured by `GOOGLE_DRIVE_ROOT_FOLDER_ID` with the
-   service-account email as **Editor**. Sharing only this root keeps the service
-   account out of unrelated Shared Drive content. If Workspace policy does not
-   permit folder-level sharing to the service account, add it to the Shared
-   Drive as **Content manager**; that grants access to the whole Shared Drive,
-   so the drive should then be dedicated to this archive.
+4. The validator supports both Shared Drive folders and ordinary My Drive
+   folders shared with the service account. A Shared Drive is recommended for
+   organizational ownership and storage-quota management, but `driveId` is not
+   used as an access or parentage test because Google only returns it for Shared
+   Drive items.
+5. Share the archive root folder configured by
+   `GOOGLE_DRIVE_ROOT_FOLDER_ID` with the service-account email as **Editor**.
+   For a My Drive hierarchy, also ensure the mapped child folders are visible
+   and editable by the service account. For a Shared Drive hierarchy, folder
+   access or **Content manager** membership can be used according to Workspace
+   policy.
 6. Ensure each staff personal folder is a direct child of the configured archive
-   root. The application verifies this parent relationship before writing.
+   root. The application reads both folders and verifies the child's `parents`
+   metadata before writing.
 
 The implementation uses server-to-server authentication and the Drive scope
 `https://www.googleapis.com/auth/drive`. It does not change or reuse the staff
 Google-login OAuth client. Although the OAuth scope is broad, the service
-account can reach only content granted to that account; keep its Shared Drive
-membership dedicated to this archive.
+account can reach only content granted to that account; limit its folder grants
+or Shared Drive membership to this archive.
 
 ## Vercel Production variables
 

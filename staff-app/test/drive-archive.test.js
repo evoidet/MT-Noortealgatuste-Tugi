@@ -21,12 +21,19 @@ function config(folderMap) {
 function fakeDrive() {
   const folders = [];
   const files = [];
-  const parents = new Map();
+  const parents = new Map([[rootId, {
+    id: rootId,
+    mimeType: "application/vnd.google-apps.folder",
+    parents: [],
+    trashed: false,
+    capabilities: { canAddChildren: true }
+  }]]);
   return {
     folders,
     files,
-    addParent(id) { parents.set(id, { id, driveId: "shared-drive-12345",
-      mimeType: "application/vnd.google-apps.folder", parents: [rootId] }); },
+    addParent(id, metadata = {}) { parents.set(id, { id,
+      mimeType: "application/vnd.google-apps.folder", parents: [rootId], trashed: false,
+      capabilities: { canAddChildren: true }, ...metadata }); },
     async getFile(id) { return parents.get(id); },
     async findFile({ parentId, submissionId, itemKey, folder }) {
       const source = folder ? folders : files;
@@ -124,6 +131,24 @@ test("generated document and every original attachment are archived once with st
   assert.match(drive.folders[0].name, /^2026-09-05 — Kuulaaruanne — Andrei — 60a25fad$/);
 });
 
+test("a direct-child My Drive folder shared with the service account does not require driveId", async () => {
+  const drive = fakeDrive();
+  drive.addParent("egor-folder-123456", { shared: true });
+  const service = createDriveArchiveService(config({
+    "egor@noortetugi.ee": "egor-folder-123456"
+  }), { driveClient: drive });
+
+  const result = await service.archiveExpense({
+    submission: submission("egor@noortetugi.ee"),
+    submitterEmail: "egor@noortetugi.ee",
+    files: archiveFiles()
+  });
+
+  assert.equal(result.parentFolderId, "egor-folder-123456");
+  assert.equal(drive.folders.length, 1);
+  assert.equal(drive.files.length, 3);
+});
+
 test("unmapped users cannot fall through into another staff folder", async () => {
   const drive = fakeDrive();
   drive.addParent("andrei-folder-12345");
@@ -140,18 +165,60 @@ test("unmapped users cannot fall through into another staff folder", async () =>
   assert.equal(drive.files.length, 0);
 });
 
-test("a mapped folder must be an untrashed direct child of the configured root", async () => {
+test("a mapped folder outside the configured root reports a safe parent mismatch", async () => {
   const drive = fakeDrive();
-  drive.getFile = async (id) => ({ id, driveId: "shared-drive-12345",
-    mimeType: "application/vnd.google-apps.folder", parents: ["other-root"] });
+  drive.addParent("andrei-folder-12345", { parents: ["other-root"] });
   const service = createDriveArchiveService(config({
     "andrei@noortetugi.ee": "andrei-folder-12345"
   }), { driveClient: drive });
   await assert.rejects(
     service.archiveExpense({ submission: submission("andrei@noortetugi.ee"),
       submitterEmail: "andrei@noortetugi.ee", files: archiveFiles() }),
-    { code: "DRIVE_FOLDER_NOT_ALLOWED" }
+    { code: "DRIVE_PARENT_MISMATCH" }
   );
+  assert.equal(drive.folders.length, 0);
+});
+
+test("folder metadata failures produce specific safe reason codes", async () => {
+  const scenarios = [
+    ["DRIVE_FOLDER_NOT_FOUND", { id: "wrong-folder-12345" }],
+    ["DRIVE_FOLDER_TRASHED", { trashed: true }],
+    ["DRIVE_NOT_A_FOLDER", { mimeType: "application/pdf" }],
+    ["DRIVE_FOLDER_NOT_WRITABLE", { capabilities: { canAddChildren: false } }]
+  ];
+  for (const [code, metadata] of scenarios) {
+    const drive = fakeDrive();
+    drive.addParent("andrei-folder-12345", metadata);
+    const service = createDriveArchiveService(config({
+      "andrei@noortetugi.ee": "andrei-folder-12345"
+    }), { driveClient: drive });
+    await assert.rejects(service.archiveExpense({
+      submission: submission("andrei@noortetugi.ee"),
+      submitterEmail: "andrei@noortetugi.ee",
+      files: archiveFiles()
+    }), { code });
+    assert.equal(drive.folders.length, 0);
+  }
+});
+
+test("an inaccessible configured root reports a safe root reason without trying the mapped folder", async () => {
+  const drive = fakeDrive();
+  drive.addParent("andrei-folder-12345");
+  const originalGetFile = drive.getFile;
+  drive.getFile = async (id) => {
+    if (id === rootId) throw Object.assign(new Error("provider body must stay private"), {
+      response: { status: 403, data: { private: true } }
+    });
+    return originalGetFile(id);
+  };
+  const service = createDriveArchiveService(config({
+    "andrei@noortetugi.ee": "andrei-folder-12345"
+  }), { driveClient: drive });
+  await assert.rejects(service.archiveExpense({
+    submission: submission("andrei@noortetugi.ee"),
+    submitterEmail: "andrei@noortetugi.ee",
+    files: archiveFiles()
+  }), { code: "DRIVE_ROOT_NOT_ACCESSIBLE" });
   assert.equal(drive.folders.length, 0);
 });
 

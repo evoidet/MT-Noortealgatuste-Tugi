@@ -3,8 +3,8 @@ import { extname } from "node:path";
 import { GoogleAuth } from "google-auth-library";
 
 // The service must discover a pre-existing configured root/personal folder and
-// recover tagged objects it created there. The service account's Shared Drive
-// membership remains the effective access boundary.
+// recover tagged objects it created there. Explicit folder grants or Shared
+// Drive membership remain the effective access boundary.
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
 const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
@@ -66,6 +66,58 @@ function fileId(value) {
   return normalized;
 }
 
+function driveResponseStatus(error) {
+  const status = Number(error?.response?.status ?? error?.status);
+  return Number.isInteger(status) ? status : null;
+}
+
+async function getFolderMetadata(drive, id, { root = false } = {}) {
+  try {
+    return await drive.getFile(id);
+  } catch (error) {
+    const status = driveResponseStatus(error);
+    const code = root
+      ? "DRIVE_ROOT_NOT_ACCESSIBLE"
+      : status === 404
+        ? "DRIVE_FOLDER_NOT_FOUND"
+        : "DRIVE_FOLDER_NOT_ACCESSIBLE";
+    throw new DriveArchiveError(code, "Google Drive folder metadata is not accessible.", error);
+  }
+}
+
+function validateArchiveRoot(root, expectedId) {
+  if (!root || root.id !== expectedId) {
+    throw new DriveArchiveError("DRIVE_ROOT_NOT_ACCESSIBLE", "The configured archive root is not accessible.");
+  }
+  if (root.trashed) {
+    throw new DriveArchiveError("DRIVE_ROOT_TRASHED", "The configured archive root is trashed.");
+  }
+  if (root.mimeType !== FOLDER_MIME_TYPE) {
+    throw new DriveArchiveError("DRIVE_ROOT_NOT_A_FOLDER", "The configured archive root is not a folder.");
+  }
+}
+
+function validatePersonalFolder(folder, expectedId, rootId) {
+  if (!folder || folder.id !== expectedId) {
+    throw new DriveArchiveError("DRIVE_FOLDER_NOT_FOUND", "The configured staff folder was not found.");
+  }
+  if (folder.trashed) {
+    throw new DriveArchiveError("DRIVE_FOLDER_TRASHED", "The configured staff folder is trashed.");
+  }
+  if (folder.mimeType !== FOLDER_MIME_TYPE) {
+    throw new DriveArchiveError("DRIVE_NOT_A_FOLDER", "The configured staff item is not a folder.");
+  }
+  if (!Array.isArray(folder.parents) || !folder.parents.includes(rootId)) {
+    throw new DriveArchiveError(
+      "DRIVE_PARENT_MISMATCH",
+      "The configured staff folder is not a direct child of the archive root."
+    );
+  }
+  if (folder.capabilities?.canAddChildren === false) {
+    throw new DriveArchiveError("DRIVE_FOLDER_NOT_WRITABLE", "The configured staff folder is not writable.");
+  }
+}
+
 function multipartBody(metadata, contentType, content, boundary) {
   return Buffer.concat([
     Buffer.from(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`),
@@ -90,7 +142,10 @@ function createGoogleDriveClient(config) {
     async getFile(id) {
       const response = await (await client()).request({
         url: `${DRIVE_API}/${encodeURIComponent(id)}`,
-        params: { fields: "id,mimeType,parents,trashed,driveId", supportsAllDrives: true },
+        params: {
+          fields: "id,parents,mimeType,trashed,driveId,shared,capabilities(canAddChildren)",
+          supportsAllDrives: true
+        },
         timeout: DRIVE_REQUEST_TIMEOUT_MS
       });
       return response.data;
@@ -206,14 +261,10 @@ export function createDriveArchiveService(config, overrides = {}) {
       }
 
       try {
-        const parent = await drive.getFile(parentFolderId);
-        if (parent?.trashed || !parent?.driveId || parent?.mimeType !== FOLDER_MIME_TYPE ||
-            !Array.isArray(parent.parents) || !parent.parents.includes(config.googleDriveRootFolderId)) {
-          throw new DriveArchiveError(
-            "DRIVE_FOLDER_NOT_ALLOWED",
-            "The configured staff folder is not a direct child of the archive root."
-          );
-        }
+        const root = await getFolderMetadata(drive, config.googleDriveRootFolderId, { root: true });
+        validateArchiveRoot(root, config.googleDriveRootFolderId);
+        const parent = await getFolderMetadata(drive, parentFolderId);
+        validatePersonalFolder(parent, parentFolderId, config.googleDriveRootFolderId);
 
         let folder = await drive.findFile({
           parentId: parentFolderId,
@@ -259,6 +310,9 @@ export function createDriveArchiveService(config, overrides = {}) {
 
 export const __driveArchiveTestUtils = Object.freeze({
   archiveFolderName,
+  driveResponseStatus,
   safeDriveName,
-  uniqueFilenames
+  uniqueFilenames,
+  validateArchiveRoot,
+  validatePersonalFolder
 });
