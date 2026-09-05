@@ -1,127 +1,147 @@
-# Staff submission production-readiness verification
+# Submission and News production readiness — 2026-09-05
 
-## Root cause and evidence
+## Root cause
 
-`POST /api/staff/submissions/:id/submit` invokes `database.setSubmissionStatus`
-during `stage: finalize`. Its `UPDATE submissions` references
-`submissions.published_at` for every submission type, including expenses.
-PostgreSQL resolves that column even when the conditional target status is not
-`PUBLISHED`.
+News, expense reports and invoices share `submissions`; there is no second news table.
+Migration 001 defined the common status/timestamp/revision columns. Migration 002
+added Google identity and private attachment metadata. Migration 003 added nullable
+`published_at TIMESTAMPTZ`, the PUBLISHED status and publication/attachment indexes.
+Migration 004 already attempted a timestamp/index/status repair.
 
-Migration `001_initial_postgres.sql` creates the other finalization columns.
-Migration `002_google_identity_and_private_blob.sql` adds Google identity and
-private attachment fields. `003_published_news.sql` adds `published_at`, permits
-`PUBLISHED`, converts exported news to published news, and creates these indexes:
+The old common preflight and final UPDATE referenced `published_at` even for expense
+reports. PostgreSQL resolves every column in a CASE expression, including its unused
+branches, so a database without this column returned 42703 before or after sending.
+The reported logs establish the missing column, but do not distinguish an unapplied
+migration from schema drift. The live migration ledger could not be inspected.
+The SSL warning was unrelated; connection configuration is unchanged.
 
-- `submissions_news_slug_unique`
-- `attachments_one_primary_per_submission`
-- `submissions_published_news_idx`
+## Database deployment
 
-The reported error is reproduced by executing the actual finalization query
-against a synthetic PostgreSQL database with only migrations 001 and 002. It
-returns `42703` for `published_at`; the failed transaction preserves the draft
-and its revisions. Applying 003 and 004 makes the same query succeed. The test
-also repairs a database with recorded migration history but a missing column,
-then repeats 004 without changing existing submission records.
+The explicit db:migrate runner uses an advisory lock, checksummed migration history
+and a transaction for each pending version. Startup/build do not run migrations.
+Historical migrations 001–004 are unchanged. New version 005 repairs the timestamp
+and its publication index even when an installation already records 004:
 
-The repository's migration runner maintains checksummed `schema_migrations`
-history. Vercel deployment/startup does not run it. Production therefore has a
-schema predating 003 or equivalent schema drift, according to the supplied error
-and reproduced code path. The exact live migration ledger was not inspected.
-The read-only `db:check` command was attempted but the current shell did not
-provide `STORAGE_DATABASE_URL_UNPOOLED`. This is not evidence that the Vercel
-configuration is missing or incorrect. No environment files were opened.
+```sql
+ALTER TABLE submissions ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
 
-## Implemented changes
+CREATE INDEX IF NOT EXISTS submissions_published_news_idx
+  ON submissions (published_at DESC, updated_at DESC)
+  WHERE type = 'news' AND status = 'PUBLISHED';
+```
 
-| Files | Result |
-| --- | --- |
-| `migrations/004_submission_finalization.sql` | Additive timestamp repair, complete status constraint, related unique/publication indexes, indexed durable delivery-state lookups; no deleted records or edited historical migration checksums |
-| `src/database.js`, `src/vercel.js` | Preflight checks, correct final timestamps for direct invoice/news confirmation and news review, transaction-scoped submission locks, separate lock/work connection capacity, safe connection failures |
-| `src/app.js` | Schema checked before email; durable started/sent/rejected audit markers; safe retries; pending-delivery edit protection; serialized draft/attachment/review mutations; safe malformed/oversized JSON responses; safer upload completion cleanup |
-| `src/safe-errors.js`, `scripts/db-migrate.mjs`, `scripts/db-check.mjs` | Safe PostgreSQL code/name/message/table/column/constraint diagnostics and read-only schema/checksum verification; no raw error detail, parameters, data, credentials or provider response bodies |
-| `scripts/reconcile-expense-delivery.mjs`, `DELIVERY-RECOVERY.md` | Guarded dry-run recovery and explicit application of a manually confirmed uncertain delivery outcome; no email sending |
-| `src/auth.js`, `src/config.js` | Existing-session domain/allowlist/admin-policy enforcement; strict TTL/proxy/model validation; required production sender variable; safe name-only configuration errors |
-| `src/storage.js`, attachment routes | File type/signature/size/private storage checks, safe malformed-file errors and Unicode filenames, 100 attachment limit, ownership checks, retry-safe completion and durable cleanup |
-| `src/documents.js`, `src/validation.js` | Accepted field lengths/mappings align with DOCX preparation, invoice rounding agrees with saved totals, template errors cannot print document values |
-| `src/mail.js` | Existing sender/authenticated-user/recipient variable roles retained; only materialized attachments accepted; implicit filesystem/URL reads disabled |
-| `public/app.js`, `public/styles.css`, `public/staff-translations.js` | Request-state controls, language changes preserve unsaved fields/files, persistent safe delivery messages, mobile document/table layout fixes |
-| Root/workspace `package.json`, root `package-lock.json`, `test/*.test.js` | Maintenance commands and repeatable regression/integration coverage; PGlite is a development-only PostgreSQL test dependency |
+There is no default or NOT NULL constraint: drafts remain NULL. No rows, attachments,
+or tables are deleted or recreated. Repeated execution is tested. Apply all pending
+versions from the existing configured deployment shell:
 
-The pooled-lock change follows Neon's documented transaction-pooling
-limitations: session-level advisory locks are unsupported on pooled connections.
-See [Neon connection pooling](https://neon.com/docs/connect/connection-pooling).
-Both connection pools are registered for the Vercel runtime lifecycle.
+```sh
+npm run db:migrate
+npm run db:check
+```
 
-## Complete system check
+Both commands were attempted locally. The current shell did not provide
+STORAGE_DATABASE_URL_UNPOOLED; this says nothing about the Vercel configuration.
+No environment files were read. The production migration and deployment remain pending.
 
-PASS/FIXED below describe local tests and source review. WARNING identifies a
-specific production-only action still required.
+## Submission path and SQL audit
 
-| Area | Status | Evidence or remaining action |
+Authentication/domain/allowlist, session and CSRF enforcement remain unchanged.
+The submit route loads the owner's draft and acquires the existing transaction-scoped
+advisory lock. A completed retry returns the already final record. Common preflight
+compiles zero-row probes for the tables below, independently of news publication.
+Final validation normalizes data, checks required expense attachments and persists
+changed data/revisions. DOCX generation validates the template result; private files
+are materialized before SMTP. Durable started/sent/rejected delivery markers retain
+the existing retry and ambiguity protections. Only completed required stages reach
+transactional status/revision persistence: expenses SUBMITTED, invoices APPROVED.
+Confirmed delivery skips another email on retry; uncertain delivery requires the
+existing DELIVERY-RECOVERY.md procedure.
+
+Queries in this path use these established schema contracts:
+
+| Repository operations | Tables and columns | Origin |
 | --- | --- | --- |
-| Authentication | WARNING | Valid/invalid OAuth callback, browser binding, nonce, issuer, audience and expiration tests pass; perform one real production Google login/callback |
-| Authorization | FIXED | Exact domain/allowlist and current admin restrictions apply server-side, including active sessions; ownership and cross-submission rejection covered |
-| Sessions | FIXED | Hashed-token persistence, expiration and CSRF checks pass; revoked access is enforced on existing sessions |
-| Draft creation | PASS | Actual HTTP/API creation against synthetic PostgreSQL returns a UUID and persists initial revision |
-| Draft saving | FIXED | Save/reopen and unchanged retries tested; concurrent controls and delivered-draft edits protected |
-| Database schema | WARNING | 42703 reproduced and repaired locally; run production migrations and `db:check` |
-| Attachment upload | WARNING | Type/extension/signature/size/private-grant/ownership/cleanup tests pass; verify live private Blob upload and authorized download |
-| Document preparation | FIXED | Real DOCX generation succeeds with valid API data, supported long fields and mapped metadata; preparation errors remain safe |
-| Submission validation | FIXED | Required fields, dates, amounts, malformed input and document consistency tests pass |
-| Email notification logic | WARNING | Sender, SMTP user, destination, attachments, failures and retries tested with injected transport; confirm one real finance receipt |
-| Finalization | FIXED | Actual PostgreSQL transition/revisions/timestamps and reopened submitted state pass; deployed effect depends on migration |
-| Duplicate-submit protection | FIXED | Lock contention, completed retry, status-write failure, marker failures, SMTP ambiguity and recovery tested; confirmed delivery skips another email |
-| Mobile UI | FIXED | Real Chrome at 1440/768/390px for news/expense/invoice; errors, long filenames, loading, language changes, retries and read-only success states checked |
-| Security review | FIXED | Server access control, CSRF, private attachments, parameterized SQL, safe errors, inert XSS tests and server-only configuration checked |
-| Production build | PASS | Repository `npm run build` succeeds; hosted deployment was not performed |
+| getSubmission, updateSubmission, setSubmissionStatus | submissions: id, type, creator_id, status, data_json, revision_no, created_at, updated_at, submitted_at; users: id, email, name | 001 |
+| draft and final revision INSERTs | revisions: id, submission_id, revision_no, data_json, event, created_by, created_at | 001 |
+| listAttachments and response metadata | attachments: id, submission_id, uploader_id, storage_name, original_name, mime_type, kind, size_bytes, sha256, created_at | 001 |
+| private attachment state | storage_status, blob_pathname, blob_url, storage_updated_at | 002 |
+| delivery state and audit writes | audit_logs: id, user_id, email, action, target_type, target_id, metadata_json, ip_hash, created_at | 001 |
+| delivery review-cycle boundary and response reviews | reviews: id, submission_id, reviewer_id, decision, comment, created_at; users: id, email, name | 001 |
 
-Exactly-once delivery cannot be established from an SMTP timeout alone. The
-system persists a marker before sending and stops automatic retries on ambiguity.
-An administrator must confirm receipt/non-delivery and follow the recovery
-runbook. For attempts made by the previous release, inspect existing delivery
-evidence before retrying an old failed submission; a historical sent marker is
-recognized, but missing historical evidence cannot prove non-delivery.
+All values remain parameterized; dynamically composed SQL uses fixed internal clauses
+and identifiers only. Neither finance status updates nor finance reviews contain the
+publication column. Schema errors log submissionId, stage, operation, table and safe
+PostgreSQL column/code diagnostics. API responses do not return raw SQL errors.
 
-## Verification performed
+## News workflow
 
-- Node.js 22: all 139 tests pass, including five PostgreSQL/PGlite integration
-  cases. The tests use isolated synthetic data; no production database is used.
-- The HTTP integration case uses actual session/draft/revision/attachment metadata
-  queries and real DOCX generation, with SMTP and Blob content reads replaced by
-  synthetic in-memory implementations. PGlite is single-connection, so pooled
-  concurrency is covered by a separate executable lock-contract test, not a live
-  Neon load test.
-- `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check`
-  pass. This repository's lint command is its syntax/site validation gate.
-- Headless Chrome used synthetic API responses. It reported no JavaScript errors
-  across desktop, tablet and mobile cases, including pending/uncertain delivery
-  behavior and unobscured error messages. Representative screenshots were
-  visually inspected.
-- Live Google, Neon, Blob, SMTP and optional AI provider acceptance remain
-  production verification. No real email was sent and no deployment was created.
+All authenticated permitted members can create, save incomplete drafts, reopen/edit,
+upload images, preview and submit their own news. Desktop and mobile have Uudised /
+Новости / News navigation next to the existing expense feature. The existing editor,
+private Blob upload/download, manual AI correction and escaped preview are reused.
+AI only changes text after the user explicitly accepts a suggestion.
 
-## Environment review exceptions
+Members submit to SUBMITTED; administrators review and approve another author's
+article to PUBLISHED. Existing administrator direct publication of their own article
+is retained. Publication alone runs the news-specific preflight and writes its first
+publication timestamp. Members cannot publish, review finance, create invoices, or
+read other authors' drafts through API manipulation.
 
-- `PUBLIC_SITE_ORIGIN`: accepted and validated for compatibility, but has no
-  current runtime consumer.
-- `STORAGE_DATABASE_URL_UNPOOLED`: required by the migration/check shell; that
-  variable was unavailable to this task's command environment. Use the existing
-  trusted configured environment, without displaying its value.
+The existing news data_json model supplies slug, title, summary/excerpt, content,
+date, category, author, images and translations. The editor now preserves language
+and stored translations during saves. Estonian remains the default source. No new
+translation service or automatic translation/publication is introduced.
 
-No requested variable remains missing code-side validation, incorrectly named,
-or exposed in browser modules. Compatibility aliases `STAFF_ALLOWED_EMAILS` and
-`STAFF_SMTP_PASS` remain supported, with canonical names taking precedence.
-The complete name-only matrix is in `ENVIRONMENT-REVIEW.md`. Deployed provider
-acceptance is tested through the production smoke flow, not by exposing settings.
+The website previously read only news-data.js's static catalogue despite having a
+public news API. news-data.js now merges the already localized PUBLISHED API items,
+and news.js/news-home.js wait for that bounded request before rendering. Existing
+static articles and their translations remain intact, including during API failure.
+Public draft records and private draft images remain inaccessible.
 
-## Deployment actions
+## Every remaining published_at reference
 
-1. Commit/push the reviewed changes. Before promoting the new production release,
-   run `npm run db:migrate` then `npm run db:check` from the repository root in
-   the trusted environment with `STORAGE_DATABASE_URL_UNPOOLED` configured.
-2. Deploy that same revision to Vercel. Migration execution is manual; neither
-   the build nor application startup performs it.
-3. Perform one production Google login and test expense flow: create/save/reopen,
-   private upload/download, valid document preparation, submit, confirm one email,
-   reopen as submitted, and verify a repeated Submit produces no duplicate email.
+- src/database.js: mapSubmission reads an optional row property (undefined maps to
+  NULL without a SQL lookup); assertNewsPublicationSchema probes the news field;
+  listPublishedNews orders published news; setSubmissionStatus and addReview append
+  the timestamp clause only for news transitions to PUBLISHED.
+- migrations/003_published_news.sql: original column, legacy exported-news timestamp
+  conversion and index. migrations/004_submission_finalization.sql: previous repair
+  and index. Both remain immutable historical migrations.
+- migrations/005_news_publication_timestamp.sql: new idempotent column/index repair.
+- test/schema.integration.test.js: reproduces the original CASE failure and removes
+  the column only in isolated in-memory PostgreSQL fixtures to test finance isolation,
+  safe publication failure and migration repair.
+- test/database.test.js: synthetic mapped-row fixture.
+- test/safe-errors.test.js: synthetic PostgreSQL diagnostic/redaction fixtures.
+- DEPLOYMENT.md and this document: migration/root-cause/verification explanation.
+
+## Verification and limits
+
+Final results: all 143 Node tests passed; typecheck, lint, build and diff whitespace
+checks passed. All 12 staff browser combinations (four widths × three languages)
+and all three public-language scenarios passed with no JavaScript errors. Migration
+005 is a new uncommitted working-tree file; it must be included with the release.
+
+The Node test suite covers authentication, ownership, finance isolation, draft CRUD,
+real DOCX generation, synthetic notification, durable retries, schema drift, repeat
+migrations, News preview/submission/admin publication, public visibility, translation
+preservation, public catalogue merging and fallback. PGlite executes real PostgreSQL
+SQL with synthetic data; it does not exercise live Neon pooling. Existing separate
+lock tests exercise concurrency contracts.
+
+The optional test/news.browser.mjs uses Playwright with synthetic API responses and
+only allowlisted public assets. It checks 320/390/768/1280px in ET/RU/EN, draft/save/
+reopen, image upload, explicit AI acceptance, preview, validation, submit, account and
+admin navigation, plus public home/article rendering. It checks descendant bounds
+and 44px navigation tap targets; screenshots are inspected as well. This caught and
+fixed the old 720px minimum news-preview width that clipped mobile content.
+
+Run npm test, npm run typecheck, npm run lint, npm run build and git diff --check.
+For browser verification, provide Playwright through normal module resolution or
+NODE_PATH and run node staff-app/test/news.browser.mjs (optional BROWSER_CHANNEL and
+BROWSER_SCREENSHOT_DIR). No browser dependency is added to production bundles.
+
+Live Google login, actual Blob upload, SMTP receipt, migration and deployment still
+need the existing production environment. No real notification was sent locally.
+No credentials, environment files, OAuth, SMTP, Blob, sessions or TLS configuration
+were changed or exposed.

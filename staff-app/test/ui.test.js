@@ -54,6 +54,7 @@ async function submissionUiHarness(api) {
     ApiError: Error,
     t: (key) => key,
     escapeHtml: (value) => value,
+    contentToParagraphs: (value) => value ? [value] : [],
     document: {
       getElementById: (id) => id === "authenticatedShell" ? shell : id === "viewRoot" ? viewRoot : null,
       querySelector: () => null
@@ -69,7 +70,7 @@ async function submissionUiHarness(api) {
     collectFormData = () => ({ invoiceNumber: "TEST-ONLY" });
     state.formType = "invoice";
     state.preview = { type: "invoice", data: { invoiceNumber: "TEST-ONLY" } };
-    ({ state, saveDraft, savePreview, openPreview, handleAction });
+    ({ state, saveDraft, savePreview, openPreview, handleAction, collectNewsData, canCreate });
   `, context);
   return { ...ui, controls, attributes, permanentlyDisabled };
 }
@@ -118,4 +119,17 @@ test("failed saves restore controls and preserve the preview for retry", async (
   assert.ok(ui.controls.slice(0, -1).every((control) => !control.disabled));
   assert.equal(ui.controls[1].innerHTML, "save-preview");
   assert.equal(ui.permanentlyDisabled.disabled, true);
+});
+
+test("news editor preserves stored translations and uses server creation permissions", async () => {
+  const ui = await submissionUiHarness({});
+  const translations = { et: { title: "Uudis" }, en: { title: "News" }, ru: { title: "Новость" } };
+  ui.state.current = { data: { language: "et", translations } };
+  assert.deepEqual(ui.collectNewsData().translations, translations);
+  assert.equal(ui.collectNewsData().language, "et");
+  ui.state.session = { user: { role: "member" }, permissions: ["news:create", "expense:create"] };
+  assert.equal(ui.canCreate("news"), true);
+  assert.equal(ui.canCreate("invoice"), false);
+  ui.state.session.user.role = "finance";
+  assert.equal(ui.canCreate("invoice"), false);
 });

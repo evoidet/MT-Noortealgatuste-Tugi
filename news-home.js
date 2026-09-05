@@ -8,7 +8,8 @@
 (() => {
   "use strict";
 
-  const initHomeNews = () => {
+  const initHomeNews = async () => {
+    await window.NEWS_READY;
     const target = document.getElementById("homeNewsList");
     const t = (key, variables) => window.I18N?.t(key, variables) || "";
     const locale = window.I18N?.locale() || "et-EE";

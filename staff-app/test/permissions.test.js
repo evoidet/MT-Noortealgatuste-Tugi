@@ -20,14 +20,14 @@ function submission(type, creatorId, status = "DRAFT") {
   return { id: `${type}-${creatorId}`, type, creatorId, status };
 }
 
-test("member permissions are limited to the member's own expense reports", () => {
+test("members manage their own news and expenses without finance or publication permissions", () => {
   const ownExpense = submission("expense", member.id);
   const otherExpense = submission("expense", "someone-else");
   const historicalOwnNews = submission("news", member.id);
   const historicalOwnInvoice = submission("invoice", member.id);
 
   assert.equal(canCreateType(member, "expense"), true);
-  assert.equal(canCreateType(member, "news"), false);
+  assert.equal(canCreateType(member, "news"), true);
   assert.equal(canCreateType(member, "invoice"), false);
 
   assert.equal(canReadSubmission(member, ownExpense), true);
@@ -37,14 +37,18 @@ test("member permissions are limited to the member's own expense reports", () =>
 
   assert.equal(canReadSubmission(member, otherExpense), false);
   assert.equal(canReadAttachment(member, otherExpense), false);
-  assert.equal(canReadSubmission(member, historicalOwnNews), false);
-  assert.equal(canEditSubmission(member, historicalOwnNews), false);
+  assert.equal(canReadSubmission(member, historicalOwnNews), true);
+  assert.equal(canEditSubmission(member, historicalOwnNews), true);
+  assert.equal(canSubmitSubmission(member, historicalOwnNews), true);
+  assert.equal(canReadSubmission(member, submission("news", "other")), false);
+  assert.equal(canReviewType(member, "news"), false);
+  assert.equal(canReviewType(member, "expense"), false);
   assert.equal(canReadSubmission(member, historicalOwnInvoice), false);
   assert.equal(canSubmitSubmission(member, historicalOwnInvoice), false);
 
   const permissions = permissionsForRole("member");
   assert.ok(permissions.includes("expense:read:own"));
-  assert.equal(permissions.some((permission) => permission.startsWith("news:")), false);
+  assert.ok(permissions.includes("news:create"));
   assert.equal(permissions.some((permission) => permission.startsWith("invoice:")), false);
   assert.equal(permissions.includes("submission:read:own"), false);
 });

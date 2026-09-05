@@ -7,7 +7,7 @@ const ownPermissions = (type) => [
 ];
 
 const rolePermissions = Object.freeze({
-  member: new Set(["expense:create", ...ownPermissions("expense")]),
+  member: new Set(["expense:create", "news:create", ...ownPermissions("expense"), ...ownPermissions("news")]),
   editor: new Set([
     "expense:create",
     "news:create",

@@ -712,7 +712,8 @@ export function createStaffApp({
         }
 
         try {
-          await database.assertSubmissionSchema();
+          await database.assertSubmissionSchema(submission.type);
+          if (directNewsPublish) await database.assertNewsPublicationSchema();
         } catch (error) {
           console.error("Submission schema preflight failed:", {
             submissionId: submission.id, stage: "schema", ...safeOperationalError(error)
@@ -949,6 +950,17 @@ export function createStaffApp({
     /** @type {string} */
     let nextStatus = statusForDecision[parsed.data.decision];
     if (submission.type === "news" && parsed.data.decision === "approve") nextStatus = "PUBLISHED";
+    if (nextStatus === "PUBLISHED") {
+      try {
+        await database.assertSubmissionSchema("news");
+        await database.assertNewsPublicationSchema();
+      } catch (error) {
+        console.error("News publication schema preflight failed:", {
+          submissionId: submission.id, stage: "schema", ...safeOperationalError(error)
+        });
+        return response.status(503).json({ error: "SUBMISSION_SCHEMA_NOT_READY" });
+      }
+    }
     const updated = await database.addReview({
       submissionId: submission.id,
       reviewerId: request.user.id,

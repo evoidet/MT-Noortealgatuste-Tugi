@@ -12,6 +12,17 @@ async function main() {
   const database = openDatabase(connectionString);
   try {
     await database.assertSubmissionSchema();
+    await database.assertNewsPublicationSchema();
+    // Deployment-wide checks stay here rather than coupling expense submission
+    // to news migration/index availability at runtime.
+    const indexes = await database.raw.query(`SELECT indexname FROM pg_indexes
+      WHERE schemaname = current_schema() AND indexname IN (
+        'submissions_news_slug_unique', 'attachments_one_primary_per_submission',
+        'submissions_published_news_idx', 'audit_expense_delivery_idx')`);
+    if (indexes.rows.length !== 4) {
+      console.error("Required staff database indexes are missing.");
+      process.exitCode = 1;
+    }
     const migrations = await loadMigrations();
     const { rows } = await database.raw.query("SELECT version, name, checksum FROM schema_migrations");
     for (const migration of migrations) {

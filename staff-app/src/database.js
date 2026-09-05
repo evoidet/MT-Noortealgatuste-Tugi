@@ -238,28 +238,32 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       }
     },
 
-    async assertSubmissionSchema() {
-      // Compile the finalization/attachment queries before generating documents
-      // or sending mail. No records or private values are read by these probes.
-      await pool.query(`SELECT status, revision_no, updated_at, submitted_at,
-        published_at, data_json FROM submissions LIMIT 0`);
-      await pool.query(`SELECT storage_status, blob_pathname, blob_url,
-        storage_updated_at, kind, sha256 FROM attachments LIMIT 0`);
-      const result = await pool.query(`SELECT version FROM schema_migrations
-        WHERE version IN ('001', '002', '003', '004')`);
-      if (result.rows.length !== 4) {
-        throw Object.assign(new Error("Required submission migrations are pending."), {
-          code: "SUBMISSION_SCHEMA_NOT_READY", status: 503
-        });
+    async assertSubmissionSchema(type = "expense") {
+      // Probe only the operation's SQL contract. Migration history is checked
+      // separately by db:check; news migrations must not block finance work.
+      const probes = [
+        ["submissions", "id, type, creator_id, status, revision_no, created_at, updated_at, submitted_at, data_json"],
+        ["users", "id, email, name"],
+        ["revisions", "id, submission_id, revision_no, data_json, event, created_by, created_at"],
+        ["reviews", "id, submission_id, reviewer_id, decision, comment, created_at"],
+        ["attachments", "id, submission_id, uploader_id, storage_name, storage_status, blob_pathname, blob_url, original_name, mime_type, size_bytes, created_at, storage_updated_at, kind, sha256"],
+        ["audit_logs", "id, user_id, email, action, target_type, target_id, metadata_json, ip_hash, created_at"]
+      ];
+      for (const [table, columns] of probes) {
+        try {
+          // Identifiers come exclusively from the constants above.
+          await pool.query(`SELECT ${columns} FROM ${table} LIMIT 0`);
+        } catch (error) {
+          throw Object.assign(error, { table, operation: `${type}_submit` });
+        }
       }
-      const indexes = await pool.query(`SELECT indexname FROM pg_indexes
-        WHERE schemaname = current_schema() AND indexname IN (
-          'submissions_news_slug_unique', 'attachments_one_primary_per_submission',
-          'submissions_published_news_idx', 'audit_expense_delivery_idx')`);
-      if (indexes.rows.length !== 4) {
-        throw Object.assign(new Error("Required submission indexes are missing."), {
-          code: "SUBMISSION_SCHEMA_NOT_READY", status: 503
-        });
+    },
+
+    async assertNewsPublicationSchema() {
+      try {
+        await pool.query("SELECT published_at, status, data_json, updated_at FROM submissions LIMIT 0");
+      } catch (error) {
+        throw Object.assign(error, { table: "submissions", operation: "news_publish" });
       }
     },
 
@@ -557,6 +561,9 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         const submission = await getSubmissionWith(client, id, { forUpdate: true });
         if (!submission) return null;
         if (!expectedStatuses.includes(submission.status)) throw createWorkflowStateError();
+        if (status === "PUBLISHED" && submission.type !== "news") throw createWorkflowStateError();
+        const publicationUpdate = status === "PUBLISHED"
+          ? ", published_at = COALESCE(published_at, NOW())" : "";
         const nextRevision = submission.revision + 1;
         await client.query(`
           UPDATE submissions
@@ -566,11 +573,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
               submitted_at = CASE
                 WHEN $2 IN ('SUBMITTED', 'APPROVED', 'PUBLISHED') THEN COALESCE(submitted_at, NOW())
                 ELSE submitted_at
-              END,
-              published_at = CASE
-                WHEN $2 = 'PUBLISHED' THEN COALESCE(published_at, NOW())
-                ELSE published_at
-              END
+              END${publicationUpdate}
           WHERE id = $1
         `, [id, status, nextRevision]);
         await client.query(`
@@ -589,15 +592,16 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         if (!["SUBMITTED", "UNDER_REVIEW"].includes(submission.status)) {
           throw createWorkflowStateError();
         }
+        if (nextStatus === "PUBLISHED" && submission.type !== "news") throw createWorkflowStateError();
+        const publicationUpdate = nextStatus === "PUBLISHED"
+          ? ", published_at = COALESCE(published_at, NOW())" : "";
         await client.query(`
           INSERT INTO reviews (
             id, submission_id, reviewer_id, decision, comment, created_at
           ) VALUES ($1, $2, $3, $4, $5, NOW())
         `, [randomUUID(), submissionId, reviewerId, decision, comment || null]);
         await client.query(`
-          UPDATE submissions SET status = $2, updated_at = NOW(),
-            published_at = CASE WHEN $2 = 'PUBLISHED' THEN COALESCE(published_at, NOW())
-              ELSE published_at END
+          UPDATE submissions SET status = $2, updated_at = NOW()${publicationUpdate}
           WHERE id = $1
         `, [submissionId, nextStatus]);
         return getSubmissionWith(client, submissionId);

@@ -7,8 +7,9 @@ import { createStaffApp } from "../src/app.js";
 import { loadConfig } from "../src/config.js";
 import { openDatabase } from "../src/database.js";
 import { loadMigrations } from "../scripts/db-migrate.mjs";
+import { renderSubmissionPreview } from "../public/previews.js";
 
-async function fixture(t, versions = ["001", "002", "003", "004"]) {
+async function fixture(t, versions = ["001", "002", "003", "004", "005"]) {
   const engine = new PGlite();
   t.after(() => engine.close());
   const migrations = await loadMigrations();
@@ -37,20 +38,17 @@ async function fixture(t, versions = ["001", "002", "003", "004"]) {
   return { engine, database, user, migrate };
 }
 
-test("PostgreSQL reproduces published_at 42703; pending migrations repair without data loss", async (t) => {
+test("old drafts save and finalize without the unrelated news column; migrations preserve data", async (t) => {
   const { engine, database, user, migrate } = await fixture(t, ["001", "002"]);
   const draft = await database.createSubmission({ type: "expense", creatorId: user.id,
     data: { project: "Preserve this synthetic draft" } });
-  await assert.rejects(database.setSubmissionStatus({ id: draft.id, status: "SUBMITTED",
-    userId: user.id, event: "SUBMITTED" }), (error) => {
+  await assert.rejects(engine.query("UPDATE submissions SET published_at = CASE WHEN status = 'PUBLISHED' THEN NOW() ELSE published_at END WHERE id = $1", [draft.id]), (error) => {
     assert.equal(error.code, "42703");
     assert.match(error.message, /published_at/);
     return true;
   });
   assert.equal((await database.getSubmission(draft.id)).status, "DRAFT");
   assert.equal((await engine.query("SELECT count(*)::int AS count FROM revisions")).rows[0].count, 1);
-  await migrate("003");
-  await migrate("004");
   await database.assertSubmissionSchema();
   const finalized = await database.setSubmissionStatus({ id: draft.id, status: "SUBMITTED",
     userId: user.id, event: "SUBMITTED" });
@@ -61,7 +59,7 @@ test("PostgreSQL reproduces published_at 42703; pending migrations repair withou
   assert.equal(finalized.revision, 2);
   await assert.rejects(database.updateSubmission({ id: draft.id, userId: user.id, data: {} }),
     { code: "INVALID_WORKFLOW_STATE" });
-  await migrate("004");
+  for (const version of ["003", "004", "005", "005"]) await migrate(version);
   assert.deepEqual(await database.getSubmission(draft.id), finalized);
 });
 
@@ -69,8 +67,13 @@ test("repair migration restores schema drift and all final states preserve times
   const { engine, database, user, migrate } = await fixture(t);
   // Simulate a drifted installation that claims 003 but lacks its column/index.
   await engine.exec("DROP INDEX submissions_published_news_idx; ALTER TABLE submissions DROP COLUMN published_at");
-  await assert.rejects(database.assertSubmissionSchema(), { code: "42703" });
-  await migrate("004");
+  await database.assertSubmissionSchema();
+  await assert.rejects(database.assertNewsPublicationSchema(), {
+    code: "42703", table: "submissions", operation: "news_publish"
+  });
+  await migrate("005");
+  await migrate("005");
+  await database.assertNewsPublicationSchema();
   await database.assertSubmissionSchema();
   for (const [type, status] of [["invoice", "APPROVED"], ["news", "PUBLISHED"]]) {
     const draft = await database.createSubmission({ type, creatorId: user.id, data: { slug: "fixture-news" } });
@@ -116,8 +119,9 @@ test("attachment constraints, delivery markers and review cycles remain consiste
   assert.equal((await engine.query("SELECT count(*)::int AS count FROM attachments")).rows[0].count, 1);
 });
 
-test("HTTP session, draft persistence, ownership, real DOCX preparation and finalization against PostgreSQL", async (t) => {
-  const { database, user } = await fixture(t);
+test("HTTP expense flow prepares real DOCX, sends once and finalizes without published_at", async (t) => {
+  const { engine, database, user } = await fixture(t);
+  await engine.exec("DROP INDEX submissions_published_news_idx; ALTER TABLE submissions DROP COLUMN published_at");
   // PGlite is single-connection. Cross-connection lock contention is covered in
   // database.test.js; use a sequential lock adapter for this SQL/HTTP workflow.
   database.withSubmissionLock = async (_id, work) => work();
@@ -173,4 +177,91 @@ test("HTTP session, draft persistence, ownership, real DOCX preparation and fina
   assert.equal(sent.length, 1);
   assert.equal((await write("patch", `/api/staff/submissions/${id}`, { data })).status, 403);
   assert.equal((await request(app).get(`/api/staff/submissions/${id}`).set("Cookie", cookie)).body.item.status, "SUBMITTED");
+});
+
+test("Workspace member news draft, preview, submit and admin publication use the public news model", async (t) => {
+  const { engine, database } = await fixture(t);
+  database.withSubmissionLock = async (_id, work) => work();
+  const owner = await database.upsertUser({ googleSubject: "news-owner", email: "writer@noortetugi.ee", name: "Writer" });
+  const admin = await database.upsertUser({ googleSubject: "news-admin", email: "reviewer@noortetugi.ee", name: "Reviewer", role: "admin" });
+  const outsider = await database.upsertUser({ googleSubject: "news-other", email: "other@noortetugi.ee", name: "Other" });
+  const config = loadConfig({ environment: "test", appUrl: "http://localhost:3100",
+    googleCallbackUrl: "http://localhost:3100/api/staff/auth/google/callback",
+    allowedGoogleDomain: "noortetugi.ee", allowedStaffEmails: [], adminEmails: ["reviewer@noortetugi.ee"],
+    storageDatabaseUrl: "postgresql://unused.invalid/test", sessionSecret: "synthetic-session-secret-for-test-only-1234567890",
+    blobReadWriteToken: "", googleClientId: "", googleClientSecret: "", openAiApiKey: "",
+    smtpHost: "", smtpUser: "", smtpPassword: "", mailFrom: "", enableDevAuth: false });
+  const { app } = createStaffApp({ config, database, mailService: {
+    async sendExpenseSubmitted() { assert.fail("News must not send finance mail"); }
+  } });
+  async function client(user) {
+    const token = `synthetic-${user.id}`;
+    await database.createSession({ tokenHash: createHash("sha256").update(token).digest("base64url"),
+      userId: user.id, expiresAt: new Date(Date.now() + 3600000).toISOString(), userAgentHash: null, ipHash: null });
+    const cookie = `${config.cookieName}=${token}`;
+    const session = await request(app).get("/api/staff/session").set("Cookie", cookie);
+    return { session: session.body, get: (path) => request(app).get(path).set("Cookie", cookie),
+      write: (method, path, data) => request(app)[method](path).set("Cookie", cookie)
+        .set("X-CSRF-Token", session.body.csrfToken).send(data) };
+  }
+  const writer = await client(owner);
+  const reviewer = await client(admin);
+  const other = await client(outsider);
+  assert.ok(writer.session.permissions.includes("news:create"));
+  assert.ok(!writer.session.permissions.includes("news:review"));
+  assert.equal((await request(app).post("/api/staff/submissions").send({ type: "news" })).status, 401);
+  const created = await writer.write("post", "/api/staff/submissions", { type: "news", data: {} });
+  assert.equal(created.status, 201);
+  const id = created.body.item.id;
+  const path = `/api/staff/submissions/${id}`;
+  const data = { slug: "synthetic-news", date: "2026-09-05", title: "Noorte uudis",
+    summary: "Ühine töötuba", content: ["Pikk uudise tekst."], author: "Writer",
+    translations: { en: { title: "Youth news", excerpt: "A workshop", content: ["Workshop story."] } } };
+  assert.equal((await writer.write("patch", path, { data })).status, 200);
+  const reopened = await writer.get(path);
+  assert.equal(reopened.body.item.data.title, data.title);
+  assert.equal((await other.get(path)).status, 404);
+  assert.equal((await other.write("patch", path, { data })).status, 403);
+  assert.equal((await writer.write("post", "/api/staff/submissions", { type: "invoice" })).status, 403);
+  assert.equal((await writer.get("/api/staff/audit")).status, 403);
+  assert.equal((await writer.get("/api/staff/export/news")).status, 403);
+  const expense = await database.createSubmission({ type: "expense", creatorId: outsider.id, data: {} });
+  await database.setSubmissionStatus({ id: expense.id, status: "SUBMITTED", userId: outsider.id, event: "SUBMITTED" });
+  assert.equal((await writer.write("post", `/api/staff/submissions/${expense.id}/review`, { decision: "approve" })).status, 403);
+  const image = await database.createAttachment({ submissionId: id, uploaderId: owner.id, originalName: "synthetic.png",
+    mimeType: "image/png", kind: "primary", size: 10, storageName: "synthetic-image", sha256: "a".repeat(64) });
+  const publicImagePath = `/api/staff/public/news/${id}/attachments/${image.id}`;
+  assert.equal((await request(app).get(publicImagePath)).status, 404);
+  assert.equal((await request(app).get("/api/staff/public/news")).body.items.length, 0);
+  // The same escaped renderer is used by the browser preview.
+  globalThis.window = { I18N: { t: (key) => key, locale: () => "et-EE" } };
+  try {
+    const html = renderSubmissionPreview("news", reopened.body.item.data);
+    assert.match(html, /Noorte uudis/);
+    assert.match(html, /Pikk uudise tekst/);
+  } finally { delete globalThis.window; }
+  const submitted = await writer.write("post", `${path}/submit`, {});
+  assert.equal(submitted.status, 200);
+  assert.equal(submitted.body.item.status, "SUBMITTED");
+  assert.equal(submitted.body.item.publishedAt, null);
+  assert.equal((await request(app).get("/api/staff/public/news")).body.items.length, 0);
+  assert.equal((await writer.write("post", `${path}/review`, { decision: "approve" })).status, 403);
+  assert.equal((await writer.write("patch", path, { data })).status, 403);
+  // Publication preflight fails before changing a review or status; repair is repeatable.
+  await engine.exec("DROP INDEX submissions_published_news_idx; ALTER TABLE submissions DROP COLUMN published_at");
+  assert.equal((await reviewer.write("post", `${path}/review`, { decision: "approve" })).status, 503);
+  assert.equal((await database.getSubmission(id)).status, "SUBMITTED");
+  assert.equal((await database.listReviews(id)).length, 0);
+  const migration = (await loadMigrations()).find((entry) => entry.version === "005");
+  await engine.exec(migration.sql);
+  await engine.exec(migration.sql);
+  const published = await reviewer.write("post", `${path}/review`, { decision: "approve" });
+  assert.equal(published.status, 200);
+  assert.equal(published.body.item.status, "PUBLISHED");
+  assert.ok(published.body.item.publishedAt);
+  const feed = await request(app).get("/api/staff/public/news?lang=et");
+  assert.equal(feed.body.items[0].id, data.slug);
+  assert.equal(feed.body.items[0].title, data.title);
+  assert.equal(feed.body.items[0].image, publicImagePath);
+  assert.equal((await request(app).get("/api/staff/public/news?lang=en")).body.items[0].title, "Youth news");
 });

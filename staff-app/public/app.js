@@ -122,24 +122,7 @@ function hasAnyPermission(...names) {
 }
 
 function canCreate(type) {
-  const currentRole = role();
-
-  if (type === "news") {
-    return hasAnyPermission("news:create", "create:news", "submissions:create:news") ||
-      ["editor", "admin"].includes(currentRole);
-  }
-
-  if (type === "expense") {
-    return hasAnyPermission("expense:create", "create:expense", "submissions:create:expense") ||
-      ["member", "editor", "finance", "admin"].includes(currentRole);
-  }
-
-  if (type === "invoice") {
-    return hasAnyPermission("invoice:create", "create:invoice", "submissions:create:invoice") ||
-      ["finance", "admin"].includes(currentRole);
-  }
-
-  return false;
+  return hasAnyPermission(`${type}:create`);
 }
 
 function canReview() {
@@ -186,6 +169,9 @@ function configureAuthenticatedShell() {
 
   document.querySelectorAll('[data-requires="audit"]').forEach((element) => {
     element.hidden = !canAudit();
+  });
+  document.querySelectorAll('[data-feature]').forEach((element) => {
+    element.hidden = !canCreate(element.dataset.feature);
   });
 
   void refreshReviewBadge();
@@ -501,9 +487,12 @@ function renderLoading(key = "staff.common.loading") {
 
 function setActiveNavigation(view) {
   const navView = ["form", "preview", "detail"].includes(view) ? "mine" : view;
+  const navType = ["form", "preview"].includes(view) ? state.formType
+    : view === "detail" ? state.current?.type : state.listType;
 
   document.querySelectorAll("[data-action='navigate'][data-view]").forEach((button) => {
-    const active = button.dataset.view === navView;
+    const active = button.dataset.view === navView &&
+      (button.dataset.type || "") === (navView === "mine" ? navType || "" : "");
     button.classList.toggle("is-active", active);
 
     if (active) {
@@ -850,14 +839,20 @@ async function renderList(scope, type = "") {
   const filterTypes = availableTypes(scope);
   if (type && !filterTypes.includes(type)) type = "";
   state.listType = type;
+  setActiveNavigation(scope);
 
   elements.viewRoot.innerHTML = `
     <section class="staff-list-view">
       ${pageHeader({
         eyebrow: review ? "staff.list.reviewEyebrow" : "staff.list.mineEyebrow",
-        title: review ? "staff.list.reviewTitle" : "staff.list.mineTitle",
+        title: review ? "staff.list.reviewTitle" : type ? typeKey(type) : "staff.list.mineTitle",
         description: review ? "staff.list.reviewDescription" : "staff.list.mineDescription"
       })}
+
+      ${!review && type && canCreate(type) ? `
+        <button class="staff-button staff-button--primary" type="button" data-action="start-form" data-type="${escapeHtml(type)}">
+          ${escapeHtml(t(`staff.home.add${type.charAt(0).toUpperCase() + type.slice(1)}`))}
+        </button>` : ""}
 
       <div class="staff-filter-row" role="group" aria-label="${escapeHtml(t("staff.list.filterLabel"))}">
         ${["", ...filterTypes].map((value) => `
@@ -1357,6 +1352,8 @@ function collectNewsData() {
   const mainFiles = state.pendingFiles.get("news-main") || [];
   const additionalFiles = state.pendingFiles.get("news-additional") || [];
   const data = {
+    language: state.current?.data?.language || "et",
+    ...(state.current?.data?.translations ? { translations: state.current.data.translations } : {}),
     slug: inputValue("newsSlug"),
     date: inputValue("newsDate"),
     category: inputValue("newsCategory"),
@@ -1566,7 +1563,7 @@ async function saveData(type, data) {
 
 async function saveDraft(button) {
   if (state.formOperation) return null;
-  if (!validateCurrentForm()) return null;
+  if (state.formType !== "news" && !validateCurrentForm()) return null;
   const data = collectFormData();
   const finishOperation = beginFormOperation(button, "staff.form.saving");
 
@@ -2268,7 +2265,7 @@ async function handleAction(button) {
   const action = button.dataset.action;
 
   if (action === "navigate") {
-    await navigate(button.dataset.view);
+    await navigate(button.dataset.view, { type: button.dataset.type || "" });
     return;
   }
 

@@ -86,4 +86,30 @@
         };
       })
     : items;
+
+  // The static catalogue and its translation tooling remain the baseline.
+  // Staff articles arrive already localized through the existing public API.
+  // Never request authenticated drafts or replace the catalogue on failure.
+  if (typeof windowObject.fetch === "function") {
+    const language = windowObject.I18N?.getLanguage() || "et";
+    windowObject.NEWS_READY = windowObject.fetch(
+      `/api/staff/public/news?lang=${encodeURIComponent(language)}`,
+      { credentials: "omit", signal: windowObject.AbortSignal.timeout(5000) }
+    ).then(function (response) {
+      if (!response.ok) throw new Error("Published news unavailable");
+      return response.json();
+    }).then(function (payload) {
+      const published = Array.isArray(payload.items) ? payload.items.filter(function (item) {
+        return item && item.published === true && typeof item.id === "string" &&
+          item.title && item.excerpt && Array.isArray(item.content);
+      }) : [];
+      const merged = new Map(windowObject.NEWS_ITEMS.map(function (item) { return [item.id, item]; }));
+      published.forEach(function (item) {
+        merged.set(item.id, { ...item, categoryLabel: categoryLabels[item.category] || t("common.nav.news") });
+      });
+      windowObject.NEWS_ITEMS = [...merged.values()];
+    }).catch(function () {
+      // Static news stays available during API outages and local/offline use.
+    });
+  }
 })(window);

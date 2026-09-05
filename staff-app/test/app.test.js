@@ -628,7 +628,7 @@ function submissionApp(database, send) {
 test("missing schema stops submission before document generation or SMTP and logs safe column", async (t) => {
   const database = expenseRouteDatabase();
   database.assertSubmissionSchema = async () => { throw Object.assign(
-    new Error('column "published_at" does not exist'), { code: "42703", name: "error" }); };
+    new Error('column "submitted_at" does not exist'), { code: "42703", name: "error", table: "submissions", operation: "expense_submit" }); };
   let sends = 0;
   const { app, config } = submissionApp(database, async () => { sends++; });
   const logs = [];
@@ -638,9 +638,11 @@ test("missing schema stops submission before document generation or SMTP and log
   assert.equal(response.body.error, "SUBMISSION_SCHEMA_NOT_READY");
   assert.equal(sends, 0);
   assert.equal(database.current.status, "DRAFT");
-  assert.equal(logs[0][1].column, "published_at");
+  assert.equal(logs[0][1].column, "submitted_at");
+  assert.equal(logs[0][1].table, "submissions");
+  assert.equal(logs[0][1].operation, "expense_submit");
   assert.equal(logs[0][1].submissionId, database.current.id);
-  assert.equal(JSON.stringify(response.body).includes("published_at"), false);
+  assert.equal(JSON.stringify(response.body).includes("submitted_at"), false);
 });
 
 test("failed start marker sends no email; failed sent marker blocks retry after one delivery", async (t) => {

@@ -1842,8 +1842,19 @@ body.staff-page select {
 }
 
 .staff-news-preview {
-  min-width: 720px;
+  min-width: 0;
+  width: 100%;
+  overflow-wrap: anywhere;
   background: #fff;
+}
+
+body.staff-page .staff-news-preview .news-container {
+  width: 100%;
+  padding: clamp(12px, 3vw, 28px);
+}
+
+body.staff-page .staff-news-preview .news-article-heading h1 {
+  font-size: clamp(28px, 5vw, 56px);
 }
 
 .staff-news-gallery {
@@ -2236,7 +2247,7 @@ body.staff-page select {
   }
 
   .staff-main {
-    padding: 24px clamp(14px, 4vw, 28px) calc(92px + env(safe-area-inset-bottom));
+    padding: 24px clamp(14px, 4vw, 28px) calc(112px + env(safe-area-inset-bottom));
   }
 
   .staff-bottom-nav {
@@ -2259,7 +2270,7 @@ body.staff-page select {
 
   .staff-bottom-nav-button {
     display: grid;
-    min-width: 58px;
+    min-width: 44px;
     min-height: 52px;
     padding: 5px 8px;
     flex: 1 1 0;
@@ -2283,11 +2294,10 @@ body.staff-page select {
 
   .staff-bottom-nav-button small {
     max-width: 100%;
-    overflow: hidden;
     font-size: 10px;
     font-weight: 850;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .staff-form-grid {
@@ -2545,7 +2555,7 @@ body.staff-page select {
   }
 
   .staff-bottom-nav-button {
-    min-width: 50px;
+    min-width: 44px;
     padding-right: 4px;
     padding-left: 4px;
   }

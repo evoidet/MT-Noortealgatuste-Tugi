@@ -13,12 +13,15 @@ function safeIdentifier(value) {
 export function safeOperationalError(error, fallback = "OPERATION_FAILED") {
   const code = typeof error?.code === "string" && /^[A-Z0-9_]{1,80}$/.test(error.code)
     ? error.code : fallback;
-  /** @type {{code: string, name: string, message?: string, table?: string, column?: string, constraint?: string, command?: string, responseCode?: number}} */
+  /** @type {{code: string, name: string, message?: string, table?: string, column?: string, operation?: string, constraint?: string, command?: string, responseCode?: number}} */
   const result = {
     code,
     name: ["Error", "error", "DatabaseError", "DocumentValidationError", "ZodError"].includes(error?.name)
       ? error.name : "Error"
   };
+  if (["expense_submit", "invoice_submit", "news_submit", "news_publish"].includes(error?.operation)) {
+    result.operation = error.operation;
+  }
   if (/^(?:[0-5][0-9A-Z]|HV|P0|XX)[0-9A-Z]{3}$/.test(code)) {
     // Reconstruct PostgreSQL diagnostics from safe identifiers. Raw messages
     // for data/type/constraint failures can echo entire user-supplied values.

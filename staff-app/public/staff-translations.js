@@ -53,6 +53,7 @@
 
     "staff.navigation.label": ["Töökeskkonna navigatsioon", "Staff navigation", "Навигация рабочей среды"],
     "staff.navigation.home": ["Avaleht", "Home", "Главная"],
+    "staff.navigation.news": ["Uudised", "News", "Новости"],
     "staff.navigation.mine": ["Minu taotlused", "My submissions", "Мои заявки"],
     "staff.navigation.mineShort": ["Minu", "Mine", "Мои"],
     "staff.navigation.review": ["Kontrollimine", "Review", "Проверка"],

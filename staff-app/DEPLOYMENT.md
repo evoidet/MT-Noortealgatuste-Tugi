@@ -2,8 +2,9 @@
 
 ## Submission finalization upgrade
 
-The finalization query requires `submissions.published_at`, introduced in
-`003_published_news.sql`. Run all migrations through `004_submission_finalization.sql`
+News publication requires `submissions.published_at`, introduced in
+`003_published_news.sql`. Expense/invoice submission and review no longer reference
+that column. Run all migrations through `005_news_publication_timestamp.sql`
 before promoting this release. Neither Vercel builds nor application startup run
 database migrations automatically.
 
@@ -19,7 +20,8 @@ Do not print connection strings or load environment files into diagnostics.
 The runner preserves checksummed history and applies each pending migration in
 a transaction. Migration 004 repairs the published timestamp column, submission
 status constraint, related indexes, and delivery lookup index without deleting
-records. Existing unique conflicts stop a migration safely; resolve conflicting
+records. Migration 005 repairs a missing news timestamp/index even if 004 is
+already recorded; it leaves unpublished timestamps NULL. Existing unique conflicts stop a migration safely; resolve conflicting
 business records deliberately instead of resetting data or bypassing a constraint.
 
 Deploy the checked revision after the migration. Then sign in, create/save/reopen
@@ -27,8 +29,10 @@ one test draft, upload/download a private attachment, submit, confirm one financ
 notification and a submitted read-only record, and retry Submit to confirm no
 second email. Provider credentials were not changed by this release.
 
-The health endpoint now also checks the submission schema. Missing schema stops
-submission before document preparation or SMTP. Delivery markers remain durable
+The health endpoint checks the common submission schema. `db:check` additionally
+checks news publication and all migration checksums. Missing operation-specific
+schema stops processing before document preparation or SMTP. News publication
+has its own preflight. Delivery markers remain durable
 when finalization fails. A confirmed sent marker permits finalization retry; an
 uncertain SMTP outcome requires the guarded procedure in
 [DELIVERY-RECOVERY.md](DELIVERY-RECOVERY.md).

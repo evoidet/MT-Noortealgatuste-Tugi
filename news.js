@@ -14,7 +14,8 @@
 (() => {
   "use strict";
 
-  const initNewsPage = () => {
+  const initNewsPage = async () => {
+    await window.NEWS_READY;
     const page = document.querySelector(".news-page");
     if (!page) return;
 
