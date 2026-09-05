@@ -3,23 +3,18 @@ import { readdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { safeOperationalError } from "../src/safe-errors.js";
 
 const { Pool } = pg;
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const migrationsDirectory = resolve(scriptDirectory, "../migrations");
 const migrationPattern = /^(\d{3,})_([a-z0-9][a-z0-9_-]*)\.sql$/;
-const unpooledDatabaseUrl = String(process.env.STORAGE_DATABASE_URL_UNPOOLED ?? "").trim();
 
 function checksum(contents) {
   return createHash("sha256").update(contents).digest("hex");
 }
 
-function safeErrorMessage(error) {
-  const message = String(error?.message || "unknown migration error");
-  return unpooledDatabaseUrl ? message.split(unpooledDatabaseUrl).join("[redacted]") : message;
-}
-
-async function loadMigrations() {
+export async function loadMigrations() {
   const entries = await readdir(migrationsDirectory, { withFileTypes: true });
   const migrations = [];
   const versions = new Set();
@@ -47,7 +42,12 @@ async function loadMigrations() {
 }
 
 async function main() {
-  if (!unpooledDatabaseUrl) throw new Error("STORAGE_DATABASE_URL_UNPOOLED is required.");
+  const unpooledDatabaseUrl = String(process.env.STORAGE_DATABASE_URL_UNPOOLED ?? "").trim();
+  if (!unpooledDatabaseUrl) {
+    console.error("STORAGE_DATABASE_URL_UNPOOLED is required.");
+    process.exitCode = 1;
+    return;
+  }
   const migrations = await loadMigrations();
   if (migrations.length === 0) throw new Error("No database migrations were found.");
 
@@ -80,6 +80,7 @@ async function main() {
       const previous = applied.get(migration.version);
       if (previous) {
         if (previous.name !== migration.name || previous.checksum !== migration.checksum) {
+          console.error(`Migration ${migration.version} checksum/name mismatch. Restore migration history; do not edit applied SQL.`);
           throw new Error(
             `Applied migration ${migration.version} no longer matches ${migration.name}; ` +
             "create a new migration instead of editing migration history."
@@ -116,7 +117,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(`Database migration failed: ${safeErrorMessage(error)}`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error("Database migration failed:", safeOperationalError(error, "MIGRATION_FAILED"));
+    process.exitCode = 1;
+  });
+}

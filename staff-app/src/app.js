@@ -13,6 +13,7 @@ import {
   getDocumentTemplateAvailability
 } from "./documents.js";
 import { createMailService } from "./mail.js";
+import { safeOperationalError } from "./safe-errors.js";
 import { normalizeNewsLanguage, toPublicNewsItem } from "./news-publishing.js";
 import {
   canCreateType,
@@ -298,6 +299,9 @@ function validationResponse(response, error) {
     "INVALID_WORKFLOW_STATE",
     "SUBMISSION_DELIVERY_FAILED",
     "SUBMISSION_IN_PROGRESS",
+    "SUBMISSION_SCHEMA_NOT_READY",
+    "SUBMISSION_DELIVERY_UNCERTAIN",
+    "SUBMISSION_DELIVERY_PENDING",
     "NEWS_SLUG_CONFLICT"
   ]);
   if (!knownCodes.has(error.code)) return false;
@@ -346,15 +350,6 @@ function submissionDeliveryError(cause) {
   return error;
 }
 
-function safeOperationalError(error, fallback = "OPERATION_FAILED") {
-  return {
-    code: typeof error?.code === "string" ? error.code.slice(0, 80) : fallback,
-    name: typeof error?.name === "string" ? error.name.slice(0, 80) : "Error",
-    ...(typeof error?.command === "string" ? { command: error.command.slice(0, 40) } : {}),
-    ...(Number.isSafeInteger(error?.responseCode) ? { responseCode: error.responseCode } : {})
-  };
-}
-
 function expenseDeliveryKey(submission) {
   return `${Number(submission?.revision) || 0}:${String(submission?.updatedAt || "")}`;
 }
@@ -388,6 +383,7 @@ export function createStaffApp({
   mailService = createMailService(config),
   aiAssistant = createAiAssistant(config),
   documentGenerator = generateSubmissionDocument,
+  clientUploadedFileVerifier = verifyClientUploadedFile,
   privateAttachmentReader = readPrivateAttachment
 }) {
   const app = express();
@@ -400,6 +396,31 @@ export function createStaffApp({
   const aiLimiter = createLimiter({ windowMs: 10 * 60_000, limit: 12, prefix: "ai" });
   const publicMediaLimiter = createLimiter({ windowMs: 15 * 60_000, limit: 300, prefix: "public-media" });
   const permissionContext = Object.freeze({ invoiceCreatorEmail: config.invoiceCreatorEmail });
+
+  async function withEditableSubmission(request, response, submissionId, work) {
+    return database.withSubmissionLock(submissionId, async () => {
+      const submission = await database.getSubmission(submissionId);
+      if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
+      if (!canEditSubmission(request.user, submission, permissionContext)) {
+        return response.status(403).json({ error: "FORBIDDEN" });
+      }
+      if (submission.type === "expense") {
+        const delivery = await database.getExpenseDeliveryState(submission.id);
+        if (delivery !== "ready") {
+          // The browser saves before submit. Preserve an identical retry so a
+          // delivered expense can finish its database transition after a reload.
+          if (request.method === "PATCH" && isDeepStrictEqual(
+            submission.data, validateSubmissionData(submission.type, request.body?.data ?? {})
+          )) {
+            return response.json({ item: await summarizeSubmission(submission, database, true) });
+          }
+          return response.status(409).json({ error: delivery === "sent"
+            ? "SUBMISSION_DELIVERY_PENDING" : "SUBMISSION_DELIVERY_UNCERTAIN" });
+        }
+      }
+      return work(submission);
+    });
+  }
 
   async function auditSafely(entry, logMessage) {
     try {
@@ -513,6 +534,7 @@ export function createStaffApp({
   app.get("/api/staff/health", asyncRoute(async (_request, response) => {
     try {
       await database.healthCheck();
+      await database.assertSubmissionSchema();
       response.json({ ok: true, database: "ok" });
     } catch {
       response.status(503).json({ ok: false, database: "unavailable" });
@@ -635,11 +657,7 @@ export function createStaffApp({
   }));
 
   app.patch("/api/staff/submissions/:id", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
-    const submission = await database.getSubmission(request.params.id);
-    if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-    if (!canEditSubmission(request.user, submission, permissionContext)) {
-      return response.status(403).json({ error: "FORBIDDEN" });
-    }
+    return withEditableSubmission(request, response, request.params.id, async (submission) => {
     try {
       const data = validateSubmissionData(submission.type, request.body?.data ?? {});
       const updated = await database.updateSubmission({ id: submission.id, userId: request.user.id, data });
@@ -654,6 +672,7 @@ export function createStaffApp({
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
     }
+    });
   }));
 
   app.post("/api/staff/submissions/:id/submit", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
@@ -682,6 +701,24 @@ export function createStaffApp({
           throw Object.assign(new Error("The submission workflow state changed."), {
             code: "INVALID_WORKFLOW_STATE",
             status: 409
+          });
+        }
+        const priorDelivery = submission.type === "expense"
+          ? await database.getExpenseDeliveryState(submission.id) : "ready";
+        if (priorDelivery === "uncertain") {
+          throw Object.assign(new Error("Notification delivery requires reconciliation."), {
+            code: "SUBMISSION_DELIVERY_UNCERTAIN", status: 409
+          });
+        }
+
+        try {
+          await database.assertSubmissionSchema();
+        } catch (error) {
+          console.error("Submission schema preflight failed:", {
+            submissionId: submission.id, stage: "schema", ...safeOperationalError(error)
+          });
+          throw Object.assign(new Error("Submission schema needs migration."), {
+            code: "SUBMISSION_SCHEMA_NOT_READY", status: 503
           });
         }
 
@@ -713,7 +750,7 @@ export function createStaffApp({
           throw error;
         }
 
-        const prepared = isDeepStrictEqual(submission.data, data)
+        const prepared = priorDelivery === "sent" || isDeepStrictEqual(submission.data, data)
           ? submission
           : await database.updateSubmission({
               id: submission.id,
@@ -745,7 +782,13 @@ export function createStaffApp({
 
         if (prepared.type === "expense") {
           const deliveryKey = expenseDeliveryKey(prepared);
-          let delivered = await database.hasExpenseDelivery(prepared.id, deliveryKey);
+          const deliveryState = await database.getExpenseDeliveryState(prepared.id, deliveryKey);
+          if (deliveryState === "uncertain") {
+            throw Object.assign(new Error("Notification delivery requires reconciliation."), {
+              code: "SUBMISSION_DELIVERY_UNCERTAIN", status: 409
+            });
+          }
+          let delivered = priorDelivery === "sent" || deliveryState === "sent";
           if (!delivered) {
             let mailAttachments;
             try {
@@ -776,6 +819,15 @@ export function createStaffApp({
             const reviewUrl = new URL("/admin", config.baseUrl);
             reviewUrl.searchParams.set("submission", prepared.id);
             reviewUrl.searchParams.set("scope", "review");
+            // This durable marker must commit BEFORE invoking SMTP. A timeout,
+            // process termination or failed success marker then blocks automatic
+            // retransmission instead of risking a duplicate notification.
+            await database.audit({
+              user: request.user, action: "EXPENSE_NOTIFICATION_STARTED",
+              targetType: "expense", targetId: prepared.id,
+              metadata: { deliveryKey, revision: prepared.revision },
+              ipHash: auth.clientIpHash(request)
+            });
             try {
               await mailService.sendExpenseSubmitted({
                 submission: prepared,
@@ -802,11 +854,23 @@ export function createStaffApp({
                 },
                 ipHash: auth.clientIpHash(request)
               }, "Expense notification failure could not be audited:");
+              // Only an explicit SMTP rejection or a pre-delivery connection/
+              // authentication failure proves no message was accepted.
+              const definitelyRejected = ["EAUTH", "MAIL_NOT_CONFIGURED", "MAIL_ATTACHMENT_INVALID"].includes(error?.code) ||
+                (Number.isInteger(error?.responseCode) && error.responseCode >= 400 && error.responseCode <= 599) ||
+                (["ECONNECTION", "EDNS", "ETIMEDOUT"].includes(error?.code) && error?.command === "CONN");
+              if (definitelyRejected) {
+                await database.audit({
+                  user: request.user, action: "EXPENSE_NOTIFICATION_REJECTED",
+                  targetType: "expense", targetId: prepared.id, metadata: { deliveryKey },
+                  ipHash: auth.clientIpHash(request)
+                });
+              }
               throw submissionDeliveryError(error);
             }
 
             if (delivered) {
-              await auditSafely({
+              await database.audit({
                 user: request.user,
                 action: "EXPENSE_NOTIFICATION_SENT",
                 targetType: prepared.type,
@@ -817,7 +881,7 @@ export function createStaffApp({
                   attachmentCount: mailAttachments.length
                 },
                 ipHash: auth.clientIpHash(request)
-              }, "Expense delivery marker could not be audited:");
+              });
             }
           }
         }
@@ -865,6 +929,7 @@ export function createStaffApp({
   }));
 
   app.post("/api/staff/submissions/:id/review", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
+    return database.withSubmissionLock(request.params.id, async () => {
     const submission = await database.getSubmission(request.params.id);
     if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
     if (!canReviewType(request.user, submission.type)) return response.status(403).json({ error: "FORBIDDEN" });
@@ -905,6 +970,7 @@ export function createStaffApp({
       ipHash: auth.clientIpHash(request)
     });
     response.json({ item: await summarizeSubmission(updated, database, true) });
+    });
   }));
 
   app.post(
@@ -912,13 +978,12 @@ export function createStaffApp({
     uploadLimiter,
     auth.verifyCsrf,
     (request, response, next) => upload(request, response, (error) => error ? next(error) : next()),
-    asyncRoute(async (request, response) => {
-      const submission = await database.getSubmission(request.params.id);
-      if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-      if (!canEditSubmission(request.user, submission, permissionContext)) {
-        return response.status(403).json({ error: "FORBIDDEN" });
-      }
+    asyncRoute((request, response) => withEditableSubmission(request, response, request.params.id, async (submission) => {
       try {
+        const existing = await database.listAttachments(submission.id, { includePending: true });
+        if (existing.filter((attachment) => attachment.storageStatus !== "delete_pending").length >= 100) {
+          return response.status(400).json({ error: "FILE_COUNT_LIMIT" });
+        }
         const kind = request.body?.kind === "primary" ? "primary" : "additional";
         const attachment = await persistUploadedFileWithRecord({
           config,
@@ -952,19 +1017,14 @@ export function createStaffApp({
       } catch (error) {
         if (!validationResponse(response, error)) throw error;
       }
-    })
+    }))
   );
 
   app.post(
     "/api/staff/submissions/:id/attachments/upload-intent",
     uploadLimiter,
     auth.verifyCsrf,
-    asyncRoute(async (request, response) => {
-      const submission = await database.getSubmission(request.params.id);
-      if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-      if (!canEditSubmission(request.user, submission, permissionContext)) {
-        return response.status(403).json({ error: "FORBIDDEN" });
-      }
+    asyncRoute((request, response) => withEditableSubmission(request, response, request.params.id, async (submission) => {
       try {
         // Opportunistically finish durable cleanup left by interrupted uploads
         // or deletions. Failures remain retryable and do not block a new grant.
@@ -972,6 +1032,10 @@ export function createStaffApp({
           await reconcileBlobStorage({ config, database });
         } catch {
           console.error("Blob reconciliation could not run.");
+        }
+        const existing = await database.listAttachments(submission.id, { includePending: true });
+        if (existing.filter((attachment) => attachment.storageStatus !== "delete_pending").length >= 100) {
+          return response.status(400).json({ error: "FILE_COUNT_LIMIT" });
         }
         const grant = await createClientUploadGrant({
           config,
@@ -1001,23 +1065,19 @@ export function createStaffApp({
       } catch (error) {
         if (!validationResponse(response, error)) throw error;
       }
-    })
+    }))
   );
 
   app.post(
     "/api/staff/submissions/:id/attachments/:attachmentId/complete",
     uploadLimiter,
     auth.verifyCsrf,
-    asyncRoute(async (request, response) => {
-      const [submission, pending] = await Promise.all([
-        database.getSubmission(request.params.id),
-        database.getAttachment(request.params.attachmentId, { includePending: true })
-      ]);
-      if (!submission || !pending || pending.submissionId !== submission.id) {
+    asyncRoute((request, response) => withEditableSubmission(request, response, request.params.id, async (submission) => {
+      const pending = await database.getAttachment(request.params.attachmentId, { includePending: true });
+      if (!pending || pending.submissionId !== submission.id) {
         return response.status(404).json({ error: "NOT_FOUND" });
       }
       if (
-        !canEditSubmission(request.user, submission, permissionContext) ||
         (pending.uploaderId !== request.user.id && request.user.role !== "admin")
       ) {
         return response.status(403).json({ error: "FORBIDDEN" });
@@ -1038,7 +1098,7 @@ export function createStaffApp({
         return response.status(409).json({ error: "INVALID_ATTACHMENT_STATE" });
       }
       try {
-        const stored = await verifyClientUploadedFile({
+        const stored = await clientUploadedFileVerifier({
           config,
           submission,
           attachment: pending
@@ -1048,14 +1108,23 @@ export function createStaffApp({
           code: "INVALID_ATTACHMENT_STATE",
           status: 409
         });
-        await database.audit({
-          user: request.user,
-          action: `${auditPrefix[submission.type]}_ATTACHMENT_ADDED`,
-          targetType: submission.type,
-          targetId: submission.id,
-          metadata: { attachmentId: attachment.id, mimeType: attachment.mimeType, size: attachment.size },
-          ipHash: auth.clientIpHash(request)
-        });
+        try {
+          await database.audit({
+            user: request.user,
+            action: `${auditPrefix[submission.type]}_ATTACHMENT_ADDED`,
+            targetType: submission.type,
+            targetId: submission.id,
+            metadata: { attachmentId: attachment.id, mimeType: attachment.mimeType, size: attachment.size },
+            ipHash: auth.clientIpHash(request)
+          });
+        } catch (error) {
+          // The Blob and ready metadata are already durable. An audit outage
+          // must not roll back an attachment the user successfully uploaded.
+          console.error("Attachment completion audit failed:", {
+            submissionId: submission.id,
+            ...safeOperationalError(error, "ATTACHMENT_AUDIT_FAILED")
+          });
+        }
         response.status(201).json({
           attachment: {
             id: attachment.id,
@@ -1067,17 +1136,24 @@ export function createStaffApp({
           }
         });
       } catch (error) {
-        if (error?.code !== "BLOB_CLEANUP_REQUIRED") {
+        const invalidUpload = [
+          "FILE_REQUIRED", "FILE_TOO_LARGE", "FILE_TYPE_NOT_ALLOWED",
+          "FILE_EXTENSION_MISMATCH", "FILE_SIZE_MISMATCH", "BLOB_NOT_PRIVATE", "BLOB_PATH_MISMATCH"
+        ].includes(error?.code);
+        if (invalidUpload) {
           try {
-            if (pending.blobPathname) await deleteStoredFile({ config, attachment: pending });
-            await database.deleteAttachment(pending.id);
+            const current = await database.getAttachment(pending.id, { includePending: true });
+            if (current?.storageStatus === "pending") {
+              if (current.blobPathname) await deleteStoredFile({ config, attachment: current });
+              await database.deleteAttachment(current.id);
+            }
           } catch {
             // The pending row remains durable for reconcileBlobStorage().
           }
         }
         if (!validationResponse(response, error)) throw error;
       }
-    })
+    }))
   );
 
   app.get("/api/staff/attachments/:id/download", asyncRoute(async (request, response, next) => {
@@ -1108,32 +1184,32 @@ export function createStaffApp({
   }));
 
   app.delete("/api/staff/attachments/:id", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
-    const attachment = await database.getAttachment(request.params.id, { includePending: true });
-    if (!attachment) return response.status(404).json({ error: "NOT_FOUND" });
-    const submission = await database.getSubmission(attachment.submissionId);
-    if (!submission || !canEditSubmission(request.user, submission, permissionContext)) {
-      return response.status(404).json({ error: "NOT_FOUND" });
-    }
-    if (attachment.storageStatus === "ready") {
-      await deleteAttachmentPermanently({
-        config,
-        attachment,
-        markDeletePending: () => database.markAttachmentDeletePending(attachment.id),
-        deleteRecord: () => database.deleteAttachment(attachment.id)
+    const initial = await database.getAttachment(request.params.id, { includePending: true });
+    if (!initial) return response.status(404).json({ error: "NOT_FOUND" });
+    return withEditableSubmission(request, response, initial.submissionId, async (submission) => {
+      const attachment = await database.getAttachment(request.params.id, { includePending: true });
+      if (!attachment || attachment.submissionId !== submission.id) return response.status(404).json({ error: "NOT_FOUND" });
+      if (attachment.storageStatus === "ready") {
+        await deleteAttachmentPermanently({
+          config,
+          attachment,
+          markDeletePending: () => database.markAttachmentDeletePending(attachment.id),
+          deleteRecord: () => database.deleteAttachment(attachment.id)
+        });
+      } else {
+        if (attachment.blobPathname) await deleteStoredFile({ config, attachment });
+        await database.deleteAttachment(attachment.id);
+      }
+      await database.audit({
+        user: request.user,
+        action: `${auditPrefix[submission.type]}_ATTACHMENT_DELETED`,
+        targetType: submission.type,
+        targetId: submission.id,
+        metadata: { attachmentId: attachment.id },
+        ipHash: auth.clientIpHash(request)
       });
-    } else {
-      if (attachment.blobPathname) await deleteStoredFile({ config, attachment });
-      await database.deleteAttachment(attachment.id);
-    }
-    await database.audit({
-      user: request.user,
-      action: `${auditPrefix[submission.type]}_ATTACHMENT_DELETED`,
-      targetType: submission.type,
-      targetId: submission.id,
-      metadata: { attachmentId: attachment.id },
-      ipHash: auth.clientIpHash(request)
+      response.status(204).end();
     });
-    response.status(204).end();
   }));
 
   app.post("/api/staff/storage/reconcile", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
@@ -1237,6 +1313,12 @@ export function createStaffApp({
   app.use((request, response) => response.status(404).json({ error: "NOT_FOUND" }));
   app.use((error, request, response, _next) => {
     if (response.headersSent) return;
+    if (error?.type === "entity.too.large") {
+      return response.status(413).json({ error: "REQUEST_TOO_LARGE" });
+    }
+    if (error?.type === "entity.parse.failed") {
+      return response.status(400).json({ error: "INVALID_JSON" });
+    }
     if (error?.code === "LIMIT_FILE_SIZE") {
       return response.status(413).json({ error: "FILE_TOO_LARGE" });
     }
@@ -1246,8 +1328,14 @@ export function createStaffApp({
     if (validationResponse(response, error)) return;
     console.error("Staff app request failed:", {
       method: request.method,
-      path: request.path,
-      code: typeof error?.code === "string" ? error.code : "UNEXPECTED_ERROR"
+      path: request.route?.path || "/api/staff",
+      stage: request.route?.path?.endsWith("/submit") ? "submit"
+        : request.route?.path?.includes("attachments") ? (request.method === "GET" ? "attachment-read" : "upload")
+        : request.route?.path?.includes("document") ? "prepare"
+        : request.route?.path?.includes("submissions") ? "draft" : "request",
+      ...(typeof request.params?.id === "string" && /^[a-f0-9-]{36}$/i.test(request.params.id)
+        ? { submissionId: request.params.id } : {}),
+      ...safeOperationalError(error, "UNEXPECTED_ERROR")
     });
     response.status(500).json({ error: "REQUEST_FAILED" });
   });

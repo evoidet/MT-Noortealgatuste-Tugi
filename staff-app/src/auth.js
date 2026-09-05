@@ -153,13 +153,27 @@ export function createAuth({ config, database, googleClient: suppliedGoogleClien
     return token;
   }
 
-  async function optionalSession(request, _response, next) {
+  async function optionalSession(request, response, next) {
     const token = sessionCookie(request);
     if (!token) return next();
     const session = await database.getSession(sha256(token));
     if (session) {
-      request.user = session.user;
-      request.authSession = session;
+      const email = normalizeEmail(session.user?.email);
+      if (!emailHasExactDomain(email, config.allowedGoogleDomain) ||
+          (config.allowedStaffEmails.size > 0 && !config.allowedStaffEmails.has(email))) {
+        await database.deleteSession(sha256(token));
+        clearSessionCookie(response);
+        return next();
+      }
+      // Apply changed access policy to existing sessions as well as new logins.
+      const user = {
+        ...session.user,
+        role: session.user.role === "admin" && !config.adminEmails.has(email)
+          ? "member"
+          : session.user.role
+      };
+      request.user = user;
+      request.authSession = { ...session, user };
       request.sessionToken = token;
     }
     next();

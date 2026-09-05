@@ -125,7 +125,7 @@ const expenseDraft = z.object({
 
 const invoiceItem = z.object({
   description: optionalText(500),
-  quantity: z.coerce.number().finite().positive().max(1_000_000).optional().default(1),
+  quantity: z.coerce.number().finite().min(0.0001).max(1_000_000).optional().default(1),
   unit: optionalText(60),
   unitPrice: optionalMoney,
   amount: optionalMoney,
@@ -281,12 +281,14 @@ export function validateSubmissionData(type, input, { final = false } = {}) {
       result.data.registryCode = result.data.registrationCode;
     }
     if (result.data.items.length) {
-      result.data.items = result.data.items.map((item) => ({
-        ...item,
-        amount: Number((item.quantity * item.unitPrice).toFixed(2)),
-        total: Number((item.quantity * item.unitPrice).toFixed(2))
-      }));
-      result.data.amount = Number(result.data.items.reduce((sum, item) => sum + item.amount, 0).toFixed(2));
+      result.data.items = result.data.items.map((item) => {
+        // Use the same cent-based calculation as the generated invoice so
+        // fractional input cannot produce different saved and document totals.
+        const unitPriceCents = Math.round(item.unitPrice * 100);
+        const amount = Math.round(item.quantity * unitPriceCents) / 100;
+        return { ...item, unitPrice: unitPriceCents / 100, amount, total: amount };
+      });
+      result.data.amount = result.data.items.reduce((sum, item) => sum + Math.round(item.amount * 100), 0) / 100;
     }
   }
   if (final) ensureFinal(type, result.data);

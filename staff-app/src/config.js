@@ -65,7 +65,7 @@ function emailSet(value, name, domain) {
     .filter(Boolean);
   for (const email of normalized) {
     if (!emailHasExactDomain(email, domain)) {
-      throw new Error(`${name} must contain only exact @${domain} email addresses.`);
+      throw new Error(`${name} must contain only email addresses in ALLOWED_GOOGLE_DOMAIN.`);
     }
   }
   return new Set(normalized);
@@ -75,7 +75,7 @@ function workspaceEmail(value, name, domain) {
   const normalized = String(value ?? "").trim().toLowerCase();
   if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9.-]+$/i.test(normalized) ||
       !emailHasExactDomain(normalized, domain)) {
-    throw new Error(`${name} must be an @${domain} email address.`);
+    throw new Error(`${name} must be a valid email address in ALLOWED_GOOGLE_DOMAIN.`);
   }
   return normalized;
 }
@@ -131,10 +131,10 @@ function absoluteHttpUrl(value, name, production) {
   return parsed;
 }
 
-function canonicalAppUrl(value, production) {
-  const parsed = absoluteHttpUrl(value, "APP_URL", production);
+function canonicalAppUrl(value, production, name = "APP_URL") {
+  const parsed = absoluteHttpUrl(value, name, production);
   if (parsed.search || parsed.hash) {
-    throw new Error("APP_URL must not contain a query string or fragment.");
+    throw new Error(`${name} must not contain a query string or fragment.`);
   }
   return parsed.href.replace(/\/+$/, "");
 }
@@ -196,6 +196,10 @@ export function loadConfig(overrides = {}) {
   const smtpPassword = smtpPasswordValue(overrides.smtpPassword);
   const maxUploadBytes = overrides.maxUploadBytes ??
     strictInteger(process.env.STAFF_MAX_UPLOAD_MB, 15, 1, 1_024, "STAFF_MAX_UPLOAD_MB") * 1024 * 1024;
+  const openAiModel = String(overrides.openAiModel ?? process.env.OPENAI_MODEL ?? "gpt-5-mini").trim();
+  if (!openAiModel || /\s/.test(openAiModel)) {
+    throw new Error("OPENAI_MODEL must be a nonempty model identifier without whitespace.");
+  }
 
   requiredInProduction("STORAGE_DATABASE_URL", storageDatabaseUrl, production);
   requiredInProduction("GOOGLE_CLIENT_ID", googleClientId, production);
@@ -213,8 +217,9 @@ export function loadConfig(overrides = {}) {
     allowedGoogleDomain
   );
   const smtpHost = smtpHostname(overrides.smtpHost ?? process.env.STAFF_SMTP_HOST, production);
-  const configuredMailFrom = overrides.mailFrom ?? process.env.STAFF_MAIL_FROM ?? smtpUser;
-  const mailFromValue = requiredInProduction("STAFF_MAIL_FROM", configuredMailFrom, production);
+  const configuredMailFrom = overrides.mailFrom ?? process.env.STAFF_MAIL_FROM ?? "";
+  const mailFromValue = requiredInProduction("STAFF_MAIL_FROM", configuredMailFrom, production) ||
+    (!production ? smtpUser : "");
   const mailFrom = mailFromValue ? mailbox(mailFromValue, "STAFF_MAIL_FROM") : "";
   const smtpPort = strictInteger(
     overrides.smtpPort ?? process.env.STAFF_SMTP_PORT,
@@ -248,7 +253,10 @@ export function loadConfig(overrides = {}) {
     environment,
     production,
     port: integer(overrides.port ?? process.env.PORT, 3100, 1),
-    trustProxy: integer(overrides.trustProxy ?? process.env.STAFF_TRUST_PROXY, production ? 1 : 0, 0),
+    trustProxy: strictInteger(
+      overrides.trustProxy ?? process.env.STAFF_TRUST_PROXY,
+      production ? 1 : 0, 0, 32, "STAFF_TRUST_PROXY"
+    ),
     appUrl,
     baseUrl: appUrl,
     storageDatabaseUrl,
@@ -266,7 +274,8 @@ export function loadConfig(overrides = {}) {
     oauthCookieName: production ? "__Host-noortetugi_oauth" : "noortetugi_oauth",
     sessionSecret,
     sessionTtlMs:
-      overrides.sessionTtlMs ?? integer(process.env.STAFF_SESSION_TTL_HOURS, 12, 1) * 60 * 60 * 1000,
+      overrides.sessionTtlMs ??
+        strictInteger(overrides.sessionTtlHours ?? process.env.STAFF_SESSION_TTL_HOURS, 12, 1, 8_760, "STAFF_SESSION_TTL_HOURS") * 60 * 60 * 1000,
     oauthAttemptTtlMs: overrides.oauthAttemptTtlMs ?? 10 * 60 * 1000,
     csrfSecret: overrides.csrfSecret ?? deriveSecret(sessionSecret, "csrf"),
     logHashSecret: overrides.logHashSecret ?? deriveSecret(sessionSecret, "log-hash"),
@@ -274,10 +283,11 @@ export function loadConfig(overrides = {}) {
     serverUploadMaxBytes: overrides.serverUploadMaxBytes ??
       Math.min(maxUploadBytes, production ? 4 * 1024 * 1024 : maxUploadBytes),
     openAiApiKey: overrides.openAiApiKey ?? process.env.OPENAI_API_KEY ?? "",
-    openAiModel: overrides.openAiModel ?? process.env.OPENAI_MODEL ?? "gpt-5-mini",
+    openAiModel,
     publicSiteOrigin: canonicalAppUrl(
       overrides.publicSiteOrigin ?? process.env.PUBLIC_SITE_ORIGIN ?? appUrl,
-      production
+      production,
+      "PUBLIC_SITE_ORIGIN"
     ),
     enableDevAuth: strictBoolean(
       overrides.enableDevAuth ?? process.env.STAFF_ENABLE_DEV_AUTH,

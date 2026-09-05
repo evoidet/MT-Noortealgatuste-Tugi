@@ -46,3 +46,49 @@ test("an identical draft save preserves revision and delivery-key timestamps", a
   assert.match(queries[0], /BEGIN/);
   assert.match(queries.at(-1), /COMMIT/);
 });
+
+test("submission lock uses a pinned transaction and dedicated capacity; overlap is rejected", async () => {
+  const locked = new Set();
+  const lockQueries = [];
+  let workQueries = 0;
+  const pool = { async query() { workQueries++; return { rows: [] }; }, async end() {} };
+  const lockPool = {
+    async connect() {
+      let held;
+      return {
+        async query(sql, params) {
+          lockQueries.push(sql);
+          if (sql.includes("pg_try_advisory_xact_lock")) {
+            if (locked.has(params[0])) return { rows: [{ acquired: false }] };
+            held = params[0]; locked.add(held);
+            return { rows: [{ acquired: true }] };
+          }
+          if (sql === "COMMIT" || sql === "ROLLBACK") locked.delete(held);
+          return { rows: [] };
+        },
+        release() {}
+      };
+    },
+    async end() {}
+  };
+  const database = openDatabase(null, { pool, lockPool });
+  let entered;
+  const started = new Promise((resolve) => { entered = resolve; });
+  let finish;
+  const barrier = new Promise((resolve) => { finish = resolve; });
+  const first = database.withSubmissionLock("same", async () => {
+    await database.withSubmissionLock("same", async () => pool.query("synthetic work"));
+    entered();
+    await barrier;
+  });
+  await started;
+  await assert.rejects(database.withSubmissionLock("same", async () => {}), { code: "SUBMISSION_IN_PROGRESS" });
+  await Promise.all(Array.from({ length: 8 }, (_, index) => database.withSubmissionLock(`other-${index}`,
+    async () => pool.query("synthetic work"))));
+  assert.equal(workQueries, 9);
+  finish();
+  await first;
+  assert.equal(locked.size, 0);
+  assert.equal(lockQueries.filter((sql) => sql.includes("pg_try_advisory_xact_lock")).length, 10);
+  assert.equal(lockQueries.some((sql) => sql.includes("pg_advisory_unlock")), false);
+});

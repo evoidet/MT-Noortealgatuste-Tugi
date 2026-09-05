@@ -32,8 +32,10 @@ const state = {
     decision: ""
   },
   lastSubmitted: null,
+  formOperation: false,
   previewing: false,
   submitting: false,
+  deliveryError: null,
   validationIssues: []
 };
 
@@ -201,6 +203,10 @@ function friendlyErrorKey(error) {
     DOCUMENT_VALIDATION_ERROR: "staff.errors.documentValidation",
     SUBMISSION_DELIVERY_FAILED: "staff.errors.submissionFailed",
     SUBMISSION_IN_PROGRESS: "staff.errors.submissionInProgress",
+    SUBMISSION_SCHEMA_NOT_READY: "staff.errors.submissionSchemaNotReady",
+    SUBMISSION_DELIVERY_UNCERTAIN: "staff.errors.submissionDeliveryUncertain",
+    SUBMISSION_DELIVERY_PENDING: "staff.errors.submissionDeliveryPending",
+    FILE_COUNT_LIMIT: "staff.errors.fileCountLimit",
     SELF_REVIEW_FORBIDDEN: "staff.errors.selfReview"
   };
   if (codeKeys[code]) return codeKeys[code];
@@ -249,7 +255,7 @@ function safeClientError(error) {
 }
 
 function handlePreviewError(error) {
-  if (error instanceof ApiError && error.status === 401) {
+  if (error instanceof ApiError && [400, 401, 403, 413, 415, 422, 429].includes(error.status)) {
     handleError(error);
     return;
   }
@@ -258,6 +264,12 @@ function handlePreviewError(error) {
 }
 
 function handleSubmissionError(error) {
+  const code = error instanceof ApiError ? error.payload?.error : "";
+  if (["SUBMISSION_SCHEMA_NOT_READY", "SUBMISSION_DELIVERY_UNCERTAIN", "SUBMISSION_DELIVERY_PENDING"].includes(code)) {
+    state.deliveryError = code;
+    renderSubmissionDeliveryState();
+    return;
+  }
   if (renderSubmissionValidation(error)) return;
   if (error instanceof ApiError && [400, 401, 403, 413, 415, 422, 429].includes(error.status)) {
     handleError(error);
@@ -267,6 +279,26 @@ function handleSubmissionError(error) {
   showToast(friendlyErrorKey(error) === "staff.errors.submissionInProgress"
     ? "staff.errors.submissionInProgress"
     : "staff.errors.submissionFailed", "error");
+}
+
+function renderSubmissionDeliveryState() {
+  const preview = document.querySelector(".staff-preview-view");
+  if (!preview || !state.deliveryError) return;
+  preview.querySelector(".staff-delivery-notice")?.remove();
+  const notice = document.createElement("section");
+  notice.className = "staff-validation-summary staff-delivery-notice";
+  notice.setAttribute("role", "alert");
+  notice.setAttribute("tabindex", "-1");
+  notice.textContent = t(friendlyErrorKey(new ApiError(state.deliveryError, 409, { error: state.deliveryError })));
+  preview.querySelector(".staff-preview-canvas")?.before(notice);
+  if (["SUBMISSION_DELIVERY_PENDING", "SUBMISSION_DELIVERY_UNCERTAIN"].includes(state.deliveryError)) {
+    const selector = state.deliveryError === "SUBMISSION_DELIVERY_UNCERTAIN"
+      ? '[data-action="edit-preview"], [data-action="save-preview"], [data-action="submit-preview"]'
+      : '[data-action="edit-preview"], [data-action="save-preview"]';
+    preview.querySelectorAll(selector).forEach((control) => { control.disabled = true; });
+  }
+  notice.focus({ preventScroll: true });
+  notice.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function structuredValidation(error) {
@@ -314,7 +346,7 @@ function renderSubmissionValidation(error) {
   edit.dataset.action = "edit-preview";
   edit.textContent = t("staff.errors.correctFields");
   summary.append(edit);
-  preview.querySelector(".staff-preview-actions")?.before(summary);
+  preview.querySelector(".staff-preview-canvas")?.before(summary);
   summary.focus({ preventScroll: true });
   summary.scrollIntoView({ behavior: "smooth", block: "center" });
   return true;
@@ -422,6 +454,22 @@ function setBusy(button, busy, key = "staff.common.working") {
       delete button.dataset.previousHtml;
     }
   }
+}
+
+function beginFormOperation(button, key) {
+  state.formOperation = true;
+  const controls = [...elements.shell.querySelectorAll("button, input, select, textarea")]
+    .map((control) => ({ control, disabled: control.disabled }));
+  setBusy(button, true, key);
+  controls.forEach(({ control }) => { control.disabled = true; });
+  elements.viewRoot.setAttribute("aria-busy", "true");
+  return () => {
+    state.formOperation = false;
+    setBusy(button, false);
+    controls.forEach(({ control, disabled }) => { control.disabled = disabled; });
+    elements.viewRoot.removeAttribute("aria-busy");
+    renderSubmissionDeliveryState();
+  };
 }
 
 function pageHeader({ eyebrow, title, description = "", backView = "" }) {
@@ -536,6 +584,7 @@ function resetFormState() {
   state.lastSubmitted = null;
   state.previewing = false;
   state.submitting = false;
+  state.deliveryError = null;
   state.validationIssues = [];
 }
 
@@ -1516,9 +1565,10 @@ async function saveData(type, data) {
 }
 
 async function saveDraft(button) {
+  if (state.formOperation) return null;
   if (!validateCurrentForm()) return null;
   const data = collectFormData();
-  setBusy(button, true, "staff.form.saving");
+  const finishOperation = beginFormOperation(button, "staff.form.saving");
 
   try {
     const saved = await saveData(state.formType, data);
@@ -1528,7 +1578,7 @@ async function saveDraft(button) {
     handleError(error);
     return null;
   } finally {
-    setBusy(button, false);
+    finishOperation();
   }
 }
 
@@ -1574,13 +1624,14 @@ function renderPreview(type, data, attachments = previewAttachments()) {
     </section>
   `;
   focusMain();
+  renderSubmissionDeliveryState();
 }
 
 async function openPreview(button) {
-  if (state.previewing || !state.formType) return;
+  if (state.formOperation || state.previewing || !state.formType) return;
   if (!validateCurrentForm()) return;
   state.previewing = true;
-  setBusy(button, true, "staff.common.working");
+  const finishOperation = beginFormOperation(button, "staff.common.working");
   releaseObjectUrls();
   const type = state.formType;
   const collected = collectFormData();
@@ -1601,7 +1652,7 @@ async function openPreview(button) {
     handlePreviewError(error);
   } finally {
     state.previewing = false;
-    setBusy(button, false);
+    finishOperation();
   }
 }
 
@@ -1659,7 +1710,8 @@ async function recoverCompletedSubmission(error) {
 }
 
 async function savePreview(button, submit = false) {
-  if (!state.preview) return;
+  if (state.formOperation || !state.preview) return;
+  if (state.deliveryError === "SUBMISSION_DELIVERY_UNCERTAIN") return;
   if (submit && state.submitting) return;
   if (submit && state.preview.type === "expense" && !hasPrimaryExpenseDocument()) {
     showToast("staff.errors.primaryAttachmentRequired", "error");
@@ -1667,10 +1719,12 @@ async function savePreview(button, submit = false) {
   }
   if (submit) {
     state.submitting = true;
+    state.deliveryError = null;
     state.validationIssues = [];
+    document.querySelector(".staff-delivery-notice")?.remove();
     document.querySelector(".staff-validation-summary")?.remove();
   }
-  setBusy(button, true, submit ? "staff.preview.submitting" : "staff.form.saving");
+  const finishOperation = beginFormOperation(button, submit ? "staff.preview.submitting" : "staff.form.saving");
 
   try {
     const saved = await saveData(state.preview.type, state.preview.data);
@@ -1693,7 +1747,7 @@ async function savePreview(button, submit = false) {
     }
   } finally {
     if (submit) state.submitting = false;
-    setBusy(button, false);
+    finishOperation();
   }
 }
 
@@ -2210,6 +2264,7 @@ async function handleLogout() {
 }
 
 async function handleAction(button) {
+  if (state.formOperation || button.disabled) return;
   const action = button.dataset.action;
 
   if (action === "navigate") {
@@ -2317,6 +2372,19 @@ async function handleAction(button) {
 }
 
 function attachEvents() {
+  document.addEventListener("click", (event) => {
+    const languageButton = event.target.closest(".lang-button[data-lang]");
+    if (!languageButton || !["form", "preview"].includes(state.view)) return;
+    // The shared site switcher reloads the page; keep this form and its files in memory.
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (state.formOperation || languageButton.disabled) return;
+    window.I18N?.setLanguage(languageButton.dataset.lang, { reload: false });
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", languageButton.dataset.lang);
+    window.history.replaceState(null, "", url);
+  }, true);
+
   document.addEventListener("click", async (event) => {
     const actionButton = event.target.closest("[data-action]");
 
@@ -2405,10 +2473,13 @@ function attachEvents() {
 
   document.addEventListener("i18n:language-changed", () => {
     document.title = t("staff.meta.title");
+    if (!state.session || state.formOperation) return;
     configureAuthenticatedShell();
 
     if (state.view === "home") renderHome();
-    else if (state.view === "form" && state.formType) renderForm(state.formType, state.current);
+    else if (state.view === "form" && state.formType) {
+      renderForm(state.formType, { ...(state.current || {}), data: collectFormData() });
+    }
     else if (state.view === "preview" && state.preview) {
       renderPreview(state.preview.type, state.preview.data, state.preview.attachments);
     }

@@ -145,3 +145,43 @@ test("production callback must stay on APP_URL and use the exact staff callback 
     /must end exactly/
   );
 });
+
+test("session TTL and proxy hop count reject malformed or unbounded configuration", () => {
+  for (const value of ["12hours", "0", "8761", "999999999999999999999999"]) {
+    assert.throws(
+      () => loadConfig(productionOverrides({ sessionTtlHours: value })),
+      /STAFF_SESSION_TTL_HOURS/
+    );
+  }
+  for (const value of ["1proxy", "-1", "33"]) {
+    assert.throws(
+      () => loadConfig(productionOverrides({ trustProxy: value })),
+      /STAFF_TRUST_PROXY/
+    );
+  }
+  assert.equal(loadConfig(productionOverrides({ sessionTtlHours: "12", trustProxy: "1" })).sessionTtlMs, 43_200_000);
+});
+
+test("configuration validation reports variable names without echoing configured values", () => {
+  const domainMarker = "private-workspace.example";
+  assert.throws(
+    () => loadConfig(productionOverrides({ allowedGoogleDomain: domainMarker, adminEmails: ["admin@other.example"] })),
+    (error) => error.message.includes("ADMIN_EMAILS") &&
+      error.message.includes("ALLOWED_GOOGLE_DOMAIN") && !error.message.includes(domainMarker)
+  );
+  assert.throws(
+    () => loadConfig(productionOverrides({ publicSiteOrigin: "malformed-private-origin" })),
+    (error) => error.message.includes("PUBLIC_SITE_ORIGIN") &&
+      !error.message.includes("malformed-private-origin")
+  );
+});
+
+test("optional AI model configuration rejects blank or malformed identifiers without echoing them", () => {
+  for (const value of ["", "   ", "private model identifier"]) {
+    assert.throws(
+      () => loadConfig(productionOverrides({ openAiModel: value })),
+      /OPENAI_MODEL must be a nonempty model identifier without whitespace/
+    );
+  }
+  assert.equal(loadConfig(productionOverrides({ openAiModel: "model-test" })).openAiModel, "model-test");
+});

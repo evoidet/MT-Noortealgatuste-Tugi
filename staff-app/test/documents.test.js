@@ -269,3 +269,51 @@ test("expense generator rejects line-item totals that cannot reconcile", async (
     DocumentValidationError,
   );
 });
+
+test("all supported invoice field lengths survive final validation and document generation", async () => {
+  const normalized = validateSubmissionData("invoice", {
+    invoiceNumber: "I".repeat(100),
+    invoiceDate: "2026-08-29",
+    dueDate: "2026-09-01",
+    client: "OÜ Ostja",
+    registrationCode: "R".repeat(100),
+    address: "A".repeat(500),
+    project: "P".repeat(240),
+    referenceNumber: "V".repeat(100),
+    transactionPeriod: "T".repeat(240),
+    additionalInfo: "L".repeat(2_000),
+    items: [{ description: "Teenus", quantity: 3, unit: "U".repeat(60), unitPrice: 12.345 }]
+  }, { final: true });
+  const result = await generateInvoiceDocument(normalized);
+  const text = decodeXmlText(documentParts(result.buffer).xml);
+  assert.equal(normalized.items[0].unitPrice, 12.35);
+  assert.equal(normalized.amount, 37.05);
+  assert.match(text, /37,05 €/);
+  for (const expected of [
+    normalized.invoiceNumber, normalized.registryCode, normalized.address,
+    normalized.project, normalized.referenceNumber, normalized.transactionPeriod,
+    normalized.additionalInfo, normalized.items[0].unit
+  ]) assert.ok(text.includes(expected), `Missing supported invoice value with length ${expected.length} and prefix ${expected.slice(0, 1)}`);
+});
+
+test("supported expense role, category and period fields appear in the report", async () => {
+  const normalized = validateSubmissionData("expense", {
+    project: "Test project",
+    person: "Test Person",
+    date: "2026-08-29",
+    location: "Narva",
+    period: "August 2026",
+    route: "Narva-Jõhvi",
+    claimantRole: "Project volunteer",
+    expenseCategory: "Transport costs",
+    activity: "Workshop",
+    purpose: "Materials",
+    result: "Completed",
+    items: [{ date: "2026-08-29", documentNumber: "D1", vendor: "Vendor", description: "Supplies", amount: 10 }]
+  }, { final: true });
+  const result = await generateExpenseReportDocument(normalized);
+  const text = decodeXmlText(documentParts(result.buffer).xml);
+  for (const expected of ["Project volunteer", "Transport costs", "August 2026", "Narva-Jõhvi"]) {
+    assert.ok(text.includes(expected));
+  }
+});

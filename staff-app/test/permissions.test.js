@@ -67,20 +67,33 @@ test("editor can manage own news and expense submissions but cannot create invoi
   assert.equal(canReadSubmission(editor, submission("news", "another-editor")), false);
 });
 
-test("finance can review all expenses and manage only its own invoices", () => {
+test("finance can review submitted expenses while invoice creation requires the designated email", () => {
   const otherExpense = submission("expense", member.id, "SUBMITTED");
   const ownInvoice = submission("invoice", finance.id);
   const otherInvoice = submission("invoice", admin.id);
 
-  assert.equal(canCreateType(finance, "invoice"), true);
+  assert.equal(canCreateType(finance, "invoice"), false);
   assert.equal(canReviewType(finance, "expense"), true);
   assert.equal(canReviewType(finance, "news"), false);
   assert.equal(canReadSubmission(finance, otherExpense), true);
   assert.equal(canReadAttachment(finance, otherExpense), true);
-  assert.equal(canReadSubmission(finance, ownInvoice), true);
-  assert.equal(canEditSubmission(finance, ownInvoice), true);
+  assert.equal(canReadSubmission(finance, ownInvoice), false);
+  assert.equal(canEditSubmission(finance, ownInvoice), false);
   assert.equal(canReadSubmission(finance, otherInvoice), false);
   assert.equal(canReadAttachment(finance, otherInvoice), false);
+});
+
+test("only the designated invoice email can create and edit its own invoice drafts", () => {
+  const owner = { ...member, email: "finance@noortetugi.ee" };
+  const context = { invoiceCreatorEmail: "finance@noortetugi.ee" };
+  const ownInvoice = submission("invoice", owner.id);
+  assert.equal(canCreateType(owner, "invoice", context), true);
+  assert.equal(canReadSubmission(owner, ownInvoice, context), true);
+  assert.equal(canEditSubmission(owner, ownInvoice, context), true);
+  assert.equal(canSubmitSubmission(owner, ownInvoice, context), true);
+  assert.equal(canEditSubmission(owner, submission("invoice", admin.id), context), false);
+  assert.equal(canEditSubmission(owner, submission("invoice", owner.id, "SUBMITTED"), context), false);
+  assert.equal(canCreateType({ ...owner, email: "other@noortetugi.ee" }, "invoice", context), false);
 });
 
 test("admin has all-submission read access and the intended review capabilities", () => {

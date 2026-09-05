@@ -12,6 +12,8 @@
     "typecheck": "npm run typecheck --workspace noortetugi-staff-app",
     "test": "npm test --workspace noortetugi-staff-app",
     "db:migrate": "npm run db:migrate --workspace noortetugi-staff-app",
+    "db:check": "npm run db:check --workspace noortetugi-staff-app",
+    "db:reconcile-delivery": "npm run db:reconcile-delivery --workspace noortetugi-staff-app --",
     "translate-news": "node scripts/translate-news.mjs"
   },
   "dependencies": {

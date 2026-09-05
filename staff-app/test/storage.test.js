@@ -8,6 +8,7 @@ import {
   persistUploadedFile,
   persistUploadedFileWithRecord,
   readPrivateAttachment,
+  downloadFilenameHeader,
   validateClientUploadMetadata,
   verifyClientUploadedFile
 } from "../src/storage.js";
@@ -101,6 +102,29 @@ test("server uploads use a non-guessable pathname and private Blob options", asy
     contentType: "image/png",
     token: "unit-test-token"
   });
+});
+
+test("long Unicode upload names preserve their allowed extension and valid download headers", () => {
+  const result = validateClientUploadMetadata({
+    config,
+    submission: { type: "expense" },
+    originalName: `${"📎".repeat(120)}.pdf`,
+    mimeType: "application/pdf",
+    size: 100
+  });
+  assert.ok(result.originalName.length <= 180);
+  assert.ok(result.originalName.endsWith(".pdf"));
+  assert.equal(result.extension, "pdf");
+  assert.doesNotThrow(() => downloadFilenameHeader(result.originalName));
+});
+
+test("truncated file headers produce safe validation errors before a Blob write", async () => {
+  await assert.rejects(persistUploadedFile({
+    config,
+    submission: { type: "news" },
+    file: { buffer: png.subarray(0, 9), originalname: "broken.png", mimetype: "image/png" },
+    blobClient: { async put() { assert.fail("Malformed uploads must not reach Blob"); } }
+  }), { code: "FILE_TYPE_NOT_ALLOWED", status: 400 });
 });
 
 test("client upload grant exposes only a scoped presigned PUT URL", async () => {

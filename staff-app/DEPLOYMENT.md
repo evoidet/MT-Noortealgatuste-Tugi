@@ -1,5 +1,42 @@
 # Noorte Tugi staff application on Vercel
 
+## Submission finalization upgrade
+
+The finalization query requires `submissions.published_at`, introduced in
+`003_published_news.sql`. Run all migrations through `004_submission_finalization.sql`
+before promoting this release. Neither Vercel builds nor application startup run
+database migrations automatically.
+
+From the repository root in a trusted shell with the existing
+`STORAGE_DATABASE_URL_UNPOOLED` available, run:
+
+```sh
+npm run db:migrate
+npm run db:check
+```
+
+Do not print connection strings or load environment files into diagnostics.
+The runner preserves checksummed history and applies each pending migration in
+a transaction. Migration 004 repairs the published timestamp column, submission
+status constraint, related indexes, and delivery lookup index without deleting
+records. Existing unique conflicts stop a migration safely; resolve conflicting
+business records deliberately instead of resetting data or bypassing a constraint.
+
+Deploy the checked revision after the migration. Then sign in, create/save/reopen
+one test draft, upload/download a private attachment, submit, confirm one finance
+notification and a submitted read-only record, and retry Submit to confirm no
+second email. Provider credentials were not changed by this release.
+
+The health endpoint now also checks the submission schema. Missing schema stops
+submission before document preparation or SMTP. Delivery markers remain durable
+when finalization fails. A confirmed sent marker permits finalization retry; an
+uncertain SMTP outcome requires the guarded procedure in
+[DELIVERY-RECOVERY.md](DELIVERY-RECOVERY.md).
+
+See [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md) for local evidence and
+remaining production checks, and [ENVIRONMENT-REVIEW.md](ENVIRONMENT-REVIEW.md)
+for the variable-name-only review.
+
 The public site, `/admin`, and `/api/staff/*` are deployed from one Vercel
 project and one origin: `https://www.noortetugi.ee`. Express runs as a Vercel
 Function; the admin files are copied into the production static output by the

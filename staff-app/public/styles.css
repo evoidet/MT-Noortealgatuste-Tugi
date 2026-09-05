@@ -1655,8 +1655,8 @@ body.staff-page select {
 }
 
 .staff-document {
-  width: min(100%, 900px);
-  min-width: 700px;
+  width: min(calc(100% - 40px), 900px);
+  min-width: 0;
   margin: 24px auto;
   padding: clamp(28px, 4vw, 52px);
   border-radius: 4px;
@@ -1779,6 +1779,13 @@ body.staff-page select {
   background: #f2f6e5;
   color: var(--staff-dark);
   font-size: 11px;
+}
+
+.staff-document-table tr > :first-child,
+.staff-document-table tr > :last-child,
+.staff-invoice-table tbody td:nth-child(3),
+.staff-invoice-table tbody td:nth-child(5) {
+  white-space: nowrap;
 }
 
 .staff-document-table tfoot th,
@@ -2311,6 +2318,23 @@ body.staff-page select {
 }
 
 @media (max-width: 680px) {
+  .staff-document {
+    width: calc(100% - 20px);
+    margin: 10px auto;
+    padding: 20px;
+  }
+
+  .staff-document-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .staff-document-header h2,
+  .staff-document-header p {
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
   .staff-header-inner {
     padding: 0 10px;
     gap: 8px;

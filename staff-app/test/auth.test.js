@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import test from "node:test";
 
 import { createAuth } from "../src/auth.js";
@@ -18,6 +18,7 @@ function config(overrides = {}) {
     allowedStaffEmails: new Set(),
     adminEmails: new Set(),
     cookieName: "__Host-noortetugi_staff",
+    oauthCookieName: "__Host-noortetugi_oauth",
     production: true,
     sessionTtlMs: 60 * 60 * 1_000,
     oauthAttemptTtlMs: 10 * 60 * 1_000,
@@ -30,7 +31,13 @@ function config(overrides = {}) {
 function request(query = {}) {
   return {
     query,
-    headers: { "user-agent": "test-agent" },
+    headers: {
+      "user-agent": "test-agent",
+      ...(query.state ? {
+        cookie: `${config().oauthCookieName}=${createHmac("sha256", config().logHashSecret)
+          .update(`oauth-state:${query.state}`).digest("base64url")}`
+      } : {})
+    },
     ip: "192.0.2.1",
     socket: {},
     get(name) {
@@ -179,6 +186,8 @@ test("verified domain identity is upserted with Google profile fields and a pers
   assert.equal(db.calls.sessions.length, 1);
   assert.equal(db.calls.sessions[0].userId, "user-1");
   assert.equal(res.cookies.length, 1);
+  assert.equal(db.calls.sessions[0].tokenHash, sha256(res.cookies[0].value));
+  assert.notEqual(db.calls.sessions[0].tokenHash, res.cookies[0].value);
   assert.deepEqual(res.cookies[0].options, {
     httpOnly: true,
     secure: true,
@@ -251,4 +260,116 @@ test("OAuth provider failures do not log sensitive error details", async () => {
 
   assert.equal(res.redirectTarget, "/admin?auth=failed");
   assert.equal(messages.some((message) => message.includes(sensitiveMarker)), false);
+});
+
+test("OAuth callback requires the state binding cookie from the initiating browser", async (t) => {
+  for (const cookie of ["", "__Host-noortetugi_oauth=wrong-binding"]) {
+    await t.test(cookie ? "mismatched binding" : "missing binding", async () => {
+      let consumed = false;
+      const db = database({ async consumeOauthAttempt() { consumed = true; return null; } });
+      const google = googleClient(validPayload());
+      const auth = createAuth({ config: config(), database: db, googleClient: google });
+      const req = request({ state: "state", code: "code" });
+      req.headers.cookie = cookie;
+      const res = response();
+      await auth.completeGoogleLogin(req, res);
+      assert.equal(res.redirectTarget, "/admin?auth=failed");
+      assert.equal(consumed, false);
+      assert.equal(google.calls.tokenOptions, null);
+      assert.equal(db.calls.sessions.length, 0);
+    });
+  }
+});
+
+test("OAuth callback rejects incorrect nonce, audience, issuer, and expired identity", async (t) => {
+  for (const [name, claims] of [
+    ["nonce", { nonce: "another-attempt" }],
+    ["audience", { aud: "another-client" }],
+    ["issuer", { iss: "https://attacker.example" }],
+    ["expiration", { exp: Math.floor(Date.now() / 1_000) - 60 }]
+  ]) {
+    await t.test(name, async () => {
+      const db = database();
+      const auth = createAuth({ config: config(), database: db, googleClient: googleClient(validPayload(claims)) });
+      const res = response();
+      await auth.completeGoogleLogin(request({ state: "state", code: "code" }), res);
+      assert.equal(res.redirectTarget, "/admin?auth=denied");
+      assert.equal(db.calls.sessions.length, 0);
+    });
+  }
+});
+
+test("existing sessions immediately lose access after domain or email allowlist changes", async (t) => {
+  for (const [name, overrides] of [
+    ["domain", { allowedGoogleDomain: "another.example" }],
+    ["allowlist", { allowedStaffEmails: new Set(["other@noortetugi.ee"]) }]
+  ]) {
+    await t.test(name, async () => {
+      let deletedHash;
+      const db = database({
+        async getSession() { return { user: { id: "user-1", email: "member@noortetugi.ee", role: "member" } }; },
+        async deleteSession(value) { deletedHash = value; }
+      });
+      const auth = createAuth({ config: config(overrides), database: db });
+      const req = request();
+      req.headers.cookie = `${config().cookieName}=test-session-token`;
+      const res = response();
+      let nextCalls = 0;
+      await auth.optionalSession(req, res, () => { nextCalls += 1; });
+      assert.equal(req.user, undefined);
+      assert.equal(req.sessionToken, undefined);
+      assert.equal(deletedHash, sha256("test-session-token"));
+      assert.equal(res.clearedCookies[0].name, config().cookieName);
+      assert.equal(nextCalls, 1);
+    });
+  }
+});
+
+test("removing an admin email removes admin privileges from its active session", async () => {
+  const db = database({
+    async getSession() { return { user: { id: "user-1", email: "member@noortetugi.ee", role: "admin" } }; }
+  });
+  const auth = createAuth({ config: config(), database: db });
+  const req = request();
+  req.headers.cookie = `${config().cookieName}=test-session-token`;
+  await auth.optionalSession(req, response(), () => {});
+  assert.equal(req.user.role, "member");
+  assert.equal(req.authSession.user.role, "member");
+});
+
+test("session policy preserves allowed admin, finance, and editor roles", async (t) => {
+  for (const role of ["admin", "finance", "editor"]) {
+    await t.test(role, async () => {
+      const db = database({
+        async getSession() { return { user: { id: "user-1", email: "member@noortetugi.ee", role } }; }
+      });
+      const auth = createAuth({ config: config({ adminEmails: new Set(["member@noortetugi.ee"]) }), database: db });
+      const req = request();
+      req.headers.cookie = `${config().cookieName}=test-session-token`;
+      await auth.optionalSession(req, response(), () => {});
+      assert.equal(req.user.role, role);
+    });
+  }
+});
+
+test("CSRF tokens are bound to the authenticated session", async () => {
+  const db = database({
+    async getSession() { return { user: { id: "user-1", email: "member@noortetugi.ee", role: "member" } }; }
+  });
+  const auth = createAuth({ config: config(), database: db });
+  const req = request();
+  req.headers.cookie = `${config().cookieName}=test-session-token`;
+  await auth.optionalSession(req, response(), () => {});
+  const token = auth.sessionPayload(req).csrfToken;
+  const missing = response();
+  auth.verifyCsrf(req, missing, () => assert.fail("missing token must fail"));
+  assert.equal(missing.statusCode, 403);
+  req.headers["x-csrf-token"] = token;
+  let accepted = false;
+  auth.verifyCsrf(req, response(), () => { accepted = true; });
+  assert.equal(accepted, true);
+  req.sessionToken = "different-session-token";
+  const replay = response();
+  auth.verifyCsrf(req, replay, () => assert.fail("cross-session token must fail"));
+  assert.equal(replay.statusCode, 403);
 });

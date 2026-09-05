@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
+import { AsyncLocalStorage } from "node:async_hooks";
 import pg from "pg";
+import { safeOperationalError } from "./safe-errors.js";
 
 const { Pool } = pg;
 const STAFF_ROLES = new Set(["member", "editor", "finance", "admin"]);
@@ -144,9 +146,26 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
     allowExitOnIdle: options.allowExitOnIdle ?? true,
     application_name: "noortetugi-staff"
   });
+  // Lock holders cannot share their capacity with work queries: otherwise five
+  // simultaneous callbacks could occupy every runtime connection and deadlock.
+  const lockPool = options.lockPool ?? (options.pool ? pool : new Pool({
+    connectionString,
+    max: options.maxConnections ?? 5,
+    idleTimeoutMillis: options.idleTimeoutMillis ?? 30_000,
+    connectionTimeoutMillis: options.connectionTimeoutMillis ?? 10_000,
+    allowExitOnIdle: options.allowExitOnIdle ?? true,
+    application_name: "noortetugi-staff-locks"
+  }));
+  const submissionLocks = new AsyncLocalStorage();
+  for (const managedPool of new Set([pool, lockPool])) {
+    managedPool.on?.("error", (error) => {
+      console.error("Staff database pool failed:", { stage: "connection", ...safeOperationalError(error) });
+    });
+  }
 
   async function transaction(work) {
     const client = await pool.connect();
+    let releaseError;
     try {
       await client.query("BEGIN");
       const result = await work(client);
@@ -155,12 +174,13 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
     } catch (error) {
       try {
         await client.query("ROLLBACK");
-      } catch {
-        // Preserve the original error. A discarded pg client will not be reused.
+      } catch (rollbackError) {
+        // Preserve the original error and discard an unusable connection.
+        releaseError = rollbackError;
       }
       throw error;
     } finally {
-      client.release();
+      client.release(releaseError);
     }
   }
 
@@ -177,9 +197,11 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
 
   const database = {
     raw: pool,
+    rawLocks: lockPool,
 
     async close() {
       await pool.end();
+      if (lockPool !== pool) await lockPool.end();
     },
 
     async healthCheck() {
@@ -189,30 +211,55 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
 
     async withSubmissionLock(submissionId, work) {
       if (typeof work !== "function") throw new TypeError("work must be a function.");
-      const client = await pool.connect();
-      let acquired = false;
+      if (submissionLocks.getStore() === submissionId) return work();
+      const client = await lockPool.connect();
       let releaseError;
       try {
+        // Pin a transaction through PgBouncer. Session advisory locks are not
+        // supported by Neon's transaction-pooled runtime connection.
+        await client.query("BEGIN");
         const result = await client.query(
-          "SELECT pg_try_advisory_lock(hashtext('staff-submission-submit'), hashtext($1)) AS acquired",
+          "SELECT pg_try_advisory_xact_lock(hashtext('staff-submission-submit'), hashtext($1)) AS acquired",
           [submissionId]
         );
-        acquired = result.rows[0]?.acquired === true;
-        if (!acquired) throw createSubmissionInProgressError();
-        return await work();
-      } finally {
-        if (acquired) {
-          try {
-            await client.query(
-              "SELECT pg_advisory_unlock(hashtext('staff-submission-submit'), hashtext($1))",
-              [submissionId]
-            );
-          } catch (error) {
-            // Destroy a client whose session-level lock could not be released.
-            releaseError = error;
-          }
+        if (result.rows[0]?.acquired !== true) throw createSubmissionInProgressError();
+        const value = await submissionLocks.run(submissionId, work);
+        await client.query("COMMIT");
+        return value;
+      } catch (error) {
+        try {
+          await client.query("ROLLBACK");
+        } catch (rollbackError) {
+          releaseError = rollbackError;
         }
+        throw error;
+      } finally {
         client.release(releaseError);
+      }
+    },
+
+    async assertSubmissionSchema() {
+      // Compile the finalization/attachment queries before generating documents
+      // or sending mail. No records or private values are read by these probes.
+      await pool.query(`SELECT status, revision_no, updated_at, submitted_at,
+        published_at, data_json FROM submissions LIMIT 0`);
+      await pool.query(`SELECT storage_status, blob_pathname, blob_url,
+        storage_updated_at, kind, sha256 FROM attachments LIMIT 0`);
+      const result = await pool.query(`SELECT version FROM schema_migrations
+        WHERE version IN ('001', '002', '003', '004')`);
+      if (result.rows.length !== 4) {
+        throw Object.assign(new Error("Required submission migrations are pending."), {
+          code: "SUBMISSION_SCHEMA_NOT_READY", status: 503
+        });
+      }
+      const indexes = await pool.query(`SELECT indexname FROM pg_indexes
+        WHERE schemaname = current_schema() AND indexname IN (
+          'submissions_news_slug_unique', 'attachments_one_primary_per_submission',
+          'submissions_published_news_idx', 'audit_expense_delivery_idx')`);
+      if (indexes.rows.length !== 4) {
+        throw Object.assign(new Error("Required submission indexes are missing."), {
+          code: "SUBMISSION_SCHEMA_NOT_READY", status: 503
+        });
       }
     },
 
@@ -517,7 +564,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
               revision_no = $3,
               updated_at = NOW(),
               submitted_at = CASE
-                WHEN $2 = 'SUBMITTED' THEN COALESCE(submitted_at, NOW())
+                WHEN $2 IN ('SUBMITTED', 'APPROVED', 'PUBLISHED') THEN COALESCE(submitted_at, NOW())
                 ELSE submitted_at
               END,
               published_at = CASE
@@ -548,7 +595,10 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
           ) VALUES ($1, $2, $3, $4, $5, NOW())
         `, [randomUUID(), submissionId, reviewerId, decision, comment || null]);
         await client.query(`
-          UPDATE submissions SET status = $2, updated_at = NOW() WHERE id = $1
+          UPDATE submissions SET status = $2, updated_at = NOW(),
+            published_at = CASE WHEN $2 = 'PUBLISHED' THEN COALESCE(published_at, NOW())
+              ELSE published_at END
+          WHERE id = $1
         `, [submissionId, nextStatus]);
         return getSubmissionWith(client, submissionId);
       });
@@ -742,6 +792,24 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         ) AS delivered
       `, [submissionId, deliveryKey]);
       return result.rows[0]?.delivered === true;
+    },
+
+    async getExpenseDeliveryState(submissionId, deliveryKey = null) {
+      const result = await pool.query(`
+        SELECT action
+        FROM audit_logs
+        WHERE target_type = 'expense' AND target_id = $1
+          AND ($2::text IS NULL OR metadata_json ->> 'deliveryKey' = $2)
+          AND action IN ('EXPENSE_NOTIFICATION_STARTED',
+            'EXPENSE_NOTIFICATION_SENT', 'EXPENSE_NOTIFICATION_REJECTED')
+          AND ($2::text IS NOT NULL OR created_at > COALESCE(
+            (SELECT MAX(created_at) FROM reviews
+             WHERE submission_id = $1 AND decision = 'needs_changes'), '-infinity'))
+        ORDER BY id DESC LIMIT 1
+      `, [submissionId, deliveryKey]);
+      const action = result.rows[0]?.action;
+      return action === 'EXPENSE_NOTIFICATION_SENT' ? 'sent'
+        : action === 'EXPENSE_NOTIFICATION_STARTED' ? 'uncertain' : 'ready';
     },
 
     async listAudit(limit = 200) {

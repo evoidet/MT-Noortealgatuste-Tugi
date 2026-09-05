@@ -125,11 +125,20 @@ function blobToken(config) {
 
 function safeOriginalName(value) {
   const segments = String(value || "file").replace(/\\/g, "/").split("/");
-  return (segments.at(-1) || "file")
+  const cleaned = (segments.at(-1) || "file")
     .replace(/[\u0000-\u001f\u007f]/g, "")
     .replace(/[<>:"/\\|?*]/g, "_")
-    .trim()
-    .slice(0, 180) || "file";
+    .trim() || "file";
+  if (cleaned.length <= 180) return cleaned;
+  // Preserve the extension so long legitimate filenames remain valid for
+  // direct uploads and downloads. Iterate code points to avoid split Unicode.
+  const extension = extname(cleaned).slice(0, 16);
+  let stem = "";
+  for (const character of cleaned.slice(0, cleaned.length - extname(cleaned).length)) {
+    if (stem.length + character.length + extension.length > 180) break;
+    stem += character;
+  }
+  return `${stem}${extension}` || "file";
 }
 
 function originalExtension(filename) {
@@ -323,7 +332,14 @@ async function readWebStream(stream, limit) {
 
 async function validateFileBuffer({ config, submission, buffer, filename, declaredMimeType }) {
   assertFileSize(config, buffer.length);
-  const detected = await fileTypeFromBuffer(buffer);
+  let detected;
+  try {
+    detected = await fileTypeFromBuffer(buffer);
+  } catch (cause) {
+    // Truncated image/ZIP headers can make the detector throw. Treat malformed
+    // uploads like any other unsupported file, without exposing parser errors.
+    throw new StorageError("FILE_TYPE_NOT_ALLOWED", "The file type could not be verified.", { cause });
+  }
   if (!detected) {
     throw new StorageError("FILE_TYPE_NOT_ALLOWED", "The file type could not be verified.");
   }

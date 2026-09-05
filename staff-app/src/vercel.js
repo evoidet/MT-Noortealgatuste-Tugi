@@ -9,6 +9,7 @@ if (!globalThis[stateKey]) {
   const config = loadConfig();
   const database = openDatabase(config.storageDatabaseUrl);
   attachDatabasePool(database.raw);
+  attachDatabasePool(database.rawLocks);
   const { app } = createStaffApp({ config, database });
   globalThis[stateKey] = { app, config, database };
 }

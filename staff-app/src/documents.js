@@ -143,6 +143,7 @@ async function renderTemplate(kind, values) {
       paragraphLoop: true,
       linebreaks: true,
       nullGetter: () => "",
+      errorLogging: false,
     });
     document.render(values);
     return document.getZip().generate({
@@ -194,7 +195,7 @@ function normalizeInvoice(data = {}) {
         maxLength: 500,
       }),
       quantity: formatQuantity(quantityValue),
-      unit: cleanText(firstDefined(item.unit, item.measurementUnit), { fallback: "tk", maxLength: 30 }),
+      unit: cleanText(firstDefined(item.unit, item.measurementUnit), { fallback: "tk", maxLength: 60 }),
       unitPrice: formatMoney(unitPriceCents),
       lineTotal: formatMoney(lineTotalCents),
       lineTotalCents,
@@ -212,7 +213,7 @@ function normalizeInvoice(data = {}) {
   const invoiceNumber = cleanText(firstDefined(data.invoiceNumber, data.number), {
     required: true,
     field: "invoiceNumber",
-    maxLength: 80,
+    maxLength: 100,
   });
   const currency = cleanText(firstDefined(data.currency, "EUR"), { maxLength: 3 }).toUpperCase();
   if (currency !== "EUR") {
@@ -228,11 +229,11 @@ function normalizeInvoice(data = {}) {
       invoiceDate: formatDate(data.invoiceDate, { required: true, field: "invoiceDate" }),
       dueDate: formatDate(firstDefined(data.dueDate, data.paymentDueDate), { required: true, field: "dueDate" }),
       currency,
-      transactionTime: cleanText(firstDefined(data.transactionTime, data.servicePeriod, data.transactionDate), {
-        maxLength: 150,
+      transactionTime: cleanText(firstDefined(data.transactionTime, data.transactionPeriod, data.servicePeriod, data.transactionDate), {
+        maxLength: 240,
       }),
       projectReference: cleanText(firstDefined(data.projectReference, data.contractReference, data.projectCode, data.project), {
-        maxLength: 200,
+        maxLength: 240,
       }),
       buyerName: cleanText(firstDefined(buyer.name, data.buyerName, data.clientName, data.client), {
         required: true,
@@ -244,8 +245,8 @@ function normalizeInvoice(data = {}) {
         data.buyerRegistryCode,
         data.registryCode,
         data.registrationCode
-      ), { maxLength: 80 }),
-      buyerAddress: cleanText(firstDefined(buyer.address, data.buyerAddress, data.address), { maxLength: 300 }),
+      ), { maxLength: 100 }),
+      buyerAddress: cleanText(firstDefined(buyer.address, data.buyerAddress, data.address), { maxLength: 500 }),
       buyerContact: cleanText(firstDefined(buyer.contact, buyer.contactPerson, data.buyerContact), { maxLength: 250 }),
       items: items.map(({ lineTotalCents: _lineTotalCents, ...item }) => item),
       subtotal: formatMoney(subtotalCents),
@@ -255,9 +256,9 @@ function normalizeInvoice(data = {}) {
         data.paymentDescription,
         data.additionalInfo,
         `Arve ${invoiceNumber}`
-      ), { maxLength: 250 }),
+      ), { maxLength: 2_000 }),
       additionalInfo: cleanText(data.additionalInfo, { maxLength: 2_000 }),
-      referenceNumber: cleanText(data.referenceNumber, { maxLength: 50 }),
+      referenceNumber: cleanText(data.referenceNumber, { maxLength: 100 }),
     },
     invoiceNumber,
   };
@@ -434,7 +435,7 @@ function normalizeExpense(data = {}, meta = {}) {
     values: {
       documentNumberAndDate: `${documentNumber} / ${documentDate}`,
       recipientName,
-      recipientRole: cleanText(firstDefined(recipient.role, data.recipientRole, data.role), {
+      recipientRole: cleanText(firstDefined(recipient.role, data.recipientRole, data.claimantRole, data.role), {
         field: "recipient.role",
         maxLength: 200,
       }),
@@ -447,13 +448,17 @@ function normalizeExpense(data = {}, meta = {}) {
         field: "activityName",
         maxLength: 500,
       }),
-      expenseType: cleanText(firstDefined(data.expenseType, data.costType), {
+      expenseType: cleanText(firstDefined(data.expenseType, data.costType, data.expenseCategory), {
         field: "expenseType",
         maxLength: 300,
       }),
-      locationPeriodRoute: cleanText(firstDefined(data.locationPeriodRoute, data.locationAndPeriod, data.route), {
+      locationPeriodRoute: cleanText(firstDefined(
+        data.locationPeriodRoute,
+        data.locationAndPeriod,
+        [data.location, data.period, data.route].filter(Boolean).join(" — ")
+      ), {
         field: "locationPeriodRoute",
-        maxLength: 700,
+        maxLength: 1_250,
       }),
       fundingSource: cleanText(firstDefined(data.fundingSource, data.budgetLine), {
         field: "fundingSource",

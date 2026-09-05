@@ -124,6 +124,8 @@ test("mail service sends a plain-text expense summary to the configured finance 
     "<expense-9f71c168-43d7-4c51-aa5f-e4b6384db777-r3-1788084840000@noortetugi.ee>",
   );
   assert.equal(message.html, undefined);
+  assert.equal(message.disableFileAccess, true);
+  assert.equal(message.disableUrlAccess, true);
   assert.equal(message.attachments.length, 2);
   assert.deepEqual(
     message.attachments.map(({ filename, contentType, content }) => ({ filename, contentType, size: content.length })),
@@ -206,4 +208,21 @@ test("mail service rejects empty generated or uploaded attachments", async () =>
     }),
     (error) => error?.code === "MAIL_ATTACHMENT_INVALID",
   );
+});
+
+test("mail attachments accept only materialized content without file or URL objects", async () => {
+  let sent = false;
+  const service = createMailService(mailConfig(), {
+    transport: { async sendMail() { sent = true; } }
+  });
+  await assert.rejects(() => service.sendExpenseSubmitted({
+    submission: expenseSubmission(),
+    reviewUrl: "https://staff.example.test/admin",
+    attachments: [{
+      filename: "unsafe.pdf",
+      contentType: "application/pdf",
+      content: { path: "https://unused.invalid/attachment.pdf" }
+    }]
+  }), { code: "MAIL_ATTACHMENT_INVALID" });
+  assert.equal(sent, false);
 });

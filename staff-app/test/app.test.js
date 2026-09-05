@@ -31,6 +31,7 @@ function testConfig() {
 function testDatabase() {
   return {
     async getSession() { return null; },
+    async assertSubmissionSchema() {},
     async healthCheck() { return true; }
   };
 }
@@ -90,6 +91,7 @@ function expenseRouteDatabase(overrides = {}) {
   }];
   const operations = [];
   let delivered = false;
+  let deliveryState = "ready";
   let statusFailures = Number(overrides.statusFailures || 0);
 
   return {
@@ -98,6 +100,8 @@ function expenseRouteDatabase(overrides = {}) {
     async getSession() { return { user }; },
     async getSubmission() { return submission; },
     async withSubmissionLock(_id, work) { return work(); },
+    async assertSubmissionSchema() {},
+    async getExpenseDeliveryState() { return deliveryState; },
     async listAttachments() { return attachments; },
     async listReviews() { return []; },
     async hasExpenseDelivery() {
@@ -131,6 +135,9 @@ function expenseRouteDatabase(overrides = {}) {
     async audit(entry) {
       operations.push(`audit:${entry.action}`);
       if (entry.action === "EXPENSE_NOTIFICATION_SENT") delivered = true;
+      if (entry.action === "EXPENSE_NOTIFICATION_STARTED") deliveryState = "uncertain";
+      if (entry.action === "EXPENSE_NOTIFICATION_SENT") deliveryState = "sent";
+      if (entry.action === "EXPENSE_NOTIFICATION_REJECTED") deliveryState = "ready";
     },
   };
 }
@@ -605,4 +612,100 @@ test("SMTP authentication failure logging contains metadata but never credential
   } finally {
     console.error = originalConsoleError;
   }
+});
+
+function submissionApp(database, send) {
+  const config = testConfig();
+  const { app } = createStaffApp({ config, database,
+    documentGenerator: async () => ({ buffer: Buffer.from("synthetic document"),
+      filename: "expense.docx", contentType: DOCX_CONTENT_TYPE }),
+    privateAttachmentReader: async () => ({ buffer: Buffer.from("synthetic attachment") }),
+    mailService: { sendExpenseSubmitted: send }
+  });
+  return { app, config };
+}
+
+test("missing schema stops submission before document generation or SMTP and logs safe column", async (t) => {
+  const database = expenseRouteDatabase();
+  database.assertSubmissionSchema = async () => { throw Object.assign(
+    new Error('column "published_at" does not exist'), { code: "42703", name: "error" }); };
+  let sends = 0;
+  const { app, config } = submissionApp(database, async () => { sends++; });
+  const logs = [];
+  t.mock.method(console, "error", (...args) => logs.push(args));
+  const response = await authenticatedSubmissionRequest(app, config, database.current.id);
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error, "SUBMISSION_SCHEMA_NOT_READY");
+  assert.equal(sends, 0);
+  assert.equal(database.current.status, "DRAFT");
+  assert.equal(logs[0][1].column, "published_at");
+  assert.equal(logs[0][1].submissionId, database.current.id);
+  assert.equal(JSON.stringify(response.body).includes("published_at"), false);
+});
+
+test("failed start marker sends no email; failed sent marker blocks retry after one delivery", async (t) => {
+  t.mock.method(console, "error", () => {});
+  for (const failedAction of ["EXPENSE_NOTIFICATION_STARTED", "EXPENSE_NOTIFICATION_SENT"]) {
+    const database = expenseRouteDatabase();
+    const audit = database.audit;
+    database.audit = async (entry) => {
+      if (entry.action === failedAction) throw Object.assign(new Error("synthetic DB failure"), { code: "08006" });
+      return audit(entry);
+    };
+    let sends = 0;
+    const { app, config } = submissionApp(database, async () => { sends++; });
+    assert.equal((await authenticatedSubmissionRequest(app, config, database.current.id)).status, 500);
+    const retried = await authenticatedSubmissionRequest(app, config, database.current.id);
+    assert.equal(retried.status, failedAction.endsWith("STARTED") ? 500 : 409);
+    assert.equal(sends, failedAction.endsWith("STARTED") ? 0 : 1);
+    assert.equal(database.current.status, "DRAFT");
+  }
+});
+
+test("ambiguous SMTP error blocks resend; explicit authentication rejection is retryable", async (t) => {
+  t.mock.method(console, "error", () => {});
+  for (const code of ["ETIMEDOUT", "EAUTH"]) {
+    const database = expenseRouteDatabase();
+    let sends = 0;
+    const { app, config } = submissionApp(database, async () => {
+      sends++;
+      if (sends === 1) throw Object.assign(new Error("synthetic SMTP error"), { code, command: "DATA" });
+    });
+    assert.equal((await authenticatedSubmissionRequest(app, config, database.current.id)).status, 502);
+    const retry = await authenticatedSubmissionRequest(app, config, database.current.id);
+    assert.equal(retry.status, code === "EAUTH" ? 200 : 409);
+    assert.equal(sends, code === "EAUTH" ? 2 : 1);
+  }
+});
+
+test("delivered draft permits identical save then finalization, rejects changed data, and finished retries are no-ops", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const database = expenseRouteDatabase({ statusFailures: 1 });
+  let sends = 0;
+  const { app, config } = submissionApp(database, async () => { sends++; });
+  assert.equal((await authenticatedSubmissionRequest(app, config, database.current.id)).status, 500);
+  const cookie = `${config.cookieName}=test-session-token`;
+  const session = await request(app).get("/api/staff/session").set("Cookie", cookie);
+  const save = (data) => request(app).patch(`/api/staff/submissions/${database.current.id}`)
+    .set("Cookie", cookie).set("X-CSRF-Token", session.body.csrfToken).send({ data });
+  const revision = database.current.revision;
+  assert.equal((await save(database.current.data)).status, 200);
+  assert.equal(database.current.revision, revision);
+  assert.equal((await save({ ...database.current.data, project: "changed" })).status, 409);
+  assert.equal((await authenticatedSubmissionRequest(app, config, database.current.id)).status, 200);
+  const finalRevision = database.current.revision;
+  assert.equal((await authenticatedSubmissionRequest(app, config, database.current.id)).status, 200);
+  assert.equal(database.current.revision, finalRevision);
+  assert.equal(sends, 1);
+  assert.equal((await save({ ...database.current.data, project: "changed" })).status, 403);
+});
+
+test("oversized and malformed JSON return safe client errors", async () => {
+  const { app } = createStaffApp({ config: testConfig(), database: testDatabase(), mailService });
+  const malformed = await request(app).post("/api/staff/submissions").type("json").send('{"private":');
+  assert.equal(malformed.status, 400);
+  assert.deepEqual(malformed.body, { error: "INVALID_JSON" });
+  const large = await request(app).post("/api/staff/submissions").send({ data: "x".repeat(270000) });
+  assert.equal(large.status, 413);
+  assert.deepEqual(large.body, { error: "REQUEST_TOO_LARGE" });
 });

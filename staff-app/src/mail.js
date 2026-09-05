@@ -45,15 +45,15 @@ function normalizedAttachments(value) {
   return value.map((attachment) => {
     const filename = cleanHeader(attachment?.filename);
     const contentType = cleanHeader(attachment?.contentType, "application/octet-stream");
-    const contentLength = Buffer.isBuffer(attachment?.content)
-      ? attachment.content.length
-      : typeof attachment?.content === "string"
-        ? Buffer.byteLength(attachment.content)
-        : attachment?.content?.byteLength;
-    if (!filename || !attachment?.content || !contentType || contentLength === 0) {
+    const content = Buffer.isBuffer(attachment?.content) || typeof attachment?.content === "string"
+      ? attachment.content
+      : attachment?.content instanceof Uint8Array
+        ? Buffer.from(attachment.content)
+        : null;
+    if (!filename || !content || !contentType || Buffer.byteLength(content) === 0) {
       throw mailAttachmentError();
     }
-    return { filename, content: attachment.content, contentType };
+    return { filename, content, contentType };
   });
 }
 
@@ -106,6 +106,8 @@ export function createMailService(config, overrides = {}) {
         to: config.financeNotificationEmail,
         messageId: expenseMessageId(submission, config.financeNotificationEmail),
         subject,
+        disableFileAccess: true,
+        disableUrlAccess: true,
         text: [
           "Uus kuluaruanne ootab kontrollimist.",
           "",
