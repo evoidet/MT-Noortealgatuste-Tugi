@@ -14,17 +14,16 @@ finance email remains the required delivery path.
    download the key once. The JSON `client_email` and `private_key` fields are
    used below. Store the downloaded file securely and delete local copies after
    the values have been entered into Vercel.
-4. The validator supports both Shared Drive folders and ordinary My Drive
-   folders shared with the service account. A Shared Drive is recommended for
-   organizational ownership and storage-quota management, but `driveId` is not
-   used as an access or parentage test because Google only returns it for Shared
-   Drive items.
+4. The validator supports metadata checks for both Shared Drive folders and
+   ordinary My Drive folders shared with the service account. Binary archival
+   must target a Shared Drive: Google service accounts have no storage quota
+   and cannot own uploaded files in a normal My Drive hierarchy. `driveId` is
+   not used as a parentage test because Google only returns it for Shared Drive
+   items; the explicit `parents` relationship remains the security check.
 5. Share the archive root folder configured by
    `GOOGLE_DRIVE_ROOT_FOLDER_ID` with the service-account email as **Editor**.
-   For a My Drive hierarchy, also ensure the mapped child folders are visible
-   and editable by the service account. For a Shared Drive hierarchy, folder
-   access or **Content manager** membership can be used according to Workspace
-   policy.
+   For a Shared Drive hierarchy, folder access or **Content manager** membership
+   can be used according to Workspace policy.
 6. Ensure each staff personal folder is a direct child of the configured archive
    root. The application reads both folders and verifies the child's `parents`
    metadata before writing.

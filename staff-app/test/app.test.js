@@ -73,7 +73,7 @@ function expenseRouteDatabase(overrides = {}) {
     creatorId: user.id,
     creatorEmail: user.email,
     creatorName: user.name,
-    status: "DRAFT",
+    status: overrides.status || "DRAFT",
     data: expenseData(),
     createdAt: "2026-08-29T09:00:00.000Z",
     updatedAt: "2026-08-29T10:00:00.000Z",
@@ -94,6 +94,7 @@ function expenseRouteDatabase(overrides = {}) {
   let deliveryState = "ready";
   let driveArchive = null;
   let statusFailures = Number(overrides.statusFailures || 0);
+  let driveStateFailures = Number(overrides.driveStateFailures || 0);
 
   return {
     operations,
@@ -106,6 +107,10 @@ function expenseRouteDatabase(overrides = {}) {
     async getDriveArchive() { return driveArchive; },
     async recordDriveArchive(value) {
       operations.push(`drive-state:${value.status}`);
+      if (driveStateFailures > 0) {
+        driveStateFailures -= 1;
+        throw Object.assign(new Error("private database detail"), { code: "TEST_DRIVE_STATE_FAILURE" });
+      }
       driveArchive = { ...(driveArchive || {}), ...value };
       return driveArchive;
     },
@@ -330,6 +335,7 @@ test("Drive and email run independently with the complete package and retry does
   ] });
   const archives = [];
   let mailCalls = 0;
+  let mailedAttachments;
   let finishArchive;
   const archiveGate = new Promise((resolve) => { finishArchive = resolve; });
   const driveArchiveService = {
@@ -349,7 +355,11 @@ test("Drive and email run independently with the complete package and retry does
     documentGenerator: async () => ({ buffer: Buffer.from("generated"), filename: "report.docx",
       contentType: DOCX_CONTENT_TYPE }),
     privateAttachmentReader: async ({ attachment }) => ({ buffer: Buffer.from(`blob:${attachment.id}`) }),
-    mailService: { async sendExpenseSubmitted() { mailCalls += 1; finishArchive(); } }
+    mailService: { async sendExpenseSubmitted({ attachments }) {
+      mailCalls += 1;
+      mailedAttachments = attachments;
+      finishArchive();
+    } }
   });
 
   const first = await authenticatedSubmissionRequest(app, config, database.current.id);
@@ -364,7 +374,45 @@ test("Drive and email run independently with the complete package and retry does
     { itemKey: "attachment:attachment-primary", filename: "receipt.pdf" },
     { itemKey: "attachment:attachment-additional", filename: "receipt.pdf" }
   ]);
+  assert.ok(archives[0].files.every(({ content }) => Buffer.isBuffer(content)));
+  assert.ok(mailedAttachments.every(({ content }) => Buffer.isBuffer(content)));
+  assert.notStrictEqual(archives[0].files[0].content, mailedAttachments[0].content);
+  assert.deepEqual(archives[0].files[0].content, mailedAttachments[0].content);
   assert.ok(database.operations.includes("drive-state:complete"));
+});
+
+test("completed expense retry reports attachment download failure without resending SMTP", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase({ status: "SUBMITTED" });
+  let mailCalls = 0;
+  const logs = [];
+  const originalConsoleError = console.error;
+  console.error = (...entries) => logs.push(entries);
+  try {
+    const { app } = createStaffApp({
+      config,
+      database,
+      driveArchiveService: { enabled: true, async archiveExpense() {
+        assert.fail("Drive must not run without downloaded attachment bytes");
+      } },
+      documentGenerator: async () => ({ buffer: Buffer.from("generated"), filename: "report.docx",
+        contentType: DOCX_CONTENT_TYPE }),
+      privateAttachmentReader: async () => {
+        throw Object.assign(new Error("private Blob URL must not log"), { code: "BLOB_NOT_FOUND" });
+      },
+      mailService: { async sendExpenseSubmitted() { mailCalls += 1; } }
+    });
+
+    const retry = await authenticatedSubmissionRequest(app, config, database.current.id);
+    assert.equal(retry.status, 200);
+    assert.equal(mailCalls, 0);
+    assert.ok(logs.some(([message, metadata]) =>
+      message === "Expense Drive archive retry preparation failed:" &&
+      metadata.code === "DRIVE_ATTACHMENT_DOWNLOAD_FAILED"));
+    assert.equal(JSON.stringify(logs).includes("private Blob URL must not log"), false);
+  } finally {
+    console.error = originalConsoleError;
+  }
 });
 
 test("Drive failure is safely logged, does not block email, and retries Drive without resending email", async () => {
@@ -405,6 +453,43 @@ test("Drive failure is safely logged, does not block email, and retries Drive wi
     assert.ok(logs.some(([message, metadata]) => message === "Expense Drive archival failed:" &&
       metadata.submissionId === database.current.id && metadata.stage === "drive_archive" &&
       metadata.code === "DRIVE_TEMPORARY_FAILURE"));
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
+test("Drive completion state write failure is safely classified and remains non-blocking", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase({ driveStateFailures: 1 });
+  const logs = [];
+  const originalConsoleError = console.error;
+  console.error = (...entries) => logs.push(entries);
+  try {
+    const { app } = createStaffApp({
+      config,
+      database,
+      driveArchiveService: {
+        enabled: true,
+        async archiveExpense({ files }) {
+          return { status: "complete", parentFolderId: "personal-folder-12345",
+            folderId: "archive-folder-123456",
+            folderUrl: "https://drive.google.com/drive/folders/archive-folder-123456",
+            archivedAt: "2026-09-05T12:00:00.000Z", fileCount: files.length };
+        }
+      },
+      documentGenerator: async () => ({ buffer: Buffer.from("generated"), filename: "report.docx",
+        contentType: DOCX_CONTENT_TYPE }),
+      privateAttachmentReader: async () => ({ buffer: Buffer.from("blob") }),
+      mailService: { async sendExpenseSubmitted() {} }
+    });
+
+    const response = await authenticatedSubmissionRequest(app, config, database.current.id);
+    assert.equal(response.status, 200);
+    assert.equal(response.body.item.status, "SUBMITTED");
+    assert.ok(logs.some(([message, metadata]) => message === "Expense Drive archival failed:" &&
+      metadata.code === "DRIVE_ARCHIVE_STATE_WRITE_FAILED"));
+    assert.equal(JSON.stringify(logs).includes("private database detail"), false);
+    assert.ok(database.operations.includes("drive-state:failed"));
   } finally {
     console.error = originalConsoleError;
   }

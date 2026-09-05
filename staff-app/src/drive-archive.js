@@ -1,13 +1,11 @@
-import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
-import { GoogleAuth } from "google-auth-library";
+import { Readable } from "node:stream";
+import { google } from "googleapis";
 
 // The service must discover a pre-existing configured root/personal folder and
 // recover tagged objects it created there. Explicit folder grants or Shared
 // Drive membership remain the effective access boundary.
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
-const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
-const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
 const FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 const DRIVE_REQUEST_TIMEOUT_MS = 20_000;
 
@@ -71,6 +69,21 @@ function driveResponseStatus(error) {
   return Number.isInteger(status) ? status : null;
 }
 
+function driveProviderReason(error) {
+  const errors = error?.response?.data?.error?.errors;
+  const reason = Array.isArray(errors) ? errors.find((entry) => typeof entry?.reason === "string")?.reason : null;
+  return typeof reason === "string" && /^[A-Za-z][A-Za-z0-9_]{0,79}$/.test(reason) ? reason : null;
+}
+
+function driveOperationError(error, fallbackCode, message) {
+  if (error instanceof DriveArchiveError) return error;
+  const reason = driveProviderReason(error);
+  const code = reason === "storageQuotaExceeded"
+    ? "DRIVE_SERVICE_ACCOUNT_STORAGE_QUOTA"
+    : fallbackCode;
+  return new DriveArchiveError(code, message, error);
+}
+
 async function getFolderMetadata(drive, id, { root = false } = {}) {
   try {
     return await drive.getFile(id);
@@ -118,36 +131,23 @@ function validatePersonalFolder(folder, expectedId, rootId) {
   }
 }
 
-function multipartBody(metadata, contentType, content, boundary) {
-  return Buffer.concat([
-    Buffer.from(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`),
-    Buffer.from(`--${boundary}\r\nContent-Type: ${contentType}\r\n\r\n`),
-    content,
-    Buffer.from(`\r\n--${boundary}--`)
-  ]);
-}
-
-function createGoogleDriveClient(config) {
-  const auth = new GoogleAuth({
+function createGoogleDriveClient(config, googleApi = google) {
+  const auth = new googleApi.auth.GoogleAuth({
     credentials: {
       client_email: config.googleDriveServiceAccountEmail,
       private_key: config.googleDriveServiceAccountPrivateKey
     },
     scopes: [DRIVE_SCOPE]
   });
-  let clientPromise;
-  const client = () => clientPromise ||= auth.getClient();
+  const api = googleApi.drive({ version: "v3", auth });
 
   return {
     async getFile(id) {
-      const response = await (await client()).request({
-        url: `${DRIVE_API}/${encodeURIComponent(id)}`,
-        params: {
-          fields: "id,parents,mimeType,trashed,driveId,shared,capabilities(canAddChildren)",
-          supportsAllDrives: true
-        },
-        timeout: DRIVE_REQUEST_TIMEOUT_MS
-      });
+      const response = await api.files.get({
+        fileId: id,
+        fields: "id,parents,mimeType,trashed,driveId,shared,capabilities(canAddChildren)",
+        supportsAllDrives: true
+      }, { timeout: DRIVE_REQUEST_TIMEOUT_MS });
       return response.data;
     },
 
@@ -161,29 +161,21 @@ function createGoogleDriveClient(config) {
       if (itemKey) {
         clauses.push(`appProperties has { key='noortetugiArchiveItemKey' and value='${escapeDriveQuery(itemKey)}' }`);
       }
-      const response = await (await client()).request({
-        url: DRIVE_API,
-        params: {
-          q: clauses.join(" and "),
-          fields: "files(id,name,mimeType,createdTime)",
-          orderBy: "createdTime,name",
-          pageSize: 10,
-          spaces: "drive",
-          supportsAllDrives: true,
-          includeItemsFromAllDrives: true
-        },
-        timeout: DRIVE_REQUEST_TIMEOUT_MS
-      });
+      const response = await api.files.list({
+        q: clauses.join(" and "),
+        fields: "files(id,name,mimeType,createdTime)",
+        orderBy: "createdTime,name",
+        pageSize: 10,
+        spaces: "drive",
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true
+      }, { timeout: DRIVE_REQUEST_TIMEOUT_MS });
       return response.data?.files?.[0] || null;
     },
 
     async createFolder({ parentId, submissionId, name }) {
-      const response = await (await client()).request({
-        url: DRIVE_API,
-        method: "POST",
-        params: { fields: "id,name", supportsAllDrives: true },
-        timeout: DRIVE_REQUEST_TIMEOUT_MS,
-        data: {
+      const response = await api.files.create({
+        requestBody: {
           name,
           mimeType: FOLDER_MIME_TYPE,
           parents: [parentId],
@@ -191,29 +183,32 @@ function createGoogleDriveClient(config) {
             noortetugiSubmissionId: submissionId,
             noortetugiArchiveKind: "expense"
           }
-        }
-      });
+        },
+        fields: "id,name",
+        supportsAllDrives: true
+      }, { timeout: DRIVE_REQUEST_TIMEOUT_MS });
       return response.data;
     },
 
     async uploadFile({ parentId, submissionId, itemKey, filename, contentType, content }) {
-      const boundary = `noortetugi-${randomUUID()}`;
-      const metadata = {
-        name: filename,
-        parents: [parentId],
-        appProperties: {
-          noortetugiSubmissionId: submissionId,
-          noortetugiArchiveItemKey: itemKey
-        }
-      };
-      const response = await (await client()).request({
-        url: DRIVE_UPLOAD_API,
-        method: "POST",
-        params: { uploadType: "multipart", fields: "id,name", supportsAllDrives: true },
-        headers: { "Content-Type": `multipart/related; boundary=${boundary}` },
-        timeout: DRIVE_REQUEST_TIMEOUT_MS,
-        data: multipartBody(metadata, contentType, content, boundary)
-      });
+      const response = await api.files.create({
+        requestBody: {
+          name: filename,
+          parents: [parentId],
+          appProperties: {
+            noortetugiSubmissionId: submissionId,
+            noortetugiArchiveItemKey: itemKey
+          }
+        },
+        media: {
+          mimeType: contentType,
+          // A fresh stream is created for each attempt. SMTP receives a separate
+          // Buffer and cannot consume this upload body.
+          body: Readable.from([Buffer.from(content)])
+        },
+        fields: "id,name,size",
+        supportsAllDrives: true
+      }, { timeout: DRIVE_REQUEST_TIMEOUT_MS });
       return response.data;
     }
   };
@@ -227,14 +222,17 @@ function safeArchiveFile(file) {
   const contentType = String(file?.contentType || "application/octet-stream").trim();
   if (!content?.length || !/^[a-z0-9][a-z0-9.+-]*\/[a-z0-9][a-z0-9.+-]*$/i.test(contentType) ||
       !/^[A-Za-z0-9:_-]{1,200}$/.test(itemKey)) {
-    throw new DriveArchiveError("DRIVE_ARCHIVE_FILE_INVALID", "An archive file is invalid.");
+    const code = itemKey === "generated-document"
+      ? "DRIVE_GENERATED_DOCUMENT_INVALID"
+      : "DRIVE_ATTACHMENT_BODY_INVALID";
+    throw new DriveArchiveError(code, "An archive file is invalid.");
   }
   return { ...file, content, contentType, itemKey };
 }
 
 export function createDriveArchiveService(config, overrides = {}) {
   const enabled = config.googleDriveArchiveEnabled === true;
-  const drive = overrides.driveClient ?? (enabled ? createGoogleDriveClient(config) : null);
+  const drive = overrides.driveClient ?? (enabled ? createGoogleDriveClient(config, overrides.googleApi) : null);
 
   return Object.freeze({
     enabled,
@@ -266,31 +264,71 @@ export function createDriveArchiveService(config, overrides = {}) {
         const parent = await getFolderMetadata(drive, parentFolderId);
         validatePersonalFolder(parent, parentFolderId, config.googleDriveRootFolderId);
 
-        let folder = await drive.findFile({
-          parentId: parentFolderId,
-          submissionId: submission.id,
-          folder: true
-        });
-        if (!folder) {
-          folder = await drive.createFolder({
+        let folder;
+        try {
+          folder = await drive.findFile({
             parentId: parentFolderId,
             submissionId: submission.id,
-            name: archiveFolderName(submission)
+            folder: true
           });
+        } catch (error) {
+          throw driveOperationError(
+            error,
+            "DRIVE_SUBMISSION_FOLDER_LOOKUP_FAILED",
+            "The submission archive folder lookup failed."
+          );
+        }
+        if (!folder) {
+          try {
+            folder = await drive.createFolder({
+              parentId: parentFolderId,
+              submissionId: submission.id,
+              name: archiveFolderName(submission)
+            });
+          } catch (error) {
+            throw driveOperationError(
+              error,
+              "DRIVE_SUBMISSION_FOLDER_CREATE_FAILED",
+              "The submission archive folder could not be created."
+            );
+          }
         }
         const folderId = fileId(folder?.id);
         for (const archiveFile of normalizedFiles) {
-          const existing = await drive.findFile({
-            parentId: folderId,
-            submissionId: submission.id,
-            itemKey: archiveFile.itemKey
-          });
-          if (existing) continue;
-          await drive.uploadFile({
-            parentId: folderId,
-            submissionId: submission.id,
-            ...archiveFile
-          });
+          let existing;
+          try {
+            existing = await drive.findFile({
+              parentId: folderId,
+              submissionId: submission.id,
+              itemKey: archiveFile.itemKey
+            });
+          } catch (error) {
+            throw driveOperationError(
+              error,
+              "DRIVE_REMOTE_FILE_LOOKUP_FAILED",
+              "The archived-file lookup failed."
+            );
+          }
+          if (existing) {
+            fileId(existing.id);
+            continue;
+          }
+          try {
+            const uploaded = await drive.uploadFile({
+              parentId: folderId,
+              submissionId: submission.id,
+              ...archiveFile
+            });
+            fileId(uploaded?.id);
+          } catch (error) {
+            throw driveOperationError(
+              error,
+              archiveFile.itemKey === "generated-document"
+                ? "DRIVE_GENERATED_DOCUMENT_UPLOAD_FAILED"
+                : "DRIVE_ATTACHMENT_UPLOAD_FAILED",
+              "A Drive archive file upload failed."
+            );
+          }
         }
         return {
           status: "complete",
@@ -310,6 +348,9 @@ export function createDriveArchiveService(config, overrides = {}) {
 
 export const __driveArchiveTestUtils = Object.freeze({
   archiveFolderName,
+  createGoogleDriveClient,
+  driveOperationError,
+  driveProviderReason,
   driveResponseStatus,
   safeDriveName,
   uniqueFilenames,

@@ -4,7 +4,11 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { createDriveArchiveService, DriveArchiveError } from "../src/drive-archive.js";
+import {
+  __driveArchiveTestUtils,
+  createDriveArchiveService,
+  DriveArchiveError
+} from "../src/drive-archive.js";
 
 const rootId = "root-folder-1234567890";
 
@@ -131,6 +135,132 @@ test("generated document and every original attachment are archived once with st
   assert.match(drive.folders[0].name, /^2026-09-05 — Kuulaaruanne — Andrei — 60a25fad$/);
 });
 
+test("Google client uses files.create requestBody and a fresh binary media stream", async () => {
+  const calls = [];
+  const listCalls = [];
+  const googleApi = {
+    auth: { GoogleAuth: class {} },
+    drive() {
+      return {
+        files: {
+          async list(request) {
+            listCalls.push(request);
+            return { data: { files: [] } };
+          },
+          async create(request) {
+            calls.push(request);
+            const chunks = [];
+            if (request.media?.body) {
+              for await (const chunk of request.media.body) chunks.push(Buffer.from(chunk));
+            }
+            return { data: { id: "uploaded-file-12345", received: Buffer.concat(chunks) } };
+          }
+        }
+      };
+    }
+  };
+  const client = __driveArchiveTestUtils.createGoogleDriveClient(config({}), googleApi);
+  const content = Buffer.from([0, 1, 2, 255]);
+  const uploaded = await client.uploadFile({
+    parentId: "submission-folder-12345",
+    submissionId: "60a25fad-becd-4942-b0f6-979f71bb9960",
+    itemKey: "generated-document",
+    filename: "kuluaruanne.docx",
+    contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    content
+  });
+
+  assert.deepEqual(uploaded.received, content);
+  assert.deepEqual(calls[0].requestBody, {
+    name: "kuluaruanne.docx",
+    parents: ["submission-folder-12345"],
+    appProperties: {
+      noortetugiSubmissionId: "60a25fad-becd-4942-b0f6-979f71bb9960",
+      noortetugiArchiveItemKey: "generated-document"
+    }
+  });
+  assert.equal(calls[0].media.mimeType,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+  await client.findFile({
+    parentId: "submission-folder-12345",
+    submissionId: "60a25fad-becd-4942-b0f6-979f71bb9960",
+    itemKey: "attachment:abc"
+  });
+  assert.match(listCalls[0].q, /^'submission-folder-12345' in parents and trashed = false and /);
+  assert.match(listCalls[0].q,
+    /appProperties has \{ key='noortetugiArchiveItemKey' and value='attachment:abc' \}$/);
+  assert.equal(listCalls[0].corpora, undefined);
+  assert.equal(listCalls[0].driveId, undefined);
+  assert.equal(listCalls[0].includeItemsFromAllDrives, true);
+});
+
+test("failed attachment upload keeps prior files and retry reuses the folder and uploaded files", async () => {
+  const drive = fakeDrive();
+  drive.addParent("egor-folder-123456", { shared: true });
+  const originalUpload = drive.uploadFile;
+  let failOnce = true;
+  drive.uploadFile = async (input) => {
+    if (input.itemKey === "attachment:first" && failOnce) {
+      failOnce = false;
+      throw Object.assign(new Error("private provider response"), { response: { status: 503 } });
+    }
+    return originalUpload(input);
+  };
+  const service = createDriveArchiveService(config({
+    "egor@noortetugi.ee": "egor-folder-123456"
+  }), { driveClient: drive });
+  const input = {
+    submission: submission("egor@noortetugi.ee"),
+    submitterEmail: "egor@noortetugi.ee",
+    files: archiveFiles()
+  };
+
+  await assert.rejects(service.archiveExpense(input), { code: "DRIVE_ATTACHMENT_UPLOAD_FAILED" });
+  assert.equal(drive.folders.length, 1);
+  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey), ["generated-document"]);
+
+  await service.archiveExpense(input);
+  assert.equal(drive.folders.length, 1);
+  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey), [
+    "generated-document", "attachment:first", "attachment:second"
+  ]);
+});
+
+test("generated upload quota and remote lookup failures have safe stage codes", async () => {
+  const quotaDrive = fakeDrive();
+  quotaDrive.addParent("egor-folder-123456", { shared: true });
+  quotaDrive.uploadFile = async () => {
+    throw Object.assign(new Error("provider body must stay private"), {
+      response: { status: 403, data: { error: { errors: [{ reason: "storageQuotaExceeded" }] } } }
+    });
+  };
+  const quotaService = createDriveArchiveService(config({
+    "egor@noortetugi.ee": "egor-folder-123456"
+  }), { driveClient: quotaDrive });
+  await assert.rejects(quotaService.archiveExpense({
+    submission: submission("egor@noortetugi.ee"),
+    submitterEmail: "egor@noortetugi.ee",
+    files: archiveFiles()
+  }), { code: "DRIVE_SERVICE_ACCOUNT_STORAGE_QUOTA" });
+
+  const lookupDrive = fakeDrive();
+  lookupDrive.addParent("egor-folder-123456", { shared: true });
+  const originalFind = lookupDrive.findFile;
+  lookupDrive.findFile = async (input) => {
+    if (input.itemKey) throw Object.assign(new Error("private lookup response"), { response: { status: 500 } });
+    return originalFind(input);
+  };
+  const lookupService = createDriveArchiveService(config({
+    "egor@noortetugi.ee": "egor-folder-123456"
+  }), { driveClient: lookupDrive });
+  await assert.rejects(lookupService.archiveExpense({
+    submission: submission("egor@noortetugi.ee"),
+    submitterEmail: "egor@noortetugi.ee",
+    files: archiveFiles()
+  }), { code: "DRIVE_REMOTE_FILE_LOOKUP_FAILED" });
+});
+
 test("a direct-child My Drive folder shared with the service account does not require driveId", async () => {
   const drive = fakeDrive();
   drive.addParent("egor-folder-123456", { shared: true });
@@ -141,12 +271,14 @@ test("a direct-child My Drive folder shared with the service account does not re
   const result = await service.archiveExpense({
     submission: submission("egor@noortetugi.ee"),
     submitterEmail: "egor@noortetugi.ee",
-    files: archiveFiles()
+    files: archiveFiles().slice(0, 2)
   });
 
   assert.equal(result.parentFolderId, "egor-folder-123456");
   assert.equal(drive.folders.length, 1);
-  assert.equal(drive.files.length, 3);
+  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey), [
+    "generated-document", "attachment:first"
+  ]);
 });
 
 test("unmapped users cannot fall through into another staff folder", async () => {

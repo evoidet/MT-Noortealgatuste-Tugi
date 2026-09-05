@@ -439,6 +439,15 @@ export function createStaffApp({
     console.info("Expense submission stage:", { submissionId, stage, status, ...metadata });
   }
 
+  function safeDrivePreparationError(error, fallback) {
+    return safeOperationalError(
+      error?.driveArchiveCode
+        ? { code: error.driveArchiveCode, name: error.name }
+        : error,
+      fallback
+    );
+  }
+
   async function prepareExpensePackage(submission, attachments) {
     let generated;
     try {
@@ -451,14 +460,16 @@ export function createStaffApp({
       if (error && typeof error === "object") error.expenseStage = "document-generation";
       throw error;
     }
-    const generatedBuffer = Buffer.isBuffer(generated?.buffer)
-      ? generated.buffer
-      : generated?.buffer
-        ? Buffer.from(generated.buffer)
+    const generatedBytes = /** @type {unknown} */ (generated?.buffer);
+    const generatedBuffer = Buffer.isBuffer(generatedBytes)
+      ? generatedBytes
+      : generatedBytes instanceof Uint8Array
+        ? Buffer.from(generatedBytes)
         : null;
     if (!generatedBuffer?.length || !generated?.filename || !generated?.contentType) {
       throw Object.assign(new Error("The generated expense document is invalid."), {
         code: "DOCUMENT_GENERATION_INVALID",
+        driveArchiveCode: "DRIVE_GENERATED_DOCUMENT_INVALID",
         expenseStage: "document-generation"
       });
     }
@@ -473,13 +484,22 @@ export function createStaffApp({
       itemKey: "generated-document",
       filename: generated.filename,
       contentType: generated.contentType,
-      content: generatedBuffer
+      content: Buffer.from(generatedBuffer)
     }];
     for (const attachment of attachments) {
-      const opened = await privateAttachmentReader({ config, attachment });
+      let opened;
+      try {
+        opened = await privateAttachmentReader({ config, attachment });
+      } catch (error) {
+        if (error && typeof error === "object") {
+          error.driveArchiveCode = "DRIVE_ATTACHMENT_DOWNLOAD_FAILED";
+        }
+        throw error;
+      }
       if (!Buffer.isBuffer(opened?.buffer) || opened.buffer.length === 0) {
         throw Object.assign(new Error("A private attachment returned invalid content."), {
-          code: "BLOB_READ_FAILED"
+          code: "BLOB_READ_FAILED",
+          driveArchiveCode: "DRIVE_ATTACHMENT_BODY_INVALID"
         });
       }
       mailAttachments.push({
@@ -491,7 +511,7 @@ export function createStaffApp({
         itemKey: `attachment:${attachment.id}`,
         filename: attachment.originalName,
         contentType: attachment.mimeType,
-        content: opened.buffer
+        content: Buffer.from(opened.buffer)
       });
     }
     logExpenseStage(submission.id, "prepare", "complete", {
@@ -510,14 +530,21 @@ export function createStaffApp({
         submitterEmail: user.email,
         files: archiveFiles
       });
-      await database.recordDriveArchive({
-        submissionId: submission.id,
-        parentFolderId: archived.parentFolderId,
-        folderId: archived.folderId,
-        folderUrl: archived.folderUrl,
-        status: "complete",
-        archivedAt: archived.archivedAt
-      });
+      try {
+        await database.recordDriveArchive({
+          submissionId: submission.id,
+          parentFolderId: archived.parentFolderId,
+          folderId: archived.folderId,
+          folderUrl: archived.folderUrl,
+          status: "complete",
+          archivedAt: archived.archivedAt
+        });
+      } catch (error) {
+        throw Object.assign(new Error("Drive archive completion state could not be written."), {
+          code: "DRIVE_ARCHIVE_STATE_WRITE_FAILED",
+          cause: error
+        });
+      }
       await auditSafely({
         user,
         action: "EXPENSE_DRIVE_ARCHIVED",
@@ -575,7 +602,7 @@ export function createStaffApp({
       console.error("Expense Drive archive retry preparation failed:", {
         submissionId: submission.id,
         stage: "drive_archive",
-        ...safeOperationalError(error, "DRIVE_ARCHIVE_PREPARE_FAILED")
+        ...safeDrivePreparationError(error, "DRIVE_ARCHIVE_PREPARE_FAILED")
       });
     }
   }
@@ -902,7 +929,7 @@ export function createStaffApp({
                 console.error("Expense Drive archive preparation failed:", {
                   submissionId: prepared.id,
                   stage: "drive_archive",
-                  ...safeOperationalError(error, "DRIVE_ARCHIVE_PREPARE_FAILED")
+                  ...safeDrivePreparationError(error, "DRIVE_ARCHIVE_PREPARE_FAILED")
                 });
               } else {
                 const validationIssues = safeDocumentValidationIssues(error);
