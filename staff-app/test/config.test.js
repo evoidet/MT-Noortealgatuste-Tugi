@@ -23,6 +23,12 @@ function productionOverrides(overrides = {}) {
   };
 }
 
+function driveFolderMap() {
+  return Object.fromEntries(Array.from({ length: 6 }, (_, index) => [
+    `member${index + 1}@noortetugi.ee`, `member-folder-${index + 1}-12345`
+  ]));
+}
+
 test("production config uses the Vercel URLs, persistent services, and secure cookie defaults", () => {
   const config = loadConfig(productionOverrides({
     allowedStaffEmails: ["MEMBER@NOORTETUGI.EE"],
@@ -184,4 +190,48 @@ test("optional AI model configuration rejects blank or malformed identifiers wit
     );
   }
   assert.equal(loadConfig(productionOverrides({ openAiModel: "model-test" })).openAiModel, "model-test");
+});
+
+test("Drive archival parses an email-to-folder map and Vercel escaped private key", () => {
+  const config = loadConfig(productionOverrides({
+    googleDriveArchiveEnabled: "true",
+    googleDriveRootFolderId: "root-folder-1234567890",
+    googleDriveServiceAccountEmail: "archive@test-project.iam.gserviceaccount.com",
+    googleDriveServiceAccountPrivateKey: "-----BEGIN PRIVATE KEY-----\\nprivate-test-material\\n-----END PRIVATE KEY-----\\n",
+    googleDriveUserFolderMap: JSON.stringify({
+      "MEMBER1@NOORTETUGI.EE": "member-folder-1-12345",
+      "member2@noortetugi.ee": "member-folder-2-12345",
+      "member3@noortetugi.ee": "member-folder-3-12345",
+      "member4@noortetugi.ee": "member-folder-4-12345",
+      "member5@noortetugi.ee": "member-folder-5-12345",
+      "member6@noortetugi.ee": "member-folder-6-12345"
+    })
+  }));
+  assert.equal(config.googleDriveArchiveEnabled, true);
+  assert.equal(config.googleDriveServiceAccountPrivateKey.includes("\\n"), false);
+  assert.equal(config.googleDriveUserFolderMap.size, 6);
+  assert.equal(config.googleDriveUserFolderMap.get("member1@noortetugi.ee"), "member-folder-1-12345");
+});
+
+test("enabled Drive archival rejects incomplete or unsafe configuration without echoing values", () => {
+  const marker = "private-marker-value";
+  for (const override of [
+    { googleDriveRootFolderId: "" },
+    { googleDriveServiceAccountEmail: "ordinary@noortetugi.ee" },
+    { googleDriveServiceAccountPrivateKey: marker },
+    { googleDriveUserFolderMap: "not-json" },
+    { googleDriveUserFolderMap: JSON.stringify({ "outsider@example.test": marker }) },
+    { googleDriveUserFolderMap: JSON.stringify({}) },
+    { googleDriveUserFolderMap: JSON.stringify({ ...driveFolderMap(),
+      "member2@noortetugi.ee": "member-folder-1-12345" }) }
+  ]) {
+    assert.throws(() => loadConfig(productionOverrides({
+      googleDriveArchiveEnabled: true,
+      googleDriveRootFolderId: "root-folder-1234567890",
+      googleDriveServiceAccountEmail: "archive@test-project.iam.gserviceaccount.com",
+      googleDriveServiceAccountPrivateKey: "-----BEGIN PRIVATE KEY-----\\nprivate-test-material\\n-----END PRIVATE KEY-----\\n",
+      googleDriveUserFolderMap: JSON.stringify(driveFolderMap()),
+      ...override
+    })), (error) => !error.message.includes(marker));
+  }
 });

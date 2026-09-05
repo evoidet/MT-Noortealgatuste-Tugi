@@ -6,7 +6,7 @@ News publication requires `submissions.published_at`, introduced in
 `003_published_news.sql`. Expense/invoice submission and review no longer reference
 that column. `002a_repair_duplicate_primary_attachments.sql` preserves legacy
 attachments and demotes excess active primary metadata before migration 003 creates
-the unique index. Run all migrations through `005_news_publication_timestamp.sql`
+the unique index. Run all migrations through `006_google_drive_archival.sql`
 before promoting this release. Neither Vercel builds nor application startup run
 database migrations automatically.
 
@@ -32,7 +32,7 @@ notification and a submitted read-only record, and retry Submit to confirm no
 second email. Provider credentials were not changed by this release.
 
 The health endpoint checks the common submission schema. `db:check` additionally
-checks news publication and all migration checksums. Missing operation-specific
+checks news publication, Drive archive state, and all migration checksums. Missing operation-specific
 schema stops processing before document preparation or SMTP. News publication
 has its own preflight. Delivery markers remain durable
 when finalization fails. A confirmed sent marker permits finalization retry; an
@@ -42,6 +42,11 @@ uncertain SMTP outcome requires the guarded procedure in
 See [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md) for local evidence and
 remaining production checks, and [ENVIRONMENT-REVIEW.md](ENVIRONMENT-REVIEW.md)
 for the variable-name-only review.
+
+The optional server-side expense archive is documented in
+[GOOGLE-DRIVE-ARCHIVE.md](GOOGLE-DRIVE-ARCHIVE.md). Apply migration 006 before
+setting `GOOGLE_DRIVE_ARCHIVE_ENABLED=true`. Drive failures never replace or
+cancel the established finance email and Blob storage paths.
 
 The public site, `/admin`, and `/api/staff/*` are deployed from one Vercel
 project and one origin: `https://www.noortetugi.ee`. Express runs as a Vercel
@@ -116,6 +121,11 @@ Optional authorization variables:
 ALLOWED_STAFF_EMAILS
 ADMIN_EMAILS
 ```
+
+Optional expense archival variables are listed in
+[GOOGLE-DRIVE-ARCHIVE.md](GOOGLE-DRIVE-ARCHIVE.md). Leave
+`GOOGLE_DRIVE_ARCHIVE_ENABLED` absent or false until migration 006 and the
+Shared Drive setup are complete.
 
 Both are comma-separated exact `@noortetugi.ee` addresses. An empty
 `ALLOWED_STAFF_EMAILS` allows every verified address in the configured domain.

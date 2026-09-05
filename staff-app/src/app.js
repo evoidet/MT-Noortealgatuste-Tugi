@@ -12,6 +12,7 @@ import {
   generateSubmissionDocument,
   getDocumentTemplateAvailability
 } from "./documents.js";
+import { createDriveArchiveService } from "./drive-archive.js";
 import { createMailService } from "./mail.js";
 import { safeOperationalError } from "./safe-errors.js";
 import { normalizeNewsLanguage, toPublicNewsItem } from "./news-publishing.js";
@@ -382,6 +383,7 @@ export function createStaffApp({
   database,
   mailService = createMailService(config),
   aiAssistant = createAiAssistant(config),
+  driveArchiveService = createDriveArchiveService(config),
   documentGenerator = generateSubmissionDocument,
   clientUploadedFileVerifier = verifyClientUploadedFile,
   privateAttachmentReader = readPrivateAttachment
@@ -437,7 +439,7 @@ export function createStaffApp({
     console.info("Expense submission stage:", { submissionId, stage, status, ...metadata });
   }
 
-  async function prepareExpenseMailAttachments(submission, attachments) {
+  async function prepareExpensePackage(submission, attachments) {
     let generated;
     try {
       generated = await documentGenerator("expense", submission.data, {
@@ -467,6 +469,12 @@ export function createStaffApp({
       contentType: generated.contentType,
       content: generatedBuffer
     }];
+    const archiveFiles = [{
+      itemKey: "generated-document",
+      filename: generated.filename,
+      contentType: generated.contentType,
+      content: generatedBuffer
+    }];
     for (const attachment of attachments) {
       const opened = await privateAttachmentReader({ config, attachment });
       if (!Buffer.isBuffer(opened?.buffer) || opened.buffer.length === 0) {
@@ -479,11 +487,97 @@ export function createStaffApp({
         contentType: attachment.mimeType,
         content: opened.buffer
       });
+      archiveFiles.push({
+        itemKey: `attachment:${attachment.id}`,
+        filename: attachment.originalName,
+        contentType: attachment.mimeType,
+        content: opened.buffer
+      });
     }
     logExpenseStage(submission.id, "prepare", "complete", {
       attachmentCount: mailAttachments.length
     });
-    return mailAttachments;
+    return { mailAttachments, archiveFiles };
+  }
+
+  async function attemptExpenseDriveArchive(submission, archiveFiles, user, ipHash) {
+    if (!driveArchiveService.enabled) return null;
+    try {
+      const existing = await database.getDriveArchive(submission.id);
+      if (existing?.status === "complete" && existing.folderUrl) return existing.folderUrl;
+      const archived = await driveArchiveService.archiveExpense({
+        submission,
+        submitterEmail: user.email,
+        files: archiveFiles
+      });
+      await database.recordDriveArchive({
+        submissionId: submission.id,
+        parentFolderId: archived.parentFolderId,
+        folderId: archived.folderId,
+        folderUrl: archived.folderUrl,
+        status: "complete",
+        archivedAt: archived.archivedAt
+      });
+      await auditSafely({
+        user,
+        action: "EXPENSE_DRIVE_ARCHIVED",
+        targetType: "expense",
+        targetId: submission.id,
+        metadata: { fileCount: archived.fileCount },
+        ipHash
+      }, "Expense Drive archive success could not be audited:");
+      logExpenseStage(submission.id, "drive_archive", "complete", {
+        fileCount: archived.fileCount
+      });
+      return archived.folderUrl;
+    } catch (error) {
+      const safe = safeOperationalError(error, "DRIVE_ARCHIVE_FAILED");
+      console.error("Expense Drive archival failed:", {
+        submissionId: submission.id,
+        stage: "drive_archive",
+        code: safe.code,
+        message: "Google Drive archival did not complete."
+      });
+      try {
+        await database.recordDriveArchive({
+          submissionId: submission.id,
+          status: safe.code === "DRIVE_FOLDER_NOT_CONFIGURED" ? "not_configured" : "failed",
+          errorCode: safe.code
+        });
+      } catch (databaseError) {
+        console.error("Expense Drive archive state write failed:", {
+          submissionId: submission.id,
+          stage: "drive_archive",
+          ...safeOperationalError(databaseError, "DRIVE_ARCHIVE_STATE_FAILED")
+        });
+      }
+      await auditSafely({
+        user,
+        action: "EXPENSE_DRIVE_ARCHIVE_FAILED",
+        targetType: "expense",
+        targetId: submission.id,
+        metadata: { code: safe.code },
+        ipHash
+      }, "Expense Drive archive failure could not be audited:");
+      return null;
+    }
+  }
+
+  async function retryCompletedExpenseArchive(submission, user, ipHash) {
+    if (!driveArchiveService.enabled) return;
+    try {
+      const existing = await database.getDriveArchive(submission.id);
+      if (existing?.status === "complete") return;
+      const attachments = await database.listAttachments(submission.id);
+      const preparedPackage = await prepareExpensePackage(submission, attachments);
+      await attemptExpenseDriveArchive(submission, preparedPackage.archiveFiles, user, ipHash);
+    } catch (error) {
+      console.error("Expense Drive archive retry preparation failed:", {
+        submissionId: submission.id,
+        stage: "drive_archive",
+        ...safeOperationalError(error, "DRIVE_ARCHIVE_PREPARE_FAILED")
+      });
+    }
   }
 
   app.disable("x-powered-by");
@@ -694,9 +788,18 @@ export function createStaffApp({
             ? "PUBLISHED"
             : "SUBMITTED";
 
-        // A retry after a completed request is a successful no-op. This also
-        // prevents a lost HTTP response from causing another email.
-        if (submission.status === finalStatus) return submission;
+        // A completed expense retry may finish an independent Drive archive,
+        // but it never returns to the SMTP path.
+        if (submission.status === finalStatus) {
+          if (submission.type === "expense") {
+            await retryCompletedExpenseArchive(
+              submission,
+              request.user,
+              auth.clientIpHash(request)
+            );
+          }
+          return submission;
+        }
         if (!canSubmitSubmission(request.user, submission, permissionContext)) {
           throw Object.assign(new Error("The submission workflow state changed."), {
             code: "INVALID_WORKFLOW_STATE",
@@ -790,32 +893,43 @@ export function createStaffApp({
             });
           }
           let delivered = priorDelivery === "sent" || deliveryState === "sent";
-          if (!delivered) {
-            let mailAttachments;
+          let expensePackage;
+          if (!delivered || driveArchiveService.enabled) {
             try {
-              mailAttachments = await prepareExpenseMailAttachments(prepared, attachments);
+              expensePackage = await prepareExpensePackage(prepared, attachments);
             } catch (error) {
-              const validationIssues = safeDocumentValidationIssues(error);
-              const stage = error?.expenseStage === "document-generation"
-                ? "document-generation"
-                : "prepare";
-              console.error("Expense submission preparation failed:", {
-                submissionId: prepared.id,
-                stage,
-                ...safeOperationalError(error),
-                ...(validationIssues.length ? { validationIssues } : {})
-              });
-              await auditSafely({
-                user: request.user,
-                action: "EXPENSE_NOTIFICATION_FAILED",
-                targetType: prepared.type,
-                targetId: prepared.id,
-                metadata: { stage, code: safeOperationalError(error).code, deliveryKey },
-                ipHash: auth.clientIpHash(request)
-              }, "Expense preparation failure could not be audited:");
-              if (error?.code === "DOCUMENT_VALIDATION_ERROR") throw error;
-              throw submissionDeliveryError(error);
+              if (delivered) {
+                console.error("Expense Drive archive preparation failed:", {
+                  submissionId: prepared.id,
+                  stage: "drive_archive",
+                  ...safeOperationalError(error, "DRIVE_ARCHIVE_PREPARE_FAILED")
+                });
+              } else {
+                const validationIssues = safeDocumentValidationIssues(error);
+                const stage = error?.expenseStage === "document-generation"
+                  ? "document-generation"
+                  : "prepare";
+                console.error("Expense submission preparation failed:", {
+                  submissionId: prepared.id,
+                  stage,
+                  ...safeOperationalError(error),
+                  ...(validationIssues.length ? { validationIssues } : {})
+                });
+                await auditSafely({
+                  user: request.user,
+                  action: "EXPENSE_NOTIFICATION_FAILED",
+                  targetType: prepared.type,
+                  targetId: prepared.id,
+                  metadata: { stage, code: safeOperationalError(error).code, deliveryKey },
+                  ipHash: auth.clientIpHash(request)
+                }, "Expense preparation failure could not be audited:");
+                if (error?.code === "DOCUMENT_VALIDATION_ERROR") throw error;
+                throw submissionDeliveryError(error);
+              }
             }
+          }
+          if (!delivered) {
+            const mailAttachments = expensePackage.mailAttachments;
 
             const reviewUrl = new URL("/admin", config.baseUrl);
             reviewUrl.searchParams.set("submission", prepared.id);
@@ -829,6 +943,14 @@ export function createStaffApp({
               metadata: { deliveryKey, revision: prepared.revision },
               ipHash: auth.clientIpHash(request)
             });
+            const driveArchivePromise = expensePackage && driveArchiveService.enabled
+              ? attemptExpenseDriveArchive(
+                  prepared,
+                  expensePackage.archiveFiles,
+                  request.user,
+                  auth.clientIpHash(request)
+                )
+              : Promise.resolve(null);
             try {
               await mailService.sendExpenseSubmitted({
                 submission: prepared,
@@ -838,6 +960,7 @@ export function createStaffApp({
               delivered = true;
               logExpenseStage(prepared.id, "smtp", "complete");
             } catch (error) {
+              await driveArchivePromise;
               console.error("Expense notification delivery failed:", {
                 submissionId: prepared.id,
                 stage: "smtp",
@@ -884,6 +1007,14 @@ export function createStaffApp({
                 ipHash: auth.clientIpHash(request)
               });
             }
+            await driveArchivePromise;
+          } else if (expensePackage && driveArchiveService.enabled) {
+            await attemptExpenseDriveArchive(
+              prepared,
+              expensePackage.archiveFiles,
+              request.user,
+              auth.clientIpHash(request)
+            );
           }
         }
 

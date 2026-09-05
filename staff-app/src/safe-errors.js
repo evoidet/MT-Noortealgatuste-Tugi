@@ -3,7 +3,8 @@
 const identifier = /^[a-z_][a-z0-9_]{0,62}$/;
 const knownTables = new Set([
   "users", "sessions", "oauth_attempts", "submissions", "revisions",
-  "reviews", "attachments", "audit_logs", "schema_migrations"
+  "reviews", "attachments", "audit_logs", "schema_migrations",
+  "submission_drive_archives"
 ]);
 
 function safeIdentifier(value) {

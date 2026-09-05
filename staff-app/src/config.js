@@ -80,6 +80,44 @@ function workspaceEmail(value, name, domain) {
   return normalized;
 }
 
+function driveFolderId(value, name) {
+  const normalized = String(value ?? "").trim();
+  if (!/^[A-Za-z0-9_-]{10,200}$/.test(normalized)) {
+    throw new Error(`${name} must contain a valid Google Drive folder ID.`);
+  }
+  return normalized;
+}
+
+function driveUserFolderMap(value, domain) {
+  if (value === undefined || value === null || value === "") return new Map();
+  let parsed = value;
+  if (typeof value === "string") {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      throw new Error("GOOGLE_DRIVE_USER_FOLDER_MAP must be valid JSON.");
+    }
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("GOOGLE_DRIVE_USER_FOLDER_MAP must be a JSON object.");
+  }
+  const result = new Map();
+  const folderOwners = new Set();
+  for (const [emailValue, folderValue] of Object.entries(parsed)) {
+    const email = workspaceEmail(emailValue, "GOOGLE_DRIVE_USER_FOLDER_MAP", domain);
+    if (result.has(email)) {
+      throw new Error("GOOGLE_DRIVE_USER_FOLDER_MAP contains a duplicate staff email.");
+    }
+    const folderId = driveFolderId(folderValue, "GOOGLE_DRIVE_USER_FOLDER_MAP");
+    if (folderOwners.has(folderId)) {
+      throw new Error("GOOGLE_DRIVE_USER_FOLDER_MAP must assign a different folder to each staff email.");
+    }
+    folderOwners.add(folderId);
+    result.set(email, folderId);
+  }
+  return result;
+}
+
 function mailbox(value, name) {
   const normalized = String(value ?? "").trim();
   const angleAddress = /^(?:[^<>\r\n]+\s*)?<([^<>\s]+)>$/.exec(normalized);
@@ -239,6 +277,41 @@ export function loadConfig(overrides = {}) {
     "STAFF_SMTP_REQUIRE_TLS"
   );
 
+  const googleDriveArchiveEnabled = strictBoolean(
+    overrides.googleDriveArchiveEnabled ?? process.env.GOOGLE_DRIVE_ARCHIVE_ENABLED,
+    false,
+    "GOOGLE_DRIVE_ARCHIVE_ENABLED"
+  );
+  const googleDriveRootFolderIdValue = overrides.googleDriveRootFolderId ??
+    process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID ?? "";
+  const googleDriveServiceAccountEmail = String(
+    overrides.googleDriveServiceAccountEmail ?? process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL ?? ""
+  ).trim().toLowerCase();
+  const googleDriveServiceAccountPrivateKey = String(
+    overrides.googleDriveServiceAccountPrivateKey ?? process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_PRIVATE_KEY ?? ""
+  ).replace(/\\n/g, "\n");
+  const googleDriveUserFolderMap = driveUserFolderMap(
+    overrides.googleDriveUserFolderMap ?? process.env.GOOGLE_DRIVE_USER_FOLDER_MAP,
+    allowedGoogleDomain
+  );
+  let googleDriveRootFolderId = "";
+  if (googleDriveArchiveEnabled) {
+    googleDriveRootFolderId = driveFolderId(
+      googleDriveRootFolderIdValue,
+      "GOOGLE_DRIVE_ROOT_FOLDER_ID"
+    );
+    if (!/^[^@\s]+@[^@\s]+\.iam\.gserviceaccount\.com$/.test(googleDriveServiceAccountEmail)) {
+      throw new Error("GOOGLE_DRIVE_SERVICE_ACCOUNT_EMAIL must be a service-account email address.");
+    }
+    if (!googleDriveServiceAccountPrivateKey.includes("BEGIN PRIVATE KEY") ||
+        !googleDriveServiceAccountPrivateKey.includes("END PRIVATE KEY")) {
+      throw new Error("GOOGLE_DRIVE_SERVICE_ACCOUNT_PRIVATE_KEY must contain a PEM private key.");
+    }
+    if (googleDriveUserFolderMap.size === 0) {
+      throw new Error("GOOGLE_DRIVE_USER_FOLDER_MAP must contain at least one staff mapping when archival is enabled.");
+    }
+  }
+
   requiredInProduction("STAFF_SMTP_USER", smtpUser, production);
   requiredInProduction("STAFF_SMTP_PASSWORD", smtpPassword, production);
   if (smtpUser && !smtpPassword) {
@@ -311,7 +384,12 @@ export function loadConfig(overrides = {}) {
       1_000,
       120_000,
       "STAFF_MAIL_CONNECTION_TIMEOUT_MS"
-    )
+    ),
+    googleDriveArchiveEnabled,
+    googleDriveRootFolderId,
+    googleDriveServiceAccountEmail,
+    googleDriveServiceAccountPrivateKey,
+    googleDriveUserFolderMap
   };
 
   if (config.enableDevAuth && production) {

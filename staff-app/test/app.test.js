@@ -92,6 +92,7 @@ function expenseRouteDatabase(overrides = {}) {
   const operations = [];
   let delivered = false;
   let deliveryState = "ready";
+  let driveArchive = null;
   let statusFailures = Number(overrides.statusFailures || 0);
 
   return {
@@ -102,6 +103,12 @@ function expenseRouteDatabase(overrides = {}) {
     async withSubmissionLock(_id, work) { return work(); },
     async assertSubmissionSchema() {},
     async getExpenseDeliveryState() { return deliveryState; },
+    async getDriveArchive() { return driveArchive; },
+    async recordDriveArchive(value) {
+      operations.push(`drive-state:${value.status}`);
+      driveArchive = { ...(driveArchive || {}), ...value };
+      return driveArchive;
+    },
     async listAttachments() { return attachments; },
     async listReviews() { return []; },
     async hasExpenseDelivery() {
@@ -311,6 +318,133 @@ test("successful expense submission without an OpenAI key sends generated and up
   assert.ok(database.operations.indexOf("document") < database.operations.indexOf("mail"));
   assert.ok(database.operations.indexOf("blob:attachment-primary") < database.operations.indexOf("mail"));
   assert.ok(database.operations.indexOf("mail") < database.operations.indexOf("status"));
+});
+
+test("Drive and email run independently with the complete package and retry does not duplicate email", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase({ attachments: [
+    { id: "attachment-primary", originalName: "receipt.pdf", mimeType: "application/pdf",
+      kind: "primary", size: 24, storageStatus: "ready" },
+    { id: "attachment-additional", originalName: "receipt.pdf", mimeType: "application/pdf",
+      kind: "additional", size: 12, storageStatus: "ready" }
+  ] });
+  const archives = [];
+  let mailCalls = 0;
+  let finishArchive;
+  const archiveGate = new Promise((resolve) => { finishArchive = resolve; });
+  const driveArchiveService = {
+    enabled: true,
+    async archiveExpense(payload) {
+      archives.push(payload);
+      await archiveGate;
+      return { status: "complete", parentFolderId: "personal-folder-12345",
+        folderId: "archive-folder-123456", folderUrl: "https://drive.google.com/drive/folders/archive-folder-123456",
+        archivedAt: "2026-09-05T12:00:00.000Z", fileCount: payload.files.length };
+    }
+  };
+  const { app } = createStaffApp({
+    config,
+    database,
+    driveArchiveService,
+    documentGenerator: async () => ({ buffer: Buffer.from("generated"), filename: "report.docx",
+      contentType: DOCX_CONTENT_TYPE }),
+    privateAttachmentReader: async ({ attachment }) => ({ buffer: Buffer.from(`blob:${attachment.id}`) }),
+    mailService: { async sendExpenseSubmitted() { mailCalls += 1; finishArchive(); } }
+  });
+
+  const first = await authenticatedSubmissionRequest(app, config, database.current.id);
+  const retry = await authenticatedSubmissionRequest(app, config, database.current.id);
+  assert.equal(first.status, 200);
+  assert.equal(retry.status, 200);
+  assert.equal(mailCalls, 1);
+  assert.equal(archives.length, 1);
+  assert.equal(archives[0].submitterEmail, "mari@noortetugi.ee");
+  assert.deepEqual(archives[0].files.map(({ itemKey, filename }) => ({ itemKey, filename })), [
+    { itemKey: "generated-document", filename: "report.docx" },
+    { itemKey: "attachment:attachment-primary", filename: "receipt.pdf" },
+    { itemKey: "attachment:attachment-additional", filename: "receipt.pdf" }
+  ]);
+  assert.ok(database.operations.includes("drive-state:complete"));
+});
+
+test("Drive failure is safely logged, does not block email, and retries Drive without resending email", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase();
+  const secretMarker = "private-key-material-must-not-log";
+  let archiveCalls = 0;
+  let mailCalls = 0;
+  const logs = [];
+  const originalConsoleError = console.error;
+  console.error = (...entries) => logs.push(entries);
+  try {
+    const { app } = createStaffApp({
+      config,
+      database,
+      driveArchiveService: {
+        enabled: true,
+        async archiveExpense() {
+          archiveCalls += 1;
+          throw Object.assign(new Error(secretMarker), { code: "DRIVE_TEMPORARY_FAILURE" });
+        }
+      },
+      documentGenerator: async () => ({ buffer: Buffer.from("generated"), filename: "report.docx",
+        contentType: DOCX_CONTENT_TYPE }),
+      privateAttachmentReader: async () => ({ buffer: Buffer.from("blob") }),
+      mailService: { async sendExpenseSubmitted() { mailCalls += 1; } }
+    });
+
+    const first = await authenticatedSubmissionRequest(app, config, database.current.id);
+    const retry = await authenticatedSubmissionRequest(app, config, database.current.id);
+    assert.equal(first.status, 200);
+    assert.equal(first.body.item.status, "SUBMITTED");
+    assert.equal(retry.status, 200);
+    assert.equal(mailCalls, 1);
+    assert.equal(archiveCalls, 2);
+    assert.ok(database.operations.filter((entry) => entry === "drive-state:failed").length >= 2);
+    assert.equal(JSON.stringify(logs).includes(secretMarker), false);
+    assert.ok(logs.some(([message, metadata]) => message === "Expense Drive archival failed:" &&
+      metadata.submissionId === database.current.id && metadata.stage === "drive_archive" &&
+      metadata.code === "DRIVE_TEMPORARY_FAILURE"));
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
+test("Drive success and email delivery survive a final database failure without duplicate side effects", async () => {
+  const config = testConfig();
+  const database = expenseRouteDatabase({ statusFailures: 1 });
+  let archiveCalls = 0;
+  let mailCalls = 0;
+  const originalConsoleError = console.error;
+  console.error = () => {};
+  try {
+    const { app } = createStaffApp({
+      config,
+      database,
+      driveArchiveService: {
+        enabled: true,
+        async archiveExpense({ files }) {
+          archiveCalls += 1;
+          return { status: "complete", parentFolderId: "personal-folder-12345",
+            folderId: "archive-folder-123456", folderUrl: "https://drive.google.com/drive/folders/archive-folder-123456",
+            archivedAt: "2026-09-05T12:00:00.000Z", fileCount: files.length };
+        }
+      },
+      documentGenerator: async () => ({ buffer: Buffer.from("generated"), filename: "report.docx",
+        contentType: DOCX_CONTENT_TYPE }),
+      privateAttachmentReader: async () => ({ buffer: Buffer.from("blob") }),
+      mailService: { async sendExpenseSubmitted() { mailCalls += 1; } }
+    });
+    const first = await authenticatedSubmissionRequest(app, config, database.current.id);
+    assert.equal(first.status, 500);
+    const retry = await authenticatedSubmissionRequest(app, config, database.current.id);
+    assert.equal(retry.status, 200);
+    assert.equal(retry.body.item.status, "SUBMITTED");
+    assert.equal(archiveCalls, 1);
+    assert.equal(mailCalls, 1);
+  } finally {
+    console.error = originalConsoleError;
+  }
 });
 
 test("a missing private Blob leaves the expense draft unsubmitted and skips email", async () => {

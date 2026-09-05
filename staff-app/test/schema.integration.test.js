@@ -12,10 +12,10 @@ import { renderSubmissionPreview } from "../public/previews.js";
 test("data repair is ordered between immutable migrations 002 and 003", async () => {
   const migrations = await loadMigrations();
   assert.deepEqual(migrations.map((migration) => migration.version),
-    ["001", "002", "002a", "003", "004", "005"]);
+    ["001", "002", "002a", "003", "004", "005", "006"]);
 });
 
-async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005"]) {
+async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006"]) {
   const engine = new PGlite();
   t.after(() => engine.close());
   const migrations = await loadMigrations();
@@ -244,9 +244,17 @@ test("Workspace member news draft, preview, submit and admin publication use the
     storageDatabaseUrl: "postgresql://unused.invalid/test", sessionSecret: "synthetic-session-secret-for-test-only-1234567890",
     blobReadWriteToken: "", googleClientId: "", googleClientSecret: "", openAiApiKey: "",
     smtpHost: "", smtpUser: "", smtpPassword: "", mailFrom: "", enableDevAuth: false });
-  const { app } = createStaffApp({ config, database, mailService: {
-    async sendExpenseSubmitted() { assert.fail("News must not send finance mail"); }
-  } });
+  const { app } = createStaffApp({
+    config,
+    database,
+    driveArchiveService: {
+      enabled: true,
+      async archiveExpense() { assert.fail("News must not use the expense Drive archive"); }
+    },
+    mailService: {
+      async sendExpenseSubmitted() { assert.fail("News must not send finance mail"); }
+    }
+  });
   async function client(user) {
     const token = `synthetic-${user.id}`;
     await database.createSession({ tokenHash: createHash("sha256").update(token).digest("base64url"),
@@ -317,4 +325,34 @@ test("Workspace member news draft, preview, submit and admin publication use the
   assert.equal(feed.body.items[0].title, data.title);
   assert.equal(feed.body.items[0].image, publicImagePath);
   assert.equal((await request(app).get("/api/staff/public/news?lang=en")).body.items[0].title, "Youth news");
+});
+
+test("Drive archive migration stores retry state without changing submissions or attachments", async (t) => {
+  const { engine, database } = await fixture(t);
+  const user = await database.upsertUser({ googleSubject: "drive-schema-user",
+    email: "archive@noortetugi.ee", name: "Archive User", role: "member" });
+  const submission = await database.createSubmission({ type: "expense", creatorId: user.id, data: {} });
+  const before = await database.getSubmission(submission.id);
+
+  await database.assertDriveArchiveSchema();
+  const failed = await database.recordDriveArchive({
+    submissionId: submission.id,
+    status: "failed",
+    errorCode: "DRIVE_TEMPORARY_FAILURE"
+  });
+  assert.equal(failed.status, "failed");
+  const complete = await database.recordDriveArchive({
+    submissionId: submission.id,
+    parentFolderId: "personal-folder-12345",
+    folderId: "archive-folder-123456",
+    folderUrl: "https://drive.google.com/drive/folders/archive-folder-123456",
+    status: "complete",
+    archivedAt: "2026-09-05T12:00:00.000Z"
+  });
+  assert.equal(complete.status, "complete");
+  assert.equal((await database.getDriveArchive(submission.id)).folderId, "archive-folder-123456");
+  assert.deepEqual(await database.getSubmission(submission.id), before);
+  const indexes = await engine.query(`SELECT indexname FROM pg_indexes
+    WHERE indexname = 'submission_drive_archives_status_idx'`);
+  assert.equal(indexes.rows.length, 1);
 });

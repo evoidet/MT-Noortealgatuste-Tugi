@@ -84,6 +84,21 @@ function mapAttachment(row) {
   };
 }
 
+function mapDriveArchive(row) {
+  if (!row) return null;
+  return {
+    submissionId: row.submission_id,
+    parentFolderId: row.parent_folder_id,
+    folderId: row.drive_folder_id,
+    folderUrl: row.drive_folder_url,
+    status: row.status,
+    errorCode: row.error_code,
+    archivedAt: timestamp(row.archived_at),
+    createdAt: timestamp(row.created_at),
+    updatedAt: timestamp(row.updated_at)
+  };
+}
+
 function boundedLimit(value, fallback, maximum) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
@@ -264,6 +279,16 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         await pool.query("SELECT published_at, status, data_json, updated_at FROM submissions LIMIT 0");
       } catch (error) {
         throw Object.assign(error, { table: "submissions", operation: "news_publish" });
+      }
+    },
+
+    async assertDriveArchiveSchema() {
+      try {
+        await pool.query(`SELECT submission_id, parent_folder_id, drive_folder_id,
+          drive_folder_url, status, error_code, archived_at, created_at, updated_at
+          FROM submission_drive_archives LIMIT 0`);
+      } catch (error) {
+        throw Object.assign(error, { table: "submission_drive_archives", operation: "expense_submit" });
       }
     },
 
@@ -782,6 +807,45 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         JSON.stringify(metadata ?? {}),
         ipHash
       ]);
+    },
+
+    async getDriveArchive(submissionId) {
+      const result = await pool.query(
+        "SELECT * FROM submission_drive_archives WHERE submission_id = $1",
+        [submissionId]
+      );
+      return mapDriveArchive(result.rows[0]);
+    },
+
+    async recordDriveArchive({
+      submissionId,
+      parentFolderId = null,
+      folderId = null,
+      folderUrl = null,
+      status,
+      errorCode = null,
+      archivedAt = null
+    }) {
+      const result = await pool.query(`
+        INSERT INTO submission_drive_archives (
+          submission_id, parent_folder_id, drive_folder_id, drive_folder_url,
+          status, error_code, archived_at, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        ON CONFLICT (submission_id) DO UPDATE SET
+          parent_folder_id = COALESCE(EXCLUDED.parent_folder_id,
+            submission_drive_archives.parent_folder_id),
+          drive_folder_id = COALESCE(EXCLUDED.drive_folder_id,
+            submission_drive_archives.drive_folder_id),
+          drive_folder_url = COALESCE(EXCLUDED.drive_folder_url,
+            submission_drive_archives.drive_folder_url),
+          status = EXCLUDED.status,
+          error_code = EXCLUDED.error_code,
+          archived_at = COALESCE(EXCLUDED.archived_at,
+            submission_drive_archives.archived_at),
+          updated_at = NOW()
+        RETURNING *
+      `, [submissionId, parentFolderId, folderId, folderUrl, status, errorCode, archivedAt]);
+      return mapDriveArchive(result.rows[0]);
     },
 
     async hasExpenseDelivery(submissionId, deliveryKey) {
