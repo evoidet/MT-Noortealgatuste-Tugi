@@ -4,7 +4,9 @@
 
 News publication requires `submissions.published_at`, introduced in
 `003_published_news.sql`. Expense/invoice submission and review no longer reference
-that column. Run all migrations through `005_news_publication_timestamp.sql`
+that column. `002a_repair_duplicate_primary_attachments.sql` preserves legacy
+attachments and demotes excess active primary metadata before migration 003 creates
+the unique index. Run all migrations through `005_news_publication_timestamp.sql`
 before promoting this release. Neither Vercel builds nor application startup run
 database migrations automatically.
 

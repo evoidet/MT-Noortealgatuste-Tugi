@@ -8,7 +8,23 @@ import { safeOperationalError } from "../src/safe-errors.js";
 const { Pool } = pg;
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const migrationsDirectory = resolve(scriptDirectory, "../migrations");
-const migrationPattern = /^(\d{3,})_([a-z0-9][a-z0-9_-]*)\.sql$/;
+// Letter suffixes allow a data repair to be inserted between two immutable,
+// checksummed migrations (for example 002a runs after 002 and before 003).
+const migrationPattern = /^(\d{3,}[a-z]*)_([a-z0-9][a-z0-9_-]*)\.sql$/;
+
+function migrationVersionParts(version) {
+  const match = /^(\d+)([a-z]*)$/.exec(version);
+  if (!match) throw new Error(`Invalid database migration version: ${version}`);
+  return { number: BigInt(match[1]), suffix: match[2] };
+}
+
+function compareMigrationVersions(leftVersion, rightVersion) {
+  const left = migrationVersionParts(leftVersion);
+  const right = migrationVersionParts(rightVersion);
+  if (left.number < right.number) return -1;
+  if (left.number > right.number) return 1;
+  return left.suffix.localeCompare(right.suffix);
+}
 
 function checksum(contents) {
   return createHash("sha256").update(contents).digest("hex");
@@ -31,11 +47,7 @@ export async function loadMigrations() {
   }
 
   migrations.sort((left, right) => {
-    const byVersion = BigInt(left.version) < BigInt(right.version)
-      ? -1
-      : BigInt(left.version) > BigInt(right.version)
-        ? 1
-        : 0;
+    const byVersion = compareMigrationVersions(left.version, right.version);
     return byVersion || left.name.localeCompare(right.name);
   });
   return migrations;

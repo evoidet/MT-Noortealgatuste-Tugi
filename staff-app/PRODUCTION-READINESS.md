@@ -8,6 +8,16 @@ added Google identity and private attachment metadata. Migration 003 added nulla
 `published_at TIMESTAMPTZ`, the PUBLISHED status and publication/attachment indexes.
 Migration 004 already attempted a timestamp/index/status repair.
 
+Migration 001 allowed multiple rows with `kind = 'primary'`, and the upload routes
+historically enforced only the overall attachment count. A repeated primary upload
+could therefore create legacy duplicates before migration 003 introduced
+`attachments_one_primary_per_submission`. Migration 003 is transactional, so its
+failed unique-index creation also rolls back the earlier status and `published_at`
+changes and does not write migration history. Migration 002a now runs first: it keeps
+the first ready primary in application order (`created_at, id`), or the first pending
+row if none is ready, and changes only later active primaries to `additional`.
+All attachment rows and storage references are preserved.
+
 The old common preflight and final UPDATE referenced `published_at` even for expense
 reports. PostgreSQL resolves every column in a CASE expression, including its unused
 branches, so a database without this column returned 42703 before or after sending.

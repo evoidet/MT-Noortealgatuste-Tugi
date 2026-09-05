@@ -9,7 +9,13 @@ import { openDatabase } from "../src/database.js";
 import { loadMigrations } from "../scripts/db-migrate.mjs";
 import { renderSubmissionPreview } from "../public/previews.js";
 
-async function fixture(t, versions = ["001", "002", "003", "004", "005"]) {
+test("data repair is ordered between immutable migrations 002 and 003", async () => {
+  const migrations = await loadMigrations();
+  assert.deepEqual(migrations.map((migration) => migration.version),
+    ["001", "002", "002a", "003", "004", "005"]);
+});
+
+async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005"]) {
   const engine = new PGlite();
   t.after(() => engine.close());
   const migrations = await loadMigrations();
@@ -59,8 +65,55 @@ test("old drafts save and finalize without the unrelated news column; migrations
   assert.equal(finalized.revision, 2);
   await assert.rejects(database.updateSubmission({ id: draft.id, userId: user.id, data: {} }),
     { code: "INVALID_WORKFLOW_STATE" });
-  for (const version of ["003", "004", "005", "005"]) await migrate(version);
+  for (const version of ["002a", "003", "004", "005", "005"]) await migrate(version);
   assert.deepEqual(await database.getSubmission(draft.id), finalized);
+});
+
+test("primary-attachment repair preserves rows and deterministically keeps the effective primary", async (t) => {
+  const { engine, database, user, migrate } = await fixture(t, ["001", "002"]);
+  const draft = await database.createSubmission({ type: "news", creatorId: user.id, data: {} });
+  const rows = [
+    ["pending-oldest", "pending", "2026-01-01T00:00:00.000Z"],
+    ["ready-first", "ready", "2026-01-02T00:00:00.000Z"],
+    ["ready-second", "ready", "2026-01-03T00:00:00.000Z"]
+  ];
+  for (const [id, storageStatus, createdAt] of rows) {
+    await engine.query(`INSERT INTO attachments (
+      id, submission_id, uploader_id, storage_name, storage_status,
+      blob_pathname, blob_url, original_name, mime_type, kind, size_bytes,
+      sha256, created_at, storage_updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'image/png', 'primary', 10,
+      $9, $10, $10)`, [id, draft.id, user.id,
+      storageStatus === "ready" ? `storage-${id}` : null,
+      storageStatus, `staff/${draft.id}/${id}.png`,
+      storageStatus === "ready" ? `https://synthetic.invalid/${id}.png` : null,
+      `${id}.png`, id.padEnd(64, "0"), createdAt]);
+  }
+  assert.equal((await engine.query("SELECT count(*)::int AS count FROM attachments")).rows[0].count, 3);
+  await assert.rejects(migrate("003"), {
+    code: "23505", constraint: "attachments_one_primary_per_submission"
+  });
+  assert.equal((await engine.query(`SELECT count(*)::int AS count
+    FROM information_schema.columns WHERE table_name = 'submissions'
+      AND column_name = 'published_at'`)).rows[0].count, 0);
+  assert.equal((await engine.query(`SELECT count(*)::int AS count FROM schema_migrations
+    WHERE version = '003'`)).rows[0].count, 0);
+  assert.equal((await engine.query("SELECT count(*)::int AS count FROM attachments")).rows[0].count, 3);
+  await migrate("002a");
+  await migrate("002a");
+  await migrate("003");
+  const repaired = (await engine.query(`SELECT id, kind, storage_status FROM attachments
+    ORDER BY created_at, id`)).rows;
+  assert.deepEqual(repaired.map((row) => [row.id, row.kind]), [
+    ["pending-oldest", "additional"],
+    ["ready-first", "primary"],
+    ["ready-second", "additional"]
+  ]);
+  assert.equal(repaired.length, 3);
+  assert.equal((await database.listAttachments(draft.id))[0].id, "ready-first");
+  await assert.rejects(database.createPendingAttachment({ submissionId: draft.id, uploaderId: user.id,
+    kind: "primary", originalName: "blocked.png", mimeType: "image/png", size: 10 }),
+    { code: "23505", constraint: "attachments_one_primary_per_submission" });
 });
 
 test("repair migration restores schema drift and all final states preserve timestamps", async (t) => {
