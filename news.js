@@ -54,6 +54,17 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+    const safeExternalUrl = (value) => {
+      try {
+        const url = new URL(String(value || ""));
+        return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password
+          ? url.href
+          : "";
+      } catch {
+        return "";
+      }
+    };
+
     const renderArticleParagraph = (paragraph, index, content) => {
   const text = String(paragraph || "").trim();
 
@@ -568,6 +579,7 @@
       const content = Array.isArray(item.content) && item.content.length
         ? item.content
         : [item.excerpt];
+      const registrationUrl = safeExternalUrl(item.registrationUrl);
 
       const related = sortItems(
         sortedItems.filter((candidate) => candidate.id !== item.id)
@@ -620,6 +632,18 @@
               renderArticleParagraph(paragraph, index, content)
             )
             .join("")}
+
+            ${registrationUrl ? `
+              <a
+                class="news-article-link"
+                href="${escapeHtml(registrationUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ${escapeHtml(t("news.ui.register"))}
+                <span aria-hidden="true">↗</span>
+              </a>
+            ` : ""}
 
             ${item.placeholder ? `
               <div class="news-article-placeholder-note">

@@ -60,6 +60,8 @@ function mapSubmission(row) {
     updatedAt: timestamp(row.updated_at),
     submittedAt: timestamp(row.submitted_at),
     publishedAt: timestamp(row.published_at),
+    reimbursementRecipientEmail: row.reimbursement_recipient_email ?? null,
+    reimbursementRecipientName: row.reimbursement_recipient_name ?? null,
     revision: row.revision_no
   };
 }
@@ -91,6 +93,20 @@ function mapDriveArchive(row) {
     parentFolderId: row.parent_folder_id,
     folderId: row.drive_folder_id,
     folderUrl: row.drive_folder_url,
+    status: row.status,
+    errorCode: row.error_code,
+    archivedAt: timestamp(row.archived_at),
+    createdAt: timestamp(row.created_at),
+    updatedAt: timestamp(row.updated_at)
+  };
+}
+
+function mapInvoiceDriveArchive(row) {
+  if (!row) return null;
+  return {
+    submissionId: row.submission_id,
+    fileId: row.drive_file_id,
+    fileUrl: row.drive_file_url,
     status: row.status,
     errorCode: row.error_code,
     archivedAt: timestamp(row.archived_at),
@@ -292,6 +308,25 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       }
     },
 
+    async assertReimbursementRecipientSchema() {
+      try {
+        await pool.query(`SELECT reimbursement_recipient_email,
+          reimbursement_recipient_name FROM submissions LIMIT 0`);
+      } catch (error) {
+        throw Object.assign(error, { table: "submissions", operation: "expense_recipient" });
+      }
+    },
+
+    async assertInvoiceDriveArchiveSchema() {
+      try {
+        await pool.query(`SELECT submission_id, drive_file_id, drive_file_url,
+          status, error_code, archived_at, created_at, updated_at
+          FROM invoice_drive_archives LIMIT 0`);
+      } catch (error) {
+        throw Object.assign(error, { table: "invoice_drive_archives", operation: "invoice_issue" });
+      }
+    },
+
     async pruneExpired() {
       await transaction(async (client) => {
         await client.query("DELETE FROM oauth_attempts WHERE expires_at <= NOW()");
@@ -467,7 +502,13 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       await pool.query("DELETE FROM sessions WHERE token_hash = $1", [tokenHash]);
     },
 
-    async createSubmission({ type, creatorId, data }) {
+    async createSubmission({
+      type,
+      creatorId,
+      data,
+      reimbursementRecipientEmail = null,
+      reimbursementRecipientName = null
+    }) {
       const id = randomUUID();
       const revisionId = randomUUID();
       const serialized = JSON.stringify(data ?? {});
@@ -475,9 +516,11 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         await client.query(`
           INSERT INTO submissions (
             id, type, creator_id, status, data_json, revision_no,
-            created_at, updated_at, submitted_at
-          ) VALUES ($1, $2, $3, 'DRAFT', $4::jsonb, 1, NOW(), NOW(), NULL)
-        `, [id, type, creatorId, serialized]);
+            created_at, updated_at, submitted_at,
+            reimbursement_recipient_email, reimbursement_recipient_name
+          ) VALUES ($1, $2, $3, 'DRAFT', $4::jsonb, 1, NOW(), NOW(), NULL, $5, $6)
+        `, [id, type, creatorId, serialized,
+          reimbursementRecipientEmail, reimbursementRecipientName]);
         await client.query(`
           INSERT INTO revisions (
             id, submission_id, revision_no, data_json, event, created_by, created_at
@@ -547,7 +590,14 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       return result.rows.map(mapSubmission);
     },
 
-    async updateSubmission({ id, userId, data, event = "UPDATED" }) {
+    async updateSubmission({
+      id,
+      userId,
+      data,
+      event = "UPDATED",
+      reimbursementRecipientEmail,
+      reimbursementRecipientName
+    }) {
       const serialized = JSON.stringify(data ?? {});
       return transaction(async (client) => {
         const currentSubmission = await getSubmissionWith(client, id, { forUpdate: true });
@@ -559,13 +609,23 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         // delivery idempotency key includes revision/updatedAt, so preserving
         // both prevents a retry after an ambiguous final-status failure from
         // sending the same email again.
-        if (isDeepStrictEqual(currentSubmission.data, data ?? {})) return currentSubmission;
+        const nextRecipientEmail = reimbursementRecipientEmail === undefined
+          ? currentSubmission.reimbursementRecipientEmail : reimbursementRecipientEmail;
+        const nextRecipientName = reimbursementRecipientName === undefined
+          ? currentSubmission.reimbursementRecipientName : reimbursementRecipientName;
+        if (isDeepStrictEqual(currentSubmission.data, data ?? {}) &&
+            currentSubmission.reimbursementRecipientEmail === nextRecipientEmail &&
+            currentSubmission.reimbursementRecipientName === nextRecipientName) {
+          return currentSubmission;
+        }
         const nextRevision = currentSubmission.revision + 1;
         await client.query(`
           UPDATE submissions
-          SET data_json = $2::jsonb, revision_no = $3, updated_at = NOW()
+          SET data_json = $2::jsonb, revision_no = $3, updated_at = NOW(),
+              reimbursement_recipient_email = $4,
+              reimbursement_recipient_name = $5
           WHERE id = $1
-        `, [id, serialized, nextRevision]);
+        `, [id, serialized, nextRevision, nextRecipientEmail, nextRecipientName]);
         await client.query(`
           INSERT INTO revisions (
             id, submission_id, revision_no, data_json, event, created_by, created_at
@@ -846,6 +906,42 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         RETURNING *
       `, [submissionId, parentFolderId, folderId, folderUrl, status, errorCode, archivedAt]);
       return mapDriveArchive(result.rows[0]);
+    },
+
+    async getInvoiceDriveArchive(submissionId) {
+      const result = await pool.query(
+        "SELECT * FROM invoice_drive_archives WHERE submission_id = $1",
+        [submissionId]
+      );
+      return mapInvoiceDriveArchive(result.rows[0]);
+    },
+
+    async recordInvoiceDriveArchive({
+      submissionId,
+      fileId = null,
+      fileUrl = null,
+      status,
+      errorCode = null,
+      archivedAt = null
+    }) {
+      const result = await pool.query(`
+        INSERT INTO invoice_drive_archives (
+          submission_id, drive_file_id, drive_file_url, status, error_code,
+          archived_at, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        ON CONFLICT (submission_id) DO UPDATE SET
+          drive_file_id = COALESCE(EXCLUDED.drive_file_id,
+            invoice_drive_archives.drive_file_id),
+          drive_file_url = COALESCE(EXCLUDED.drive_file_url,
+            invoice_drive_archives.drive_file_url),
+          status = EXCLUDED.status,
+          error_code = EXCLUDED.error_code,
+          archived_at = COALESCE(EXCLUDED.archived_at,
+            invoice_drive_archives.archived_at),
+          updated_at = NOW()
+        RETURNING *
+      `, [submissionId, fileId, fileUrl, status, errorCode, archivedAt]);
+      return mapInvoiceDriveArchive(result.rows[0]);
     },
 
     async hasExpenseDelivery(submissionId, deliveryKey) {

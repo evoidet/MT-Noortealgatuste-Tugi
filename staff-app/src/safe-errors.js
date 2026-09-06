@@ -4,7 +4,7 @@ const identifier = /^[a-z_][a-z0-9_]{0,62}$/;
 const knownTables = new Set([
   "users", "sessions", "oauth_attempts", "submissions", "revisions",
   "reviews", "attachments", "audit_logs", "schema_migrations",
-  "submission_drive_archives"
+  "submission_drive_archives", "invoice_drive_archives"
 ]);
 
 function safeIdentifier(value) {
@@ -20,7 +20,8 @@ export function safeOperationalError(error, fallback = "OPERATION_FAILED") {
     name: ["Error", "error", "DatabaseError", "DocumentValidationError", "ZodError"].includes(error?.name)
       ? error.name : "Error"
   };
-  if (["expense_submit", "invoice_submit", "news_submit", "news_publish"].includes(error?.operation)) {
+  if (["expense_submit", "expense_recipient", "invoice_submit", "invoice_issue",
+    "news_submit", "news_publish"].includes(error?.operation)) {
     result.operation = error.operation;
   }
   if (/^(?:[0-5][0-9A-Z]|HV|P0|XX)[0-9A-Z]{3}$/.test(code)) {

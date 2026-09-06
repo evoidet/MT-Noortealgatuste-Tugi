@@ -118,6 +118,42 @@ function driveUserFolderMap(value, domain) {
   return result;
 }
 
+function reimbursementRecipientMap(value, domain) {
+  if (value === undefined || value === null || value === "") return new Map();
+  let parsed = value;
+  if (typeof value === "string") {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      throw new Error("REIMBURSEMENT_RECIPIENTS must be valid JSON.");
+    }
+  }
+  const entries = Array.isArray(parsed)
+    ? parsed.map((entry) => [entry?.email, entry?.name])
+    : parsed && typeof parsed === "object"
+      ? Object.entries(parsed)
+      : null;
+  if (!entries) {
+    throw new Error("REIMBURSEMENT_RECIPIENTS must be a JSON array or object.");
+  }
+  const result = new Map();
+  for (const [emailValue, nameValue] of entries) {
+    const email = workspaceEmail(emailValue, "REIMBURSEMENT_RECIPIENTS", domain);
+    const name = String(nameValue ?? "")
+      .normalize("NFC")
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim();
+    if (!name || name.length > 160) {
+      throw new Error("REIMBURSEMENT_RECIPIENTS names must contain between 1 and 160 characters.");
+    }
+    if (result.has(email)) {
+      throw new Error("REIMBURSEMENT_RECIPIENTS contains a duplicate staff email.");
+    }
+    result.set(email, name);
+  }
+  return result;
+}
+
 function mailbox(value, name) {
   const normalized = String(value ?? "").trim();
   const angleAddress = /^(?:[^<>\r\n]+\s*)?<([^<>\s]+)>$/.exec(normalized);
@@ -294,7 +330,23 @@ export function loadConfig(overrides = {}) {
     overrides.googleDriveUserFolderMap ?? process.env.GOOGLE_DRIVE_USER_FOLDER_MAP,
     allowedGoogleDomain
   );
+  const configuredReimbursementRecipients = overrides.reimbursementRecipients ??
+    process.env.REIMBURSEMENT_RECIPIENTS ?? "";
+  const reimbursementRecipients = reimbursementRecipientMap(
+    requiredInProduction(
+      "REIMBURSEMENT_RECIPIENTS",
+      configuredReimbursementRecipients,
+      production
+    ),
+    allowedGoogleDomain
+  );
+  if (production && reimbursementRecipients.size === 0) {
+    throw new Error("REIMBURSEMENT_RECIPIENTS must contain at least one approved recipient in production.");
+  }
+  const googleDriveInvoiceFolderIdValue = overrides.googleDriveInvoiceFolderId ??
+    process.env.GOOGLE_DRIVE_INVOICE_FOLDER_ID ?? "";
   let googleDriveRootFolderId = "";
+  let googleDriveInvoiceFolderId = "";
   if (googleDriveArchiveEnabled) {
     googleDriveRootFolderId = driveFolderId(
       googleDriveRootFolderIdValue,
@@ -310,6 +362,22 @@ export function loadConfig(overrides = {}) {
     if (googleDriveUserFolderMap.size === 0) {
       throw new Error("GOOGLE_DRIVE_USER_FOLDER_MAP must contain at least one staff mapping when archival is enabled.");
     }
+    const requiredInvoiceFolderId = requiredInProduction(
+      "GOOGLE_DRIVE_INVOICE_FOLDER_ID",
+      googleDriveInvoiceFolderIdValue,
+      production
+    );
+    if (requiredInvoiceFolderId) {
+      googleDriveInvoiceFolderId = driveFolderId(
+        requiredInvoiceFolderId,
+        "GOOGLE_DRIVE_INVOICE_FOLDER_ID"
+      );
+    }
+  } else if (googleDriveInvoiceFolderIdValue) {
+    googleDriveInvoiceFolderId = driveFolderId(
+      googleDriveInvoiceFolderIdValue,
+      "GOOGLE_DRIVE_INVOICE_FOLDER_ID"
+    );
   }
 
   requiredInProduction("STAFF_SMTP_USER", smtpUser, production);
@@ -387,9 +455,11 @@ export function loadConfig(overrides = {}) {
     ),
     googleDriveArchiveEnabled,
     googleDriveRootFolderId,
+    googleDriveInvoiceFolderId,
     googleDriveServiceAccountEmail,
     googleDriveServiceAccountPrivateKey,
-    googleDriveUserFolderMap
+    googleDriveUserFolderMap,
+    reimbursementRecipients
   };
 
   if (config.enableDevAuth && production) {

@@ -12,13 +12,15 @@ import {
 
 const rootId = "root-folder-1234567890";
 
-function config(folderMap) {
+function config(folderMap, options = {}) {
   return {
     googleDriveArchiveEnabled: true,
     googleDriveRootFolderId: rootId,
     googleDriveServiceAccountEmail: "archive@example.iam.gserviceaccount.com",
     googleDriveServiceAccountPrivateKey: "unused by fake",
-    googleDriveUserFolderMap: new Map(Object.entries(folderMap))
+    googleDriveUserFolderMap: new Map(Object.entries(folderMap)),
+    googleDriveInvoiceFolderId: options.invoiceFolderId || "invoice-folder-123456",
+    reimbursementRecipients: options.reimbursementRecipients || new Map()
   };
 }
 
@@ -112,6 +114,36 @@ test("all six configured staff archive only into their distinct personal folders
   assert.equal(new Set(drive.folders.map(({ parentId }) => parentId)).size, 6);
 });
 
+test("authenticated creator can route an approved recipient only to that recipient's mapped folder", async () => {
+  const drive = fakeDrive();
+  drive.addParent("egor-folder-123456");
+  drive.addParent("sofia-folder-123456");
+  const recipients = new Map([
+    ["egor@noortetugi.ee", "Egor S"],
+    ["sofia@noortetugi.ee", "Sofia Germ"]
+  ]);
+  const service = createDriveArchiveService(config({
+    "egor@noortetugi.ee": "egor-folder-123456",
+    "sofia@noortetugi.ee": "sofia-folder-123456"
+  }, { reimbursementRecipients: recipients }), { driveClient: drive });
+
+  const result = await service.archiveExpense({
+    submission: submission("egor@noortetugi.ee"),
+    submitterEmail: "egor@noortetugi.ee",
+    recipientEmail: "sofia@noortetugi.ee",
+    files: archiveFiles()
+  });
+  assert.equal(result.parentFolderId, "sofia-folder-123456");
+  assert.equal(drive.folders[0].parentId, "sofia-folder-123456");
+
+  await assert.rejects(service.archiveExpense({
+    submission: submission("egor@noortetugi.ee", "70a25fad-becd-4942-b0f6-979f71bb9960"),
+    submitterEmail: "egor@noortetugi.ee",
+    recipientEmail: "outsider@noortetugi.ee",
+    files: archiveFiles()
+  }), { code: "DRIVE_RECIPIENT_NOT_ALLOWED" });
+});
+
 test("generated document and every original attachment are archived once with stable collision names", async () => {
   const drive = fakeDrive();
   drive.addParent("andrei-folder-12345");
@@ -181,6 +213,21 @@ test("Google client uses files.create requestBody and a fresh binary media strea
   });
   assert.equal(calls[0].media.mimeType,
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+  await client.uploadFile({
+    parentId: "invoice-folder-123456",
+    submissionId: "60a25fad-becd-4942-b0f6-979f71bb9960",
+    itemKey: "issued-invoice",
+    archiveKind: "invoice",
+    filename: "Arve_TEST_Client.docx",
+    contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    content
+  });
+  assert.deepEqual(calls[1].requestBody.appProperties, {
+    noortetugiSubmissionId: "60a25fad-becd-4942-b0f6-979f71bb9960",
+    noortetugiArchiveItemKey: "issued-invoice",
+    noortetugiArchiveKind: "invoice"
+  });
 
   await client.findFile({
     parentId: "submission-folder-12345",
@@ -371,6 +418,66 @@ test("an authenticated user cannot archive another user's submission", async () 
   assert.equal(drive.files.length, 0);
 });
 
+test("issued invoice uploads once to the dedicated folder with deterministic metadata and filename", async () => {
+  const drive = fakeDrive();
+  drive.addParent("invoice-folder-123456", { shared: true, parents: [] });
+  const service = createDriveArchiveService(config({}, {
+    invoiceFolderId: "invoice-folder-123456"
+  }), { driveClient: drive });
+  const invoice = {
+    ...submission("finance@noortetugi.ee"),
+    type: "invoice",
+    data: { invoiceNumber: "2026/01", client: "Client: OÜ?" }
+  };
+  const input = {
+    submission: invoice,
+    file: {
+      filename: "ignored.docx",
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      content: Buffer.from("docx")
+    }
+  };
+
+  const first = await service.archiveInvoice(input);
+  const retry = await service.archiveInvoice(input);
+  assert.equal(first.fileId, retry.fileId);
+  assert.equal(drive.files.length, 1);
+  assert.deepEqual({
+    parentId: drive.files[0].parentId,
+    itemKey: drive.files[0].itemKey,
+    archiveKind: drive.files[0].archiveKind,
+    filename: drive.files[0].filename
+  }, {
+    parentId: "invoice-folder-123456",
+    itemKey: "issued-invoice",
+    archiveKind: "invoice",
+    filename: "Arve_2026_01_Client_ OÜ_.docx"
+  });
+});
+
+test("invoice archive missing-folder, disabled, and upload failure states are explicit", async () => {
+  const invoice = { ...submission("finance@noortetugi.ee"), type: "invoice",
+    data: { invoiceNumber: "1", client: "Client" } };
+  const file = { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    content: Buffer.from("docx") };
+  await assert.rejects(
+    createDriveArchiveService({ googleDriveArchiveEnabled: false }).archiveInvoice({ submission: invoice, file }),
+    { code: "DRIVE_ARCHIVE_NOT_CONFIGURED" }
+  );
+  const missingService = createDriveArchiveService({ ...config({}), googleDriveInvoiceFolderId: "" }, {
+    driveClient: fakeDrive()
+  });
+  await assert.rejects(missingService.archiveInvoice({ submission: invoice, file }),
+    { code: "DRIVE_INVOICE_FOLDER_NOT_CONFIGURED" });
+
+  const drive = fakeDrive();
+  drive.addParent("invoice-folder-123456");
+  drive.uploadFile = async () => { throw new Error("private provider body"); };
+  const failingService = createDriveArchiveService(config({}), { driveClient: drive });
+  await assert.rejects(failingService.archiveInvoice({ submission: invoice, file }),
+    { code: "DRIVE_INVOICE_UPLOAD_FAILED" });
+});
+
 test("Drive credential configuration is absent from every browser asset", async () => {
   const publicDirectory = resolve(fileURLToPath(new URL(".", import.meta.url)), "../public");
   const files = await readdir(publicDirectory);
@@ -378,5 +485,7 @@ test("Drive credential configuration is absent from every browser asset", async 
   for (const content of contents) {
     assert.doesNotMatch(content, /GOOGLE_DRIVE_SERVICE_ACCOUNT_(?:EMAIL|PRIVATE_KEY)/);
     assert.doesNotMatch(content, /googleDriveServiceAccount(?:Email|PrivateKey)/);
+    assert.doesNotMatch(content, /GOOGLE_DRIVE_(?:USER_FOLDER_MAP|INVOICE_FOLDER_ID)/);
+    assert.doesNotMatch(content, /googleDrive(?:UserFolderMap|InvoiceFolderId)/);
   }
 });

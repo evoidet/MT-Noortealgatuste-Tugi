@@ -63,7 +63,9 @@ const userValidationCodes = new Set([
   "VALIDATION_ERROR",
   "INCOMPLETE_SUBMISSION",
   "DOCUMENT_VALIDATION_ERROR",
-  "PRIMARY_ATTACHMENT_REQUIRED"
+  "PRIMARY_ATTACHMENT_REQUIRED",
+  "REIMBURSEMENT_RECIPIENT_NOT_ALLOWED",
+  "INVOICE_ARCHIVE_FAILED"
 ]);
 const validationFieldAliases = Object.freeze({
   documentDate: "date",
@@ -82,6 +84,7 @@ const validationFieldLabels = Object.freeze({
   author: "Autor",
   project: "Projekt",
   person: "Esitaja",
+  reimbursementRecipientEmail: "Hüvitise saaja",
   location: "Koht",
   activity: "Tegevuse kirjeldus",
   goal: "Kulu eesmärk ja vajalikkus",
@@ -303,6 +306,8 @@ function validationResponse(response, error) {
     "SUBMISSION_SCHEMA_NOT_READY",
     "SUBMISSION_DELIVERY_UNCERTAIN",
     "SUBMISSION_DELIVERY_PENDING",
+    "REIMBURSEMENT_RECIPIENT_NOT_ALLOWED",
+    "INVOICE_ARCHIVE_FAILED",
     "NEWS_SLUG_CONFLICT"
   ]);
   if (!knownCodes.has(error.code)) return false;
@@ -398,6 +403,70 @@ export function createStaffApp({
   const aiLimiter = createLimiter({ windowMs: 10 * 60_000, limit: 12, prefix: "ai" });
   const publicMediaLimiter = createLimiter({ windowMs: 15 * 60_000, limit: 300, prefix: "public-media" });
   const permissionContext = Object.freeze({ invoiceCreatorEmail: config.invoiceCreatorEmail });
+  const reimbursementRecipientMap = config.reimbursementRecipients instanceof Map
+    ? config.reimbursementRecipients
+    : new Map();
+
+  function availableReimbursementRecipients(user) {
+    if (reimbursementRecipientMap.size > 0) {
+      return [...reimbursementRecipientMap].map(([email, name]) => ({ email, name }));
+    }
+    return user?.email ? [{ email: String(user.email).trim().toLowerCase(),
+      name: String(user.name || user.email).trim() }] : [];
+  }
+
+  function reimbursementRecipientError() {
+    return Object.assign(new Error("The reimbursement recipient is not approved."), {
+      code: "REIMBURSEMENT_RECIPIENT_NOT_ALLOWED",
+      status: 422,
+      fields: [{ field: "reimbursementRecipientEmail", message: "Vali kinnitatud hüvitise saaja." }]
+    });
+  }
+
+  function selectedReimbursementRecipient(value, user) {
+    const requested = String(value || "").trim().toLowerCase();
+    const ownEmail = String(user?.email || "").trim().toLowerCase();
+    if (reimbursementRecipientMap.size === 0) {
+      if (!requested || requested === ownEmail) {
+        return { email: ownEmail, name: String(user?.name || user?.email || "").trim() };
+      }
+      throw reimbursementRecipientError();
+    }
+    const email = requested || (reimbursementRecipientMap.has(ownEmail) ? ownEmail : "");
+    const name = reimbursementRecipientMap.get(email);
+    if (!email || !name) throw reimbursementRecipientError();
+    return { email, name };
+  }
+
+  function submissionReimbursementRecipient(submission) {
+    if (!submission?.reimbursementRecipientEmail) {
+      return {
+        email: String(submission?.creatorEmail || "").trim().toLowerCase(),
+        name: String(submission?.creatorName || submission?.creatorEmail || "").trim()
+      };
+    }
+    const email = String(submission.reimbursementRecipientEmail).trim().toLowerCase();
+    const currentName = reimbursementRecipientMap.get(email);
+    if (reimbursementRecipientMap.size > 0 && !currentName) {
+      throw reimbursementRecipientError();
+    }
+    return {
+      email,
+      name: String(currentName || submission.reimbursementRecipientName || email).trim()
+    };
+  }
+
+  function prepareSubmissionInput(type, input, user) {
+    let data = validateSubmissionData(type, input ?? {});
+    if (type !== "expense") return { data };
+    const recipient = selectedReimbursementRecipient(data.reimbursementRecipientEmail, user);
+    data = {
+      ...data,
+      reimbursementRecipientEmail: recipient.email,
+      person: recipient.name
+    };
+    return { data, recipient };
+  }
 
   async function withEditableSubmission(request, response, submissionId, work) {
     return database.withSubmissionLock(submissionId, async () => {
@@ -449,12 +518,14 @@ export function createStaffApp({
   }
 
   async function prepareExpensePackage(submission, attachments) {
+    const reimbursementRecipient = submissionReimbursementRecipient(submission);
     let generated;
     try {
       generated = await documentGenerator("expense", submission.data, {
         submission,
         attachments,
-        creator: { name: submission.creatorName, email: submission.creatorEmail }
+        creator: { name: submission.creatorName, email: submission.creatorEmail },
+        reimbursementRecipient
       });
     } catch (error) {
       if (error && typeof error === "object") error.expenseStage = "document-generation";
@@ -528,6 +599,7 @@ export function createStaffApp({
       const archived = await driveArchiveService.archiveExpense({
         submission,
         submitterEmail: user.email,
+        recipientEmail: submissionReimbursementRecipient(submission).email,
         files: archiveFiles
       });
       try {
@@ -587,6 +659,86 @@ export function createStaffApp({
         ipHash
       }, "Expense Drive archive failure could not be audited:");
       return null;
+    }
+  }
+
+  async function attemptInvoiceDriveArchive(submission, document, user, ipHash) {
+    try {
+      const existing = await database.getInvoiceDriveArchive(submission.id);
+      if (existing?.status === "complete" && existing.fileUrl) return existing.fileUrl;
+      const bytes = document?.buffer;
+      const buffer = Buffer.isBuffer(bytes)
+        ? bytes
+        : bytes instanceof Uint8Array ? Buffer.from(bytes) : null;
+      if (!buffer?.length || !document?.filename || !document?.contentType) {
+        throw Object.assign(new Error("The generated invoice document is invalid."), {
+          code: "DRIVE_GENERATED_DOCUMENT_INVALID"
+        });
+      }
+      const archived = await driveArchiveService.archiveInvoice({
+        submission,
+        file: {
+          itemKey: "issued-invoice",
+          filename: document.filename,
+          contentType: document.contentType,
+          content: Buffer.from(buffer)
+        }
+      });
+      try {
+        await database.recordInvoiceDriveArchive({
+          submissionId: submission.id,
+          fileId: archived.fileId,
+          fileUrl: archived.fileUrl,
+          status: "complete",
+          archivedAt: archived.archivedAt
+        });
+      } catch (error) {
+        throw Object.assign(new Error("Invoice archive completion state could not be written."), {
+          code: "DRIVE_ARCHIVE_STATE_WRITE_FAILED",
+          cause: error
+        });
+      }
+      await auditSafely({
+        user,
+        action: "INVOICE_DRIVE_ARCHIVED",
+        targetType: "invoice",
+        targetId: submission.id,
+        ipHash
+      }, "Invoice Drive archive success could not be audited:");
+      return archived.fileUrl;
+    } catch (error) {
+      const safe = safeOperationalError(error, "DRIVE_ARCHIVE_FAILED");
+      console.error("Invoice Drive archival failed:", {
+        submissionId: submission.id,
+        stage: "drive_archive",
+        code: safe.code,
+        message: "Google Drive archival did not complete."
+      });
+      try {
+        await database.recordInvoiceDriveArchive({
+          submissionId: submission.id,
+          status: safe.code === "DRIVE_INVOICE_FOLDER_NOT_CONFIGURED" ? "not_configured" : "failed",
+          errorCode: safe.code
+        });
+      } catch (databaseError) {
+        console.error("Invoice Drive archive state write failed:", {
+          submissionId: submission.id,
+          stage: "drive_archive",
+          ...safeOperationalError(databaseError, "DRIVE_ARCHIVE_STATE_WRITE_FAILED")
+        });
+      }
+      await auditSafely({
+        user,
+        action: "INVOICE_DRIVE_ARCHIVE_FAILED",
+        targetType: "invoice",
+        targetId: submission.id,
+        metadata: { code: safe.code },
+        ipHash
+      }, "Invoice Drive archive failure could not be audited:");
+      throw Object.assign(new Error("Invoice Drive archival did not complete."), {
+        code: "INVOICE_ARCHIVE_FAILED",
+        status: 503
+      });
     }
   }
 
@@ -656,6 +808,8 @@ export function createStaffApp({
     try {
       await database.healthCheck();
       await database.assertSubmissionSchema();
+      await database.assertReimbursementRecipientSchema?.();
+      await database.assertInvoiceDriveArchiveSchema?.();
       response.json({ ok: true, database: "ok" });
     } catch {
       response.status(503).json({ ok: false, database: "unavailable" });
@@ -669,6 +823,7 @@ export function createStaffApp({
       payload.permissions = permissionsForUser(request.user, permissionContext);
       payload.aiAvailable = ai.available;
       payload.documentTemplates = getDocumentTemplateAvailability();
+      payload.reimbursementRecipients = availableReimbursementRecipients(request.user);
       if (request.user.role === "admin") {
         try {
           await reconcileBlobStorage({ config, database, limit: 10 });
@@ -753,8 +908,14 @@ export function createStaffApp({
       return response.status(403).json({ error: "FORBIDDEN" });
     }
     try {
-      const data = validateSubmissionData(type, request.body?.data ?? {});
-      const submission = await database.createSubmission({ type, creatorId: request.user.id, data });
+      const { data, recipient } = prepareSubmissionInput(type, request.body?.data ?? {}, request.user);
+      const submission = await database.createSubmission({
+        type,
+        creatorId: request.user.id,
+        data,
+        reimbursementRecipientEmail: recipient?.email,
+        reimbursementRecipientName: recipient?.name
+      });
       await database.audit({
         user: request.user,
         action: `${auditPrefix[type]}_CREATED`,
@@ -780,8 +941,18 @@ export function createStaffApp({
   app.patch("/api/staff/submissions/:id", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
     return withEditableSubmission(request, response, request.params.id, async (submission) => {
     try {
-      const data = validateSubmissionData(submission.type, request.body?.data ?? {});
-      const updated = await database.updateSubmission({ id: submission.id, userId: request.user.id, data });
+      const { data, recipient } = prepareSubmissionInput(
+        submission.type,
+        request.body?.data ?? {},
+        request.user
+      );
+      const updated = await database.updateSubmission({
+        id: submission.id,
+        userId: request.user.id,
+        data,
+        reimbursementRecipientEmail: recipient?.email,
+        reimbursementRecipientName: recipient?.name
+      });
       await database.audit({
         user: request.user,
         action: `${auditPrefix[submission.type]}_UPDATED`,
@@ -843,6 +1014,10 @@ export function createStaffApp({
 
         try {
           await database.assertSubmissionSchema(submission.type);
+          if (submission.type === "expense") {
+            await database.assertReimbursementRecipientSchema?.();
+          }
+          if (submission.type === "invoice") await database.assertInvoiceDriveArchiveSchema?.();
           if (directNewsPublish) await database.assertNewsPublicationSchema();
         } catch (error) {
           console.error("Submission schema preflight failed:", {
@@ -852,6 +1027,7 @@ export function createStaffApp({
             code: "SUBMISSION_SCHEMA_NOT_READY", status: 503
           });
         }
+        if (submission.type === "expense") submissionReimbursementRecipient(submission);
 
         if (submission.type === "expense") {
           logExpenseStage(submission.id, "prepare", "started");
@@ -891,10 +1067,11 @@ export function createStaffApp({
             });
         if (!prepared) return null;
 
+        let invoiceDocument;
         if (prepared.type === "invoice") {
           // Never confirm an invoice that cannot produce its final document.
           try {
-            await documentGenerator("invoice", prepared.data, {
+            invoiceDocument = await documentGenerator("invoice", prepared.data, {
               submission: prepared,
               attachments,
               creator: { name: prepared.creatorName, email: prepared.creatorEmail }
@@ -909,6 +1086,12 @@ export function createStaffApp({
             });
             throw error;
           }
+          await attemptInvoiceDriveArchive(
+            prepared,
+            invoiceDocument,
+            request.user,
+            auth.clientIpHash(request)
+          );
         }
 
         if (prepared.type === "expense") {
@@ -1404,7 +1587,10 @@ export function createStaffApp({
       const document = await documentGenerator(submission.type, submission.data, {
         submission,
         attachments,
-        creator: { name: submission.creatorName, email: submission.creatorEmail }
+        creator: { name: submission.creatorName, email: submission.creatorEmail },
+        ...(submission.type === "expense"
+          ? { reimbursementRecipient: submissionReimbursementRecipient(submission) }
+          : {})
       });
       response.set({
         "Content-Type": document.contentType,

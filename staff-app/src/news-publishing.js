@@ -26,6 +26,19 @@ function safePublicImageUrl(value) {
   }
 }
 
+function safePublicExternalUrl(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  try {
+    const url = new URL(text);
+    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password
+      ? url.href
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 function attachmentUrl(submissionId, attachmentId) {
   return `/api/staff/public/news/${encodeURIComponent(submissionId)}/attachments/${encodeURIComponent(attachmentId)}`;
 }
@@ -67,6 +80,7 @@ export function toPublicNewsItem(submission, attachments = [], requestedLanguage
     content: localizedValue(data, fallback, localized, "content") || data.content,
     author: data.author,
     authorRole: data.authorRole,
-    project: data.project
+    project: data.project,
+    registrationUrl: safePublicExternalUrl(data.registrationUrl)
   };
 }

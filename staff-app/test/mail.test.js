@@ -23,6 +23,8 @@ function expenseSubmission(overrides = {}) {
     id: "9f71c168-43d7-4c51-aa5f-e4b6384db777",
     creatorName: "Mari Maasikas",
     creatorEmail: "mari@noortetugi.ee",
+    reimbursementRecipientName: "Sofia Germ",
+    reimbursementRecipientEmail: "sofia@noortetugi.ee",
     revision: 3,
     updatedAt: "2026-08-30T10:14:00.000Z",
     submittedAt: "2026-08-30T10:15:00.000Z",
@@ -141,6 +143,7 @@ test("mail service sends a plain-text expense summary to the configured finance 
   assert.match(message.subject, /Mari Maasikas/);
   assert.match(message.subject, /Noorte arengupäev/);
   assert.match(message.text, /Esitaja: Mari Maasikas/);
+  assert.match(message.text, /Hüvitise saaja: Sofia Germ \(sofia@noortetugi\.ee\)/);
   assert.match(message.text, /Projekt: Noorte arengupäev/);
   assert.match(message.text, /42,50\s*€/u);
   assert.match(message.text, /9f71c168-43d7-4c51-aa5f-e4b6384db777/);

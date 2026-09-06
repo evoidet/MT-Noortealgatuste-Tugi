@@ -14,14 +14,16 @@ async function main() {
     await database.assertSubmissionSchema();
     await database.assertNewsPublicationSchema();
     await database.assertDriveArchiveSchema();
+    await database.assertReimbursementRecipientSchema();
+    await database.assertInvoiceDriveArchiveSchema();
     // Deployment-wide checks stay here rather than coupling expense submission
     // to news migration/index availability at runtime.
     const indexes = await database.raw.query(`SELECT indexname FROM pg_indexes
       WHERE schemaname = current_schema() AND indexname IN (
         'submissions_news_slug_unique', 'attachments_one_primary_per_submission',
         'submissions_published_news_idx', 'audit_expense_delivery_idx',
-        'submission_drive_archives_status_idx')`);
-    if (indexes.rows.length !== 5) {
+        'submission_drive_archives_status_idx', 'invoice_drive_archives_status_idx')`);
+    if (indexes.rows.length !== 6) {
       console.error("Required staff database indexes are missing.");
       process.exitCode = 1;
     }

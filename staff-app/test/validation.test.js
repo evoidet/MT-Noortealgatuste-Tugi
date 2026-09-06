@@ -185,3 +185,23 @@ test("final news validation normalizes paragraphs and requires publishable conte
   );
   assert.deepEqual(new Set(error.fields), new Set(["slug", "date", "summary", "content", "author"]));
 });
+
+test("news registration URL is optional and accepts only HTTP(S) URLs", () => {
+  assert.equal(validateSubmissionData("news", {}).registrationUrl, "");
+  assert.equal(
+    validateSubmissionData("news", { registrationUrl: "https://example.org/register" }).registrationUrl,
+    "https://example.org/register",
+  );
+  assert.equal(
+    validateSubmissionData("news", { registrationUrl: "http://example.org/register" }).registrationUrl,
+    "http://example.org/register",
+  );
+  captureValidationError(
+    () => validateSubmissionData("news", { registrationUrl: "ftp://example.org/register" }),
+    "VALIDATION_ERROR",
+  );
+  captureValidationError(
+    () => validateSubmissionData("news", { registrationUrl: "not a URL" }),
+    "VALIDATION_ERROR",
+  );
+});

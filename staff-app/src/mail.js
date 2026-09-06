@@ -96,6 +96,12 @@ export function createMailService(config, overrides = {}) {
 
       const data = submission?.data ?? {};
       const submitter = cleanHeader(submission?.creatorName || submission?.creatorEmail, "Töötaja");
+      const reimbursementRecipient = cleanLine(
+        submission?.reimbursementRecipientName || data.person || submission?.creatorName || submission?.creatorEmail
+      );
+      const reimbursementRecipientEmail = cleanLine(
+        submission?.reimbursementRecipientEmail || submission?.creatorEmail
+      );
       const project = cleanHeader(data.project, "Projekt puudub");
       const subject = `Uus kuluaruanne — ${submitter} — ${project}`;
       const submittedAt = cleanLine(submission?.submittedAt || submission?.updatedAt);
@@ -112,6 +118,7 @@ export function createMailService(config, overrides = {}) {
           "Uus kuluaruanne ootab kontrollimist.",
           "",
           `Esitaja: ${cleanLine(submission?.creatorName || submission?.creatorEmail)}`,
+          `Hüvitise saaja: ${reimbursementRecipient} (${reimbursementRecipientEmail})`,
           `Projekt: ${cleanLine(data.project)}`,
           `Kuupäev: ${cleanLine(data.date)}`,
           `Summa: ${formatAmount(data.amount)}`,

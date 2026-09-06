@@ -828,6 +828,7 @@
       "Register here",
       "Зарегистрироваться"
     ],
+    "news.ui.register": ["Registreeru", "Register", "Зарегистрироваться"],
     "news.ui.submitCandidate": [
       "Esita kandidaat",
       "Nominate a candidate",

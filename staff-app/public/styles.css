@@ -956,6 +956,7 @@ body.staff-page select {
 }
 
 .staff-status--approved,
+.staff-status--published,
 .staff-status--ready_for_export {
   background: #dff7df;
   color: var(--staff-success);

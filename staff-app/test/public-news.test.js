@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
+import { toPublicNewsItem } from "../src/news-publishing.js";
 
 async function catalogue(fetch, language = "ru") {
   const source = await readFile(new URL("../../news-data.js", import.meta.url), "utf8");
@@ -39,4 +40,43 @@ test("API outage, invalid response and translation tooling preserve static artic
     const items = await catalogue(fetch);
     assert.equal(items.length, 4);
   }
+});
+
+test("public catalogue preserves the optional registration URL", async () => {
+  const items = await catalogue(async () => ({ ok: true, json: async () => ({ items: [{
+    id: "registration-fixture",
+    published: true,
+    title: "Новость",
+    excerpt: "Описание",
+    content: ["Текст"],
+    registrationUrl: "https://example.org/register",
+  }] }) }));
+  assert.equal(
+    items.find((item) => item.id === "registration-fixture").registrationUrl,
+    "https://example.org/register",
+  );
+});
+
+test("public news model keeps legacy articles compatible without a registration URL", () => {
+  const legacy = toPublicNewsItem({
+    id: "legacy-submission",
+    type: "news",
+    status: "PUBLISHED",
+    data: { slug: "legacy-news", title: "Legacy", excerpt: "Summary", content: ["Body"] },
+  });
+  assert.equal(legacy.registrationUrl, "");
+
+  const linked = toPublicNewsItem({
+    id: "linked-submission",
+    type: "news",
+    status: "PUBLISHED",
+    data: {
+      slug: "linked-news",
+      title: "Linked",
+      excerpt: "Summary",
+      content: ["Body"],
+      registrationUrl: "https://example.org/register",
+    },
+  });
+  assert.equal(linked.registrationUrl, "https://example.org/register");
 });

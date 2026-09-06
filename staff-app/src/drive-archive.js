@@ -52,6 +52,16 @@ function archiveFolderName(submission) {
   return safeDriveName(`${date} — Kuulaaruanne — ${name} — ${shortId}`, `Kuulaaruanne — ${shortId}`);
 }
 
+function invoiceFilename(submission) {
+  const number = safeDriveName(submission?.data?.invoiceNumber, "invoice")
+    .replace(/[<>:"|?*]/g, "_");
+  const customer = safeDriveName(
+    submission?.data?.client || submission?.data?.clientName,
+    "customer"
+  ).replace(/[<>:"|?*]/g, "_");
+  return `${safeDriveName(`Arve_${number}_${customer}`, "Arve_invoice_customer").slice(0, 175)}.docx`;
+}
+
 function escapeDriveQuery(value) {
   return String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
@@ -131,6 +141,21 @@ function validatePersonalFolder(folder, expectedId, rootId) {
   }
 }
 
+function validateWritableFolder(folder, expectedId, { prefix = "DRIVE_INVOICE_FOLDER" } = {}) {
+  if (!folder || folder.id !== expectedId) {
+    throw new DriveArchiveError(`${prefix}_NOT_FOUND`, "The configured Drive folder was not found.");
+  }
+  if (folder.trashed) {
+    throw new DriveArchiveError(`${prefix}_TRASHED`, "The configured Drive folder is trashed.");
+  }
+  if (folder.mimeType !== FOLDER_MIME_TYPE) {
+    throw new DriveArchiveError(`${prefix}_NOT_A_FOLDER`, "The configured Drive item is not a folder.");
+  }
+  if (folder.capabilities?.canAddChildren === false) {
+    throw new DriveArchiveError(`${prefix}_NOT_WRITABLE`, "The configured Drive folder is not writable.");
+  }
+}
+
 function createGoogleDriveClient(config, googleApi = google) {
   const auth = new googleApi.auth.GoogleAuth({
     credentials: {
@@ -151,7 +176,7 @@ function createGoogleDriveClient(config, googleApi = google) {
       return response.data;
     },
 
-    async findFile({ parentId, submissionId, itemKey = null, folder = false }) {
+    async findFile({ parentId, submissionId, itemKey = null, archiveKind = null, folder = false }) {
       const clauses = [
         `'${escapeDriveQuery(parentId)}' in parents`,
         "trashed = false",
@@ -160,6 +185,9 @@ function createGoogleDriveClient(config, googleApi = google) {
       if (folder) clauses.push(`mimeType = '${FOLDER_MIME_TYPE}'`);
       if (itemKey) {
         clauses.push(`appProperties has { key='noortetugiArchiveItemKey' and value='${escapeDriveQuery(itemKey)}' }`);
+      }
+      if (archiveKind) {
+        clauses.push(`appProperties has { key='noortetugiArchiveKind' and value='${escapeDriveQuery(archiveKind)}' }`);
       }
       const response = await api.files.list({
         q: clauses.join(" and "),
@@ -190,14 +218,15 @@ function createGoogleDriveClient(config, googleApi = google) {
       return response.data;
     },
 
-    async uploadFile({ parentId, submissionId, itemKey, filename, contentType, content }) {
+    async uploadFile({ parentId, submissionId, itemKey, archiveKind = null, filename, contentType, content }) {
       const response = await api.files.create({
         requestBody: {
           name: filename,
           parents: [parentId],
           appProperties: {
             noortetugiSubmissionId: submissionId,
-            noortetugiArchiveItemKey: itemKey
+            noortetugiArchiveItemKey: itemKey,
+            ...(archiveKind ? { noortetugiArchiveKind: archiveKind } : {})
           }
         },
         media: {
@@ -222,7 +251,7 @@ function safeArchiveFile(file) {
   const contentType = String(file?.contentType || "application/octet-stream").trim();
   if (!content?.length || !/^[a-z0-9][a-z0-9.+-]*\/[a-z0-9][a-z0-9.+-]*$/i.test(contentType) ||
       !/^[A-Za-z0-9:_-]{1,200}$/.test(itemKey)) {
-    const code = itemKey === "generated-document"
+    const code = itemKey === "generated-document" || itemKey === "issued-invoice"
       ? "DRIVE_GENERATED_DOCUMENT_INVALID"
       : "DRIVE_ATTACHMENT_BODY_INVALID";
     throw new DriveArchiveError(code, "An archive file is invalid.");
@@ -237,7 +266,7 @@ export function createDriveArchiveService(config, overrides = {}) {
   return Object.freeze({
     enabled,
 
-    async archiveExpense({ submission, submitterEmail, files }) {
+    async archiveExpense({ submission, submitterEmail, recipientEmail: requestedRecipientEmail, files }) {
       if (!enabled) return { status: "disabled" };
       const email = String(submitterEmail || "").trim().toLowerCase();
       if (!email || email !== String(submission?.creatorEmail || "").trim().toLowerCase()) {
@@ -246,7 +275,21 @@ export function createDriveArchiveService(config, overrides = {}) {
           "The authenticated submitter does not match the submission owner."
         );
       }
-      const parentFolderId = config.googleDriveUserFolderMap.get(email);
+      const recipientEmail = String(requestedRecipientEmail || email).trim().toLowerCase();
+      if (config.reimbursementRecipients?.size > 0 &&
+          !config.reimbursementRecipients.has(recipientEmail)) {
+        throw new DriveArchiveError(
+          "DRIVE_RECIPIENT_NOT_ALLOWED",
+          "The reimbursement recipient is not approved."
+        );
+      }
+      if (!config.reimbursementRecipients?.size && recipientEmail !== email) {
+        throw new DriveArchiveError(
+          "DRIVE_RECIPIENT_NOT_ALLOWED",
+          "The reimbursement recipient is not approved."
+        );
+      }
+      const parentFolderId = config.googleDriveUserFolderMap.get(recipientEmail);
       if (!parentFolderId) {
         throw new DriveArchiveError(
           "DRIVE_FOLDER_NOT_CONFIGURED",
@@ -342,12 +385,83 @@ export function createDriveArchiveService(config, overrides = {}) {
         if (error instanceof DriveArchiveError) throw error;
         throw new DriveArchiveError("DRIVE_ARCHIVE_FAILED", "Google Drive archival failed.", error);
       }
+    },
+
+    async archiveInvoice({ submission, file }) {
+      if (!enabled) {
+        throw new DriveArchiveError(
+          "DRIVE_ARCHIVE_NOT_CONFIGURED",
+          "Google Drive archival is not enabled."
+        );
+      }
+      if (!config.googleDriveInvoiceFolderId) {
+        throw new DriveArchiveError(
+          "DRIVE_INVOICE_FOLDER_NOT_CONFIGURED",
+          "No Google Drive invoice folder is configured."
+        );
+      }
+      if (submission?.type !== "invoice") {
+        throw new DriveArchiveError("DRIVE_INVOICE_INVALID", "The invoice archive request is invalid.");
+      }
+      const archiveFile = safeArchiveFile({
+        ...file,
+        itemKey: "issued-invoice",
+        filename: invoiceFilename(submission)
+      });
+      try {
+        const folder = await getFolderMetadata(drive, config.googleDriveInvoiceFolderId);
+        validateWritableFolder(folder, config.googleDriveInvoiceFolderId);
+        let existing;
+        try {
+          existing = await drive.findFile({
+            parentId: config.googleDriveInvoiceFolderId,
+            submissionId: submission.id,
+            itemKey: archiveFile.itemKey,
+            archiveKind: "invoice"
+          });
+        } catch (error) {
+          throw driveOperationError(
+            error,
+            "DRIVE_INVOICE_FILE_LOOKUP_FAILED",
+            "The archived invoice lookup failed."
+          );
+        }
+        let archived = existing;
+        if (!archived) {
+          try {
+            archived = await drive.uploadFile({
+              parentId: config.googleDriveInvoiceFolderId,
+              submissionId: submission.id,
+              archiveKind: "invoice",
+              ...archiveFile
+            });
+          } catch (error) {
+            throw driveOperationError(
+              error,
+              "DRIVE_INVOICE_UPLOAD_FAILED",
+              "The invoice Drive upload failed."
+            );
+          }
+        }
+        const archivedFileId = fileId(archived?.id);
+        return {
+          status: "complete",
+          fileId: archivedFileId,
+          fileUrl: `https://drive.google.com/file/d/${archivedFileId}/view`,
+          filename: archiveFile.filename,
+          archivedAt: new Date().toISOString()
+        };
+      } catch (error) {
+        if (error instanceof DriveArchiveError) throw error;
+        throw new DriveArchiveError("DRIVE_INVOICE_ARCHIVE_FAILED", "Invoice Drive archival failed.", error);
+      }
     }
   });
 }
 
 export const __driveArchiveTestUtils = Object.freeze({
   archiveFolderName,
+  invoiceFilename,
   createGoogleDriveClient,
   driveOperationError,
   driveProviderReason,
@@ -355,5 +469,6 @@ export const __driveArchiveTestUtils = Object.freeze({
   safeDriveName,
   uniqueFilenames,
   validateArchiveRoot,
-  validatePersonalFolder
+  validatePersonalFolder,
+  validateWritableFolder
 });

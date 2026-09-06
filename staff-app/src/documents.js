@@ -266,6 +266,8 @@ function normalizeInvoice(data = {}) {
 
 function normalizeExpense(data = {}, meta = {}) {
   const recipient = data.recipient && typeof data.recipient === "object" ? data.recipient : {};
+  const configuredRecipient = meta.reimbursementRecipient &&
+    typeof meta.reimbursementRecipient === "object" ? meta.reimbursementRecipient : {};
   const rawItems = firstDefined(data.items, data.expenses);
   if (!Array.isArray(rawItems) || rawItems.length < 1 || rawItems.length > 100) {
     throw new DocumentValidationError("Expense report must contain between 1 and 100 cost items", {
@@ -376,6 +378,7 @@ function normalizeExpense(data = {}, meta = {}) {
   const requestedTotalCents = items.reduce((sum, item) => sum + item.requestedCents, 0);
   const excludedTotalCents = items.reduce((sum, item) => sum + item.excludedCents, 0);
   const recipientName = cleanText(firstDefined(
+    configuredRecipient.name,
     recipient.name,
     data.recipientName,
     data.claimantName,
@@ -404,7 +407,7 @@ function normalizeExpense(data = {}, meta = {}) {
   });
 
   const contactParts = [
-    firstDefined(recipient.email, data.email),
+    firstDefined(configuredRecipient.email, recipient.email, data.email),
     firstDefined(recipient.phone, data.phone),
     firstDefined(recipient.accountHolder, data.accountHolder)
       ? `Kontoomanik: ${cleanText(firstDefined(recipient.accountHolder, data.accountHolder), { maxLength: 250 })}`

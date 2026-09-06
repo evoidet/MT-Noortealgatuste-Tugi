@@ -342,7 +342,8 @@ function validationControlId(type, field) {
   const direct = {
     expense: {
       project: "expenseProject",
-      person: "expensePerson",
+      person: "expenseReimbursementRecipient",
+      reimbursementRecipientEmail: "expenseReimbursementRecipient",
       date: "expenseDate",
       location: "expenseLocation",
       activity: "expenseActivity",
@@ -966,7 +967,7 @@ function selectField({ id, label, value = "", options, required = false, wide = 
       <select id="${escapeHtml(id)}" name="${escapeHtml(id)}"${required ? " required" : ""}>
         ${options.map((option) => `
           <option value="${escapeHtml(option.value)}"${String(option.value) === String(value) ? " selected" : ""}>
-            ${escapeHtml(t(option.label))}
+            ${escapeHtml(option.labelText ?? t(option.label))}
           </option>
         `).join("")}
       </select>
@@ -1055,6 +1056,7 @@ function newsForm(data) {
           }))
         })}
         ${field({ id: "newsProject", label: "staff.news.project", value: data.project, placeholder: "staff.news.projectPlaceholder" })}
+        ${field({ id: "newsRegistrationUrl", label: "staff.news.registrationUrl", value: data.registrationUrl, type: "url", wide: true, placeholder: "staff.news.registrationUrlPlaceholder" })}
         ${field({ id: "newsAuthor", label: "staff.news.author", value: data.author || state.session?.user?.name, required: true, autocomplete: "name" })}
         ${field({ id: "newsAuthorRole", label: "staff.news.authorRole", value: data.authorRole, placeholder: "staff.news.authorRolePlaceholder" })}
         ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", rows: 4, required: true, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "news.summary", mode: "news" } })}
@@ -1123,6 +1125,12 @@ function expenseItemRow(item = {}, index = 0) {
 
 function expenseForm(data) {
   const items = Array.isArray(data.items) && data.items.length ? data.items : [{}];
+  const reimbursementRecipients = state.session?.reimbursementRecipients || [];
+  const ownRecipientEmail = state.session?.user?.email || "";
+  const selectedRecipientEmail = data.reimbursementRecipientEmail ||
+    (reimbursementRecipients.some((recipient) => recipient.email === ownRecipientEmail)
+      ? ownRecipientEmail
+      : reimbursementRecipients[0]?.email || "");
   return `
     <section class="staff-form-section">
       <div class="staff-form-section-heading">
@@ -1134,7 +1142,16 @@ function expenseForm(data) {
       </div>
       <div class="staff-form-grid">
         ${field({ id: "expenseProject", label: "staff.expense.project", value: data.project, required: true, placeholder: "staff.expense.projectPlaceholder" })}
-        ${field({ id: "expensePerson", label: "staff.expense.person", value: data.person || state.session?.user?.name, required: true, autocomplete: "name" })}
+        ${selectField({
+          id: "expenseReimbursementRecipient",
+          label: "staff.expense.reimbursementRecipient",
+          value: selectedRecipientEmail,
+          required: true,
+          options: reimbursementRecipients.map((recipient) => ({
+            value: recipient.email,
+            labelText: recipient.name
+          }))
+        })}
         ${field({ id: "expenseDate", label: "staff.expense.date", value: data.date, type: "date", required: true })}
         ${field({ id: "expenseLocation", label: "staff.expense.location", value: data.location, required: true, placeholder: "staff.expense.locationPlaceholder" })}
         ${field({ id: "expenseActivity", label: "staff.expense.activity", value: data.activity, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.activityPlaceholder", ai: { field: "expense.activity", mode: "formal" } })}
@@ -1358,6 +1375,7 @@ function collectNewsData() {
     date: inputValue("newsDate"),
     category: inputValue("newsCategory"),
     project: inputValue("newsProject"),
+    registrationUrl: inputValue("newsRegistrationUrl"),
     title: inputValue("newsTitle"),
     summary: inputValue("newsSummary"),
     excerpt: inputValue("newsSummary"),
@@ -1402,9 +1420,13 @@ function collectExpenseItems() {
 
 function collectExpenseData() {
   const items = collectExpenseItems();
+  const reimbursementRecipientEmail = inputValue("expenseReimbursementRecipient");
+  const reimbursementRecipient = (state.session?.reimbursementRecipients || [])
+    .find((recipient) => recipient.email === reimbursementRecipientEmail);
   return {
     project: inputValue("expenseProject"),
-    person: inputValue("expensePerson"),
+    person: reimbursementRecipient?.name || "",
+    reimbursementRecipientEmail,
     date: inputValue("expenseDate"),
     location: inputValue("expenseLocation"),
     activity: inputValue("expenseActivity"),

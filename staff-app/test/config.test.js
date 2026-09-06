@@ -19,6 +19,9 @@ function productionOverrides(overrides = {}) {
     smtpUser: "staff@noortetugi.ee",
     smtpPassword: "test-google-app-password",
     mailFrom: "Noorte Tugi <staff@noortetugi.ee>",
+    reimbursementRecipients: [
+      { email: "member@noortetugi.ee", name: "Member" }
+    ],
     ...overrides
   };
 }
@@ -46,6 +49,7 @@ test("production config uses the Vercel URLs, persistent services, and secure co
   assert.deepEqual([...config.allowedStaffEmails], ["member@noortetugi.ee"]);
   assert.deepEqual([...config.adminEmails], ["admin@noortetugi.ee"]);
   assert.equal(config.defaultRole, "member");
+  assert.equal(config.reimbursementRecipients.get("member@noortetugi.ee"), "Member");
   assert.equal(config.smtpPort, 465);
   assert.equal(config.smtpSecure, true);
   assert.equal(config.smtpRequireTls, false);
@@ -137,6 +141,25 @@ test("email lists accept only exact addresses in the configured Google domain", 
   );
 });
 
+test("production reimbursement recipients require stable workspace emails and display names", () => {
+  assert.throws(
+    () => loadConfig(productionOverrides({ reimbursementRecipients: [] })),
+    /REIMBURSEMENT_RECIPIENTS/
+  );
+  assert.throws(
+    () => loadConfig(productionOverrides({ reimbursementRecipients: [
+      { email: "member@outside.example", name: "Outside" }
+    ] })),
+    /REIMBURSEMENT_RECIPIENTS/
+  );
+  assert.throws(
+    () => loadConfig(productionOverrides({ reimbursementRecipients: [
+      { email: "member@noortetugi.ee", name: "" }
+    ] })),
+    /REIMBURSEMENT_RECIPIENTS/
+  );
+});
+
 test("production callback must stay on APP_URL and use the exact staff callback path", () => {
   assert.throws(
     () => loadConfig(productionOverrides({
@@ -196,6 +219,7 @@ test("Drive archival parses an email-to-folder map and Vercel escaped private ke
   const config = loadConfig(productionOverrides({
     googleDriveArchiveEnabled: "true",
     googleDriveRootFolderId: "root-folder-1234567890",
+    googleDriveInvoiceFolderId: "invoice-folder-1234567890",
     googleDriveServiceAccountEmail: "archive@test-project.iam.gserviceaccount.com",
     googleDriveServiceAccountPrivateKey: "-----BEGIN PRIVATE KEY-----\\nprivate-test-material\\n-----END PRIVATE KEY-----\\n",
     googleDriveUserFolderMap: JSON.stringify({
@@ -217,6 +241,7 @@ test("enabled Drive archival rejects incomplete or unsafe configuration without 
   const marker = "private-marker-value";
   for (const override of [
     { googleDriveRootFolderId: "" },
+    { googleDriveInvoiceFolderId: "" },
     { googleDriveServiceAccountEmail: "ordinary@noortetugi.ee" },
     { googleDriveServiceAccountPrivateKey: marker },
     { googleDriveUserFolderMap: "not-json" },
@@ -228,6 +253,7 @@ test("enabled Drive archival rejects incomplete or unsafe configuration without 
     assert.throws(() => loadConfig(productionOverrides({
       googleDriveArchiveEnabled: true,
       googleDriveRootFolderId: "root-folder-1234567890",
+      googleDriveInvoiceFolderId: "invoice-folder-1234567890",
       googleDriveServiceAccountEmail: "archive@test-project.iam.gserviceaccount.com",
       googleDriveServiceAccountPrivateKey: "-----BEGIN PRIVATE KEY-----\\nprivate-test-material\\n-----END PRIVATE KEY-----\\n",
       googleDriveUserFolderMap: JSON.stringify(driveFolderMap()),

@@ -29,6 +29,16 @@ function isSafePublicImageUrl(value) {
   }
 }
 
+function isSafeExternalUrl(value) {
+  if (!value) return true;
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
 const imagePositionToken = "(?:left|center|right|top|bottom|(?:100|[1-9]?\\d)%)";
 const imagePositionPattern = new RegExp(`^${imagePositionToken}(?:\\s+${imagePositionToken})?$`);
 
@@ -55,6 +65,7 @@ const newsDraft = z.object({
     z.array(z.string().trim().max(6_000)).max(60)
   ]).optional().default([]),
   project: optionalText(160),
+  registrationUrl: optionalText(2_048).refine(isSafeExternalUrl, { message: "Invalid registration URL." }),
   image: optionalText(500).refine(isSafePublicImageUrl, { message: "Unsafe image URL." }),
   imageAlt: optionalText(240),
   imagePosition: z.string().trim().max(60).regex(imagePositionPattern).optional().default("center center"),
@@ -90,6 +101,7 @@ const expenseItem = z.object({
 }).strict();
 
 const expenseDraft = z.object({
+  reimbursementRecipientEmail: z.string().trim().email().max(254).optional().or(z.literal("")),
   documentNumber: identifier,
   documentDate: optionalDate,
   project: optionalText(240),

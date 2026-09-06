@@ -6,16 +6,17 @@ import request from "supertest";
 import { createStaffApp } from "../src/app.js";
 import { loadConfig } from "../src/config.js";
 import { openDatabase } from "../src/database.js";
+import { generateSubmissionDocument } from "../src/documents.js";
 import { loadMigrations } from "../scripts/db-migrate.mjs";
 import { renderSubmissionPreview } from "../public/previews.js";
 
 test("data repair is ordered between immutable migrations 002 and 003", async () => {
   const migrations = await loadMigrations();
   assert.deepEqual(migrations.map((migration) => migration.version),
-    ["001", "002", "002a", "003", "004", "005", "006"]);
+    ["001", "002", "002a", "003", "004", "005", "006", "007", "008"]);
 });
 
-async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006"]) {
+async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008"]) {
   const engine = new PGlite();
   t.after(() => engine.close());
   const migrations = await loadMigrations();
@@ -45,7 +46,7 @@ async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005",
 }
 
 test("old drafts save and finalize without the unrelated news column; migrations preserve data", async (t) => {
-  const { engine, database, user, migrate } = await fixture(t, ["001", "002"]);
+  const { engine, database, user, migrate } = await fixture(t, ["001", "002", "007"]);
   const draft = await database.createSubmission({ type: "expense", creatorId: user.id,
     data: { project: "Preserve this synthetic draft" } });
   await assert.rejects(engine.query("UPDATE submissions SET published_at = CASE WHEN status = 'PUBLISHED' THEN NOW() ELSE published_at END WHERE id = $1", [draft.id]), (error) => {
@@ -70,7 +71,7 @@ test("old drafts save and finalize without the unrelated news column; migrations
 });
 
 test("primary-attachment repair preserves rows and deterministically keeps the effective primary", async (t) => {
-  const { engine, database, user, migrate } = await fixture(t, ["001", "002"]);
+  const { engine, database, user, migrate } = await fixture(t, ["001", "002", "007"]);
   const draft = await database.createSubmission({ type: "news", creatorId: user.id, data: {} });
   const rows = [
     ["pending-oldest", "pending", "2026-01-01T00:00:00.000Z"],
@@ -181,6 +182,10 @@ test("HTTP expense flow prepares real DOCX, sends once and finalizes without pub
   const config = loadConfig({ environment: "test", appUrl: "http://localhost:3100",
     googleCallbackUrl: "http://localhost:3100/api/staff/auth/google/callback",
     allowedGoogleDomain: "example.test", allowedStaffEmails: [], adminEmails: [],
+    reimbursementRecipients: [
+      { email: "fixture@example.test", name: "Synthetic Staff" },
+      { email: "other@example.test", name: "Other Recipient" }
+    ],
     financeNotificationEmail: "finance@example.test", storageDatabaseUrl: "postgresql://unused.invalid/test",
     sessionSecret: "synthetic-session-secret-for-test-only-1234567890", blobReadWriteToken: "",
     googleClientId: "", googleClientSecret: "", openAiApiKey: "",
@@ -206,16 +211,25 @@ test("HTTP expense flow prepares real DOCX, sends once and finalizes without pub
     .send({ type: "expense" })).status, 403);
   const created = await write("post", "/api/staff/submissions", { type: "expense", data: {} });
   assert.equal(created.status, 201);
+  assert.equal(created.body.item.creatorEmail, "fixture@example.test");
+  assert.equal(created.body.item.reimbursementRecipientEmail, "fixture@example.test");
   const id = created.body.item.id;
   assert.match(id, /^[0-9a-f-]{36}$/);
-  const data = { project: "Synthetic workshop", person: "Synthetic Staff", date: "2026-09-01",
+  const data = { project: "Synthetic workshop", person: "client text is not trusted",
+    reimbursementRecipientEmail: "other@example.test", date: "2026-09-01",
     location: "Tallinn", activity: "Hosted a workshop.", purpose: "Materials for the workshop.",
     result: "Ten participants completed the activity.", items: [{ date: "2026-09-01",
       documentNumber: "SYN-001", vendor: "Synthetic supplier", description: "Materials", amount: 12.35 }] };
   assert.equal((await write("patch", `/api/staff/submissions/${id}`, { data })).status, 200);
   const reopened = await request(app).get(`/api/staff/submissions/${id}`).set("Cookie", cookie);
   assert.equal(reopened.body.item.data.project, data.project);
+  assert.equal(reopened.body.item.creatorEmail, "fixture@example.test");
+  assert.equal(reopened.body.item.reimbursementRecipientEmail, "other@example.test");
+  assert.equal(reopened.body.item.reimbursementRecipientName, "Other Recipient");
+  assert.equal(reopened.body.item.data.person, "Other Recipient");
   assert.equal((await request(app).get(`/api/staff/submissions/${id}`).set("Cookie", otherCookie)).status, 404);
+  assert.equal((await write("post", "/api/staff/submissions", { type: "expense",
+    data: { reimbursementRecipientEmail: "outsider@example.test" } })).status, 422);
   await database.createAttachment({ submissionId: id, uploaderId: user.id, originalName: "synthetic.pdf",
     mimeType: "application/pdf", kind: "primary", size: 21, storageName: "synthetic-local",
     sha256: "a".repeat(64) });
@@ -277,6 +291,7 @@ test("Workspace member news draft, preview, submit and admin publication use the
   const path = `/api/staff/submissions/${id}`;
   const data = { slug: "synthetic-news", date: "2026-09-05", title: "Noorte uudis",
     summary: "Ühine töötuba", content: ["Pikk uudise tekst."], author: "Writer",
+    registrationUrl: "https://example.org/register",
     translations: { en: { title: "Youth news", excerpt: "A workshop", content: ["Workshop story."] } } };
   assert.equal((await writer.write("patch", path, { data })).status, 200);
   const reopened = await writer.get(path);
@@ -300,6 +315,7 @@ test("Workspace member news draft, preview, submit and admin publication use the
     const html = renderSubmissionPreview("news", reopened.body.item.data);
     assert.match(html, /Noorte uudis/);
     assert.match(html, /Pikk uudise tekst/);
+    assert.match(html, /https:\/\/example\.org\/register/);
   } finally { delete globalThis.window; }
   const submitted = await writer.write("post", `${path}/submit`, {});
   assert.equal(submitted.status, 200);
@@ -324,7 +340,133 @@ test("Workspace member news draft, preview, submit and admin publication use the
   assert.equal(feed.body.items[0].id, data.slug);
   assert.equal(feed.body.items[0].title, data.title);
   assert.equal(feed.body.items[0].image, publicImagePath);
+  assert.equal(feed.body.items[0].registrationUrl, data.registrationUrl);
   assert.equal((await request(app).get("/api/staff/public/news?lang=en")).body.items[0].title, "Youth news");
+});
+
+test("only the configured finance account can issue an invoice and re-issue is idempotent", async (t) => {
+  const { database } = await fixture(t);
+  database.withSubmissionLock = async (_id, work) => work();
+  const finance = await database.upsertUser({ googleSubject: "invoice-finance",
+    email: "finance@noortetugi.ee", name: "Finance" });
+  const outsider = await database.upsertUser({ googleSubject: "invoice-other",
+    email: "other@noortetugi.ee", name: "Other" });
+  const admin = await database.upsertUser({ googleSubject: "invoice-admin",
+    email: "admin@noortetugi.ee", name: "Admin", role: "admin" });
+  const config = loadConfig({ environment: "test", appUrl: "http://localhost:3100",
+    googleCallbackUrl: "http://localhost:3100/api/staff/auth/google/callback",
+    allowedGoogleDomain: "noortetugi.ee", allowedStaffEmails: [], adminEmails: ["admin@noortetugi.ee"],
+    financeNotificationEmail: finance.email, storageDatabaseUrl: "postgresql://unused.invalid/test",
+    sessionSecret: "synthetic-session-secret-for-test-only-1234567890", blobReadWriteToken: "",
+    googleClientId: "", googleClientSecret: "", openAiApiKey: "",
+    smtpHost: "", smtpUser: "", smtpPassword: "", mailFrom: "", enableDevAuth: false });
+  let invoiceDocumentGenerations = 0;
+  let invoiceDriveArchives = 0;
+  let failInvoiceArchiveOnce = true;
+  let failInvoiceFinalStateOnce = true;
+  const setSubmissionStatus = database.setSubmissionStatus.bind(database);
+  database.setSubmissionStatus = async (input) => {
+    if (input.status === "APPROVED" && failInvoiceFinalStateOnce) {
+      failInvoiceFinalStateOnce = false;
+      throw Object.assign(new Error("synthetic final-state failure"), { code: "TEST_DATABASE_ERROR" });
+    }
+    return setSubmissionStatus(input);
+  };
+  const { app } = createStaffApp({
+    config,
+    database,
+    documentGenerator: async (...args) => {
+      if (args[0] === "invoice") invoiceDocumentGenerations += 1;
+      return generateSubmissionDocument(...args);
+    },
+    driveArchiveService: {
+      enabled: true,
+      async archiveExpense() { assert.fail("Invoice must not use the expense Drive archive"); },
+      async archiveInvoice({ submission, file }) {
+        invoiceDriveArchives += 1;
+        assert.equal(submission.type, "invoice");
+        assert.equal(file.itemKey, "issued-invoice");
+        assert.ok(Buffer.isBuffer(file.content));
+        if (failInvoiceArchiveOnce) {
+          failInvoiceArchiveOnce = false;
+          throw Object.assign(new Error("provider details must stay private"), {
+            code: "DRIVE_INVOICE_UPLOAD_FAILED"
+          });
+        }
+        return {
+          fileId: "invoice-file-12345",
+          fileUrl: "https://drive.google.com/file/d/invoice-file-12345/view",
+          archivedAt: new Date().toISOString()
+        };
+      }
+    },
+    mailService: {
+      async sendExpenseSubmitted() { assert.fail("Invoice must not send expense finance mail"); }
+    }
+  });
+  async function client(user) {
+    const token = `synthetic-${user.id}`;
+    await database.createSession({ tokenHash: createHash("sha256").update(token).digest("base64url"),
+      userId: user.id, expiresAt: new Date(Date.now() + 3600000).toISOString(), userAgentHash: null, ipHash: null });
+    const cookie = `${config.cookieName}=${token}`;
+    const session = await request(app).get("/api/staff/session").set("Cookie", cookie);
+    return { session: session.body, get: (path) => request(app).get(path).set("Cookie", cookie),
+      write: (method, path, data) => request(app)[method](path).set("Cookie", cookie)
+        .set("X-CSRF-Token", session.body.csrfToken).send(data) };
+  }
+  const issuer = await client(finance);
+  const other = await client(outsider);
+  const administrator = await client(admin);
+  assert.ok(issuer.session.permissions.includes("invoice:create"));
+  assert.ok(!other.session.permissions.includes("invoice:create"));
+  assert.ok(!administrator.session.permissions.includes("invoice:create"));
+  assert.equal((await other.write("post", "/api/staff/submissions", { type: "invoice", data: {} })).status, 403);
+  assert.equal((await administrator.write("post", "/api/staff/submissions", { type: "invoice", data: {} })).status, 403);
+
+  const created = await issuer.write("post", "/api/staff/submissions", { type: "invoice", data: {} });
+  assert.equal(created.status, 201);
+  const id = created.body.item.id;
+  const path = `/api/staff/submissions/${id}`;
+  const data = { invoiceNumber: "2026-TEST-001", invoiceDate: "2026-09-05", dueDate: "2026-09-19",
+    currency: "EUR", project: "Synthetic project", referenceNumber: "202600001",
+    client: "Synthetic Client OÜ", registrationCode: "12345678", address: "Tallinn",
+    additionalInfo: "Synthetic integration invoice", items: [
+      { description: "Service", quantity: 2, unit: "tk", unitPrice: 12.35 }
+    ] };
+  assert.equal((await issuer.write("patch", path, { data })).status, 200);
+  assert.equal((await other.get(path)).status, 404);
+  assert.equal((await other.write("patch", path, { data })).status, 403);
+  assert.equal((await other.write("post", `${path}/submit`, {})).status, 403);
+
+  const preview = await issuer.get(`${path}/document`).buffer(true).parse((response, done) => {
+    const chunks = [];
+    response.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    response.on("end", () => done(null, Buffer.concat(chunks)));
+    response.on("error", done);
+  });
+  assert.equal(preview.status, 200);
+  assert.match(preview.headers["content-type"], /application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/);
+  assert.equal(preview.body.subarray(0, 2).toString(), "PK");
+  const failedIssue = await issuer.write("post", `${path}/submit`, {});
+  assert.equal(failedIssue.status, 503);
+  assert.equal(failedIssue.body.error, "INVOICE_ARCHIVE_FAILED");
+  assert.equal((await database.getSubmission(id)).status, "DRAFT");
+  assert.equal((await database.getInvoiceDriveArchive(id)).status, "failed");
+  const issued = await issuer.write("post", `${path}/submit`, {});
+  assert.equal(issued.status, 500);
+  assert.equal((await database.getSubmission(id)).status, "DRAFT");
+  assert.equal((await database.getInvoiceDriveArchive(id)).status, "complete");
+  const recoveredIssue = await issuer.write("post", `${path}/submit`, {});
+  assert.equal(recoveredIssue.status, 200);
+  assert.equal(recoveredIssue.body.item.status, "APPROVED");
+  assert.ok(recoveredIssue.body.item.submittedAt);
+  assert.equal(recoveredIssue.body.item.publishedAt, null);
+  assert.equal(invoiceDocumentGenerations, 4);
+  assert.equal(invoiceDriveArchives, 2);
+  assert.equal((await issuer.write("post", `${path}/submit`, {})).status, 200);
+  assert.equal(invoiceDocumentGenerations, 4);
+  assert.equal(invoiceDriveArchives, 2);
+  assert.equal((await issuer.write("patch", path, { data })).status, 403);
 });
 
 test("Drive archive migration stores retry state without changing submissions or attachments", async (t) => {
@@ -333,8 +475,12 @@ test("Drive archive migration stores retry state without changing submissions or
     email: "archive@noortetugi.ee", name: "Archive User", role: "member" });
   const submission = await database.createSubmission({ type: "expense", creatorId: user.id, data: {} });
   const before = await database.getSubmission(submission.id);
+  assert.equal(before.reimbursementRecipientEmail, null);
+  assert.equal(before.reimbursementRecipientName, null);
 
   await database.assertDriveArchiveSchema();
+  await database.assertReimbursementRecipientSchema();
+  await database.assertInvoiceDriveArchiveSchema();
   const failed = await database.recordDriveArchive({
     submissionId: submission.id,
     status: "failed",
@@ -353,6 +499,6 @@ test("Drive archive migration stores retry state without changing submissions or
   assert.equal((await database.getDriveArchive(submission.id)).folderId, "archive-folder-123456");
   assert.deepEqual(await database.getSubmission(submission.id), before);
   const indexes = await engine.query(`SELECT indexname FROM pg_indexes
-    WHERE indexname = 'submission_drive_archives_status_idx'`);
-  assert.equal(indexes.rows.length, 1);
+    WHERE indexname IN ('submission_drive_archives_status_idx', 'invoice_drive_archives_status_idx')`);
+  assert.equal(indexes.rows.length, 2);
 });

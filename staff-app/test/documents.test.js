@@ -190,9 +190,14 @@ test("current UI expense data remains generator-valid after final normalization"
   const result = await generateExpenseReportDocument(normalized, {
     submission: { id: "60a25fad-becd-4942-b0f6-979f71bb9960" },
     attachments: [{ originalName: "tsekk.pdf" }],
+    reimbursementRecipient: { name: "Sofia Germ", email: "sofia@noortetugi.ee" },
   });
   assert.ok(result.buffer.length > 0);
-  assert.match(decodeXmlText(documentParts(result.buffer).xml), /12,35 €/);
+  const text = decodeXmlText(documentParts(result.buffer).xml);
+  assert.match(text, /12,35 €/);
+  assert.match(text, /Sofia Germ/);
+  assert.match(text, /sofia@noortetugi\.ee/);
+  assert.doesNotMatch(text, /Mari Maasikas/);
 });
 
 test("accepted foreign-currency and reimbursement aliases render consistently", async () => {

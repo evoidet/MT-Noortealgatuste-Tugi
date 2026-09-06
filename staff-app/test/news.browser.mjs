@@ -83,6 +83,13 @@ try {
       await page.locator("#newsSummary").fill("Uudise kokkuvõte. ".repeat(20));
       await page.locator("#newsContent").fill("Pikk lõik ".repeat(200));
       await page.locator("#newsAuthor").fill("Synthetic Writer");
+      const registrationUrl = "https://example.org/register";
+      assert.equal(await page.locator('label[for="newsRegistrationUrl"] .staff-field-label').innerText(), {
+        et: "Registreerimise link",
+        ru: "Ссылка на регистрацию",
+        en: "Registration link"
+      }[language]);
+      await page.locator("#newsRegistrationUrl").fill(registrationUrl);
       await page.locator("#newsMainImage").setInputFiles({ name: "synthetic.png", mimeType: "image/png", buffer: png });
       await page.locator('[data-action="open-ai"][data-target="newsSummary"]').click();
       await page.locator("#aiGenerateButton").click();
@@ -96,10 +103,16 @@ try {
       await page.locator('[data-action="open-submission"]').click();
       await page.locator('[data-action="edit-submission"]').click();
       assert.equal(await page.locator("#newsTitle").inputValue(), title);
+      assert.equal(await page.locator("#newsRegistrationUrl").inputValue(), registrationUrl);
       assert.equal(item.attachments.length, 1);
       await checkLayout(page, width, `${language} editor`);
       await page.locator('#submissionForm button[type="submit"]').click();
       await page.locator(".staff-preview-view").waitFor();
+      assert.equal(await page.locator(`a.news-article-link[href="${registrationUrl}"]`).innerText(), {
+        et: "Registreeru\n↗",
+        ru: "Зарегистрироваться\n↗",
+        en: "Register\n↗"
+      }[language]);
       await checkLayout(page, width, `${language} preview`);
       await page.locator('[data-action="submit-preview"]').click();
       await page.locator(".staff-validation-summary").waitFor();
@@ -125,8 +138,9 @@ try {
       await page.close();
     }
   }
+  for (const width of [390, 1280]) {
   for (const language of ["et", "ru", "en"]) {
-    const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
     page.on("pageerror", (error) => failures.push(error.message));
     const title = { et: "Avaldatud uudis", ru: "Опубликованная новость", en: "Published news" }[language];
     await page.route("**/api/staff/**", async (route) => {
@@ -135,7 +149,10 @@ try {
         assert.equal(url.searchParams.get("lang"), language);
         await route.fulfill({ json: { items: [{ id: "published-browser", published: true, category: "events",
           title, excerpt: "Public summary", content: ["Public article body", "<img src=x onerror=alert(1)>"],
-          date: "2026-09-05", featured: true, image: "/assets/logo.png" }] } });
+          date: "2026-09-05", featured: true, image: "/assets/logo.png",
+          registrationUrl: "https://example.org/register" },
+        { id: "legacy-browser", published: true, category: "events", title: "Legacy article",
+          excerpt: "Legacy summary", content: ["Legacy body"], date: "2026-09-04" }] } });
       } else await route.fulfill({ json: { authenticated: false } });
     });
     await page.goto(`${origin}/?lang=${language}`);
@@ -146,9 +163,19 @@ try {
     assert.equal(await page.locator("#newsArticleContent h1").innerText(), title);
     assert.ok((await page.locator("#newsArticleContent").innerText()).includes("Public article body"));
     assert.equal(await page.locator("#newsArticleContent img[onerror]").count(), 0);
-    await checkLayout(page, 390, `${language} public article`);
-    console.log(`PASS public ${language}: home card, article deep link, escaped content`);
+    assert.equal(await page.locator('a.news-article-link[href="https://example.org/register"]').innerText(), {
+      et: "Registreeru\n↗",
+      ru: "Зарегистрироваться\n↗",
+      en: "Register\n↗"
+    }[language]);
+    await checkLayout(page, width, `${language} public article`);
+    await page.goto(`${origin}/uudised.html?lang=${language}&id=legacy-browser`);
+    await page.locator("#newsArticleContent h1").waitFor();
+    assert.equal(await page.locator("#newsArticleContent .news-article-link").count(), 0);
+    await checkLayout(page, width, `${language} legacy public article`);
+    console.log(`PASS public ${width}px ${language}: linked and legacy article rendering`);
     await page.close();
+  }
   }
   assert.deepEqual(failures, []);
 } finally {

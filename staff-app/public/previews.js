@@ -303,6 +303,7 @@ function renderNewsGallery(data) {
 
 export function renderNewsPreview(data) {
   const content = contentToParagraphs(data.content);
+  const registrationUrl = safeExternalUrl(data.registrationUrl);
   const categoryLabel = t(`news.categories.${data.category || "initiatives"}`) || t("common.nav.news");
   const author = String(data.author || "").trim();
   const authorText = author
@@ -332,6 +333,12 @@ export function renderNewsPreview(data) {
               ${content.length
                 ? content.map(renderNewsParagraph).join("")
                 : `<p>${escapeHtml(t("staff.news.contentEmpty"))}</p>`}
+              ${registrationUrl ? `
+                <a class="news-article-link" href="${escapeHtml(registrationUrl)}" target="_blank" rel="noopener noreferrer">
+                  ${escapeHtml(t("news.ui.register"))}
+                  <span aria-hidden="true">↗</span>
+                </a>
+              ` : ""}
               ${renderNewsGallery(data)}
             </article>
 
