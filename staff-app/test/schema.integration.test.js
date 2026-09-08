@@ -13,10 +13,10 @@ import { renderSubmissionPreview } from "../public/previews.js";
 test("data repair is ordered between immutable migrations 002 and 003", async () => {
   const migrations = await loadMigrations();
   assert.deepEqual(migrations.map((migration) => migration.version),
-    ["001", "002", "002a", "003", "004", "005", "006", "007", "008"]);
+    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009"]);
 });
 
-async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008"]) {
+async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009"]) {
   const engine = new PGlite();
   t.after(() => engine.close());
   const migrations = await loadMigrations();
@@ -44,6 +44,64 @@ async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005",
     email: "fixture@example.test", name: "Synthetic Staff", role: "member" });
   return { engine, database, user, migrate };
 }
+
+test("fresh and drifted databases converge on the complete submissions column contract", async (t) => {
+  const versionsBeforeRepair = ["001", "002", "002a", "003", "004", "005", "006", "007", "008"];
+  const { engine, database, user, migrate } = await fixture(t, versionsBeforeRepair);
+  const existing = await database.createSubmission({
+    type: "expense",
+    creatorId: user.id,
+    data: { project: "Preserve this existing submission" },
+    reimbursementRecipientEmail: "fixture@example.test",
+    reimbursementRecipientName: "Synthetic Staff"
+  });
+
+  await engine.exec(`
+    DROP INDEX submissions_published_news_idx;
+    ALTER TABLE submissions
+      DROP COLUMN published_at,
+      DROP COLUMN reimbursement_recipient_email,
+      DROP COLUMN reimbursement_recipient_name;
+  `);
+  await assert.rejects(database.createSubmission({
+    type: "expense", creatorId: user.id, data: {}
+  }), { code: "42703" });
+
+  await migrate("009");
+  await migrate("009");
+  await database.assertSubmissionSchema();
+  await database.assertNewsPublicationSchema();
+  await database.assertReimbursementRecipientSchema();
+
+  const expectedColumns = [
+    "created_at", "creator_id", "data_json", "id", "published_at",
+    "reimbursement_recipient_email", "reimbursement_recipient_name",
+    "revision_no", "status", "submitted_at", "type", "updated_at"
+  ];
+  const columns = (await engine.query(`
+    SELECT column_name FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'submissions'
+    ORDER BY column_name
+  `)).rows.map((row) => row.column_name);
+  assert.deepEqual(columns, expectedColumns);
+  assert.equal((await engine.query(`
+    SELECT count(*)::int AS count FROM pg_indexes
+    WHERE indexname = 'submissions_published_news_idx'
+  `)).rows[0].count, 1);
+
+  const preserved = await database.getSubmission(existing.id);
+  assert.equal(preserved.data.project, "Preserve this existing submission");
+  assert.equal(preserved.reimbursementRecipientEmail, null);
+  assert.equal(preserved.reimbursementRecipientName, null);
+  const created = await database.createSubmission({
+    type: "expense",
+    creatorId: user.id,
+    data: { project: "Created after repair" },
+    reimbursementRecipientEmail: "fixture@example.test",
+    reimbursementRecipientName: "Synthetic Staff"
+  });
+  assert.equal(created.reimbursementRecipientEmail, "fixture@example.test");
+});
 
 test("old drafts save and finalize without the unrelated news column; migrations preserve data", async (t) => {
   const { engine, database, user, migrate } = await fixture(t, ["001", "002", "007"]);
