@@ -4,6 +4,14 @@ import { fileURLToPath } from "node:url";
 
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
+const defaultReimbursementRecipients = Object.freeze([
+  { email: "sofia@noortetugi.ee", name: "Sofia Germ" },
+  { email: "andrei@noortetugi.ee", name: "Andrei Ostretsov" },
+  { email: "jekaterina@noortetugi.ee", name: "Jekaterina Rogožina" },
+  { email: "mihhail@noortetugi.ee", name: "Mihhail Semiyanov" },
+  { email: "mario@noortetugi.ee", name: "Mario Polshin" }
+]);
+
 function integer(value, fallback, minimum = 0) {
   const parsed = Number.parseInt(value ?? "", 10);
   return Number.isFinite(parsed) && parsed >= minimum ? parsed : fallback;
@@ -332,14 +340,20 @@ export function loadConfig(overrides = {}) {
   );
   const configuredReimbursementRecipients = overrides.reimbursementRecipients ??
     process.env.REIMBURSEMENT_RECIPIENTS ?? "";
-  const reimbursementRecipients = reimbursementRecipientMap(
-    requiredInProduction(
-      "REIMBURSEMENT_RECIPIENTS",
-      configuredReimbursementRecipients,
-      production
-    ),
+  const configuredReimbursementRecipientMap = reimbursementRecipientMap(
+    configuredReimbursementRecipients,
     allowedGoogleDomain
   );
+  const builtInReimbursementRecipientMap = reimbursementRecipientMap(
+    overrides.reimbursementRecipients === undefined && allowedGoogleDomain === "noortetugi.ee"
+      ? defaultReimbursementRecipients
+      : [],
+    allowedGoogleDomain
+  );
+  const reimbursementRecipients = new Map([
+    ...builtInReimbursementRecipientMap,
+    ...configuredReimbursementRecipientMap
+  ]);
   if (production && reimbursementRecipients.size === 0) {
     throw new Error("REIMBURSEMENT_RECIPIENTS must contain at least one approved recipient in production.");
   }
