@@ -31,7 +31,7 @@
     "googleapis": "^160.0.0",
     "helmet": "^8.1.0",
     "multer": "^2.0.2",
-    "nodemailer": "^9.0.6",
+    "nodemailer": "^9.1.1",
     "openai": "^6.48.0",
     "pg": "^8.23.0",
     "pizzip": "^3.2.0",

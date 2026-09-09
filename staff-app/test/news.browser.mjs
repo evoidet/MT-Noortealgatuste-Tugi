@@ -138,6 +138,64 @@ try {
       await page.close();
     }
   }
+  for (const width of [320, 390, 768, 1440]) for (const language of ["et", "ru", "en"]) for (const type of ["expense", "invoice"]) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    page.on("pageerror", (error) => failures.push(error.message));
+    let item, authenticated = false;
+    const user = { id: "fixture", name: "Synthetic Finance", email: "fixture@example.test", role: "member" };
+    await page.route("**/*", async (route) => {
+      const req = route.request(), path = new URL(req.url()).pathname;
+      if (!req.url().startsWith(origin)) return route.abort();
+      if (!path.startsWith("/api/staff/")) return route.continue();
+      let result = {};
+      if (path.endsWith("/session")) result = { authenticated, user, csrfToken: "synthetic",
+        permissions: ["expense:create", "invoice:create", ...["expense", "invoice"].flatMap((t) => ["read", "update", "submit"].map((a) => `${t}:${a}:own`))],
+        reimbursementRecipients: [{ email: user.email, name: user.name }] };
+      else if (path.endsWith("/logout")) authenticated = false;
+      else if (path.endsWith("/submit")) { item.status = type === "invoice" ? "APPROVED" : "SUBMITTED"; result = { item }; }
+      else if (path.endsWith("/submissions") && req.method() === "POST") {
+        item = { id: "synthetic-finance", type, data: req.postDataJSON().data, creatorId: user.id,
+          creatorName: user.name, creatorEmail: user.email, status: "DRAFT", attachments: [], reviews: [] }; result = { item };
+      } else if (req.method() === "PATCH") { item.data = req.postDataJSON().data; result = { item }; }
+      else if (path.endsWith("/submissions")) result = { items: item ? [item] : [] };
+      else result = { item };
+      return route.fulfill({ json: result });
+    });
+    await page.goto(`${origin}/admin/`);
+    await page.locator("#loginView").waitFor({ state: "visible" });
+    await checkLayout(page, width, "login");
+    authenticated = true;
+    await page.reload();
+    await page.locator("#authenticatedShell").waitFor({ state: "visible" });
+    await page.evaluate((lang) => window.I18N.setLanguage(lang), language);
+    await page.locator(`[data-action="start-form"][data-type="${type}"]`).click();
+    for (const field of await page.locator("#submissionForm input[required], #submissionForm textarea[required]").all()) {
+      const inputType = await field.getAttribute("type");
+      await field.fill(inputType === "date" ? "2026-09-09" : inputType === "number" ? "12.35" : "Synthetic long text ".repeat(5));
+    }
+    await checkLayout(page, width, `${type} editor ${language}`);
+    await page.locator('[data-action="save-draft"]').click();
+    await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
+    assert.ok(item, `${type} saved`);
+    item.status = "NEEDS_CHANGES";
+    if (type === "expense") item.attachments = [{ id: "synthetic-receipt", kind: "primary", storageStatus: "ready", originalName: "receipt.pdf", mimeType: "application/pdf", size: 100 }];
+    item.reviews = [{ decision: "needs_changes", comment: "Synthetic correction requested" }];
+    await page.locator('#brandHomeButton').click();
+    await page.locator('[data-action="open-submission"]').first().click();
+    await page.locator('[data-action="edit-submission"]').click();
+    assert.equal(await page.locator(`#${type}Project`).inputValue(), item.data.project);
+    await page.locator('#submissionForm button[type="submit"]').click();
+    await page.locator(".staff-preview-view").waitFor();
+    await checkLayout(page, width, `${type} preview ${language}`);
+    await page.locator('[data-action="submit-preview"]').click();
+    await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
+    assert.equal(item.status, type === "invoice" ? "APPROVED" : "SUBMITTED");
+    await page.locator("#userMenuButton").click();
+    await page.locator("#logoutButton").click();
+    await page.locator("#loginView").waitFor({ state: "visible" });
+    console.log(`PASS finance ${width}px ${language} ${type}: login/save/correction/reopen/preview/submit/logout`);
+    await page.close();
+  }
   for (const width of [390, 1280]) {
   for (const language of ["et", "ru", "en"]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });

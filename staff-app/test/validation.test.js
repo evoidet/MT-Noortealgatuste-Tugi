@@ -1,7 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+test("money and quantities reject booleans, arrays and objects instead of coercing them", () => {
+  for (const value of [true, false, [], [1], {}]) {
+    for (const data of [{ amount: value }, { items: [{ quantity: value }] }, { items: [{ unitPrice: value }] }]) {
+      assert.throws(() => validateSubmissionData("invoice", data), { code: "VALIDATION_ERROR" });
+    }
+    assert.throws(() => validateSubmissionData("expense", { amount: value }), { code: "VALIDATION_ERROR" });
+  }
+  assert.equal(validateSubmissionData("invoice", { amount: "12.35" }).amount, 12.35);
+});
+
 import { validateSubmissionData } from "../src/validation.js";
+
+test("calculated financial totals stay within the persisted monetary bounds", () => {
+  assert.throws(() => validateSubmissionData("invoice", { items: [{ quantity: 2, unitPrice: 10_000_000 }] }), { code: "VALIDATION_ERROR" });
+  assert.throws(() => validateSubmissionData("expense", { items: [{ amount: 6_000_000 }, { amount: 6_000_000 }] }), { code: "VALIDATION_ERROR" });
+  const saved = validateSubmissionData("invoice", { items: [{ quantity: 2, unitPrice: 12.35 }] });
+  assert.deepEqual(validateSubmissionData("invoice", saved), saved);
+});
 
 function captureValidationError(work, expectedCode) {
   let captured;

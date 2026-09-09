@@ -359,7 +359,7 @@ function processResponseSheetRow_(sheet, row, headers, fieldIndexes) {
 
   if (exactDuplicate) {
     appendSystemRecord_(systemSheet, data, exactDuplicate.candidateSheet, 'DUPLICATE_SKIPPED', 'Täpselt sama esildis jäeti dubleerimata.');
-    console.log('Täpselt sama esildis jäeti vahele: ' + data.candidateName);
+    console.log('Täpselt sama esildis jäeti vahele real ' + data.sourceRow + '.');
     return;
   }
 
@@ -380,7 +380,7 @@ function processResponseSheetRow_(sheet, row, headers, fieldIndexes) {
 
   appendSystemRecord_(systemSheet, data, candidateSheet.getName(), 'PROCESSED', message);
   SpreadsheetApp.flush();
-  console.log(message + ' ' + data.candidateName + ' / ' + data.category);
+  console.log(message + ' Vastuserida: ' + data.sourceRow);
 }
 
 function readSheetRow_(sheet, row, headers) {
@@ -496,7 +496,7 @@ function initializeCategorySpreadsheet_(spreadsheet, category) {
 function clearTemplateCandidateData_(sheet, category) {
   sheet.getRange('C4').clearContent();
   sheet.getRange('C5').clearContent();
-  sheet.getRange('C6').setValue(category);
+  sheet.getRange('C6').setValue(sheetText_(category));
   sheet.getRange('K4:O11').clearContent();
   sheet.getRange('K14:O27').clearContent();
   sheet.getRange('K32:O34').clearContent();
@@ -527,14 +527,14 @@ function createCandidateSheet_(spreadsheet, records, data) {
 }
 
 function fillCandidateFirstSubmission_(sheet, data) {
-  sheet.getRange('C4').setValue(data.candidateName);
-  sheet.getRange('C5').setValue(data.candidateAge);
-  sheet.getRange('C6').setValue(data.category);
-  sheet.getRange('C8').setValue(data.candidateResidence);
-  sheet.getRange('C9').setValue(data.candidateEmail);
-  sheet.getRange('C10').setValue(data.candidatePhone);
-  sheet.getRange('C11').setValue(data.nominatorName);
-  sheet.getRange('C12').setValue(data.nominatorEmail);
+  sheet.getRange('C4').setValue(sheetText_(data.candidateName));
+  sheet.getRange('C5').setValue(sheetText_(data.candidateAge));
+  sheet.getRange('C6').setValue(sheetText_(data.category));
+  sheet.getRange('C8').setValue(sheetText_(data.candidateResidence));
+  sheet.getRange('C9').setValue(sheetText_(data.candidateEmail));
+  sheet.getRange('C10').setValue(sheetText_(data.candidatePhone));
+  sheet.getRange('C11').setValue(sheetText_(data.nominatorName));
+  sheet.getRange('C12').setValue(sheetText_(data.nominatorEmail));
   sheet.getRange('C13').setValue(formatDateTime_(data.submittedAt));
 
   setMergedText_(sheet, 'K4:O11', formatTranslatedOriginal_(data.description, translationForField_(data, 'description')));
@@ -589,14 +589,14 @@ function writeAnswerRow_(sheet, row, label, value) {
   labelRange.merge();
   valueRange.merge();
 
-  labelRange.setValue(label)
+  labelRange.setValue(sheetText_(label))
     .setFontWeight('bold')
     .setWrap(true)
     .setVerticalAlignment('top')
     .setBackground('#eeeeee')
     .setBorder(true, true, true, true, true, true);
 
-  valueRange.setValue(value)
+  valueRange.setValue(sheetText_(value))
     .setWrap(true)
     .setVerticalAlignment('top')
     .setBorder(true, true, true, true, true, true);
@@ -607,7 +607,7 @@ function writeAnswerRow_(sheet, row, label, value) {
 
 function setMergedText_(sheet, a1, value) {
   const range = sheet.getRange(a1);
-  range.setValue(value || '').setWrap(true).setVerticalAlignment('top');
+  range.setValue(sheetText_(value || '')).setWrap(true).setVerticalAlignment('top');
 }
 
 // -----------------------------------------------------------------------------
@@ -723,10 +723,11 @@ function translateJsonToEstonian_(inputMap) {
       const body = response.getContentText();
 
       if (status < 200 || status >= 300) {
-        throw new Error('OpenAI HTTP ' + status + ': ' + body.slice(0, 600));
+        throw new Error('OpenAI HTTP ' + status);
       }
 
       const json = JSON.parse(body);
+      if (json.status && json.status !== 'completed') throw new Error('OpenAI vastus jäi pooleli.');
       const outputText = extractResponseText_(json);
       const parsed = JSON.parse(stripCodeFences_(outputText));
 
@@ -738,7 +739,9 @@ function translateJsonToEstonian_(inputMap) {
 
       return parsed;
     } catch (error) {
-      lastError = error;
+      // Provider and JSON parser errors may include credentials or source text.
+      const safeStatus = /^OpenAI HTTP \d{3}$/.test(String(error.message || ''));
+      lastError = new Error(safeStatus ? error.message : 'OpenAI päring või vastuse kontroll ebaõnnestus.');
       if (attempt < APP.RETRY_COUNT) Utilities.sleep(APP.RETRY_DELAY_MS * attempt);
     }
   }
@@ -979,7 +982,7 @@ function appendSystemRecord_(sheet, data, candidateSheet, status, message) {
     formatDateTime_(data.submittedAt),
     status,
     message
-  ]);
+  ].map(sheetText_));
 }
 
 function findCandidateSheet_(spreadsheet, records, candidateKey) {
@@ -1277,6 +1280,12 @@ function formatDateTime_(value) {
 
 function stripCodeFences_(text) {
   return String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+}
+
+function sheetText_(value) {
+  // Range.setValue/appendRow interpret leading '=' as a formula. The quote
+  // forces literal text while preserving the displayed answer and phone data.
+  return typeof value === 'string' && /^[=+\-@\t\r]/.test(value) ? "'" + value : value;
 }
 
 function safeErrorMessage_(error) {

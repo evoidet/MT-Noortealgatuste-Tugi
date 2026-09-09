@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+  archiveFingerprint,
   __driveArchiveTestUtils,
   createDriveArchiveService,
   DriveArchiveError
@@ -81,6 +82,35 @@ function archiveFiles() {
       content: Buffer.from("second") }
   ];
 }
+
+test("corrected expense and invoice revisions preserve older files and retry only once", async () => {
+  const drive = fakeDrive();
+  drive.addParent("andrei-folder-12345");
+  drive.addParent("invoice-folder-123456");
+  const service = createDriveArchiveService(config({ "andrei@noortetugi.ee": "andrei-folder-12345" }), { driveClient: drive });
+  const original = { ...submission("andrei@noortetugi.ee"), revision: 2 };
+  for (const revision of [2, 2, 5, 5]) {
+    await service.archiveExpense({ submission: { ...original, revision, data: { ...original.data, project: String(revision) } }, submitterEmail: original.creatorEmail, files: archiveFiles() });
+    await service.archiveInvoice({ submission: { ...original, type: "invoice", revision, data: { ...original.data, project: String(revision) } }, file: archiveFiles()[0] });
+  }
+  assert.equal(drive.folders.length, 1);
+  assert.equal(drive.files.length, 6);
+  assert.match(drive.files[0].itemKey, /^generated-document:[a-f0-9]{64}$/);
+  assert.match(drive.files[3].itemKey, /^issued-invoice:[a-f0-9]{64}$/);
+  assert.notEqual(drive.files[0].itemKey, drive.files[4].itemKey);
+  assert.notEqual(drive.files[3].itemKey, drive.files[5].itemKey);
+});
+
+test("archive fingerprint ignores key order and DOCX timestamps but detects changed attachments", () => {
+  const original = { data: { project: "Test", amount: 12 } };
+  const files = archiveFiles();
+  const reordered = { data: { amount: 12, project: "Test" } };
+  const regenerated = files.map((file) => ({ ...file }));
+  regenerated[0].content = Buffer.from("new DOCX ZIP timestamp");
+  assert.equal(archiveFingerprint(original, files), archiveFingerprint(reordered, regenerated));
+  regenerated[1].content = Buffer.from("corrected receipt");
+  assert.notEqual(archiveFingerprint(original, files), archiveFingerprint(original, regenerated));
+});
 
 test("disabled Drive archival preserves the existing submission path without a Drive client", async () => {
   const service = createDriveArchiveService({ googleDriveArchiveEnabled: false });
@@ -159,7 +189,7 @@ test("generated document and every original attachment are archived once with st
   assert.equal(first.folderId, retry.folderId);
   assert.equal(drive.folders.length, 1);
   assert.equal(drive.files.length, 3);
-  assert.deepEqual(drive.files.map(({ itemKey, filename }) => ({ itemKey, filename })), [
+  assert.deepEqual(drive.files.map(({ itemKey, filename }) => ({ itemKey: itemKey.replace(/:[a-f0-9]{64}$/, ""), filename })), [
     { itemKey: "generated-document", filename: "kuluaruanne.docx" },
     { itemKey: "attachment:first", filename: "receipt.pdf" },
     { itemKey: "attachment:second", filename: "receipt (2).pdf" }
@@ -265,11 +295,11 @@ test("failed attachment upload keeps prior files and retry reuses the folder and
 
   await assert.rejects(service.archiveExpense(input), { code: "DRIVE_ATTACHMENT_UPLOAD_FAILED" });
   assert.equal(drive.folders.length, 1);
-  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey), ["generated-document"]);
+  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey.replace(/:[a-f0-9]{64}$/, "")), ["generated-document"]);
 
   await service.archiveExpense(input);
   assert.equal(drive.folders.length, 1);
-  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey), [
+  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey.replace(/:[a-f0-9]{64}$/, "")), [
     "generated-document", "attachment:first", "attachment:second"
   ]);
 });
@@ -323,7 +353,7 @@ test("a direct-child My Drive folder shared with the service account does not re
 
   assert.equal(result.parentFolderId, "egor-folder-123456");
   assert.equal(drive.folders.length, 1);
-  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey), [
+  assert.deepEqual(drive.files.map(({ itemKey }) => itemKey.replace(/:[a-f0-9]{64}$/, "")), [
     "generated-document", "attachment:first"
   ]);
 });
@@ -444,7 +474,7 @@ test("issued invoice uploads once to the dedicated folder with deterministic met
   assert.equal(drive.files.length, 1);
   assert.deepEqual({
     parentId: drive.files[0].parentId,
-    itemKey: drive.files[0].itemKey,
+    itemKey: drive.files[0].itemKey.replace(/:[a-f0-9]{64}$/, ""),
     archiveKind: drive.files[0].archiveKind,
     filename: drive.files[0].filename
   }, {

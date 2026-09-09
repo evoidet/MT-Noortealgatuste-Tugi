@@ -36,6 +36,57 @@ function testDatabase() {
   };
 }
 
+test("a failed audit does not turn a committed draft creation or update into failure", async () => {
+  const config = testConfig();
+  const user = { id: "writer", email: "writer@noortetugi.ee", name: "Writer", role: "member" };
+  let saved;
+  const database = {
+    async getSession() { return { user }; },
+    async createSubmission({ type, creatorId, data }) {
+      saved = { id: "draft-test", type, creatorId, data, status: "DRAFT" };
+      return saved;
+    },
+    async getSubmission() { return saved; },
+    async updateSubmission({ data }) { saved = { ...saved, data }; return saved; },
+    async withSubmissionLock(_id, work) { return work(); },
+    async listAttachments() { return []; },
+    async listReviews() { return []; },
+    async audit() { throw Object.assign(new Error("synthetic audit failure"), { code: "TEST_AUDIT_ERROR" }); }
+  };
+  const { app } = createStaffApp({ config, database, mailService });
+  const cookie = `${config.cookieName}=test-session-token`;
+  const session = await request(app).get("/api/staff/session").set("Cookie", cookie);
+  const created = await request(app).post("/api/staff/submissions").set("Cookie", cookie)
+    .set("X-CSRF-Token", session.body.csrfToken).send({ type: "news", data: { title: "Draft" } });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.item.id, saved.id);
+  const updated = await request(app).patch(`/api/staff/submissions/${saved.id}`).set("Cookie", cookie)
+    .set("X-CSRF-Token", session.body.csrfToken).send({ data: { title: "Corrected" } });
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.item.data.title, "Corrected");
+});
+
+test("a failed Blob stream closes the partial HTTP response instead of hanging", async () => {
+  const config = testConfig();
+  const database = {
+    ...testDatabase(),
+    async getSubmission() { return { id: "public-news", type: "news", status: "PUBLISHED" }; },
+    async getAttachment() { return { id: "image", submissionId: "public-news", mimeType: "image/png" }; }
+  };
+  const { app } = createStaffApp({ config, database, mailService,
+    privateAttachmentOpener: async () => ({ statusCode: 200, blob: { size: 100 }, stream: new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1, 2, 3]));
+        setTimeout(() => controller.error(new Error("synthetic provider failure")), 25);
+      }
+    }) })
+  });
+  await assert.rejects(
+    request(app).get("/api/staff/public/news/public-news/attachments/image").buffer(true).timeout(1000),
+    (error) => error.code === "ECONNRESET" || /aborted/.test(error.message)
+  );
+});
+
 const mailService = Object.freeze({
   available: false,
   async sendExpenseSubmitted() {}

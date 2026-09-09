@@ -151,7 +151,7 @@ async function writeAtomically(destination, source) {
 
 async function main() {
   const options = parseArguments(process.argv.slice(2));
-  await loadLocalEnvironment();
+  if (!options.mock) await loadLocalEnvironment();
 
   const [translationSource, newsDataSource] = await Promise.all([
     readFile(translationsPath, "utf8"),

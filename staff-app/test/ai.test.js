@@ -47,6 +47,16 @@ test("AI assistant executes an injected Responses client without storing the res
   });
 });
 
+test("AI request has a bounded timeout and no automatic provider retries", async () => {
+  let options;
+  const client = { responses: { async create(_request, requestOptions) {
+    options = requestOptions;
+    return { status: "completed", output_text: "Test text" };
+  } } };
+  await assistantWith(client).improve({ text: "Test text", field: "news.title", mode: "fix_language", language: "en" });
+  assert.deepEqual(options, { timeout: 20_000, maxRetries: 0 });
+});
+
 test("non-completed Responses output is rejected even when partial text is present", async () => {
   const client = fakeClient();
   client.responses.create = async () => ({

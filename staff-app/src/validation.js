@@ -9,7 +9,8 @@ const isoDate = z.string()
     return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
   });
 const optionalDate = isoDate.optional().or(z.literal(""));
-const money = z.coerce.number().finite().min(0).max(10_000_000);
+const numericInput = z.union([z.number(), z.string()]).transform(Number);
+const money = numericInput.pipe(z.number().finite().min(0).max(10_000_000));
 const optionalMoney = z.union([money, z.literal(""), z.null()]).optional().transform((value) => value === "" || value === null || value === undefined ? 0 : value);
 // Expense rows have several legacy monetary aliases. Preserve an omitted alias
 // as omitted so document preparation cannot mistake a schema default of 0 for
@@ -137,7 +138,7 @@ const expenseDraft = z.object({
 
 const invoiceItem = z.object({
   description: optionalText(500),
-  quantity: z.coerce.number().finite().min(0.0001).max(1_000_000).optional().default(1),
+  quantity: numericInput.pipe(z.number().finite().min(0.0001).max(1_000_000)).optional().default(1),
   unit: optionalText(60),
   unitPrice: optionalMoney,
   amount: optionalMoney,
@@ -301,6 +302,17 @@ export function validateSubmissionData(type, input, { final = false } = {}) {
         return { ...item, unitPrice: unitPriceCents / 100, amount, total: amount };
       });
       result.data.amount = result.data.items.reduce((sum, item) => sum + Math.round(item.amount * 100), 0) / 100;
+    }
+  }
+  // Derived totals must obey the same bounds as persisted input; otherwise a
+  // draft can save successfully but fail validation when reopened unchanged.
+  if (type === "expense" || type === "invoice") {
+    const totals = [["amount", result.data.amount], ...result.data.items.map((item, index) =>
+      [`items.${index}.amount`, item.amount])];
+    const issues = totals.filter(([, value]) => value !== undefined && !money.safeParse(value).success)
+      .map(([path]) => ({ path, code: "too_big" }));
+    if (issues.length) {
+      throw Object.assign(new Error("Submission data is invalid."), { code: "VALIDATION_ERROR", issues });
     }
   }
   if (final) ensureFinal(type, result.data);

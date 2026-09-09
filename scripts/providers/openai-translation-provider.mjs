@@ -64,7 +64,7 @@ export async function createOpenAITranslationProvider({
   }
 
   const { default: OpenAI } = await import("openai");
-  const client = new OpenAI({ apiKey });
+  const client = new OpenAI({ apiKey, timeout: 60_000, maxRetries: 0 });
 
   return async function translate({ itemId, source, requests }) {
     let response;
@@ -91,11 +91,13 @@ export async function createOpenAITranslationProvider({
       });
     } catch (error) {
       throw new Error(
-        `OpenAI translation request failed for "${itemId}": ${error.message}`
+        `OpenAI translation request failed for "${itemId}"` +
+        (Number.isInteger(error?.status) ? ` (HTTP ${error.status}).` : ".")
       );
     }
 
-    if (typeof response.output_text !== "string" || !response.output_text) {
+    if ((response.status && response.status !== "completed") ||
+        typeof response.output_text !== "string" || !response.output_text) {
       throw new Error(
         `OpenAI returned no structured translation for "${itemId}".`
       );
@@ -105,7 +107,7 @@ export async function createOpenAITranslationProvider({
       return JSON.parse(response.output_text);
     } catch (error) {
       throw new Error(
-        `OpenAI returned invalid JSON for "${itemId}": ${error.message}`
+        `OpenAI returned invalid JSON for "${itemId}".`
       );
     }
   };

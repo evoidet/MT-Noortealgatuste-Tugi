@@ -14,7 +14,9 @@ const failures = [];
 const senderFormId = "azpjE7";
 const supportedLanguages = ["et", "en", "ru"];
 const forbiddenEmail = ["info", "noortetugi.ee"].join("@");
-const ignoredDirectories = new Set([".git", "node_modules"]);
+const ignoredDirectories = new Set([
+  ".git", "node_modules", "dist", ".vercel", "admin-local", "private", "uploads", "__pycache__"
+]);
 const textFileExtensions = new Set([
   ".css",
   ".html",
@@ -48,6 +50,9 @@ function collectTextFiles(directory, relativeDirectory = "") {
   return fs
     .readdirSync(directory, { withFileTypes: true })
     .flatMap((entry) => {
+      // Checks must never inspect local credentials, runtime data or symlinks.
+      if (entry.isSymbolicLink() || entry.name.startsWith(".") ||
+          /secret|credential|token|password|service[-_]?account/i.test(entry.name)) return [];
       const relativePath = path.join(relativeDirectory, entry.name);
       const absolutePath = path.join(directory, entry.name);
 

@@ -13,10 +13,10 @@ import { renderSubmissionPreview } from "../public/previews.js";
 test("data repair is ordered between immutable migrations 002 and 003", async () => {
   const migrations = await loadMigrations();
   assert.deepEqual(migrations.map((migration) => migration.version),
-    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009"]);
+    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010"]);
 });
 
-async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009"]) {
+async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010"]) {
   const engine = new PGlite();
   t.after(() => engine.close());
   const migrations = await loadMigrations();
@@ -44,6 +44,23 @@ async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005",
     email: "fixture@example.test", name: "Synthetic Staff", role: "member" });
   return { engine, database, user, migrate };
 }
+
+test("archive migration preserves legacy rows and is repeat-safe", async (t) => {
+  const { engine, database, user, migrate } = await fixture(t,
+    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009"]);
+  for (const [type, table] of [["expense", "submission_drive_archives"], ["invoice", "invoice_drive_archives"]]) {
+    const item = await database.createSubmission({ type, creatorId: user.id, data: {} });
+    await engine.query(`INSERT INTO ${table} (submission_id, status) VALUES ($1, 'failed')`, [item.id]);
+  }
+  await migrate("010");
+  await migrate("010");
+  await database.assertDriveArchiveSchema();
+  await database.assertInvoiceDriveArchiveSchema();
+  for (const table of ["submission_drive_archives", "invoice_drive_archives"]) {
+    const { rows } = await engine.query(`SELECT status, source_fingerprint FROM ${table}`);
+    assert.deepEqual(rows, [{ status: "failed", source_fingerprint: null }]);
+  }
+});
 
 test("fresh and drifted databases converge on the complete submissions column contract", async (t) => {
   const versionsBeforeRepair = ["001", "002", "002a", "003", "004", "005", "006", "007", "008"];
@@ -514,16 +531,23 @@ test("only the configured finance account can issue an invoice and re-issue is i
   assert.equal(issued.status, 500);
   assert.equal((await database.getSubmission(id)).status, "DRAFT");
   assert.equal((await database.getInvoiceDriveArchive(id)).status, "complete");
+  const previousFingerprint = (await database.getInvoiceDriveArchive(id)).sourceFingerprint;
+  assert.ok(previousFingerprint);
+  // A draft can still be corrected after Drive succeeded but finalization
+  // failed. The next attempt must archive the corrected source, not reuse it.
+  const correctedData = { ...data, client: "Corrected Client OÜ" };
+  assert.equal((await issuer.write("patch", path, { data: correctedData })).status, 200);
   const recoveredIssue = await issuer.write("post", `${path}/submit`, {});
   assert.equal(recoveredIssue.status, 200);
   assert.equal(recoveredIssue.body.item.status, "APPROVED");
   assert.ok(recoveredIssue.body.item.submittedAt);
   assert.equal(recoveredIssue.body.item.publishedAt, null);
   assert.equal(invoiceDocumentGenerations, 4);
-  assert.equal(invoiceDriveArchives, 2);
+  assert.equal(invoiceDriveArchives, 3);
+  assert.notEqual((await database.getInvoiceDriveArchive(id)).sourceFingerprint, previousFingerprint);
   assert.equal((await issuer.write("post", `${path}/submit`, {})).status, 200);
   assert.equal(invoiceDocumentGenerations, 4);
-  assert.equal(invoiceDriveArchives, 2);
+  assert.equal(invoiceDriveArchives, 3);
   assert.equal((await issuer.write("patch", path, { data })).status, 403);
 });
 

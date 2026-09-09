@@ -24,3 +24,5 @@ dist/
 *Zone.Identifier*
 .vercel
 .env*
+__pycache__/
+*.pyc

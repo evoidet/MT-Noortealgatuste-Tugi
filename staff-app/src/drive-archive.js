@@ -1,4 +1,5 @@
 import { extname } from "node:path";
+import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
 import { google } from "googleapis";
 
@@ -60,6 +61,28 @@ function invoiceFilename(submission) {
     "customer"
   ).replace(/[<>:"|?*]/g, "_");
   return `${safeDriveName(`Arve_${number}_${customer}`, "Arve_invoice_customer").slice(0, 175)}.docx`;
+}
+
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
+  }
+  return value;
+}
+
+export function archiveFingerprint(submission, files = []) {
+  // DOCX ZIP timestamps can vary between retries: fingerprint the source data
+  // and original attachments instead of the generated document bytes.
+  return createHash("sha256").update(JSON.stringify(canonical({
+    data: submission?.data ?? {},
+    recipientEmail: submission?.reimbursementRecipientEmail ?? null,
+    recipientName: submission?.reimbursementRecipientName ?? null,
+    files: files.filter((file) => file.itemKey !== "generated-document")
+      .map((file) => ({ itemKey: file.itemKey, filename: file.filename,
+        hash: createHash("sha256").update(file.content).digest("hex") }))
+      .sort((a, b) => a.itemKey.localeCompare(b.itemKey))
+  }))).digest("hex");
 }
 
 function escapeDriveQuery(value) {
@@ -338,12 +361,16 @@ export function createDriveArchiveService(config, overrides = {}) {
         }
         const folderId = fileId(folder?.id);
         for (const archiveFile of normalizedFiles) {
+          // Preserve earlier documents; a correction gets its own version,
+          // while a retry of the same saved revision reuses the remote file.
+          const itemKey = archiveFile.itemKey === "generated-document"
+            ? `${archiveFile.itemKey}:${archiveFingerprint(submission, files)}` : archiveFile.itemKey;
           let existing;
           try {
             existing = await drive.findFile({
               parentId: folderId,
               submissionId: submission.id,
-              itemKey: archiveFile.itemKey
+              itemKey
             });
           } catch (error) {
             throw driveOperationError(
@@ -360,7 +387,8 @@ export function createDriveArchiveService(config, overrides = {}) {
             const uploaded = await drive.uploadFile({
               parentId: folderId,
               submissionId: submission.id,
-              ...archiveFile
+              ...archiveFile,
+              itemKey
             });
             fileId(uploaded?.id);
           } catch (error) {
@@ -405,7 +433,7 @@ export function createDriveArchiveService(config, overrides = {}) {
       }
       const archiveFile = safeArchiveFile({
         ...file,
-        itemKey: "issued-invoice",
+        itemKey: `issued-invoice:${archiveFingerprint(submission)}`,
         filename: invoiceFilename(submission)
       });
       try {

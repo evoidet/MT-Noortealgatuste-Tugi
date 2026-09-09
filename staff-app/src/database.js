@@ -90,6 +90,7 @@ function mapDriveArchive(row) {
   if (!row) return null;
   return {
     submissionId: row.submission_id,
+    sourceFingerprint: row.source_fingerprint ?? null,
     parentFolderId: row.parent_folder_id,
     folderId: row.drive_folder_id,
     folderUrl: row.drive_folder_url,
@@ -105,6 +106,7 @@ function mapInvoiceDriveArchive(row) {
   if (!row) return null;
   return {
     submissionId: row.submission_id,
+    sourceFingerprint: row.source_fingerprint ?? null,
     fileId: row.drive_file_id,
     fileUrl: row.drive_file_url,
     status: row.status,
@@ -301,7 +303,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
     async assertDriveArchiveSchema() {
       try {
         await pool.query(`SELECT submission_id, parent_folder_id, drive_folder_id,
-          drive_folder_url, status, error_code, archived_at, created_at, updated_at
+          drive_folder_url, status, error_code, archived_at, source_fingerprint, created_at, updated_at
           FROM submission_drive_archives LIMIT 0`);
       } catch (error) {
         throw Object.assign(error, { table: "submission_drive_archives", operation: "expense_submit" });
@@ -320,7 +322,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
     async assertInvoiceDriveArchiveSchema() {
       try {
         await pool.query(`SELECT submission_id, drive_file_id, drive_file_url,
-          status, error_code, archived_at, created_at, updated_at
+          status, error_code, archived_at, source_fingerprint, created_at, updated_at
           FROM invoice_drive_archives LIMIT 0`);
       } catch (error) {
         throw Object.assign(error, { table: "invoice_drive_archives", operation: "invoice_issue" });
@@ -879,6 +881,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
 
     async recordDriveArchive({
       submissionId,
+      sourceFingerprint = null,
       parentFolderId = null,
       folderId = null,
       folderUrl = null,
@@ -889,8 +892,8 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       const result = await pool.query(`
         INSERT INTO submission_drive_archives (
           submission_id, parent_folder_id, drive_folder_id, drive_folder_url,
-          status, error_code, archived_at, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+          status, error_code, archived_at, source_fingerprint, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         ON CONFLICT (submission_id) DO UPDATE SET
           parent_folder_id = COALESCE(EXCLUDED.parent_folder_id,
             submission_drive_archives.parent_folder_id),
@@ -899,12 +902,13 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
           drive_folder_url = COALESCE(EXCLUDED.drive_folder_url,
             submission_drive_archives.drive_folder_url),
           status = EXCLUDED.status,
+          source_fingerprint = EXCLUDED.source_fingerprint,
           error_code = EXCLUDED.error_code,
           archived_at = COALESCE(EXCLUDED.archived_at,
             submission_drive_archives.archived_at),
           updated_at = NOW()
         RETURNING *
-      `, [submissionId, parentFolderId, folderId, folderUrl, status, errorCode, archivedAt]);
+      `, [submissionId, parentFolderId, folderId, folderUrl, status, errorCode, archivedAt, sourceFingerprint]);
       return mapDriveArchive(result.rows[0]);
     },
 
@@ -918,6 +922,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
 
     async recordInvoiceDriveArchive({
       submissionId,
+      sourceFingerprint = null,
       fileId = null,
       fileUrl = null,
       status,
@@ -927,20 +932,21 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       const result = await pool.query(`
         INSERT INTO invoice_drive_archives (
           submission_id, drive_file_id, drive_file_url, status, error_code,
-          archived_at, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+          archived_at, source_fingerprint, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
         ON CONFLICT (submission_id) DO UPDATE SET
           drive_file_id = COALESCE(EXCLUDED.drive_file_id,
             invoice_drive_archives.drive_file_id),
           drive_file_url = COALESCE(EXCLUDED.drive_file_url,
             invoice_drive_archives.drive_file_url),
           status = EXCLUDED.status,
+          source_fingerprint = EXCLUDED.source_fingerprint,
           error_code = EXCLUDED.error_code,
           archived_at = COALESCE(EXCLUDED.archived_at,
             invoice_drive_archives.archived_at),
           updated_at = NOW()
         RETURNING *
-      `, [submissionId, fileId, fileUrl, status, errorCode, archivedAt]);
+      `, [submissionId, fileId, fileUrl, status, errorCode, archivedAt, sourceFingerprint]);
       return mapInvoiceDriveArchive(result.rows[0]);
     },
 

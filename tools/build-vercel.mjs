@@ -1,13 +1,22 @@
 import { spawn } from "node:child_process";
 import { cp, mkdir, readdir, rm } from "node:fs/promises";
-import { dirname, extname, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const toolsDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(toolsDirectory, "..");
 const outputDirectory = resolve(projectRoot, "dist");
 const expectedOutputDirectory = resolve(projectRoot, "dist");
-const publicExtensions = new Set([".css", ".html", ".ico", ".js", ".png", ".txt", ".xml"]);
+// Publish only reviewed public entry points, never arbitrary root-level files.
+const publicFiles = new Set([
+  "index.html", "uudised.html", "vorgustik.html", "laager.html", "street.html",
+  "tunnustusgala.html", "privaatsuspoliitika.html", "dokumendid.html",
+  "style.css", "home.css", "news.css", "vorgustik.css", "camp.css", "street.css",
+  "gala.css", "privacy.css", "documents.css", "translations.js", "i18n.js",
+  "script.js", "site-config.js", "sender-init.js", "news-data.js", "news-home.js",
+  "news.js", "news-photo-lightbox.js", "favicon.ico", "favicon.png",
+  "apple-touch-icon.png", "robots.txt", "sitemap.xml"
+]);
 
 async function runNodeScript(relativePath) {
   const scriptPath = resolve(projectRoot, relativePath);
@@ -43,7 +52,7 @@ await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 
 for (const entry of await readdir(projectRoot, { withFileTypes: true })) {
-  if (!entry.isFile() || !publicExtensions.has(extname(entry.name).toLowerCase())) continue;
+  if (!entry.isFile() || !publicFiles.has(entry.name)) continue;
   await cp(resolve(projectRoot, entry.name), resolve(outputDirectory, entry.name));
 }
 

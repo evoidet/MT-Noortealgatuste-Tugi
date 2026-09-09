@@ -6,9 +6,12 @@ News publication requires `submissions.published_at`, introduced in
 `003_published_news.sql`. Expense/invoice submission and review no longer reference
 that column. `002a_repair_duplicate_primary_attachments.sql` preserves legacy
 attachments and demotes excess active primary metadata before migration 003 creates
-the unique index. Run all migrations through `006_google_drive_archival.sql`
-before promoting this release. Neither Vercel builds nor application startup run
-database migrations automatically.
+the unique index. Run all migrations through `010_archive_source_revision.sql`
+before promoting this release. Production Vercel builds run migration and schema
+checks before preparing public assets; application startup does not migrate.
+Local builds should use `VERCEL_ENV=preview` to avoid production database actions.
+Migration 010 adds nullable archive fingerprints so corrected reports and invoices
+cannot reuse stale documents. Older remote files are preserved.
 
 From the repository root in a trusted shell with the existing
 `STORAGE_DATABASE_URL_UNPOOLED` available, run:
@@ -55,9 +58,10 @@ root build script.
 
 ## Safety and assumptions
 
-- Database migrations are additive and run only through the explicit
-  `db:migrate` command. Application startup and the Vercel build do not run
-  migrations.
+- Database migrations are additive. The explicit `db:migrate` command and
+  production Vercel builds run them; application startup does not. Use
+  `NODE_ENV=production VERCEL_ENV=preview npm run build` for a local production-mode
+  artifact check without running migrations.
 - The SQLite import commands never delete the source database or upload
   directory and never overwrite conflicting Postgres rows.
 - Existing sessions and unfinished OAuth attempts are intentionally not
@@ -87,6 +91,13 @@ root build script.
    OAuth is intentionally configured.
 
 ## Required Vercel environment variables
+
+`NODE_ENV=production` enables production validation and secure cookies.
+`STAFF_ENABLE_DEV_AUTH` defaults to false and must remain false in production.
+`REIMBURSEMENT_RECIPIENTS` optionally extends the built-in approved recipients
+with an email-to-name JSON object or an array of `{ "email": "...", "name": "..." }`.
+`GOOGLE_DRIVE_INVOICE_FOLDER_ID` identifies the dedicated invoice archive folder;
+it is required in production when `GOOGLE_DRIVE_ARCHIVE_ENABLED=true`.
 
 ```text
 STORAGE_DATABASE_URL

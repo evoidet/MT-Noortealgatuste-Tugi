@@ -78,6 +78,9 @@ the generated DOCX plus every original attachment. Retry Submit and verify that
 the folder, files, and finance email are not duplicated.
 
 Each remote folder carries the submission ID in Drive `appProperties`; each file
-also carries a stable generated-document or attachment key. PostgreSQL records
+also carries a stable generated-document or attachment key. Generated-document
+keys include a fingerprint of the source data and attachments; corrected versions
+create a new file while identical retries reuse the same file. Old versions stay
+in Drive. Apply migration 010 before deploying this behavior. PostgreSQL records
 folder/status metadata. This lets retries rediscover remote objects after a
 successful Drive write followed by a failed database write.

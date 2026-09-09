@@ -12,7 +12,7 @@ import {
   generateSubmissionDocument,
   getDocumentTemplateAvailability
 } from "./documents.js";
-import { createDriveArchiveService } from "./drive-archive.js";
+import { archiveFingerprint, createDriveArchiveService } from "./drive-archive.js";
 import { createMailService } from "./mail.js";
 import { safeOperationalError } from "./safe-errors.js";
 import { normalizeNewsLanguage, toPublicNewsItem } from "./news-publishing.js";
@@ -391,7 +391,8 @@ export function createStaffApp({
   driveArchiveService = createDriveArchiveService(config),
   documentGenerator = generateSubmissionDocument,
   clientUploadedFileVerifier = verifyClientUploadedFile,
-  privateAttachmentReader = readPrivateAttachment
+  privateAttachmentReader = readPrivateAttachment,
+  privateAttachmentOpener = openPrivateAttachment
 }) {
   const app = express();
   const auth = createAuth({ config, database });
@@ -493,7 +494,7 @@ export function createStaffApp({
     });
   }
 
-  async function auditSafely(entry, logMessage) {
+  async function auditSafely(entry, logMessage = "Completed operation could not be audited:") {
     try {
       await database.audit(entry);
       return true;
@@ -594,8 +595,10 @@ export function createStaffApp({
   async function attemptExpenseDriveArchive(submission, archiveFiles, user, ipHash) {
     if (!driveArchiveService.enabled) return null;
     try {
+      const sourceFingerprint = archiveFingerprint(submission, archiveFiles);
       const existing = await database.getDriveArchive(submission.id);
-      if (existing?.status === "complete" && existing.folderUrl) return existing.folderUrl;
+      if (existing?.status === "complete" && existing.folderUrl &&
+          existing.sourceFingerprint === sourceFingerprint) return existing.folderUrl;
       const archived = await driveArchiveService.archiveExpense({
         submission,
         submitterEmail: user.email,
@@ -606,6 +609,7 @@ export function createStaffApp({
         await database.recordDriveArchive({
           submissionId: submission.id,
           parentFolderId: archived.parentFolderId,
+          sourceFingerprint,
           folderId: archived.folderId,
           folderUrl: archived.folderUrl,
           status: "complete",
@@ -664,8 +668,10 @@ export function createStaffApp({
 
   async function attemptInvoiceDriveArchive(submission, document, user, ipHash) {
     try {
+      const sourceFingerprint = archiveFingerprint(submission);
       const existing = await database.getInvoiceDriveArchive(submission.id);
-      if (existing?.status === "complete" && existing.fileUrl) return existing.fileUrl;
+      if (existing?.status === "complete" && existing.fileUrl &&
+          existing.sourceFingerprint === sourceFingerprint) return existing.fileUrl;
       const bytes = document?.buffer;
       const buffer = Buffer.isBuffer(bytes)
         ? bytes
@@ -688,6 +694,7 @@ export function createStaffApp({
         await database.recordInvoiceDriveArchive({
           submissionId: submission.id,
           fileId: archived.fileId,
+          sourceFingerprint,
           fileUrl: archived.fileUrl,
           status: "complete",
           archivedAt: archived.archivedAt
@@ -864,7 +871,7 @@ export function createStaffApp({
       }
       let opened;
       try {
-        opened = await openPrivateAttachment({ config, attachment });
+        opened = await privateAttachmentOpener({ config, attachment });
       } catch {
         return response.status(404).json({ error: "NOT_FOUND" });
       }
@@ -879,6 +886,7 @@ export function createStaffApp({
       });
       const stream = Readable.fromWeb(opened.stream);
       stream.once("error", next);
+      response.once("close", () => stream.destroy());
       stream.pipe(response);
     })
   );
@@ -916,7 +924,7 @@ export function createStaffApp({
         reimbursementRecipientEmail: recipient?.email,
         reimbursementRecipientName: recipient?.name
       });
-      await database.audit({
+      await auditSafely({
         user: request.user,
         action: `${auditPrefix[type]}_CREATED`,
         targetType: type,
@@ -953,7 +961,7 @@ export function createStaffApp({
         reimbursementRecipientEmail: recipient?.email,
         reimbursementRecipientName: recipient?.name
       });
-      await database.audit({
+      await auditSafely({
         user: request.user,
         action: `${auditPrefix[submission.type]}_UPDATED`,
         targetType: submission.type,
@@ -1314,7 +1322,7 @@ export function createStaffApp({
       : parsed.data.decision === "needs_changes"
         ? `${auditPrefix[submission.type]}_RETURNED`
         : `${auditPrefix[submission.type]}_REJECTED`;
-    await database.audit({
+    await auditSafely({
       user: request.user,
       action,
       targetType: submission.type,
@@ -1349,7 +1357,7 @@ export function createStaffApp({
             ...stored
           })
         });
-        await database.audit({
+        await auditSafely({
           user: request.user,
           action: `${auditPrefix[submission.type]}_ATTACHMENT_ADDED`,
           targetType: submission.type,
@@ -1516,7 +1524,7 @@ export function createStaffApp({
     if (!submission || !canReadAttachment(request.user, submission, permissionContext)) {
       return response.status(404).json({ error: "NOT_FOUND" });
     }
-    const opened = await openPrivateAttachment({ config, attachment });
+    const opened = await privateAttachmentOpener({ config, attachment });
     if (!opened || opened.statusCode !== 200 || !opened.stream) {
       return response.status(404).json({ error: "NOT_FOUND" });
     }
@@ -1533,6 +1541,7 @@ export function createStaffApp({
     });
     const stream = Readable.fromWeb(opened.stream);
     stream.once("error", next);
+    response.once("close", () => stream.destroy());
     stream.pipe(response);
   }));
 
@@ -1553,7 +1562,7 @@ export function createStaffApp({
         if (attachment.blobPathname) await deleteStoredFile({ config, attachment });
         await database.deleteAttachment(attachment.id);
       }
-      await database.audit({
+      await auditSafely({
         user: request.user,
         action: `${auditPrefix[submission.type]}_ATTACHMENT_DELETED`,
         targetType: submission.type,
@@ -1619,7 +1628,7 @@ export function createStaffApp({
     }
     try {
       const suggestion = await ai.improve(parsed.data);
-      await database.audit({
+      await auditSafely({
         user: request.user,
         action: "AI_TEXT_IMPROVED",
         targetType: parsed.data.field.split(".")[0],
@@ -1668,7 +1677,12 @@ export function createStaffApp({
 
   app.use((request, response) => response.status(404).json({ error: "NOT_FOUND" }));
   app.use((error, request, response, _next) => {
-    if (response.headersSent) return;
+    // Close incomplete streams without passing provider details to Express's
+    // default error logger (which prints the original error/stack).
+    if (response.headersSent) {
+      console.error("Staff response stream failed:", safeOperationalError(error, "STREAM_FAILED"));
+      return response.destroy();
+    }
     if (error?.type === "entity.too.large") {
       return response.status(413).json({ error: "REQUEST_TOO_LARGE" });
     }

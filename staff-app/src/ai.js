@@ -93,7 +93,7 @@ export function createAiAssistant(config, {
         modeDirections[mode]
       ].join(" "),
       input: JSON.stringify({ field, text })
-    });
+    }, { timeout: 20_000, maxRetries: 0 });
     if (response?.status != null && response.status !== "completed") {
       const error = new Error("AI did not return a completed response.");
       error.code = "AI_INCOMPLETE_RESPONSE";
