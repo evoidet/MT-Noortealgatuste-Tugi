@@ -20,14 +20,16 @@ never modified by the preparation script.
 ### Expense report (`kuluaruanne`)
 
 - Reference:
-  `C:\Users\egork\Downloads\Naidisdokument_kulude_huvitamise_avaldus_ja_kuluaruanne.docx`
-- SHA-256: `b1f3b7f996929de43bc7bd41308bb9fdab3997c2e5477535502ae74696f85123`
-- Source patterns: 3 pages, 1 section; pages 1-2 are the applicant report and
-  page 3 is a separate internal decision.
-- Evidence render:
-  `C:\Users\egork\AppData\Local\Temp\codex-noortetugi-docrefs-20260829\kulu`
+  `C:\Users\egork\Downloads\kuluaruanne-KA-6559A6AD.docx.pdf`
+- SHA-256: `54c58c34f6dda95f794d50976cafc6f193cc5ec74f9bfbd5aab7dcb3119c11fa`.
+- Source patterns: two pages containing six sections, including the finance
+  confirmation and two digital-signature areas.
 - Output template: `kuluaruanne/kuluaruanne.docx`; one A4 section and two
-  applicant-facing pages for representative content.
+  pages for representative content. Longer submissions flow to additional pages.
+- The checked-in reusable DOCX completely replaces the previous expense
+  template. Preparation validates and copies this current template only.
+- Full current expense measurements, field contract and verification details:
+  [kuluaruanne/artifact.md](kuluaruanne/artifact.md).
 
 ## Page systems
 
@@ -50,7 +52,8 @@ never modified by the preparation script.
   `#E9F1CB`. The supplied logo and its original relationship/drawing geometry
   are preserved.
 - Expense report: Times New Roman body; title 16 pt bold centered; Heading 1
-  12 pt bold; body 10 pt. Source blue header rules and pale-blue table headers
+  12 pt bold; cells and declarations 9 pt, costs 8.5 pt, application sentence
+  10 pt. Source blue header rules and pale-blue table headers
   remain, while all blue italic example values are replaced by black,
   non-italic actual values.
 - Paragraph spacing, line spacing, alignment, cell margins, borders, row
@@ -71,6 +74,7 @@ never modified by the preparation script.
   - activity narrative `[2700, 7740]`
   - costs `[2895, 1440, 1365, 1695, 1485, 1620]`
   - signature `[3600, 3440, 3400]`
+  - finance signature `[2595, 1800, 3405, 2640]`
 - Repeated invoice and expense line-item rows clone the corresponding original
   first data row. Header and total rows retain their source geometry.
 
@@ -103,6 +107,13 @@ never modified by the preparation script.
 4. Fixed applicant declarations with generated requested total and IBAN.
 5. Signature slots: recipient, status, and date.
 6. Repeating list of actual attachment file names.
+7. Finance confirmation reuses the calculated requested total. The second
+   signature table uses financeApproverName, financeApproverRole,
+   financeSignatureStatus and financeSignatureDate. The named finance officer
+   and digital-signing wording follow the supplied source; generating the
+   document does not sign it or record approval.
+8. The source's final paragraph explains the last required digital signature
+   and signature timestamp.
 
 All slots accept plain text only. The generator escapes XML and removes control
 characters. Currency totals are recomputed on the server from line-item data;
@@ -116,9 +127,8 @@ client-supplied total fields are not mapped into the document.
   blue italic example/guidance value, the footer instruction beginning
   `Dokumendimall`, the complete `Kuluarvestuse reeglid` box, and sample
   attachment instructions.
-- Ordinary expense output omits page 3 in full, including the internal
-  competent-body decision, `KES VÕTAB OTSUSE VASTU?`, `ENNE MAKSET KONTROLLI`,
-  and legal/source guidance. It is not treated as applicant form content.
+- No former sample instructions or internal decision page are active. The
+  current source's section 6 finance confirmation is included in full.
 
 ## Package-preservation and fidelity gates
 

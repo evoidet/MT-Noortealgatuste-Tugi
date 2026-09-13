@@ -1676,6 +1676,202 @@ body.staff-page select {
   border-bottom: 3px solid var(--staff-dark);
 }
 
+/* The expense preview follows the supplied two-page document. */
+.staff-document.staff-document--expense {
+  width: min(calc(100% - 40px), 900px);
+  margin: 24px auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #000;
+  box-shadow: none;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.staff-document--expense .staff-expense-page {
+  display: flex;
+  min-width: 0;
+  min-height: 1180px;
+  padding: 40px 44px 34px;
+  flex-direction: column;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(14, 59, 3, 0.13);
+}
+
+.staff-document--expense .staff-expense-page + .staff-expense-page {
+  margin-top: 24px;
+  padding-top: 70px;
+}
+
+.staff-document--expense .staff-expense-running-header {
+  margin-bottom: 24px;
+  color: #666;
+  font-size: 11px;
+  text-align: right;
+}
+
+.staff-document--expense .staff-expense-title h2 {
+  margin: 0;
+  padding: 0 0 4px;
+  border-bottom: 2px solid #2f75b5;
+  color: #000;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.staff-document--expense .staff-expense-title p {
+  margin: 3px 0 8px;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 700;
+  text-align: center;
+}
+
+.staff-document--expense .staff-expense-section h3 {
+  margin: 8px 8px 4px;
+  color: #000;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.staff-document--expense .staff-expense-section p {
+  margin: 3px 8px;
+}
+
+.staff-document--expense .staff-expense-table {
+  width: 100%;
+  border: 1px solid #a6a6a6;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font: inherit;
+}
+
+.staff-document--expense .staff-expense-table th,
+.staff-document--expense .staff-expense-table td {
+  padding: 8px 9px;
+  border: 1px solid #a6a6a6;
+  color: #000;
+  text-align: left;
+  vertical-align: middle;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.staff-document--expense .staff-expense-table th {
+  background: #d9eaf7;
+  font-weight: 700;
+}
+
+.staff-document--expense .staff-expense-fields th {
+  width: 27%;
+  background: #e7e6e6;
+}
+
+.staff-document--expense .staff-expense-activity td {
+  height: 58px;
+  vertical-align: top;
+}
+
+.staff-document--expense .staff-expense-table-scroll {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.staff-document--expense .staff-expense-costs {
+  min-width: 650px;
+}
+
+.staff-document--expense .staff-expense-costs thead th {
+  text-align: center;
+}
+
+.staff-document--expense .staff-expense-costs tbody td:nth-child(2),
+.staff-document--expense .staff-expense-costs tbody td:nth-child(3) {
+  text-align: center;
+}
+
+.staff-document--expense .staff-expense-costs tr > :nth-child(n+4) {
+  text-align: right;
+}
+
+.staff-document--expense .staff-expense-costs tfoot td {
+  background: #d9eaf7;
+}
+
+.staff-document--expense .staff-expense-confirmations {
+  margin: 6px 8px 0;
+  padding-left: 27px;
+}
+
+.staff-document--expense .staff-expense-confirmations li {
+  margin: 2px 0;
+  padding-left: 1px;
+}
+
+.staff-document--expense .staff-expense-attachments ul {
+  margin: 3px 8px 24px;
+  padding-left: 27px;
+}
+
+.staff-document--expense .staff-expense-signature-note {
+  padding-top: 5px;
+}
+
+.staff-document--expense .staff-expense-section,
+.staff-document--expense .staff-expense-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.staff-document--expense .staff-expense-page-number {
+  margin-top: auto;
+  padding-top: 34px;
+  color: #666;
+  font-size: 11px;
+  text-align: right;
+}
+
+@media (max-width: 680px) {
+  .staff-document.staff-document--expense {
+    width: calc(100% - 20px);
+    margin: 10px auto;
+    font-size: 13px;
+  }
+
+  .staff-document--expense .staff-expense-page,
+  .staff-document--expense .staff-expense-page + .staff-expense-page {
+    min-height: 0;
+    padding: 24px 14px;
+  }
+
+  .staff-document--expense .staff-expense-title h2 {
+    font-size: 21px;
+  }
+
+  .staff-document--expense .staff-expense-title p {
+    font-size: 14px;
+  }
+
+  .staff-document--expense .staff-expense-fields th {
+    width: 35%;
+  }
+
+  .staff-document--expense .staff-expense-table th,
+  .staff-document--expense .staff-expense-table td {
+    padding: 6px;
+  }
+}
+
 .staff-document-header img {
   width: 180px;
   height: auto;

@@ -1,3 +1,5 @@
+import { normalizeExpense } from "./document-values.js";
+
 export function escapeHtml(value = "") {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -380,77 +382,114 @@ function renderDocumentField(labelKey, value, options = {}) {
   `;
 }
 
-function expenseTotal(data) {
-  const items = Array.isArray(data.items) ? data.items : [];
-  const itemTotal = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  return itemTotal || Number(data.amount) || 0;
+function expenseFieldRows(fields) {
+  return fields.map(([label, value]) => `
+    <tr><th scope="row">${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>
+  `).join("");
 }
 
-export function renderExpensePreview(data) {
-  const items = Array.isArray(data.items) ? data.items : [];
-  const total = expenseTotal(data);
+export function renderExpensePreview(data, options = {}) {
+  const { values } = normalizeExpense(data, { ...options, preview: true });
+  const generalFields = [
+    ["Dokumendi nr / kuupäev", values.documentNumberAndDate],
+    ["Organisatsioon / registrikood", "MTÜ Noortealgatuste Tugi, 80652930"],
+    ["Juriidiline aadress", "Maleva tn 35-32, Ahtme linnaosa, Kohtla-Järve linn, Ida-Viru maakond, 31025"],
+    ["Dokument esitatakse", "Egor Stepanov, finantsjuht / juhatuse liige, egor@noortetugi.ee"],
+    ["Hüvitise saaja", values.recipientName],
+    ["Roll seoses MTÜ tegevusega", values.recipientRole],
+    ["Kontakt, kontoomanik ja IBAN", values.contactAccountIban],
+    ["Tegevus / projekt / üritus", values.activityName],
+    ["Kulu liik", values.expenseType],
+    ["Koht, periood ja marsruut", values.locationPeriodRoute],
+    ["Rahastusallikas / eelarverida", values.fundingSource]
+  ];
+  const activityFields = [
+    ["Kus ja millal?", values.whereWhen],
+    ["Mida tegid ja mis rollis?", values.activitiesAndRole],
+    ["Miks oli see MTÜ jaoks vajalik?", values.necessity],
+    ["Mis tulemus saadi?", values.result],
+    ["Osalejad / kasusaajad", values.participants]
+  ];
 
   return `
-    <article class="staff-document staff-document--expense">
-      ${renderDocumentHeader(t("staff.expense.documentTitle"), data.project)}
-
-      <section class="staff-document-section">
-        <h3>${escapeHtml(t("staff.expense.generalSection"))}</h3>
-        <dl class="staff-document-grid">
-          ${renderDocumentField("staff.expense.project", data.project)}
-          ${renderDocumentField("staff.expense.person", data.person)}
-          ${renderDocumentField("staff.expense.date", formatDate(data.date))}
-          ${renderDocumentField("staff.expense.location", data.location)}
-          ${renderDocumentField("staff.expense.activity", data.activity, { wide: true })}
-          ${renderDocumentField("staff.expense.purpose", data.purpose, { wide: true })}
-          ${renderDocumentField("staff.expense.result", data.result, { wide: true })}
-        </dl>
+    <article class="staff-document staff-document--expense" lang="et">
+      <section class="staff-expense-page">
+        <div class="staff-expense-running-header">Kulude hüvitamise avaldus / kuluaruanne</div>
+        <header class="staff-expense-title">
+          <h2>KULUDE HÜVITAMISE AVALDUS JA KULUARUANNE</h2>
+          <p>MTÜ põhikirjalise tegevusega seotud dokumentaalselt tõendatud kulude hüvitamine</p>
+        </header>
+        <section class="staff-expense-section">
+          <h3>1. Üldandmed</h3>
+          <table class="staff-expense-table staff-expense-fields"><tbody>${expenseFieldRows(generalFields)}</tbody></table>
+        </section>
+        <section class="staff-expense-section">
+          <h3>2. Tegevuse sisu, vajalikkus ja tulemus</h3>
+          <table class="staff-expense-table staff-expense-fields staff-expense-activity"><tbody>${expenseFieldRows(activityFields)}</tbody></table>
+        </section>
+        <footer class="staff-expense-page-number">Eelvaate osa 1 / 2</footer>
       </section>
-
-      <section class="staff-document-section">
-        <h3>${escapeHtml(t("staff.expense.costSection"))}</h3>
-        <div class="staff-document-table-wrap">
-          <table class="staff-document-table">
-            <thead>
+      <section class="staff-expense-page">
+        <header class="staff-expense-title">
+          <h2>HÜVITATAVA KULU ARVESTUS</h2>
+          <p>Üks rida iga kuludokumendi või selgelt eristatava kuluosa kohta</p>
+        </header>
+        <div class="staff-expense-table-scroll" role="region" aria-label="Hüvitatava kulu arvestus" tabindex="0">
+          <table class="staff-expense-table staff-expense-costs">
+            <colgroup><col style="width:28%"><col style="width:14%"><col style="width:13%"><col style="width:16%"><col style="width:14%"><col style="width:15%"></colgroup>
+            <thead><tr>
+              <th scope="col">Kulu kirjeldus</th>
+              <th scope="col">Kulu kuupäev / tegevuse kuupäev</th>
+              <th scope="col">Alusdokumendi nr / fail</th>
+              <th scope="col">Kogukulu (valuuta / EUR)</th>
+              <th scope="col">Taotletav summa (€)</th>
+              <th scope="col">Varem hüvitatud / mittehüvitatav (€)</th>
+            </tr></thead>
+            <tbody>${values.items.length ? values.items.map((item) => `
               <tr>
-                <th>${escapeHtml(t("staff.common.numberShort"))}</th>
-                <th>${escapeHtml(t("staff.expense.itemDate"))}</th>
-                <th>${escapeHtml(t("staff.expense.documentNumber"))}</th>
-                <th>${escapeHtml(t("staff.expense.vendor"))}</th>
-                <th>${escapeHtml(t("staff.expense.itemDescription"))}</th>
-                <th>${escapeHtml(t("staff.common.amount"))}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${items.length ? items.map((item, index) => `
-                <tr>
-                  <td>${index + 1}</td>
-                  <td>${escapeHtml(formatDate(item.date))}</td>
-                  <td>${escapeHtml(valueOrEmpty(item.documentNumber))}</td>
-                  <td>${escapeHtml(valueOrEmpty(item.vendor))}</td>
-                  <td>${escapeHtml(valueOrEmpty(item.description))}</td>
-                  <td>${escapeHtml(formatMoney(item.amount, "EUR"))}</td>
-                </tr>
-              `).join("") : `
-                <tr><td colspan="6" class="staff-document-empty">${escapeHtml(t("staff.expense.noItems"))}</td></tr>
-              `}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th colspan="5">${escapeHtml(t("staff.common.total"))}</th>
-                <td>${escapeHtml(formatMoney(total, "EUR"))}</td>
-              </tr>
-            </tfoot>
+                <td>${escapeHtml(item.description)}</td><td>${escapeHtml(item.date)}</td>
+                <td>${escapeHtml(item.documentReference)}</td><td>${escapeHtml(item.grossAmount)}</td>
+                <td>${escapeHtml(item.requestedAmount)}</td><td>${escapeHtml(item.excludedAmount)}</td>
+              </tr>`).join("") : '<tr><td colspan="6">—</td></tr>'}</tbody>
+            <tfoot><tr><th scope="row">KOKKU</th><td></td><td></td>
+              <td>${escapeHtml(values.grossTotal)}</td><td>${escapeHtml(values.requestedTotal)}</td><td>${escapeHtml(values.excludedTotal)}</td>
+            </tr></tfoot>
           </table>
         </div>
-      </section>
-
-      <section class="staff-document-declaration">
-        <p>${escapeHtml(t("staff.expense.declaration"))}</p>
-        <div>
-          <span>${escapeHtml(t("staff.expense.applicantSignature"))}</span>
-          <span>${escapeHtml(formatDate(data.date))}</span>
-        </div>
+        <section class="staff-expense-section">
+          <h3>3. Taotlus ja hüvitise saaja kinnitused</h3>
+          <p>Palun hüvitada mulle eespool nimetatud MTÜ põhikirjalise tegevusega seotud ja dokumentaalselt tõendatud kulud kokku <strong>${escapeHtml(values.requestedTotal)}</strong> arvelduskontole <strong>${escapeHtml(values.iban)}</strong>.</p>
+          <ul class="staff-expense-confirmations">
+            <li>Kinnitan, et tasusin taotletavad kulud ise ning need on tegelikult tekkinud.</li>
+            <li>Kinnitan, et kulud tehti MTÜ Noortealgatuste Tugi kasuks, need olid MTÜ tegevuse jaoks vajalikud ning tegevuse kirjeldus ja tulemused on õiged.</li>
+            <li>Kinnitan, et olen lisanud kõik nõutavad alus- ja maksedokumendid ning taotletav summa ei sisalda isiklikke kulusid, välja arvatud tabelis eraldi märgitud mittehüvitatav osa.</li>
+            <li>Kinnitan, et taotletavat summat ei ole mulle hüvitatud teisest allikast ega varasema kuluhüvitise avalduse alusel.</li>
+            <li>Kohustun MTÜ-d viivitamata teavitama tühistamisest, tagasimaksest või muust hilisemast hüvitisest ning tagastama topelt hüvitatud summa.</li>
+            <li>Käesolev taotlus puudutab dokumentaalselt tõendatud kulu hüvitamist, mitte töötasu, teenustasu, stipendiumi ega dokumentideta päevaraha.</li>
+          </ul>
+        </section>
+        <section class="staff-expense-section">
+          <h3>4. Hüvitise saaja allkiri</h3>
+          <table class="staff-expense-table staff-expense-signatures">
+            <thead><tr><th scope="col">Hüvitise saaja nimi</th><th scope="col">Allkiri</th><th scope="col">Kuupäev</th></tr></thead>
+            <tbody><tr><td>${escapeHtml(values.recipientName)}</td><td>${escapeHtml(values.signatureStatus)}</td><td>${escapeHtml(values.signatureDate)}</td></tr></tbody>
+          </table>
+        </section>
+        <section class="staff-expense-section staff-expense-attachments">
+          <h3>5. Lisad</h3>
+          <p>Lisatud dokumendid:</p>
+          <ul>${values.attachments.map((attachment) => `<li>${escapeHtml(attachment.name)}</li>`).join("")}</ul>
+        </section>
+        <section class="staff-expense-section">
+          <h3>6. MTÜ kinnitus ja finantsjuhi allkiri</h3>
+          <p>Kinnitan esitatud kuluaruande kontrollimise ja taotletud ${escapeHtml(values.requestedTotal)} hüvitamise.</p>
+          <table class="staff-expense-table staff-expense-signatures">
+            <thead><tr><th scope="col">Kinnitaja nimi</th><th scope="col">Amet</th><th scope="col">Allkiri</th><th scope="col">Kuupäev</th></tr></thead>
+            <tbody><tr><td>${escapeHtml(values.financeApproverName)}</td><td>${escapeHtml(values.financeApproverRole)}</td><td>${escapeHtml(values.financeSignatureStatus)}</td><td>${escapeHtml(values.financeSignatureDate)}</td></tr></tbody>
+          </table>
+          <p class="staff-expense-signature-note">Käesolev dokument allkirjastatakse digitaalselt ning jõustub pärast viimase nõutava digitaalallkirja andmist. Allkirjastamise kuupäev ja kellaaeg tulenevad digitaalallkirja ajatemplist.</p>
+        </section>
+        <footer class="staff-expense-page-number">Eelvaate osa 2 / 2</footer>
       </section>
     </article>
   `;
@@ -572,7 +611,7 @@ export function renderSubmissionPreview(type, data, options = {}) {
   if (type === "news") {
     preview = renderNewsPreview(previewImageData(data || {}, attachments));
   } else if (type === "expense") {
-    preview = renderExpensePreview(data || {});
+    preview = renderExpensePreview(data || {}, { ...options, attachments });
   } else if (type === "invoice") {
     preview = renderInvoicePreview(data || {});
   } else {

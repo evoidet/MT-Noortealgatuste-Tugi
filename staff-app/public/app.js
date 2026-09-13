@@ -1601,6 +1601,25 @@ async function saveDraft(button) {
   }
 }
 
+function documentPreviewOptions(type, data, attachments, submission = state.current) {
+  if (type !== "expense") return { attachments };
+  const recipientEmail = submission?.reimbursementRecipientEmail || data.reimbursementRecipientEmail;
+  const approvedRecipient = (state.session?.reimbursementRecipients || [])
+    .find((recipient) => recipient.email === recipientEmail);
+  const reimbursementRecipient = approvedRecipient || (recipientEmail ? {
+    email: recipientEmail,
+    name: submission?.reimbursementRecipientName || data.person || recipientEmail
+  } : {
+    email: submission?.creatorEmail || state.session?.user?.email || "",
+    name: submission?.creatorName || submission?.creatorEmail || state.session?.user?.name || data.person || "—"
+  });
+  return {
+    attachments,
+    submission: { id: submission?.id || state.editingId },
+    reimbursementRecipient
+  };
+}
+
 function renderPreview(type, data, attachments = previewAttachments()) {
   state.view = "preview";
   state.preview = { type, data, attachments };
@@ -1628,7 +1647,7 @@ function renderPreview(type, data, attachments = previewAttachments()) {
         </button>
       </div>
       <div class="staff-preview-canvas">
-        ${renderSubmissionPreview(type, data, { attachments })}
+        ${renderSubmissionPreview(type, data, documentPreviewOptions(type, data, attachments))}
       </div>
       <footer class="staff-preview-actions">
         <button class="staff-button staff-button--ghost" type="button" data-action="save-preview">
@@ -1947,7 +1966,7 @@ async function renderDetail(id, scope = "mine") {
             </div>
           </div>
           <div class="staff-preview-canvas">
-            ${renderSubmissionPreview(record.type, record.data, { attachments: record.attachments })}
+            ${renderSubmissionPreview(record.type, record.data, documentPreviewOptions(record.type, record.data, record.attachments, record))}
           </div>
         </section>
 

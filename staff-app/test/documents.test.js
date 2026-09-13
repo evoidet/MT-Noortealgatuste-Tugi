@@ -55,6 +55,32 @@ function assertForbiddenAbsent(text, forbidden) {
   }
 }
 
+function expenseData(overrides = {}) {
+  return {
+    documentNumber: "KA-QA-2026",
+    documentDate: "2026-09-12",
+    recipientName: "Õie Testkasutaja",
+    activityName: "Õppepäev",
+    whereWhen: "12.09.2026 Jõhvis",
+    activitiesAndRole: "Juhendasin töötuba.",
+    necessity: "Materjalid olid õppepäevaks vajalikud.",
+    result: "Õppepäev toimus.",
+    items: [{ description: "Õppematerjalid", date: "2026-09-11", documentReference: "QA-1", grossAmount: 12.75 }],
+    ...overrides,
+  };
+}
+
+function assertFinanceConfirmation(text, requestedTotal) {
+  assert.ok(text.includes("6. MTÜ kinnitus ja finantsjuhi allkiri"));
+  assert.ok(text.includes(`Kinnitan esitatud kuluaruande kontrollimise ja taotletud ${requestedTotal} hüvitamise.`));
+  const financeText = text.slice(text.indexOf("6. MTÜ kinnitus ja finantsjuhi allkiri"));
+  for (const expected of ["Egor Stepanov", "finantsjuht", "Allkirjastatakse digitaalselt", "Digitaalallkirja ajatempel"]) {
+    assert.ok(financeText.includes(expected), `Finance signature is missing: ${expected}`);
+  }
+  assert.ok(financeText.includes("Käesolev dokument allkirjastatakse digitaalselt ning jõustub pärast viimase nõutava digitaalallkirja andmist."));
+  assert.ok(financeText.includes("Allkirjastamise kuupäev ja kellaaeg tulenevad digitaalallkirja ajatemplist."));
+}
+
 test("invoice output preserves the branded template and recalculates all totals", async () => {
   const result = await generateInvoiceDocument({
     invoiceNumber: "2026-099",
@@ -158,6 +184,11 @@ test("expense output contains actual values and attachments but no sample instru
     assert.ok(text.includes(expected), `Expected value missing: ${expected}`);
   }
   assert.equal(text.includes("999 999"), false, "client-computed requested total leaked into the report");
+  assertFinanceConfirmation(text, "45,20 €");
+  assert.ok(text.includes("kulud kokku 45,20 € arvelduskontole EE101010101010101010."));
+  const applicantSignature = text.slice(text.indexOf("4. Hüvitise saaja allkiri"), text.indexOf("5. Lisad"));
+  assert.ok(applicantSignature.includes("Digitaalselt allkirjastatud"));
+  assert.ok(applicantSignature.includes("29.08.2026"));
   assertForbiddenAbsent(text, FORBIDDEN_EXPENSE_TEXT);
   assert.equal(documentXml.includes("2F75B5"), false, "blue italic example styling remained in body values");
   assert.equal(documentXml.includes("{#items}"), false);
@@ -229,6 +260,177 @@ test("accepted foreign-currency and reimbursement aliases render consistently", 
   assert.match(text, /90,00 €/);
   assert.match(text, /2,00 €/);
   assert.match(text, /receipt\.pdf/);
+  assertFinanceConfirmation(text, "90,00 €");
+});
+
+test("new expense signature blocks use digital signing placeholders without implying an approval date", async () => {
+  const result = await generateExpenseReportDocument(expenseData({
+    recipientRole: "",
+    contactAccountIban: "",
+    expenseType: null,
+    locationPeriodRoute: "",
+    fundingSource: "",
+    participants: "",
+    iban: "",
+    attachments: [],
+    signatureStatus: "",
+    signatureDate: "",
+  }));
+  const { xml, documentXml } = documentParts(result.buffer);
+  const text = decodeXmlText(xml);
+  assertFinanceConfirmation(text, "12,75 €");
+  assert.equal(text.split("Allkirjastatakse digitaalselt").length - 1, 2);
+  assert.equal(text.split("Digitaalallkirja ajatempel").length - 1, 2);
+  const applicantSignature = text.slice(text.indexOf("4. Hüvitise saaja allkiri"), text.indexOf("5. Lisad"));
+  assert.ok(applicantSignature.includes("Õie Testkasutaja"));
+  assert.ok(applicantSignature.includes("Digitaalallkirja ajatempel"));
+  assert.equal(applicantSignature.includes("12.09.2026"), false, "document date must not stand in for a signing date");
+  assert.ok(text.includes("Lisad puuduvad"));
+  assert.ok(text.includes("arvelduskontole —."));
+  assert.doesNotMatch(text, /undefined|null|\{[\/#]?[A-Za-z][A-Za-z0-9]*\}/);
+  assert.equal((documentXml.match(/<w:sectPr\b/g) || []).length, 1);
+});
+
+test("expense generation preserves every mapped value and safely escapes Estonian and XML characters", async () => {
+  const result = await generateExpenseReportDocument(expenseData({
+    documentNumber: "KA-ÕÄÖÜŠŽ",
+    documentDate: "2026-09-03",
+    recipient: {
+      name: 'Õie Ääre <õ ä ö ü š ž> & "test"',
+      role: "Töötoa juhendaja & osaleja",
+      email: "qa@example.invalid",
+      phone: "+372 000 0000",
+      accountHolder: "Õie Ääre",
+      iban: "EE000000000000000000",
+    },
+    activityName: "Õppimine <üheskoos> & sõprus",
+    expenseType: "Töövahendid ja söök",
+    locationPeriodRoute: "Jõhvi–Võru, 01.–03.09.2026",
+    fundingSource: "Sünteetiline QA eelarverida",
+    whereWhen: "01.09.2026\r\nJõhvi õppehoones",
+    activitiesAndRole: "Juhendasin rühmatööd & selgitasin <eesmärke>.",
+    necessity: "Töövahendid võimaldasid osaleda kõigil.",
+    result: "Õppijad lõid ühise näituse: õ ä ö ü š ž.",
+    participants: "Kümme õppijat ja üks juhendaja.",
+    items: [{
+      provider: "Žürii & Õppimine OÜ",
+      description: "Paber <A4> & värvid",
+      expenseDate: "2026-09-01",
+      sourceDocumentNumber: "ÕÄÖÜŠŽ-01",
+      grossAmount: 24.6,
+      requestedAmount: 22.35,
+      excludedAmount: 2.25,
+    }],
+    attachments: ["õäöüšž <alus> & makse.pdf", { name: "töötoa-tšekk.png" }],
+  }));
+  const { xml, documentXml } = documentParts(result.buffer);
+  const text = decodeXmlText(xml);
+  for (const expected of [
+    "KA-ÕÄÖÜŠŽ / 03.09.2026", 'Õie Ääre <õ ä ö ü š ž> & "test"',
+    "Töötoa juhendaja & osaleja", "qa@example.invalid", "+372 000 0000",
+    "Kontoomanik: Õie Ääre", "IBAN: EE000000000000000000",
+    "Õppimine <üheskoos> & sõprus", "Töövahendid ja söök", "Jõhvi–Võru, 01.–03.09.2026",
+    "Sünteetiline QA eelarverida", "01.09.2026\nJõhvi õppehoones",
+    "Juhendasin rühmatööd & selgitasin <eesmärke>.", "Töövahendid võimaldasid osaleda kõigil.",
+    "Õppijad lõid ühise näituse: õ ä ö ü š ž.", "Kümme õppijat ja üks juhendaja.",
+    "Žürii & Õppimine OÜ — Paber <A4> & värvid", "ÕÄÖÜŠŽ-01", "01.09.2026",
+    "24,60 €", "22,35 €", "2,25 €", "õäöüšž <alus> & makse.pdf", "töötoa-tšekk.png",
+  ]) assert.ok(text.includes(expected), `Expected mapped value missing: ${expected}`);
+  assert.ok(documentXml.includes("&lt;A4&gt; &amp; värvid"));
+  assert.equal(documentXml.includes("<A4>"), false);
+  assertFinanceConfirmation(text, "22,35 €");
+  assertForbiddenAbsent(text, FORBIDDEN_EXPENSE_TEXT);
+});
+
+test("saved signature metadata is retained only in the applicant signature block", async () => {
+  const result = await generateExpenseReportDocument(expenseData(), {
+    signatureStatus: "Digitaalselt allkirjastatud",
+    signatureDate: "2026-09-13",
+  });
+  const text = decodeXmlText(documentParts(result.buffer).xml);
+  const applicantSignature = text.slice(text.indexOf("4. Hüvitise saaja allkiri"), text.indexOf("5. Lisad"));
+  assert.ok(applicantSignature.includes("Digitaalselt allkirjastatud"));
+  assert.ok(applicantSignature.includes("13.09.2026"));
+  assert.equal(text.split("Digitaalselt allkirjastatud").length - 1, 1);
+  assertFinanceConfirmation(text, "12,75 €");
+});
+
+test("supported expense aliases produce the same gross, requested and excluded totals throughout the new template", async (t) => {
+  const cases = [
+    { grossAmountEur: 40, requestedAmount: 32, excludedAmount: 8 },
+    { grossAmount: 40, reimbursementAmount: 32, nonReimbursableAmount: 8 },
+    { totalAmount: 40, requestedEUR: 32, previouslyReimbursedAmount: 8 },
+    { totalEUR: 40, requestedEUR: 32, ineligibleEUR: 3, previouslyReimbursedEUR: 5 },
+    { originalTotal: 40, amount: 32 },
+    { currency: "USD", originalAmount: 50, grossAmountEur: 40, reimbursementAmount: 32 },
+  ];
+  for (const [index, amounts] of cases.entries()) {
+    await t.test(`amount alias ${index + 1}`, async () => {
+      const result = await generateExpenseReportDocument(expenseData({
+        requestedTotal: 999_999,
+        grossTotal: 999_999,
+        excludedTotal: 999_999,
+        items: [{ description: "Õppevahendid", date: "2026-09-11", documentReference: "QA-ALIAS", ...amounts }],
+      }));
+      const text = decodeXmlText(documentParts(result.buffer).xml);
+      assert.ok(text.includes("40,00 €"));
+      assert.ok(text.includes("8,00 €"));
+      assert.ok(text.includes("kulud kokku 32,00 € arvelduskontole"));
+      assertFinanceConfirmation(text, "32,00 €");
+      assert.equal(text.includes("999 999"), false);
+      if (amounts.currency) assert.ok(text.includes("50 USD / 40,00 €"));
+    });
+  }
+});
+
+test("maximum supported expense field lengths and fifty rows survive validation and DOCX rendering", async () => {
+  const longText = (prefix, length) => `${prefix} ${"õäöüšž & <tekst> ".repeat(length)}`.slice(0, length - 1) + "X";
+  const normalized = validateSubmissionData("expense", {
+    documentNumber: "K".repeat(100),
+    documentDate: "2026-09-12",
+    project: longText("Projekt", 240),
+    person: longText("Nimi", 200),
+    claimantRole: longText("Roll", 160),
+    date: "2026-09-12",
+    location: longText("Koht", 500),
+    period: longText("Periood", 240),
+    route: longText("Marsruut", 500),
+    activity: longText("Tegevus", 4_000),
+    purpose: longText("Vajadus", 4_000),
+    result: longText("Tulemus", 4_000),
+    participants: longText("Osalejad", 2_000),
+    whereWhen: longText("KusJaMillal", 2_000),
+    expenseCategory: longText("Kululiik", 240),
+    fundingSource: longText("Rahastus", 240),
+    accountHolder: longText("Kontoomanik", 200),
+    phone: "+" + "0".repeat(59),
+    iban: "EE" + "0".repeat(32),
+    items: Array.from({ length: 50 }, (_, index) => ({
+      date: "2026-09-11",
+      sourceDocument: longText(`Alus${index + 1}`, 240),
+      vendor: longText(`Hankija${index + 1}`, 240),
+      description: longText(`Kirjeldus${index + 1}`, 500),
+      totalEUR: 12.75,
+      requestedEUR: 10.5,
+      ineligibleEUR: 2.25,
+    })),
+  }, { final: true });
+  const attachment = longText("õäöüšž tõend", 251) + ".pdf";
+  const result = await generateExpenseReportDocument(normalized, { attachments: [attachment] });
+  const { xml, documentXml } = documentParts(result.buffer);
+  const text = decodeXmlText(xml);
+  for (const value of [
+    normalized.documentNumber, normalized.project, normalized.person, normalized.claimantRole,
+    normalized.location, normalized.period, normalized.route, normalized.activity, normalized.purpose,
+    normalized.result, normalized.participants, normalized.whereWhen, normalized.expenseCategory,
+    normalized.fundingSource, normalized.accountHolder, normalized.phone, normalized.iban, attachment,
+    ...normalized.items.flatMap((item) => [item.vendor, item.description, item.sourceDocument]),
+  ]) assert.ok(text.includes(value), `Long value missing: ${value.slice(0, 25)} (${value.length} chars)`);
+  assertFinanceConfirmation(text, "525,00 €");
+  assert.ok(text.includes("637,50 €"));
+  assert.ok(text.includes("112,50 €"));
+  assert.doesNotMatch(documentXml, /\{[#/]?(?:items|attachments|requestedTotal|financeApproverName)\}/);
+  assert.equal(documentXml.includes("<tekst>"), false);
 });
 
 test("dispatch accepts Estonian and English type names", async () => {

@@ -10,7 +10,8 @@ exact paths:
 - `staff-app/private/templates/documents/arve/arve.docx`
 
 Do not place templates in the website root, `assets/`, `public/`, or another
-web-served directory. Rebuild them only with
-`scripts/prepare-document-templates.py`, then run the document tests and the
-render/visual gate. Reference evidence and the editable-slot contract are in
-`artifact.md`.
+web-served directory. Use `scripts/prepare-document-templates.py`, then run the
+document tests and the render/visual gate. For the updated expense template,
+`--only expense` validates/copies the checked-in canonical DOCX without touching
+the invoice. Reference evidence and the editable-slot contract are in
+`artifact.md` and [kuluaruanne/artifact.md](kuluaruanne/artifact.md).

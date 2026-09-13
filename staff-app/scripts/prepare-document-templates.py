@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Prepare private DOCX templates from the approved reference documents.
+"""Prepare private DOCX templates from their approved canonical sources.
 
-The source files are read-only design authorities. This script writes new,
-clean server-side templates: sample covers, example markers, filling guidance,
-placeholder prose, and the internal decision page are intentionally removed.
+Invoices retain their existing reference-DOCX preparation. Expense reports use
+the checked-in reusable template matched to kuluaruanne-KA-6559A6AD.docx.pdf;
+the obsolete expense example document is no longer a preparation source.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import shutil
 from pathlib import Path
 
 from docx import Document
@@ -20,8 +21,8 @@ from docx.shared import RGBColor
 
 
 DEFAULT_INVOICE_SOURCE = Path.home() / "Downloads" / "MTU_Noortealgatuste_Tugi_arve_naidis.docx"
-DEFAULT_EXPENSE_SOURCE = Path.home() / "Downloads" / "Naidisdokument_kulude_huvitamise_avaldus_ja_kuluaruanne.docx"
 DEFAULT_OUTPUT_ROOT = Path(__file__).resolve().parents[1] / "private" / "templates" / "documents"
+DEFAULT_EXPENSE_SOURCE = DEFAULT_OUTPUT_ROOT / "kuluaruanne" / "kuluaruanne.docx"
 
 
 def sha256(path: Path) -> str:
@@ -150,101 +151,39 @@ def prepare_invoice(source: Path, destination: Path) -> None:
 
 
 def prepare_expense(source: Path, destination: Path) -> None:
+    """Validate and copy the canonical reusable expense report without restyling.
+
+    The supplied PDF is the visual authority; its reusable DOCX is checked in.
+    Validation deliberately rejects the old example DOCX, even if explicitly
+    provided, so running preparation cannot silently restore an obsolete form.
+    """
     document = Document(source)
-
-    guidance = document.tables[0]
-    general = document.tables[1]
-    activity = document.tables[2]
-    costs = document.tables[3]
-    signature = document.tables[4]
-
-    # Everything from the page break preceding the internal decision onward
-    # is outside the ordinary applicant-facing report.
-    page_break_before_decision = document.paragraphs[24]
-    body = document._element.body
-    children = list(body.iterchildren())
-    start_index = children.index(page_break_before_decision._p)
-    for child in children[start_index:]:
-        if child.tag != qn("w:sectPr"):
-            remove_element(child)
-
-    remove_table(guidance)
-
-    general_tags = {
-        0: "{documentNumberAndDate}",
-        4: "{recipientName}",
-        5: "{recipientRole}",
-        6: "{contactAccountIban}",
-        7: "{activityName}",
-        8: "{expenseType}",
-        9: "{locationPeriodRoute}",
-        10: "{fundingSource}",
+    texts = [paragraph.text for paragraph in document.paragraphs]
+    texts.extend(cell.text for table in document.tables for row in table.rows for cell in row.cells)
+    text = "\n".join(texts)
+    required = {
+        "6. MTÜ kinnitus ja finantsjuhi allkiri",
+        "{documentNumberAndDate}", "{recipientName}", "{recipientRole}",
+        "{contactAccountIban}", "{activityName}", "{expenseType}",
+        "{locationPeriodRoute}", "{fundingSource}", "{whereWhen}",
+        "{activitiesAndRole}", "{necessity}", "{result}", "{participants}",
+        "{#items}", "{description}", "{date}", "{documentReference}",
+        "{grossAmount}", "{requestedAmount}", "{excludedAmount}", "{/items}",
+        "{grossTotal}", "{requestedTotal}", "{excludedTotal}", "{iban}",
+        "{signatureStatus}", "{signatureDate}", "{#attachments}", "{name}", "{/attachments}",
+        "{financeApproverName}", "{financeApproverRole}",
+        "{financeSignatureStatus}", "{financeSignatureDate}",
+        "Kinnitan esitatud kuluaruande kontrollimise ja taotletud {requestedTotal} hüvitamise.",
+        "Käesolev dokument allkirjastatakse digitaalselt ning jõustub pärast viimase nõutava digitaalallkirja andmist.",
     }
-    for row, tag in general_tags.items():
-        set_cell_tag(general.cell(row, 1), tag)
-
-    activity_tags = ["{whereWhen}", "{activitiesAndRole}", "{necessity}", "{result}", "{participants}"]
-    for row, tag in enumerate(activity_tags):
-        set_cell_tag(activity.cell(row, 1), tag)
-
-    # Remove the filling-rules box and spare example rows, retaining one loop
-    # row plus the totals row.
-    remove_row(costs, 7)
-    for index in range(5, 1, -1):
-        remove_row(costs, index)
-    cost_row = costs.rows[1]
-    cost_tags = [
-        "{#items}{description}",
-        "{date}",
-        "{documentReference}",
-        "{grossAmount}",
-        "{requestedAmount}",
-        "{excludedAmount}{/items}",
-    ]
-    for cell, tag in zip(cost_row.cells, cost_tags, strict=True):
-        set_cell_tag(cell, tag)
-    total_row = costs.rows[2]
-    for column, tag in [(3, "{grossTotal}"), (4, "{requestedTotal}"), (5, "{excludedTotal}")]:
-        set_cell_tag(total_row.cells[column], tag)
-
-    # Replace the example fragments in the application sentence with fields.
-    application = document.paragraphs[8]
-    set_paragraph_runs(
-        application,
-        [
-            (
-                "Palun h\u00fcvitada mulle eespool nimetatud MT\u00dc p\u00f5hikirjalise tegevusega seotud ja "
-                "dokumentaalselt t\u00f5endatud kulud kokku ",
-                False,
-            ),
-            ("{requestedTotal}", True),
-            (" arvelduskontole ", False),
-            ("{iban}", True),
-            (".", False),
-        ],
-    )
-
-    set_cell_tag(signature.cell(1, 0), "{recipientName}")
-    set_cell_tag(signature.cell(1, 1), "{signatureStatus}")
-    set_cell_tag(signature.cell(1, 2), "{signatureDate}")
-
-    # Replace sample attachment guidance with a real, data-driven list.
-    set_paragraph_text(document.paragraphs[17], "Lisatud dokumendid:")
-    set_paragraph_text(document.paragraphs[18], "{#attachments}")
-    set_paragraph_text(document.paragraphs[19], "{name}")
-    set_paragraph_text(document.paragraphs[20], "{/attachments}")
-    for paragraph in list(document.paragraphs[21:24]):
-        remove_paragraph(paragraph)
-
-    # Header/footer sample markers and instructions are not part of the form.
-    header_table = document.sections[0].header.tables[0]
-    set_cell_tag(header_table.cell(0, 0), "")
-    footer_table = document.sections[0].footer.tables[0]
-    set_cell_tag(footer_table.cell(0, 0), "")
-
-    set_update_fields(document)
+    missing = sorted(value for value in required if value not in text)
+    if missing:
+        raise ValueError(f"Expense source is not the current reusable template; missing: {', '.join(missing)}")
+    if len(document.tables) != 5 or len(document.tables[2].columns) != 6 or len(document.tables[4].columns) != 4:
+        raise ValueError("Expense source must contain the current five tables, including the four-column finance signature")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    document.save(destination)
+    if source.resolve() != destination.resolve():
+        shutil.copyfile(source, destination)
 
 
 def parse_args() -> argparse.Namespace:
@@ -252,28 +191,26 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--invoice-source", type=Path, default=DEFAULT_INVOICE_SOURCE)
     parser.add_argument("--expense-source", type=Path, default=DEFAULT_EXPENSE_SOURCE)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
+    parser.add_argument("--only", choices=("invoice", "expense", "all"), default="all",
+                        help="Prepare only one document type without reading or modifying the other")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    invoice_source = args.invoice_source.resolve(strict=True)
-    expense_source = args.expense_source.resolve(strict=True)
-    invoice_before = sha256(invoice_source)
-    expense_before = sha256(expense_source)
-
-    invoice_destination = args.output_root / "arve" / "arve.docx"
-    expense_destination = args.output_root / "kuluaruanne" / "kuluaruanne.docx"
-    prepare_invoice(invoice_source, invoice_destination)
-    prepare_expense(expense_source, expense_destination)
-
-    if sha256(invoice_source) != invoice_before or sha256(expense_source) != expense_before:
-        raise RuntimeError("A reference DOCX changed while preparing templates")
-
-    print(f"Invoice template: {invoice_destination.resolve()}")
-    print(f"Expense template: {expense_destination.resolve()}")
-    print(f"Invoice source SHA-256: {invoice_before}")
-    print(f"Expense source SHA-256: {expense_before}")
+    preparations = []
+    if args.only in ("invoice", "all"):
+        preparations.append(("Invoice", args.invoice_source, args.output_root / "arve" / "arve.docx", prepare_invoice))
+    if args.only in ("expense", "all"):
+        preparations.append(("Expense", args.expense_source, args.output_root / "kuluaruanne" / "kuluaruanne.docx", prepare_expense))
+    for name, source, destination, prepare in preparations:
+        source = source.resolve(strict=True)
+        before = sha256(source)
+        prepare(source, destination)
+        if sha256(source) != before:
+            raise RuntimeError(f"{name} source changed while preparing templates")
+        print(f"{name} template: {destination.resolve()}")
+        print(f"{name} source SHA-256: {before}")
 
 
 if __name__ == "__main__":
