@@ -8,7 +8,7 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 const root = new URL("../../", import.meta.url);
 const files = new Map([
   ["/admin/", "staff-app/public/index.html"],
-  ...["app.js", "api.js", "styles.css", "previews.js", "document-values.js", "staff-translations.js"].map((name) => [`/admin/${name}`, `staff-app/public/${name}`]),
+  ...["app.js", "api.js", "styles.css", "previews.js", "document-values.js", "staff-translations.js", "news-local-image.js"].map((name) => [`/admin/${name}`, `staff-app/public/${name}`]),
   ["/", "index.html"],
   ...["uudised.html", "style.css", "news.css", "home.css", "translations.js", "i18n.js", "assets/logo.png", "assets/logo-header.png",
     "news-data.js", "news.js", "news-home.js", "news-photo-lightbox.js", "script.js", "site-config.js", "sender-init.js"].map((name) => [`/${name}`, name])

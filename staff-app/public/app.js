@@ -1,4 +1,5 @@
 import { api, ApiError, setCsrfToken } from "./api.js";
+import { prepareNewsImage, saveNewsImageToDirectory } from "./news-local-image.js";
 import {
   contentToParagraphs,
   escapeHtml,
@@ -20,6 +21,8 @@ const state = {
   editingId: null,
   preview: null,
   pendingFiles: new Map(),
+  localNewsFile: null,
+  localNewsImage: null,
   uploadedFiles: new Set(),
   objectUrls: [],
   ai: {
@@ -193,6 +196,7 @@ function friendlyErrorKey(error) {
     SUBMISSION_DELIVERY_UNCERTAIN: "staff.errors.submissionDeliveryUncertain",
     SUBMISSION_DELIVERY_PENDING: "staff.errors.submissionDeliveryPending",
     FILE_COUNT_LIMIT: "staff.errors.fileCountLimit",
+    NEWS_LOCAL_IMAGE_NOT_SAVED: "staff.news.localImageNotSaved",
     SELF_REVIEW_FORBIDDEN: "staff.errors.selfReview"
   };
   if (codeKeys[code]) return codeKeys[code];
@@ -567,6 +571,8 @@ function releaseObjectUrls() {
 function resetFormState() {
   releaseObjectUrls();
   state.pendingFiles = new Map();
+  state.localNewsFile = null;
+  state.localNewsImage = null;
   state.uploadedFiles = new Set();
   state.formType = null;
   state.editingId = null;
@@ -1031,6 +1037,87 @@ function reviewBanner(record) {
   `;
 }
 
+function localNewsImagePath(value) {
+  if (!value) return "";
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.origin === window.location.origin && !url.search && !url.hash &&
+      /^\/assets\/news\/uploads\/news-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$/.test(url.pathname)
+      ? url.pathname : "";
+  } catch {
+    return "";
+  }
+}
+
+function localNewsImageField(data) {
+  const path = localNewsImagePath(data.image);
+  return `
+    <label class="staff-file-field staff-field--wide" for="newsLocalImage">
+      <span class="staff-file-icon" aria-hidden="true">＋</span>
+      <span class="staff-file-copy">
+        <strong>${escapeHtml(t("staff.news.localImage"))}</strong>
+        <small>${escapeHtml(state.localNewsFile?.name || t("staff.news.localImageHint"))}</small>
+      </span>
+      <input id="newsLocalImage" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.bmp,image/jpeg,image/png,image/webp,image/gif,image/bmp">
+      <span class="staff-file-action">${escapeHtml(t("staff.files.choose"))}</span>
+    </label>
+    <div class="staff-field staff-field--wide">
+      <div>
+        <button class="staff-button staff-button--ghost" type="button" data-action="save-news-local-image">${escapeHtml(t("staff.news.localImageSave"))}</button>
+        <button class="staff-button staff-button--ghost" type="button" data-action="clear-news-local-image">${escapeHtml(t("staff.news.localImageClear"))}</button>
+      </div>
+      <small id="newsLocalImageStatus" role="status">${escapeHtml(path
+        ? t("staff.news.localImageSaved", { path }) : t("staff.news.localImageInstructions"))}</small>
+    </div>
+  `;
+}
+
+function updateLocalNewsImageSelection() {
+  const input = document.getElementById("newsLocalImage");
+  const copy = input?.closest(".staff-file-field")?.querySelector(".staff-file-copy small");
+  if (copy) copy.textContent = state.localNewsFile?.name || t("staff.news.localImageHint");
+}
+
+async function saveLocalNewsImage(button) {
+  if (state.formType !== "news") return;
+  const file = state.localNewsFile;
+  if (!file) return showToast("staff.news.localImageChoose", "error");
+  if (state.pendingFiles.get("news-main")?.length || state.current?.attachments?.some((entry) => entry.kind === "primary")) {
+    return showToast("staff.news.localImageConflict", "error");
+  }
+  if (typeof window.showDirectoryPicker !== "function") {
+    return showToast("staff.news.localImageUnsupported", "error");
+  }
+  const finishOperation = beginFormOperation(button, "staff.news.localImageSaving");
+  try {
+    // Open the picker within the click gesture, before asynchronous image decoding.
+    const directory = await window.showDirectoryPicker({ id: "news-images", mode: "readwrite" });
+    const prepared = await prepareNewsImage(file);
+    const saved = await saveNewsImageToDirectory(directory, prepared);
+    state.localNewsImage = { path: saved.path, blob: prepared.blob };
+    state.localNewsFile = null;
+    document.getElementById("newsLocalImage").value = "";
+    document.getElementById("newsImage").value = new URL(saved.path, window.location.origin).href;
+    updateLocalNewsImageSelection();
+    document.getElementById("newsLocalImageStatus").textContent = t("staff.news.localImageSaved", { path: saved.path });
+    showToast("staff.news.localImageSaved", "success", { path: saved.path });
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      const keys = {
+        "unsupported-image": "staff.news.localImageInvalid",
+        "invalid-image": "staff.news.localImageInvalid",
+        "image-too-large": "staff.news.localImageTooLarge",
+        "browser-unsupported": "staff.news.localImageUnsupported",
+        "folder-invalid": "staff.news.localImageFolder"
+      };
+      showToast(keys[error.code] || (["NotAllowedError", "SecurityError"].includes(error.name)
+        ? "staff.news.localImagePermission" : "staff.news.localImageFailed"), "error");
+    }
+  } finally {
+    finishOperation();
+  }
+}
+
 function newsForm(data) {
   return `
     <section class="staff-form-section">
@@ -1085,7 +1172,7 @@ function newsForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "newsImage", label: "staff.news.imageUrl", value: data.image, type: "url", wide: true, placeholder: "staff.news.imageUrlPlaceholder", hint: "staff.news.imageUrlHint" })}
+        ${field({ id: "newsImage", label: "staff.news.imageUrl", value: localNewsImagePath(data.image) ? new URL(data.image, window.location.origin).href : data.image, type: "url", wide: true, placeholder: "staff.news.imageUrlPlaceholder", hint: "staff.news.imageUrlHint" })}
         ${field({ id: "newsImageAlt", label: "staff.news.imageAlt", value: data.imageAlt, wide: true, placeholder: "staff.news.imageAltPlaceholder" })}
         ${field({ id: "newsImagePosition", label: "staff.news.imagePosition", value: data.imagePosition || "center center", hint: "staff.news.imagePositionHint" })}
         ${selectField({
@@ -1097,6 +1184,7 @@ function newsForm(data) {
             { value: "contain", label: "staff.news.imageFitContain" }
           ]
         })}
+        ${localNewsImageField(data)}
         ${fileField({ id: "newsMainImage", label: "staff.news.mainImage", group: "news-main", accept: ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp", hint: "staff.news.mainImageHint" })}
         ${fileField({ id: "newsAdditionalImages", label: "staff.news.additionalImages", group: "news-additional", accept: ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp", multiple: true, hint: "staff.news.additionalImagesHint" })}
         ${checkboxField({ id: "newsFeatured", label: "staff.news.featured", checked: Boolean(data.featured), hint: "staff.news.featuredHint" })}
@@ -1382,7 +1470,7 @@ function collectNewsData() {
     author: inputValue("newsAuthor"),
     authorRole: inputValue("newsAuthorRole"),
     content: contentToParagraphs(inputValue("newsContent")),
-    image: inputValue("newsImage"),
+    image: localNewsImagePath(inputValue("newsImage")) || inputValue("newsImage"),
     imageAlt: inputValue("newsImageAlt"),
     imagePosition: inputValue("newsImagePosition") || "center center",
     imageFit: inputValue("newsImageFit") || "cover",
@@ -1393,6 +1481,10 @@ function collectNewsData() {
 
   if (mainFiles[0]) {
     const url = URL.createObjectURL(mainFiles[0]);
+    state.objectUrls.push(url);
+    data._mainImagePreview = url;
+  } else if (state.localNewsImage?.path === data.image) {
+    const url = URL.createObjectURL(state.localNewsImage.blob);
     state.objectUrls.push(url);
     data._mainImagePreview = url;
   }
@@ -1551,6 +1643,9 @@ async function uploadPendingFiles(submissionId) {
 }
 
 async function saveData(type, data) {
+  if (type === "news" && state.localNewsFile) {
+    throw new ApiError("NEWS_LOCAL_IMAGE_NOT_SAVED", 400);
+  }
   const cleanData = cleanSubmissionData(data);
   let saved;
 
@@ -2238,6 +2333,11 @@ function updateSelectedFiles(input) {
   const group = input.dataset.fileGroup;
   if (!group) return;
   const files = [...(input.files || [])];
+  if (group === "news-main" && files.length && (state.localNewsFile || localNewsImagePath(inputValue("newsImage")))) {
+    input.value = "";
+    showToast("staff.news.localImageConflict", "error");
+    return;
+  }
   state.pendingFiles.set(group, files);
   const copy = input.closest(".staff-file-field")?.querySelector(".staff-file-copy small");
   if (copy) {
@@ -2328,6 +2428,18 @@ async function handleAction(button) {
 
   if (action === "save-draft") {
     await saveDraft(button);
+    return;
+  }
+
+  if (action === "save-news-local-image") {
+    await saveLocalNewsImage(button);
+    return;
+  }
+
+  if (action === "clear-news-local-image") {
+    state.localNewsFile = null;
+    document.getElementById("newsLocalImage").value = "";
+    updateLocalNewsImageSelection();
     return;
   }
 
@@ -2452,6 +2564,11 @@ function attachEvents() {
   document.addEventListener("change", (event) => {
     const target = event.target;
     clearControlValidation(target);
+
+    if (target.id === "newsLocalImage") {
+      state.localNewsFile = target.files?.[0] || null;
+      updateLocalNewsImageSelection();
+    }
 
     if (target.matches("[data-file-group]")) {
       updateSelectedFiles(target);
