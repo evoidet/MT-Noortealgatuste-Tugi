@@ -73,6 +73,36 @@ function unavailableError() {
   return error;
 }
 
+// Keep provider messages, bodies, headers, submitted text and credentials out of logs.
+export function safeAiError(error) {
+  const responseErrors = new Set(["AI_EMPTY_RESPONSE", "AI_INVALID_RESPONSE", "AI_INCOMPLETE_RESPONSE"]);
+  const status = Number.isInteger(error?.status) && error.status >= 400 && error.status <= 599
+    ? error.status : undefined;
+  const reason = error?.code === "AI_UNAVAILABLE" ? "missing_api_key"
+    : error?.code === "AI_FACT_GUARD_REJECTED" ? "fact_guard"
+    : responseErrors.has(error?.code) || error instanceof SyntaxError ? "invalid_response"
+    : error instanceof OpenAI.APIConnectionTimeoutError ? "timeout"
+    : error instanceof OpenAI.APIConnectionError ? "network"
+    : [401, 403].includes(status) ? "authentication"
+    : status === 429 ? "rate_limit"
+    : [400, 404, 422].includes(status) ? "invalid_request"
+    : status ? "provider_error" : "internal";
+  const providerCode = ["invalid_api_key", "insufficient_quota", "rate_limit_exceeded", "model_not_found",
+    "invalid_request_error", "server_error", "context_length_exceeded", "unsupported_parameter"]
+    .includes(error?.code) ? error.code : undefined;
+  return {
+    reason,
+    ...(status ? { providerStatus: status } : {}),
+    ...(providerCode ? { providerCode } : {}),
+    ...(/^(AI_UNAVAILABLE|AI_FACT_GUARD_REJECTED|AI_EMPTY_RESPONSE|AI_INVALID_RESPONSE|AI_INCOMPLETE_RESPONSE)$/.test(error?.code)
+      ? { code: error.code } : {}),
+    ...(typeof error?.request_id === "string" && /^req_[a-zA-Z0-9_-]{1,120}$/.test(error.request_id)
+      ? { requestId: error.request_id } : {}),
+    ...(["max_output_tokens", "content_filter"].includes(error?.incompleteReason)
+      ? { incompleteReason: error.incompleteReason } : {})
+  };
+}
+
 export function createAiAssistant(config, {
   client = config.openAiApiKey ? new OpenAI({ apiKey: config.openAiApiKey }) : null
 } = {}) {
@@ -97,12 +127,15 @@ export function createAiAssistant(config, {
     if (response?.status != null && response.status !== "completed") {
       const error = new Error("AI did not return a completed response.");
       error.code = "AI_INCOMPLETE_RESPONSE";
+      Object.assign(error, { incompleteReason: response.incomplete_details?.reason });
       throw error;
     }
-    const suggestion = String(response?.output_text || "")
+    if (typeof response?.output_text !== "string" || response.output_text.length > 10_000) {
+      throw Object.assign(new Error("AI returned invalid text."), { code: "AI_INVALID_RESPONSE" });
+    }
+    const suggestion = response.output_text
       .replace(/\u0000/g, "")
-      .trim()
-      .slice(0, 10_000);
+      .trim();
     if (!suggestion) {
       const error = new Error("AI returned an empty suggestion.");
       error.code = "AI_EMPTY_RESPONSE";

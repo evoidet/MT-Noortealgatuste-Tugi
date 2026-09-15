@@ -204,6 +204,10 @@
     "staff.ai.working": ["Parandan teksti…", "Improving text…", "Улучшаю текст…"],
     "staff.ai.emptyText": ["Sisesta enne parandamist tekst.", "Enter text before improving it.", "Сначала введите текст."],
     "staff.ai.applied": ["Ettepanek lisati väljale.", "Suggestion applied.", "Предложенный вариант добавлен."],
+    "staff.ai.unavailable": ["AI kirjutamisabi pole seadistatud. Saad algse tekstiga jätkata.", "AI assistance is not configured. You can continue with your original text.", "ИИ-помощник не настроен. Можно продолжить с исходным текстом."],
+    "staff.ai.failed": ["AI parandamine ebaõnnestus. Algne tekst säilis; proovi hiljem uuesti või jätka sellega.", "AI correction failed. Your original text is preserved; retry later or continue with it.", "Не удалось исправить текст. Исходный текст сохранён; повторите позже или продолжите с ним."],
+    "staff.ai.incomplete": ["AI vastus jäi poolikuks. Proovi lühemat teksti või jätka algse tekstiga.", "AI returned an incomplete correction. Try shorter text or continue with the original.", "ИИ вернул неполный ответ. Попробуйте более короткий текст или продолжите с исходным."],
+    "staff.ai.factsChanged": ["AI muutis kaitstud andmeid, seega lükati ettepanek tagasi. Algne tekst säilis.", "The suggestion changed protected facts and was rejected. Your original text is preserved.", "Предложение изменило защищённые данные и было отклонено. Исходный текст сохранён."],
 
     "staff.review.eyebrow": ["Kontrollimise otsus", "Review decision", "Решение по проверке"],
     "staff.review.dialogTitle": ["Kinnita otsus", "Confirm decision", "Подтвердите решение"],

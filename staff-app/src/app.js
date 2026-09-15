@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { rateLimit, ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
-import { createAiAssistant } from "./ai.js";
+import { createAiAssistant, safeAiError } from "./ai.js";
 import { createAuth } from "./auth.js";
 import {
   generateSubmissionDocument,
@@ -296,6 +296,7 @@ function validationResponse(response, error) {
     "INVALID_ATTACHMENT_STATE",
     "AI_UNAVAILABLE",
     "AI_EMPTY_RESPONSE",
+    "AI_INVALID_RESPONSE",
     "AI_INCOMPLETE_RESPONSE",
     "AI_FACT_GUARD_REJECTED",
     "DOCUMENT_VALIDATION_ERROR",
@@ -315,7 +316,7 @@ function validationResponse(response, error) {
     ? 422
     : error.code === "SUBMISSION_DELIVERY_FAILED"
     ? 502
-    : ["AI_EMPTY_RESPONSE", "AI_INCOMPLETE_RESPONSE"].includes(error.code)
+    : ["AI_EMPTY_RESPONSE", "AI_INVALID_RESPONSE", "AI_INCOMPLETE_RESPONSE"].includes(error.code)
     ? 502
     : ["AI_UNAVAILABLE", "DOCUMENT_TEMPLATE_UNAVAILABLE", "BLOB_INTEGRITY_FAILED"].includes(error.code)
     ? 503
@@ -1637,7 +1638,12 @@ export function createStaffApp({
       });
       response.json({ suggestion });
     } catch (error) {
-      if (!validationResponse(response, error)) throw error;
+      const diagnostic = safeAiError(error);
+      console.error("AI correction failed:", { field: parsed.data.field, mode: parsed.data.mode,
+        language: parsed.data.language, ...diagnostic });
+      if (!validationResponse(response, error)) {
+        response.status(diagnostic.reason === "internal" ? 500 : 502).json({ error: "AI_PROVIDER_FAILED" });
+      }
     }
   }));
 

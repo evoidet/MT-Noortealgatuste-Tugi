@@ -119,3 +119,11 @@ test("missing AI configuration remains an explicit service error", async () => {
     (error) => error?.code === "AI_UNAVAILABLE"
   );
 });
+
+test("malformed and oversized provider text is rejected instead of coerced or truncated", async () => {
+  for (const output of [{ unexpected: true }, ["text"], 42, "a".repeat(10_001)]) {
+    await assert.rejects(assistantWith(fakeClient(() => output)).improve({
+      text: "Original text", field: "news.content", mode: "fix_language", language: "et"
+    }), { code: "AI_INVALID_RESPONSE" });
+  }
+});

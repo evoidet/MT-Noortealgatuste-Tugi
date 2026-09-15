@@ -26,6 +26,7 @@ const state = {
   uploadedFiles: new Set(),
   objectUrls: [],
   ai: {
+    requestId: 0,
     target: null,
     field: "",
     suggestion: ""
@@ -197,6 +198,12 @@ function friendlyErrorKey(error) {
     SUBMISSION_DELIVERY_PENDING: "staff.errors.submissionDeliveryPending",
     FILE_COUNT_LIMIT: "staff.errors.fileCountLimit",
     NEWS_LOCAL_IMAGE_NOT_SAVED: "staff.news.localImageNotSaved",
+    AI_UNAVAILABLE: "staff.ai.unavailable",
+    AI_PROVIDER_FAILED: "staff.ai.failed",
+    AI_EMPTY_RESPONSE: "staff.ai.failed",
+    AI_INVALID_RESPONSE: "staff.ai.failed",
+    AI_INCOMPLETE_RESPONSE: "staff.ai.incomplete",
+    AI_FACT_GUARD_REJECTED: "staff.ai.factsChanged",
     SELF_REVIEW_FORBIDDEN: "staff.errors.selfReview"
   };
   if (codeKeys[code]) return codeKeys[code];
@@ -2225,6 +2232,8 @@ function openAiDialog(button) {
   }
 
   state.ai.target = target;
+  state.ai.requestId += 1;
+  setBusy(elements.aiGenerateButton, false);
   state.ai.field = button.dataset.field || target.name || target.id;
   state.ai.suggestion = "";
   elements.aiOriginal.textContent = text;
@@ -2236,6 +2245,7 @@ function openAiDialog(button) {
 }
 
 function closeAiDialog() {
+  state.ai.requestId += 1;
   elements.aiDialog.close();
   state.ai.target = null;
   state.ai.field = "";
@@ -2244,13 +2254,16 @@ function closeAiDialog() {
 
 async function generateAiSuggestion() {
   if (!state.ai.target) return;
-  const original = state.ai.target.value.trim();
+  const target = state.ai.target;
+  const original = target.value.trim();
 
   if (!original) {
     showToast("staff.ai.emptyText", "error");
     return;
   }
 
+  const requestId = ++state.ai.requestId;
+  state.ai.suggestion = "";
   setBusy(elements.aiGenerateButton, true, "staff.ai.working");
   elements.aiSuggestion.textContent = t("staff.ai.working");
   elements.aiUseButton.disabled = true;
@@ -2262,7 +2275,9 @@ async function generateAiSuggestion() {
       mode: elements.aiMode.value,
       language: window.I18N?.getLanguage() || "et"
     });
-    const suggestion = String(payload?.suggestion || payload?.text || payload?.outputText || "").trim();
+    if (requestId !== state.ai.requestId || state.ai.target !== target || !elements.aiDialog.open) return;
+    const value = payload?.suggestion ?? payload?.text ?? payload?.outputText;
+    const suggestion = typeof value === "string" ? value.trim() : "";
 
     if (!suggestion) {
       throw new ApiError("empty_ai_response", 502, payload);
@@ -2272,10 +2287,11 @@ async function generateAiSuggestion() {
     elements.aiSuggestion.textContent = suggestion;
     elements.aiUseButton.disabled = false;
   } catch (error) {
+    if (requestId !== state.ai.requestId || state.ai.target !== target || !elements.aiDialog.open) return;
     elements.aiSuggestion.textContent = t(friendlyErrorKey(error));
     handleError(error);
   } finally {
-    setBusy(elements.aiGenerateButton, false);
+    if (requestId === state.ai.requestId) setBusy(elements.aiGenerateButton, false);
   }
 }
 
@@ -2620,6 +2636,10 @@ function attachEvents() {
 
   elements.aiDialog.addEventListener("click", (event) => {
     if (event.target === elements.aiDialog) closeAiDialog();
+  });
+  elements.aiDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeAiDialog();
   });
 
   elements.reviewDialog.addEventListener("click", (event) => {
