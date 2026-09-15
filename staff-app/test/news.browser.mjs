@@ -97,6 +97,12 @@ try {
       assert.notEqual(await page.locator("#newsSummary").inputValue(), "Parandatud kokkuvõte.");
       await page.locator("#aiUseButton").click();
       assert.equal(await page.locator("#newsSummary").inputValue(), "Parandatud kokkuvõte.");
+      if (language === "et") {
+        for (const id of ["newsSummary", "newsSlug", "newsDate", "newsAuthor"]) {
+          await page.locator(`#${id}`).fill("");
+          assert.equal(await page.locator(`#${id}`).getAttribute("required"), null);
+        }
+      }
       await page.locator('[data-action="save-draft"]').click();
       await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
       await nav.click();
@@ -210,7 +216,7 @@ try {
           date: "2026-09-05", featured: true, image: "/assets/logo.png",
           registrationUrl: "https://example.org/register" },
         { id: "legacy-browser", published: true, category: "events", title: "Legacy article",
-          excerpt: "Legacy summary", content: ["Legacy body"], date: "2026-09-04" }] } });
+          excerpt: "", content: ["Legacy body"], date: "2026-09-04" }] } });
       } else await route.fulfill({ json: { authenticated: false } });
     });
     await page.goto(`${origin}/?lang=${language}`);

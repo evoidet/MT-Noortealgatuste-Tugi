@@ -142,3 +142,50 @@ test("news editor preserves stored translations and uses server creation permiss
   ui.state.session.user.role = "finance";
   assert.equal(ui.canCreate("invoice"), false);
 });
+
+
+test("news submission errors and invalid success responses preserve the preview", async () => {
+  for (const result of [null, {}, { item: { id: "news-fixture", status: "DRAFT" } },
+    { item: { id: "wrong-id", status: "SUBMITTED" } }, new Error("Database unavailable")]) {
+    const ui = await submissionUiHarness({
+      createSubmission: async () => ({ item: { id: "news-fixture", type: "news", status: "DRAFT" } }),
+      submitSubmission: async () => { if (result instanceof Error) throw result; return result; }
+    });
+    ui.state.formType = "news";
+    ui.state.preview = { type: "news", data: { title: "Õ ä ö ü š ž", content: ["Body"], summary: "" } };
+    await ui.savePreview(ui.controls[0], true);
+    assert.notEqual(ui.state.view, "success");
+    assert.equal(ui.state.preview.data.title, "Õ ä ö ü š ž");
+    assert.equal(ui.state.editingId, "news-fixture");
+  }
+});
+
+test("an invalid update response cannot advance news to submission", async () => {
+  const ui = await submissionUiHarness({
+    updateSubmission: async () => ({}),
+    submitSubmission: async () => assert.fail("Unconfirmed save must not submit")
+  });
+  ui.state.editingId = "news-fixture";
+  ui.state.formType = "news";
+  ui.state.preview = { type: "news", data: { title: "Preserve me", content: ["Body"] } };
+  await ui.savePreview(ui.controls[0], true);
+  assert.notEqual(ui.state.view, "success");
+  assert.equal(ui.state.preview.data.title, "Preserve me");
+});
+
+
+test("news image upload failure keeps the saved draft and never submits", async () => {
+  const ui = await submissionUiHarness({
+    createSubmission: async () => ({ item: { id: "news-image", type: "news", status: "DRAFT" } }),
+    uploadAttachment: async () => { throw new Error("Upload unavailable"); },
+    submitSubmission: async () => assert.fail("Image failure must not report completed submission")
+  });
+  ui.state.formType = "news";
+  ui.state.preview = { type: "news", data: { title: "Image article", content: ["Body"] } };
+  ui.state.pendingFiles.set("news-main", [{ name: "photo.png", size: 100, lastModified: 1 }]);
+  await ui.savePreview(ui.controls[0], true);
+  assert.notEqual(ui.state.view, "success");
+  assert.equal(ui.state.editingId, "news-image");
+  assert.equal(ui.state.preview.data.title, "Image article");
+  assert.equal(ui.state.pendingFiles.get("news-main").length, 1);
+});

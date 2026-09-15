@@ -200,7 +200,7 @@ test("final news validation normalizes paragraphs and requires publishable conte
     () => validateSubmissionData("news", { title: "Pealkiri" }, { final: true }),
     "INCOMPLETE_SUBMISSION",
   );
-  assert.deepEqual(new Set(error.fields), new Set(["slug", "date", "summary", "content", "author"]));
+  assert.deepEqual(new Set(error.fields), new Set(["content"]));
 });
 
 test("news registration URL is optional and accepts only HTTP(S) URLs", () => {
@@ -221,4 +221,24 @@ test("news registration URL is optional and accepts only HTTP(S) URLs", () => {
     () => validateSubmissionData("news", { registrationUrl: "not a URL" }),
     "VALIDATION_ERROR",
   );
+});
+
+
+test("news needs only title and body; optional values normalize without generating summary", () => {
+  for (const empty of [undefined, "", null]) {
+    const result = validateSubmissionData("news", {
+      title: "Õhtu õ ä ö ü š ž", content: "Esimene lõik.\n\nTeine \"tsitaat\" ja apostroof ' .",
+      summary: empty, excerpt: empty, slug: empty, date: empty, category: empty,
+      author: empty, authorRole: empty, project: empty, registrationUrl: empty,
+      image: empty, imageAlt: empty, imagePosition: empty, imageFit: empty,
+      translations: empty, mainImageAttachmentId: empty, additionalImageAttachmentIds: empty
+    }, { final: true });
+    assert.equal(result.summary, "");
+    assert.equal(result.author, "");
+    assert.equal(result.content.length, 2);
+    assert.equal(result.category, "events");
+  }
+  for (const data of [{ content: ["Body"] }, { title: "Title", content: "   " }]) {
+    assert.throws(() => validateSubmissionData("news", data, { final: true }), { code: "INCOMPLETE_SUBMISSION" });
+  }
 });

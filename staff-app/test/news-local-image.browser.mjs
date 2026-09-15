@@ -164,6 +164,12 @@ try {
       let result = {};
       if (path.endsWith("/session")) result = { authenticated: true, user, csrfToken: "synthetic",
         permissions: ["news:create", "news:read:own", "news:update:own", "news:submit:own"] };
+      else if (path.endsWith("/upload-intent")) result = { upload: { attachmentId: "synthetic-image", uploadUrl: `${origin}/api/staff/synthetic-upload`, method: "PUT" } };
+      else if (path.endsWith("/synthetic-upload")) result = {};
+      else if (path.endsWith("/complete")) {
+        item.attachments = [{ id: "synthetic-image", submissionId: item.id, kind: "primary", storageStatus: "ready", mimeType: "image/webp", originalName: "synthetic.webp" }];
+        result = { attachment: item.attachments[0] };
+      }
       else if (path === "/api/staff/submissions" && req.method() === "POST") {
         const body = req.postDataJSON(); payloads.push(body);
         item = { id: "00000000-0000-4000-8000-000000000001", type: body.type, data: body.data, creatorId: user.id,
@@ -182,7 +188,7 @@ try {
     await page.locator('[data-feature="news"]:visible').click();
     await page.locator('[data-action="start-form"][data-type="news"]').click();
     assert.equal(await page.locator("#newsLocalImage").getAttribute("multiple"), null, "Local image picker must allow only one image");
-    assert.equal(await page.locator("#newsLocalImage").getAttribute("data-file-group"), null, "Local image must never enter existing cloud attachment queue");
+    assert.equal(await page.locator("#newsLocalImage").getAttribute("data-file-group"), null, "Local input uses preparation before entering the upload queue");
     assert.equal(await page.locator("#newsMainImage").count(), 1, "Existing main-image input is preserved");
     assert.equal(await page.locator("#newsAdditionalImages").count(), 1, "Existing extra-image input is preserved");
     await page.locator("#newsTitle").fill("Synthetic local image article");
@@ -271,23 +277,23 @@ try {
     await page.waitForFunction(() => [...document.querySelectorAll('.staff-news-preview img[src^="blob:"]')].some((image) => image.complete && image.naturalWidth === 1200));
     await page.locator('[data-action="save-preview"]').click();
     await waitIdle(page);
-    assert.equal(item.data.image, new URL(imageUrl).pathname);
+    assert.equal(item.data.image, "", "Local-only paths must not be persisted as deployed assets");
     for (const [key, value] of Object.entries(originalData)) if (key !== "image") assert.deepEqual(item.data[key], value, `Existing ${key} field preserved`);
     assert.equal(item.id, "00000000-0000-4000-8000-000000000001");
     assert.equal(item.data.slug, "synthetic-local-image");
     assert.equal(item.data.registrationUrl, "https://example.test/registration");
-    assert.deepEqual(item.attachments, []);
+    assert.equal(item.attachments.length, 1, "Prepared image uploaded persistently");
     await page.locator('[data-action="submit-preview"]').click();
     await waitIdle(page);
     assert.equal(item.status, "SUBMITTED", "Local image follows the existing news submission path");
-    assert.equal(item.data.image, new URL(imageUrl).pathname);
+    assert.equal(item.data.image, "", "Local-only paths must not be persisted as deployed assets");
     const published = toPublicNewsItem({ ...item, status: "PUBLISHED" }, item.attachments, language);
-    assert.equal(published.image, new URL(imageUrl).pathname, "Existing public model retains the local static asset path");
+    assert.equal(published.image, `/api/staff/public/news/${item.id}/attachments/synthetic-image`, "Published image uses persistent storage");
     assert.equal(published.id, "synthetic-local-image", "Public article ID stays derived from the existing slug");
     assert.equal(published.registrationUrl, "https://example.test/registration");
     assert.ok(payloads.every((payload) => !Object.keys(payload.data).some((key) => key.startsWith("_"))), "Preview blobs must not be stored in news data");
-    assert.deepEqual(unexpectedApis, [], "Local path must not call upload/provider endpoints");
-    console.log(`PASS local news ${width}px ${language}: no-image draft, cancel/denied/wrong folder, selection/conflict guards, unique local saves, preview/submit, preserved fields/slug/id, no cloud upload`);
+    assert.deepEqual(unexpectedApis, [], "Only expected storage endpoints are called");
+    console.log(`PASS local news ${width}px ${language}: no-image draft, cancel/denied/wrong folder, selection/conflict guards, unique local saves, preview/submit, preserved fields/slug/id, persistent image upload`);
     await page.close();
   }
   assert.deepEqual(failures, [], "Browser page errors");

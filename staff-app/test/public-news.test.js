@@ -80,3 +80,11 @@ test("public news model keeps legacy articles compatible without a registration 
   });
   assert.equal(linked.registrationUrl, "https://example.org/register");
 });
+
+
+test("published news without a summary remains in the public catalogue", async () => {
+  const publicItem = toPublicNewsItem({ id: "empty-summary", type: "news", status: "PUBLISHED",
+    data: { title: "Õ ä ö ü š ž", content: ["Full article"], summary: "" } });
+  const items = await catalogue(async () => ({ ok: true, json: async () => ({ items: [publicItem] }) }));
+  assert.equal(items.find((item) => item.id === "news-empty-summary").excerpt, "");
+});

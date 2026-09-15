@@ -51,7 +51,7 @@ const localizedNews = z.object({
   content: z.array(z.string().trim().max(6_000)).max(60).optional().default([])
 }).strict();
 
-const newsDraft = z.object({
+const newsFields = z.object({
   slug: z.string().trim().max(180).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional().or(z.literal("")),
   language: z.enum(["et", "en", "ru"]).optional().default("et"),
   date: optionalDate,
@@ -82,6 +82,15 @@ const newsDraft = z.object({
   mainImageAttachmentId: z.string().uuid().optional().or(z.literal("")),
   additionalImageAttachmentIds: z.array(z.string().uuid()).max(24).optional().default([])
 }).strict();
+
+// Empty optional news inputs have one representation before schema validation.
+// Keep unknown keys so strict validation still detects misspelled fields.
+const newsDraft = z.preprocess((input) => {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return input;
+  return Object.fromEntries(Object.entries(input).map(([key, value]) => [key,
+    Object.hasOwn(newsFields.shape, key) && (value === null || value === "") ? undefined : value
+  ]));
+}, newsFields);
 
 const expenseItem = z.object({
   description: optionalText(500),
@@ -184,12 +193,8 @@ function ensureFinal(type, data) {
     }
   };
   if (type === "news") {
-    requireValue("slug", data.slug);
     requireValue("title", data.title);
-    requireValue("date", data.date);
-    requireValue("summary", data.summary || data.excerpt);
     requireValue("content", paragraphs(data.content));
-    requireValue("author", data.author);
   } else if (type === "expense") {
     requireValue("project", data.project);
     requireValue("person", data.person || data.claimantName);

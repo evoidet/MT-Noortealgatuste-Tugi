@@ -101,7 +101,7 @@
     }).then(function (payload) {
       const published = Array.isArray(payload.items) ? payload.items.filter(function (item) {
         return item && item.published === true && typeof item.id === "string" &&
-          item.title && item.excerpt && Array.isArray(item.content);
+          item.title && Array.isArray(item.content);
       }) : [];
       const merged = new Map(windowObject.NEWS_ITEMS.map(function (item) { return [item.id, item]; }));
       published.forEach(function (item) {

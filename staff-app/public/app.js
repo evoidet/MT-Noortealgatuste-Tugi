@@ -1089,7 +1089,9 @@ async function saveLocalNewsImage(button) {
   if (state.formType !== "news") return;
   const file = state.localNewsFile;
   if (!file) return showToast("staff.news.localImageChoose", "error");
-  if (state.pendingFiles.get("news-main")?.length || state.current?.attachments?.some((entry) => entry.kind === "primary")) {
+  const queued = state.pendingFiles.get("news-main")?.[0];
+  if ((queued && (!state.localNewsImage || state.uploadedFiles.has(fileFingerprint(queued)))) ||
+      state.current?.attachments?.some((entry) => entry.kind === "primary")) {
     return showToast("staff.news.localImageConflict", "error");
   }
   if (typeof window.showDirectoryPicker !== "function") {
@@ -1102,6 +1104,11 @@ async function saveLocalNewsImage(button) {
     const prepared = await prepareNewsImage(file);
     const saved = await saveNewsImageToDirectory(directory, prepared);
     state.localNewsImage = { path: saved.path, blob: prepared.blob };
+    // A local copy is not a deployed asset. Persist the prepared image through
+    // the same private Blob upload as the main-image picker when saving.
+    state.pendingFiles.set("news-main", [new File([prepared.blob], saved.filename, {
+      type: prepared.blob.type
+    })]);
     state.localNewsFile = null;
     document.getElementById("newsLocalImage").value = "";
     document.getElementById("newsImage").value = new URL(saved.path, window.location.origin).href;
@@ -1137,13 +1144,12 @@ function newsForm(data) {
       </div>
       <div class="staff-form-grid">
         ${field({ id: "newsTitle", label: "staff.news.title", value: data.title, required: true, wide: true, placeholder: "staff.news.titlePlaceholder", ai: { field: "news.title", mode: "news" } })}
-        ${field({ id: "newsSlug", label: "staff.news.slug", value: data.slug || data.id, required: true, placeholder: "staff.news.slugPlaceholder", hint: "staff.news.slugHint" })}
-        ${field({ id: "newsDate", label: "staff.news.date", value: data.date, type: "date", required: true })}
+        ${field({ id: "newsSlug", label: "staff.news.slug", value: data.slug || data.id, placeholder: "staff.news.slugPlaceholder", hint: "staff.news.slugHint" })}
+        ${field({ id: "newsDate", label: "staff.news.date", value: data.date, type: "date" })}
         ${selectField({
           id: "newsCategory",
           label: "staff.news.category",
           value: data.category || "initiatives",
-          required: true,
           options: ["achievements", "events", "initiatives", "opportunities"].map((value) => ({
             value,
             label: `news.categories.${value}`
@@ -1151,9 +1157,9 @@ function newsForm(data) {
         })}
         ${field({ id: "newsProject", label: "staff.news.project", value: data.project, placeholder: "staff.news.projectPlaceholder" })}
         ${field({ id: "newsRegistrationUrl", label: "staff.news.registrationUrl", value: data.registrationUrl, type: "url", wide: true, placeholder: "staff.news.registrationUrlPlaceholder" })}
-        ${field({ id: "newsAuthor", label: "staff.news.author", value: data.author || state.session?.user?.name, required: true, autocomplete: "name" })}
+        ${field({ id: "newsAuthor", label: "staff.news.author", value: data.author ?? state.session?.user?.name, autocomplete: "name" })}
         ${field({ id: "newsAuthorRole", label: "staff.news.authorRole", value: data.authorRole, placeholder: "staff.news.authorRolePlaceholder" })}
-        ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", rows: 4, required: true, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "news.summary", mode: "news" } })}
+        ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", rows: 4, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "news.summary", mode: "news" } })}
       </div>
     </section>
 
@@ -1654,17 +1660,17 @@ async function saveData(type, data) {
     throw new ApiError("NEWS_LOCAL_IMAGE_NOT_SAVED", 400);
   }
   const cleanData = cleanSubmissionData(data);
+  if (type === "news" && state.localNewsImage?.path === cleanData.image) {
+    cleanData.image = "";
+  }
   let saved;
 
   if (state.editingId) {
     const payload = await api.updateSubmission(state.editingId, cleanData);
-    saved = normalizeSubmission(extractSubmission(payload)) || {
-      ...(state.current || {}),
-      id: state.editingId,
-      type,
-      status: state.current?.status || "DRAFT",
-      data: cleanData
-    };
+    saved = normalizeSubmission(extractSubmission(payload));
+    if (!saved?.id || saved.id !== state.editingId) {
+      throw new ApiError("invalid_submission_response", 500, payload);
+    }
   } else {
     const payload = await api.createSubmission(type, cleanData);
     saved = normalizeSubmission(extractSubmission(payload));
@@ -1871,7 +1877,13 @@ async function savePreview(button, submit = false) {
 
     if (submit) {
       const payload = await api.submitSubmission(saved.id);
-      const submitted = normalizeSubmission(extractSubmission(payload)) || saved;
+      const submitted = normalizeSubmission(extractSubmission(payload));
+      const completedStatuses = state.preview.type === "invoice"
+        ? ["approved"] : state.preview.type === "news" ? ["submitted", "published"] : ["submitted"];
+      if (!submitted?.id || submitted.id !== saved.id ||
+          !completedStatuses.includes(String(submitted.status || "").toLowerCase())) {
+        throw new ApiError("invalid_submission_response", 500, payload);
+      }
       showToast(`staff.success.${state.preview.type}Toast`, "success");
       const submittedType = state.preview.type;
       resetFormState();

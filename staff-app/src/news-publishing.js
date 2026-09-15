@@ -63,9 +63,9 @@ export function toPublicNewsItem(submission, attachments = [], requestedLanguage
     : safePublicImageUrl(data.image);
 
   return {
-    id: data.slug,
+    id: data.slug || `news-${submission.id}`,
     category: data.category,
-    date: data.date,
+    date: data.date || String(submission.publishedAt || submission.createdAt || "").slice(0, 10),
     image,
     imagePosition: data.imagePosition || "center center",
     imageFit: data.imageFit === "contain" ? "contain" : "cover",
@@ -74,7 +74,7 @@ export function toPublicNewsItem(submission, attachments = [], requestedLanguage
     placeholder: false,
     published: true,
     title: localizedValue(data, fallback, localized, "title"),
-    excerpt: localizedValue(data, fallback, localized, "excerpt") || data.summary,
+    excerpt: localizedValue(data, fallback, localized, "excerpt") || data.summary || "",
     imageAlt: localizedValue(data, fallback, localized, "imageAlt") || data.imageAlt,
     displayDate: localizedValue(data, fallback, localized, "displayDate") || "",
     content: localizedValue(data, fallback, localized, "content") || data.content,

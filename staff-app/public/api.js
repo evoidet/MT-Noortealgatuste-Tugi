@@ -1,6 +1,9 @@
 const API_ROOT = "/api/staff";
 
 let csrfToken = "";
+// Retain an uploaded file's completion step across retries in the same editor.
+// A transient completion error must not create a second primary attachment.
+const pendingCompletions = new WeakMap();
 
 export class ApiError extends Error {
   constructor(message, status, payload = null) {
@@ -142,6 +145,12 @@ export const api = {
 
   async uploadAttachment(id, file, kind = "additional") {
     const submissionId = encodeURIComponent(id);
+    const previous = pendingCompletions.get(file);
+    if (previous?.submissionId === id) {
+      const completed = await request(previous.path, { method: "POST", json: {} });
+      pendingCompletions.delete(file);
+      return completed;
+    }
     const intent = await request(`/submissions/${submissionId}/attachments/upload-intent`, {
       method: "POST",
       json: {
@@ -169,10 +178,11 @@ export const api = {
         throw new ApiError("blob_upload_failed", uploadResponse.status);
       }
       uploaded = true;
-      return await request(
-        `/submissions/${submissionId}/attachments/${encodeURIComponent(grant.attachmentId)}/complete`,
-        { method: "POST", json: {} }
-      );
+      const path = `/submissions/${submissionId}/attachments/${encodeURIComponent(grant.attachmentId)}/complete`;
+      pendingCompletions.set(file, { submissionId: id, path });
+      const completed = await request(path, { method: "POST", json: {} });
+      pendingCompletions.delete(file);
+      return completed;
     } catch (error) {
       if (!uploaded) {
         try {

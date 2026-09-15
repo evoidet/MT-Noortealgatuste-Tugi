@@ -366,11 +366,18 @@ test("Workspace member news draft, preview, submit and admin publication use the
   const path = `/api/staff/submissions/${id}`;
   const data = { slug: "synthetic-news", date: "2026-09-05", title: "Noorte uudis",
     summary: "Ühine töötuba", content: ["Pikk uudise tekst."], author: "Writer",
+    category: "initiatives", project: "Õ ä ö ü š ž", authorRole: "Korraldaja",
+    imageAlt: "Töötoa foto", imageFit: "contain", imagePosition: "top center", featured: true,
     registrationUrl: "https://example.org/register",
     translations: { en: { title: "Youth news", excerpt: "A workshop", content: ["Workshop story."] } } };
   assert.equal((await writer.write("patch", path, { data })).status, 200);
   const reopened = await writer.get(path);
-  assert.equal(reopened.body.item.data.title, data.title);
+  for (const [key, value] of Object.entries(data)) {
+    if (key !== "translations") assert.deepEqual(reopened.body.item.data[key], value);
+  }
+  for (const [key, value] of Object.entries(data.translations.en)) {
+    assert.deepEqual(reopened.body.item.data.translations.en[key], value);
+  }
   assert.equal((await other.get(path)).status, 404);
   assert.equal((await other.write("patch", path, { data })).status, 403);
   assert.equal((await writer.write("post", "/api/staff/submissions", { type: "invoice" })).status, 403);
@@ -416,7 +423,54 @@ test("Workspace member news draft, preview, submit and admin publication use the
   assert.equal(feed.body.items[0].title, data.title);
   assert.equal(feed.body.items[0].image, publicImagePath);
   assert.equal(feed.body.items[0].registrationUrl, data.registrationUrl);
+  for (const key of ["category", "project", "author", "authorRole", "imageAlt", "imageFit", "imagePosition", "featured"]) {
+    assert.deepEqual(feed.body.items[0][key], data[key]);
+  }
   assert.equal((await request(app).get("/api/staff/public/news?lang=en")).body.items[0].title, "Youth news");
+
+  // Real PostgreSQL-compatible transactions and HTTP handlers, without AI/mail.
+  // Read through a second repository instance to rule out in-memory persistence.
+  const reader = openDatabase(null, { pool: {
+    query: (sql, params) => engine.query(sql, params), async end() {}
+  } });
+  for (const summary of [undefined, "", null]) {
+    const body = ["õ ä ö ü š ž: \"Tsitaat\" ja O'Connor.\nTeine rida.", "Pikem tekst. ".repeat(400).trim()];
+    const createdMinimal = await writer.write("post", "/api/staff/submissions", {
+      type: "news", data: { title: "Valikuline kokkuvõte", content: body, summary,
+        author: null, date: null, slug: null, image: null, project: null }
+    });
+    assert.equal(createdMinimal.status, 201);
+    const minimalId = createdMinimal.body.item.id;
+    const minimalPath = `/api/staff/submissions/${minimalId}`;
+    assert.deepEqual((await reader.getSubmission(minimalId)).data.content, body);
+    const submittedMinimal = await writer.write("post", `${minimalPath}/submit`, {});
+    assert.equal(submittedMinimal.status, 200);
+    assert.equal(submittedMinimal.body.item.status, "SUBMITTED");
+    assert.equal(submittedMinimal.body.item.data.slug, `news-${minimalId}`);
+    assert.match(submittedMinimal.body.item.data.date, /^\d{4}-\d{2}-\d{2}$/);
+    const pending = await reviewer.get("/api/staff/submissions?scope=review&type=news");
+    assert.ok(pending.body.items.some((item) => item.id === minimalId));
+    assert.equal((await reader.getSubmission(minimalId)).status, "SUBMITTED");
+    const approved = await reviewer.write("post", `${minimalPath}/review`, { decision: "approve" });
+    assert.equal(approved.status, 200);
+    assert.equal((await reader.getSubmission(minimalId)).status, "PUBLISHED");
+    const publicResponse = await request(app).get("/api/staff/public/news");
+    const publicItem = publicResponse.body.items.find((item) => item.id === `news-${minimalId}`);
+    assert.equal(publicItem.excerpt, "");
+    assert.equal(publicItem.image, "");
+    assert.deepEqual(publicItem.content, body);
+  }
+  const incomplete = await writer.write("post", "/api/staff/submissions", { type: "news", data: { title: "Retained draft" } });
+  const incompleteId = incomplete.body.item.id;
+  assert.equal((await writer.write("post", `/api/staff/submissions/${incompleteId}/submit`, {})).status, 422);
+  assert.equal((await reader.getSubmission(incompleteId)).status, "DRAFT");
+
+  const originalCreate = database.createSubmission;
+  database.createSubmission = async () => { throw new Error("Synthetic database failure"); };
+  const failed = await writer.write("post", "/api/staff/submissions", { type: "news", data: { title: "Must fail" } });
+  assert.equal(failed.status, 500);
+  assert.equal(failed.body.error, "REQUEST_FAILED");
+  database.createSubmission = originalCreate;
 });
 
 test("only the configured finance account can issue an invoice and re-issue is idempotent", async (t) => {

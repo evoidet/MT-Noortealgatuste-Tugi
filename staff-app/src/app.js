@@ -848,7 +848,7 @@ export function createStaffApp({
     const submissions = await database.listPublishedNews(100);
     const items = (await Promise.all(submissions.map(async (submission) =>
       toPublicNewsItem(submission, await database.listAttachments(submission.id), language)
-    ))).filter((item) => item?.id && item?.title && item?.excerpt);
+    ))).filter((item) => item?.id && item?.title && Array.isArray(item?.content));
     response.set("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
     response.json({ items });
   }));
@@ -1044,6 +1044,10 @@ export function createStaffApp({
         let data;
         try {
           data = validateSubmissionData(submission.type, submission.data, { final: true });
+          if (submission.type === "news") {
+            data.slug ||= `news-${submission.id}`;
+            data.date ||= new Date().toISOString().slice(0, 10);
+          }
           if (submission.type === "expense") {
             logExpenseStage(submission.id, "validate", "complete");
           }
