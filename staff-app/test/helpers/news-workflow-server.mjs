@@ -14,11 +14,16 @@ const server = createServer(async (req, res) => {
   try {
     const path = new URL(req.url, "http://localhost").pathname;
     if (path.startsWith("/__test/blob/") && req.method === "PUT") {
+      fixture.state.blobPutCount++;
       const pathname = decodeURIComponent(path.slice("/__test/blob/".length));
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
       if (fixture.state.blobs.has(pathname)) return res.writeHead(409).end();
       fixture.state.blobs.set(pathname, Buffer.concat(chunks));
+      if (fixture.state.failUploadResponse) {
+        fixture.state.failUploadResponse = false;
+        return res.writeHead(502, { "content-type": "text/html" }).end("<html>Test upload response lost</html>");
+      }
       return res.writeHead(200).end();
     }
     if (path === "/__test/control" && req.method === "POST") {
@@ -26,7 +31,7 @@ const server = createServer(async (req, res) => {
       for await (const chunk of req) body += chunk;
       const command = JSON.parse(body);
       if (command.restart) app = fixture.makeApp();
-      for (const key of ["aiMode", "failFinalization", "failCreateResponse", "failSubmitResponse"]) {
+      for (const key of ["aiMode", "failFinalization", "failCreateResponse", "failSubmitResponse", "failResponseReads", "failUploadResponse"]) {
         if (key in command) fixture.state[key] = command[key];
       }
       return res.writeHead(200, { "content-type": "application/json" }).end("{}");
@@ -35,7 +40,7 @@ const server = createServer(async (req, res) => {
       const items = await fixture.reader.listSubmissions();
       const attachments = (await Promise.all(items.map((item) => fixture.reader.listAttachments(item.id)))).flat();
       return res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ items, attachments,
-        blobCount: fixture.state.blobs.size, aiCalls: fixture.state.aiCalls }));
+        blobCount: fixture.state.blobs.size, blobPutCount: fixture.state.blobPutCount, aiCalls: fixture.state.aiCalls }));
     }
     const file = files.get(path);
     if (file) {

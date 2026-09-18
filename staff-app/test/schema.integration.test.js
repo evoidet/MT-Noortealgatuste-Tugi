@@ -561,7 +561,8 @@ test("Workspace member news draft, preview, submit and admin publication use the
   database.createSubmission = async () => { throw new Error("Synthetic database failure"); };
   const failed = await writer.write("post", "/api/staff/submissions", { type: "news", data: { title: "Must fail" } });
   assert.equal(failed.status, 500);
-  assert.equal(failed.body.error, "REQUEST_FAILED");
+  assert.equal(failed.body.error, "NEWS_CREATE_FAILED");
+  assert.equal(failed.body.stage, "database");
   database.createSubmission = originalCreate;
 });
 

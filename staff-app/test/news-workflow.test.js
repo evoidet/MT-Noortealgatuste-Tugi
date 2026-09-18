@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
 import request from "supertest";
+import { createStaffApp } from "../src/app.js";
 import { newsWorkflowFixture } from "./helpers/news-workflow-fixture.mjs";
 
 const png = Buffer.from(
@@ -98,6 +99,11 @@ test("News image intent replays normalize filenames, preserve Blob paths and rec
   assert.equal((await reviewer.write("post", `${path}/attachments/upload-intent`, metadata, "not-a-uuid")).status, 400);
   assert.equal((await reviewer.write("post", `${path}/attachments/upload-intent`,
     { kind: "additional", originalName: "document.pdf", mimeType: "application/pdf", size: 100 }, randomUUID())).status, 400);
+  const missingBlob = await reviewer.write("post", `${path}/attachments/${key}/complete`);
+  assert.equal(missingBlob.status, 404);
+  assert.equal(missingBlob.body.error, "BLOB_NOT_FOUND");
+  assert.equal(missingBlob.body.stage, "upload");
+  assert.equal((await reader.getAttachment(key, { includePending: true })).storageStatus, "pending");
   state.blobs.set(pending.blobPathname, png);
   const completed = await reviewer.write("post", `${path}/attachments/${key}/complete`);
   assert.equal(completed.status, 201, JSON.stringify(completed.body));
@@ -172,7 +178,8 @@ test("News finalization failure retains the draft and a retry publishes exactly 
   state.failFinalization = true;
   const failed = await reviewer.write("post", `${path}/submit`);
   assert.equal(failed.status, 500);
-  assert.equal(failed.body.error, "REQUEST_FAILED");
+  assert.equal(failed.body.error, "NEWS_SUBMIT_FAILED");
+  assert.equal(failed.body.stage, "database");
   const saved = await reader.getSubmission(created.id);
   assert.equal(saved.status, "DRAFT");
   assert.deepEqual(saved.data.content, article.content);
@@ -190,6 +197,108 @@ test("News finalization failure retains the draft and a retry publishes exactly 
   assert.equal(publicItem.status, 200);
   assert.equal(publicItem.body.item.title, article.title);
   assert.deepEqual(publicItem.body.item.content, article.content);
+});
+
+test("News response dependencies are read before committing create, save and submit", async (t) => {
+  const { reviewer, database, reader, engine } = await fixture(t);
+  let committed = false;
+  const reviews = database.listReviews.bind(database);
+  const attachments = database.listAttachments.bind(database);
+  database.listReviews = async (...args) => {
+    if (committed) throw Object.assign(new Error("Post-commit read unavailable"), { code: "ECONNRESET" });
+    return reviews(...args);
+  };
+  database.listAttachments = async (...args) => {
+    if (committed) throw Object.assign(new Error("Post-commit read unavailable"), { code: "ECONNRESET" });
+    return attachments(...args);
+  };
+  for (const method of ["createSubmission", "updateSubmission", "setSubmissionStatus"]) {
+    const original = database[method].bind(database);
+    database[method] = async (...args) => {
+      const result = await original(...args);
+      committed = true;
+      return result;
+    };
+  }
+  const created = await draft(reviewer);
+  const path = `/api/staff/submissions/${created.id}`;
+  const image = await database.createAttachment({ submissionId: created.id, uploaderId: created.creatorId,
+    kind: "primary", originalName: "photo.png", mimeType: "image/png", size: png.length,
+    blobPathname: `staff-attachments/${"e".repeat(64)}.png`,
+    blobUrl: `https://synthetic.private.blob.vercel-storage.com/staff-attachments/${"e".repeat(64)}.png` });
+  committed = false;
+  const edited = { ...article, title: "Saved response survives", mainImageAttachmentId: image.id,
+    slug: "response-survives", date: "2026-09-18" };
+  const saved = await reviewer.write("patch", path, { data: edited });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  assert.equal(saved.body.item.attachments[0].id, image.id);
+  committed = false;
+  const submitted = await reviewer.write("post", `${path}/submit`);
+  assert.equal(submitted.status, 200, JSON.stringify(submitted.body));
+  assert.equal(submitted.body.item.status, "PUBLISHED");
+  assert.equal(submitted.body.item.attachments[0].id, image.id);
+  assert.equal((await reader.getSubmission(created.id)).status, "PUBLISHED");
+  assert.equal((await engine.query("SELECT count(*)::int AS count FROM submissions")).rows[0].count, 1);
+});
+
+test("News response preparation fails before a status change and reports a safe stage", async (t) => {
+  const { reviewer, database, reader } = await fixture(t);
+  const created = await draft(reviewer);
+  const original = database.listReviews;
+  database.listReviews = async () => {
+    throw Object.assign(new Error("sensitive diagnostic must not be returned"), { code: "ECONNRESET" });
+  };
+  const failed = await reviewer.write("post", `/api/staff/submissions/${created.id}/submit`);
+  assert.equal(failed.status, 500);
+  assert.equal(failed.body.error, "NEWS_SUBMIT_FAILED");
+  assert.equal(failed.body.ok, false);
+  assert.equal(failed.body.stage, "response");
+  assert.ok(failed.body.message);
+  assert.doesNotMatch(JSON.stringify(failed.body), /sensitive|ECONNRESET/);
+  assert.equal((await reader.getSubmission(created.id)).status, "DRAFT");
+  database.listReviews = original;
+  assert.equal((await reviewer.write("post", `/api/staff/submissions/${created.id}/submit`)).status, 200);
+});
+
+test("News database and upload-grant failures expose safe stage-specific errors and retain retryable drafts", async (t) => {
+  const { reviewer, database, reader, config, engine } = await fixture(t);
+  const created = await draft(reviewer);
+  const failure = () => { throw Object.assign(new Error("private provider diagnostic"), { code: "ECONNRESET" }); };
+  const create = database.createSubmission;
+  database.createSubmission = async () => failure();
+  const createFailed = await reviewer.write("post", "/api/staff/submissions", { type: "news", data: article });
+  database.createSubmission = create;
+  assert.equal(createFailed.status, 500);
+  assert.equal(createFailed.body.error, "NEWS_CREATE_FAILED");
+  assert.equal(createFailed.body.stage, "database");
+  const update = database.updateSubmission;
+  database.updateSubmission = async () => failure();
+  const saveFailed = await reviewer.write("patch", `/api/staff/submissions/${created.id}`, {
+    data: { ...article, title: "An unsaved change" }
+  });
+  database.updateSubmission = update;
+  assert.equal(saveFailed.status, 500);
+  assert.equal(saveFailed.body.error, "NEWS_SAVE_FAILED");
+  assert.equal(saveFailed.body.stage, "database");
+  assert.equal((await reader.getSubmission(created.id)).data.title, article.title);
+
+  const { app } = createStaffApp({ config, database, clientUploadGrantCreator: async () => failure() });
+  const cookie = `${config.cookieName}=synthetic-reviewer`;
+  const session = await request(app).get("/api/staff/session").set("Cookie", cookie);
+  const uploadFailed = await request(app).post(`/api/staff/submissions/${created.id}/attachments/upload-intent`)
+    .set("Cookie", cookie).set("X-CSRF-Token", session.body.csrfToken)
+    .send({ originalName: "photo.png", mimeType: "image/png", kind: "primary", size: png.length });
+  assert.equal(uploadFailed.status, 502);
+  assert.equal(uploadFailed.body.error, "NEWS_IMAGE_UPLOAD_FAILED");
+  assert.equal(uploadFailed.body.stage, "upload");
+  for (const response of [createFailed, saveFailed, uploadFailed]) {
+    assert.equal(response.body.ok, false);
+    assert.ok(response.body.message);
+    assert.doesNotMatch(JSON.stringify(response.body), /private provider|ECONNRESET/);
+  }
+  assert.equal((await engine.query("SELECT count(*)::int AS count FROM submissions")).rows[0].count, 1);
+  assert.equal((await engine.query("SELECT count(*)::int AS count FROM attachments")).rows[0].count, 0);
+  assert.equal((await reviewer.write("post", `/api/staff/submissions/${created.id}/submit`)).status, 200);
 });
 
 test("public News API pages past 25 articles and resolves older slugs without exposing drafts", async (t) => {

@@ -160,6 +160,12 @@
     "staff.files.megabytes": ["{{count}} MB", "{{count}} MB", "{{count}} МБ"],
 
     "staff.errors.network": ["Ühendus serveriga ebaõnnestus.", "Could not connect to the server.", "Не удалось связаться с сервером."],
+    "staff.errors.newsSaveFailed": ["Uudise salvestamine ebaõnnestus. Proovi uuesti.", "Unable to save the news article. Please try again.", "Не удалось сохранить новость. Попробуйте снова."],
+    "staff.errors.newsSubmitFailed": ["Uudise esitamine ebaõnnestus. Proovi uuesti.", "Unable to submit the news article. Please try again.", "Не удалось отправить новость. Попробуйте снова."],
+    "staff.errors.imageUploadFailed": ["Pildi üleslaadimine või kontrollimine ebaõnnestus. Proovi uuesti.", "Image upload or verification failed. Please try again.", "Не удалось загрузить или проверить изображение. Попробуйте снова."],
+    "staff.errors.invalidResponse": ["Server tagastas vigase vastuse. Proovi uuesti, et kontrollida esitamise olekut.", "The server returned an invalid response. Retry to check the submission status.", "Сервер вернул некорректный ответ. Повторите попытку, чтобы проверить статус отправки."],
+    "staff.errors.serverUnavailable": ["Server ei saa päringut praegu täita. Proovi uuesti.", "The server could not complete the request. Please try again.", "Сервер не смог выполнить запрос. Попробуйте снова."],
+    "staff.errors.newsSlugConflict": ["See URL-i tunnus on juba kasutusel. Muuda tunnust või jäta väli automaatseks loomiseks tühjaks.", "This URL slug is already in use. Change it or clear it to generate a unique URL.", "Этот адрес новости уже используется. Измените его или очистите поле для создания уникального адреса."],
     "staff.errors.validation": ["Kontrolli sisestatud andmeid.", "Check the information you entered.", "Проверьте введённые данные."],
     "staff.errors.requiredFields": ["Täida kõik kohustuslikud väljad.", "Complete all required fields.", "Заполните все обязательные поля."],
     "staff.errors.sessionExpired": ["Seanss aegus. Logi uuesti sisse.", "Your session expired. Please sign in again.", "Сеанс истёк. Войдите снова."],

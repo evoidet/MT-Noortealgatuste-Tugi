@@ -249,11 +249,16 @@ function submissionSummaryData(submission) {
   return {};
 }
 
-async function summarizeSubmission(submission, database, detailed = false) {
-  const [storedAttachments, reviews] = await Promise.all([
-    database.listAttachments(submission.id),
-    database.listReviews(submission.id)
+async function submissionRelations(submissionId, database) {
+  const [attachments, reviews] = await Promise.all([
+    database.listAttachments(submissionId),
+    database.listReviews(submissionId)
   ]);
+  return { attachments, reviews };
+}
+
+async function summarizeSubmission(submission, database, detailed = false, relations = null) {
+  const { attachments: storedAttachments, reviews } = relations ?? await submissionRelations(submission.id, database);
   const attachments = storedAttachments.map((attachment) => ({
     id: attachment.id,
     name: attachment.originalName,
@@ -268,6 +273,26 @@ async function summarizeSubmission(submission, database, detailed = false) {
     data: detailed ? submission.data : submissionSummaryData(submission),
     attachments,
     reviews: detailed ? reviews : reviews.slice(0, 1)
+  };
+}
+
+function newsStage(response, stage) {
+  if (response.locals.newsOperation) response.locals.newsStage = stage;
+}
+
+function newsFailure(response) {
+  const operation = response.locals.newsOperation;
+  if (!operation) return null;
+  return {
+    ok: false,
+    error: {
+      create: "NEWS_CREATE_FAILED", save: "NEWS_SAVE_FAILED",
+      submit: "NEWS_SUBMIT_FAILED", image: "NEWS_IMAGE_UPLOAD_FAILED"
+    }[operation],
+    message: operation === "image" ? "Image upload failed. Please try again."
+      : operation === "submit" ? "Unable to submit the news article. Please try again."
+      : "Unable to save the news article. Please try again.",
+    stage: response.locals.newsStage || "database"
   };
 }
 
@@ -332,6 +357,12 @@ function validationResponse(response, error) {
   } else {
     if (Array.isArray(error.fields)) payload.fields = error.fields;
     if (Array.isArray(error.issues)) payload.issues = error.issues;
+  }
+  if (response.locals.newsOperation) {
+    payload.ok = false;
+    payload.stage = userValidationCodes.has(error.code) ? "validation"
+      : error.code === "SUBMISSION_SCHEMA_NOT_READY" ? "schema"
+      : response.locals.newsStage || "database";
   }
   response.status(status).json(payload);
   return true;
@@ -477,6 +508,10 @@ export function createStaffApp({
     return database.withSubmissionLock(submissionId, async () => {
       const submission = await database.getSubmission(submissionId);
       if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
+      if (submission.type === "news" && request.route?.path?.includes("/attachments")) {
+        response.locals.newsOperation = "image";
+        newsStage(response, "database");
+      }
       if (!canEditSubmission(request.user, submission, permissionContext)) {
         return response.status(403).json({ error: "FORBIDDEN" });
       }
@@ -952,15 +987,18 @@ export function createStaffApp({
   app.post("/api/staff/submissions", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
     const type = safeSubmissionType(request.body?.type);
     if (!type) return response.status(400).json({ error: "INVALID_SUBMISSION_TYPE" });
+    if (type === "news") response.locals.newsOperation = "create";
     if (!canCreateType(request.user, type, permissionContext)) {
       return response.status(403).json({ error: "FORBIDDEN" });
     }
     try {
+      newsStage(response, "validation");
       const { data, recipient } = prepareSubmissionInput(type, request.body?.data ?? {}, request.user);
       const idempotencyKey = type === "news" ? request.get("Idempotency-Key") : undefined;
       if (idempotencyKey && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
         return response.status(400).json({ error: "INVALID_IDEMPOTENCY_KEY" });
       }
+      newsStage(response, "database");
       const submission = await database.createSubmission({
         type,
         creatorId: request.user.id,
@@ -976,7 +1014,11 @@ export function createStaffApp({
         targetId: submission.id,
         ipHash: auth.clientIpHash(request)
       });
-      response.status(201).json({ item: await summarizeSubmission(submission, database, true),
+      newsStage(response, "response");
+      // A newly created news draft has no relations. Querying them after its
+      // transaction commits can turn a successful create into a false failure.
+      const relations = type === "news" && !submission.replayed ? { attachments: [], reviews: [] } : null;
+      response.status(201).json({ item: await summarizeSubmission(submission, database, true, relations),
         replayed: Boolean(submission.replayed) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
@@ -994,12 +1036,17 @@ export function createStaffApp({
 
   app.patch("/api/staff/submissions/:id", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
     return withEditableSubmission(request, response, request.params.id, async (submission) => {
+    if (submission.type === "news") response.locals.newsOperation = "save";
     try {
+      newsStage(response, "validation");
       const { data, recipient } = prepareSubmissionInput(
         submission.type,
         request.body?.data ?? {},
         request.user
       );
+      newsStage(response, "response");
+      const relations = submission.type === "news" ? await submissionRelations(submission.id, database) : null;
+      newsStage(response, "database");
       const updated = await database.updateSubmission({
         id: submission.id,
         userId: request.user.id,
@@ -1014,7 +1061,7 @@ export function createStaffApp({
         targetId: submission.id,
         ipHash: auth.clientIpHash(request)
       });
-      response.json({ item: await summarizeSubmission(updated, database, true) });
+      response.json({ item: await summarizeSubmission(updated, database, true, relations) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
     }
@@ -1024,15 +1071,24 @@ export function createStaffApp({
   app.post("/api/staff/submissions/:id/submit", mutationLimiter, auth.verifyCsrf, asyncRoute(async (request, response) => {
     const initial = await database.getSubmission(request.params.id);
     if (!initial) return response.status(404).json({ error: "NOT_FOUND" });
+    if (initial.type === "news") response.locals.newsOperation = "submit";
     const canOwnSubmit = initial.creatorId === request.user.id &&
       hasPermission(request.user, `${initial.type}:submit:own`, permissionContext);
     if (!canOwnSubmit) {
       return response.status(403).json({ error: "FORBIDDEN" });
     }
     try {
+      let newsRelations;
+      newsStage(response, "database");
       const updated = await database.withSubmissionLock(initial.id, async () => {
         const submission = await database.getSubmission(initial.id);
         if (!submission) return null;
+        // Resolve every response dependency before changing the saved article.
+        // A later read outage must not report a committed publication as failed.
+        if (submission.type === "news") {
+          newsStage(response, "response");
+          newsRelations = await submissionRelations(submission.id, database);
+        }
         const directNewsPublish = submission.type === "news" && canReviewType(request.user, "news");
         const finalStatus = submission.type === "invoice"
           ? "APPROVED"
@@ -1067,6 +1123,7 @@ export function createStaffApp({
         }
 
         try {
+          newsStage(response, "schema");
           await database.assertSubmissionSchema(submission.type);
           if (submission.type === "expense") {
             await database.assertReimbursementRecipientSchema?.();
@@ -1088,6 +1145,7 @@ export function createStaffApp({
         }
         let data;
         try {
+          newsStage(response, "validation");
           data = validateSubmissionData(submission.type, submission.data, { final: true });
           if (submission.type === "news") {
             data.slug ||= `news-${submission.id}`;
@@ -1106,7 +1164,7 @@ export function createStaffApp({
           }
           throw error;
         }
-        const attachments = await database.listAttachments(submission.id);
+        const attachments = newsRelations?.attachments ?? await database.listAttachments(submission.id);
         if (submission.type === "news") validateNewsImageReferences(data, attachments);
         if (submission.type === "expense" && !attachments.some((attachment) => attachment.kind === "primary")) {
           const error = new Error("A primary expense attachment is required.");
@@ -1116,6 +1174,7 @@ export function createStaffApp({
           throw error;
         }
 
+        newsStage(response, "database");
         const prepared = priorDelivery === "sent" || isDeepStrictEqual(submission.data, data)
           ? submission
           : await database.updateSubmission({
@@ -1323,7 +1382,7 @@ export function createStaffApp({
         return finalized;
       });
       if (!updated) return response.status(404).json({ error: "NOT_FOUND" });
-      response.json({ item: await summarizeSubmission(updated, database, true) });
+      response.json({ item: await summarizeSubmission(updated, database, true, newsRelations) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
     }
@@ -1399,16 +1458,20 @@ export function createStaffApp({
           return response.status(400).json({ error: "FILE_COUNT_LIMIT" });
         }
         const kind = request.body?.kind === "primary" ? "primary" : "additional";
+        newsStage(response, "upload");
         const attachment = await persistUploadedFileWithRecord({
           config,
           submission,
           file: request.file,
-          createRecord: (stored) => database.createAttachment({
-            submissionId: submission.id,
-            uploaderId: request.user.id,
-            kind,
-            ...stored
-          })
+          createRecord: (stored) => {
+            newsStage(response, "database");
+            return database.createAttachment({
+              submissionId: submission.id,
+              uploaderId: request.user.id,
+              kind,
+              ...stored
+            });
+          }
         });
         await auditSafely({
           user: request.user,
@@ -1452,8 +1515,10 @@ export function createStaffApp({
           return response.status(400).json({ error: "INVALID_IDEMPOTENCY_KEY" });
         }
         const kind = request.body?.kind === "primary" ? "primary" : "additional";
+        newsStage(response, "validation");
         const metadata = validateClientUploadMetadata({ config, submission,
           originalName: request.body?.originalName, mimeType: request.body?.mimeType, size: request.body?.size });
+        newsStage(response, "database");
         const previous = idempotencyKey
           ? await database.getAttachment(idempotencyKey, { includePending: true }) : null;
         if (previous && (previous.submissionId !== submission.id || previous.uploaderId !== request.user.id ||
@@ -1471,6 +1536,7 @@ export function createStaffApp({
         if (!previous && existing.filter((attachment) => attachment.storageStatus !== "delete_pending").length >= 100) {
           return response.status(400).json({ error: "FILE_COUNT_LIMIT" });
         }
+        newsStage(response, "upload");
         const grant = await clientUploadGrantCreator({
           config,
           submission,
@@ -1479,6 +1545,7 @@ export function createStaffApp({
           mimeType: request.body?.mimeType,
           size: request.body?.size
         });
+        newsStage(response, "database");
         const attachment = previous || await database.createPendingAttachment({
           submissionId: submission.id,
           uploaderId: request.user.id,
@@ -1534,11 +1601,13 @@ export function createStaffApp({
         return response.status(409).json({ error: "INVALID_ATTACHMENT_STATE" });
       }
       try {
+        newsStage(response, "upload");
         const stored = await clientUploadedFileVerifier({
           config,
           submission,
           attachment: pending
         });
+        newsStage(response, "database");
         const attachment = await database.markAttachmentReady(pending.id, stored);
         if (!attachment) throw Object.assign(new Error("Attachment state changed."), {
           code: "INVALID_ATTACHMENT_STATE",
@@ -1779,15 +1848,16 @@ export function createStaffApp({
     console.error("Staff app request failed:", {
       method: request.method,
       path: request.route?.path || "/api/staff",
-      stage: request.route?.path?.endsWith("/submit") ? "submit"
+      stage: response.locals.newsStage || (request.route?.path?.endsWith("/submit") ? "submit"
         : request.route?.path?.includes("attachments") ? (request.method === "GET" ? "attachment-read" : "upload")
         : request.route?.path?.includes("document") ? "prepare"
-        : request.route?.path?.includes("submissions") ? "draft" : "request",
+        : request.route?.path?.includes("submissions") ? "draft" : "request"),
       ...(typeof request.params?.id === "string" && /^[a-f0-9-]{36}$/i.test(request.params.id)
         ? { submissionId: request.params.id } : {}),
       ...safeOperationalError(error, "UNEXPECTED_ERROR")
     });
-    response.status(500).json({ error: "REQUEST_FAILED" });
+    const newsError = newsFailure(response);
+    response.status(newsError?.stage === "upload" ? 502 : 500).json(newsError ?? { error: "REQUEST_FAILED" });
   });
 
   return { app, auth, ai, mailService };

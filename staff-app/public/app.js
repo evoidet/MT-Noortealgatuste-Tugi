@@ -188,8 +188,32 @@ function friendlyErrorKey(error) {
     return "staff.errors.unexpected";
   }
 
-  const code = error.payload?.error || error.message;
+  const code = error.code || error.payload?.error || error.message;
+  // Gateways may send HTML for these statuses; preserve the actionable cause.
+  if (error.status === 401) return "staff.errors.sessionExpired";
+  if (error.status === 403) return "staff.errors.forbidden";
+  if (error.status === 413) return "staff.errors.fileTooLarge";
   const codeKeys = {
+    NEWS_CREATE_FAILED: "staff.errors.newsSaveFailed",
+    NEWS_SAVE_FAILED: "staff.errors.newsSaveFailed",
+    NEWS_SUBMIT_FAILED: "staff.errors.newsSubmitFailed",
+    NEWS_RESPONSE_FAILED: "staff.errors.invalidResponse",
+    NEWS_IMAGE_UPLOAD_FAILED: "staff.errors.imageUploadFailed",
+    NEWS_SLUG_CONFLICT: "staff.errors.newsSlugConflict",
+    BLOB_UPLOAD_FAILED: "staff.errors.imageUploadFailed",
+    BLOB_NOT_CONFIGURED: "staff.errors.imageUploadFailed",
+    BLOB_NOT_FOUND: "staff.errors.imageUploadFailed",
+    BLOB_NOT_PRIVATE: "staff.errors.imageUploadFailed",
+    BLOB_PATH_MISMATCH: "staff.errors.imageUploadFailed",
+    BLOB_READ_FAILED: "staff.errors.imageUploadFailed",
+    BLOB_INTEGRITY_FAILED: "staff.errors.imageUploadFailed",
+    FILE_SIZE_MISMATCH: "staff.errors.imageUploadFailed",
+    FILE_EXTENSION_MISMATCH: "staff.errors.fileType",
+    INVALID_API_RESPONSE: "staff.errors.invalidResponse",
+    INVALID_ATTACHMENT_RESPONSE: "staff.errors.invalidResponse",
+    invalid_submission_response: "staff.errors.invalidResponse",
+    missing_submission_id: "staff.errors.invalidResponse",
+    invalid_upload_grant: "staff.errors.invalidResponse",
     PRIMARY_ATTACHMENT_REQUIRED: "staff.errors.primaryAttachmentRequired",
     DOCUMENT_TEMPLATE_UNAVAILABLE: "staff.errors.templateUnavailable",
     DOCUMENT_VALIDATION_ERROR: "staff.errors.documentValidation",
@@ -218,6 +242,7 @@ function friendlyErrorKey(error) {
   if (error.status === 413) return "staff.errors.fileTooLarge";
   if (error.status === 415) return "staff.errors.fileType";
   if (error.status === 429) return "staff.errors.rateLimit";
+  if (error.status >= 500) return "staff.errors.serverUnavailable";
   return "staff.errors.unexpected";
 }
 
@@ -236,6 +261,7 @@ function showToast(key, tone = "info", variables = {}) {
 
 function handleError(error, options = {}) {
   if (error instanceof ApiError && error.status === 401 && options.allowSessionReset !== false) {
+    showToast("staff.errors.sessionExpired", "error");
     void loadSession();
     return;
   }
@@ -248,13 +274,16 @@ function safeClientError(error) {
     name: String(error?.name || "Error").slice(0, 80),
     status: Number.isFinite(error?.status) ? error.status : undefined,
     code: String(error instanceof ApiError
-      ? error?.payload?.error || "API_ERROR"
-      : "CLIENT_ERROR").slice(0, 80)
+      ? error.code || error?.payload?.error || "API_ERROR"
+      : "CLIENT_ERROR").slice(0, 80),
+    stage: ["database", "response", "upload", "validation", "authentication", "schema"].includes(error?.stage)
+      ? error.stage : undefined
   };
 }
 
 function handlePreviewError(error) {
-  if (error instanceof ApiError && [400, 401, 403, 413, 415, 422, 429].includes(error.status)) {
+  if (error instanceof ApiError) {
+    console.error("Staff preview request failed:", safeClientError(error));
     handleError(error);
     return;
   }
@@ -263,14 +292,15 @@ function handlePreviewError(error) {
 }
 
 function handleSubmissionError(error) {
-  const code = error instanceof ApiError ? error.payload?.error : "";
+  const code = error instanceof ApiError ? error.code || error.payload?.error : "";
   if (["SUBMISSION_SCHEMA_NOT_READY", "SUBMISSION_DELIVERY_UNCERTAIN", "SUBMISSION_DELIVERY_PENDING"].includes(code)) {
     state.deliveryError = code;
     renderSubmissionDeliveryState();
     return;
   }
   if (renderSubmissionValidation(error)) return;
-  if (error instanceof ApiError && [400, 401, 403, 413, 415, 422, 429].includes(error.status)) {
+  if (error instanceof ApiError) {
+    console.error("Staff submission request failed:", safeClientError(error));
     handleError(error);
     return;
   }

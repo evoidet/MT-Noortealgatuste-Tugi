@@ -58,7 +58,16 @@ export async function newsWorkflowFixture() {
       userId: users[role].id, expiresAt: new Date(Date.now() + 3600000).toISOString(), userAgentHash: null, ipHash: null });
   }
   const state = { origin: "http://localhost:3100", blobs: new Map(), aiMode: "missing", aiCalls: 0,
-    failFinalization: false, failCreateResponse: false, failSubmitResponse: false };
+    failFinalization: false, failCreateResponse: false, failSubmitResponse: false,
+    failResponseReads: false, failUploadResponse: false, blobPutCount: 0 };
+  const failedReadIds = new Set();
+  const listReviews = database.listReviews.bind(database);
+  database.listReviews = async (id) => {
+    if (state.failResponseReads && failedReadIds.has(id)) {
+      throw Object.assign(new Error("Synthetic response read connection failure"), { code: "ECONNRESET" });
+    }
+    return listReviews(id);
+  };
   const blobClient = {
     async issueSignedToken() { return "synthetic-signed-grant"; },
     async presignUrl(_token, options) {
@@ -86,7 +95,9 @@ export async function newsWorkflowFixture() {
       state.failFinalization = false;
       throw Object.assign(new Error("Synthetic finalization failure"), { code: "TEST_DATABASE_ERROR" });
     }
-    return setStatus(input);
+    const saved = await setStatus(input);
+    if (state.failResponseReads) failedReadIds.add(input.id);
+    return saved;
   };
   function makeApp() {
     return createStaffApp({ config, database,

@@ -12,6 +12,9 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.status = status;
     this.payload = payload;
+    this.code = typeof payload?.error === "string" ? payload.error
+      : typeof payload?.error?.code === "string" ? payload.error.code : message;
+    this.stage = payload?.error?.stage || payload?.stage;
   }
 }
 
@@ -51,7 +54,7 @@ async function parseResponse(response) {
   }
   try {
     const payload = await response.json();
-    if (!payload || typeof payload !== "object") throw new Error("Invalid JSON payload");
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new Error("Invalid JSON payload");
     return payload;
   } catch {
     throw new ApiError("invalid_api_response", response.status, { error: "INVALID_API_RESPONSE" });
@@ -71,9 +74,13 @@ async function completeAttachment(file, completion) {
   } catch (error) {
     // These failures mean the server rejected/deleted the pending attachment.
     // Keep ambiguous failures cached so retry completes the original upload.
-    if (error.status === 404 || ["FILE_REQUIRED", "FILE_TOO_LARGE", "FILE_TYPE_NOT_ALLOWED",
+    if (error.code === "BLOB_NOT_FOUND") {
+      // The grant/row still exists, but no bytes arrived. Reuse that grant's
+      // idempotency key on retry instead of creating another pending image.
+      pendingCompletions.delete(file);
+    } else if (error.status === 404 || ["FILE_REQUIRED", "FILE_TOO_LARGE", "FILE_TYPE_NOT_ALLOWED",
       "FILE_EXTENSION_MISMATCH", "FILE_SIZE_MISMATCH", "BLOB_NOT_PRIVATE", "BLOB_PATH_MISMATCH"]
-      .includes(error.payload?.error)) {
+      .includes(error.code)) {
       pendingCompletions.delete(file);
       uploadRequestKeys.delete(file);
     }
@@ -114,8 +121,10 @@ async function request(path, options = {}) {
 
   const payload = await parseResponse(response);
 
-  if (!response.ok) {
-    const message = payload?.error || payload?.message || `http_${response.status}`;
+  if (!response.ok || payload?.ok === false || payload?.success === false) {
+    const message = typeof payload?.error === "string" ? payload.error
+      : typeof payload?.error?.code === "string" ? payload.error.code
+      : typeof payload?.message === "string" ? payload.message : `http_${response.status}`;
     throw new ApiError(message, response.status, payload);
   }
 
@@ -179,7 +188,13 @@ export const api = {
     const attachmentKind = kind === "primary" ? "primary" : "additional";
     const previous = pendingCompletions.get(file);
     if (previous?.submissionId === id && previous.kind === attachmentKind) {
-      return completeAttachment(file, previous);
+      try {
+        return await completeAttachment(file, previous);
+      } catch (error) {
+        if (error.code !== "BLOB_NOT_FOUND") throw error;
+        // A prior PUT had an uncertain result and verification now confirms
+        // no bytes exist. Continue with the original upload request key.
+      }
     }
     let attempt = uploadRequestKeys.get(file);
     if (attempt?.submissionId !== id || attempt?.kind !== attachmentKind) {
@@ -207,7 +222,7 @@ export const api = {
       return completeAttachment(file, completion);
     }
 
-    let uploaded = false;
+    let uploadError;
     try {
       const uploadResponse = await fetch(grant.uploadUrl, {
         method: "PUT",
@@ -217,20 +232,22 @@ export const api = {
         redirect: "error"
       });
       if (!uploadResponse.ok) {
-        throw new ApiError("blob_upload_failed", uploadResponse.status);
+        const code = uploadResponse.status === 413 ? "FILE_TOO_LARGE"
+          : uploadResponse.status === 415 ? "FILE_TYPE_NOT_ALLOWED" : "BLOB_UPLOAD_FAILED";
+        throw new ApiError("blob_upload_failed", uploadResponse.status, { error: code, stage: "upload" });
       }
-      uploaded = true;
-      pendingCompletions.set(file, completion);
+    } catch (error) {
+      uploadError = error instanceof ApiError ? error
+        : new ApiError("blob_upload_failed", 0, { error: "BLOB_UPLOAD_FAILED", stage: "upload" });
+    }
+    // A failed response does not prove the PUT failed: Blob may have stored
+    // the image before the connection dropped, or a retry may return 409.
+    // Verify the original path before uploading again or discarding anything.
+    pendingCompletions.set(file, completion);
+    try {
       return await completeAttachment(file, completion);
     } catch (error) {
-      if (!uploaded) {
-        try {
-          await request(`/attachments/${encodeURIComponent(grant.attachmentId)}`, { method: "DELETE" });
-          uploadRequestKeys.delete(file);
-        } catch {
-          // The server keeps the pending row for authenticated reconciliation.
-        }
-      }
+      if (uploadError && error.code === "BLOB_NOT_FOUND") throw uploadError;
       throw error;
     }
   },
