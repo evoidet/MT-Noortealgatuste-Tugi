@@ -4,6 +4,7 @@ let csrfToken = "";
 // Retain an uploaded file's completion step across retries in the same editor.
 // A transient completion error must not create a second primary attachment.
 const pendingCompletions = new WeakMap();
+const uploadRequestKeys = new WeakMap();
 
 export class ApiError extends Error {
   constructor(message, status, payload = null) {
@@ -43,12 +44,41 @@ async function parseResponse(response) {
 
   const contentType = response.headers.get("content-type") || "";
 
-  if (contentType.includes("application/json")) {
-    return response.json();
+  // Proxy/login/error pages are not successful API responses. Never include
+  // their bodies in errors: HTML can contain sensitive diagnostic details.
+  if (!/^application\/(?:[\w.-]+\+)?json(?:\s*;|$)/i.test(contentType)) {
+    throw new ApiError("invalid_api_response", response.status, { error: "INVALID_API_RESPONSE" });
   }
+  try {
+    const payload = await response.json();
+    if (!payload || typeof payload !== "object") throw new Error("Invalid JSON payload");
+    return payload;
+  } catch {
+    throw new ApiError("invalid_api_response", response.status, { error: "INVALID_API_RESPONSE" });
+  }
+}
 
-  const text = await response.text();
-  return text ? { message: text } : null;
+async function completeAttachment(file, completion) {
+  try {
+    const completed = await request(completion.path, { method: "POST", json: {} });
+    if (completed?.attachment?.id !== completion.attachmentId ||
+        (completed.attachment.storageStatus && completed.attachment.storageStatus !== "ready")) {
+      throw new ApiError("invalid_attachment_response", 502, { error: "INVALID_ATTACHMENT_RESPONSE" });
+    }
+    pendingCompletions.delete(file);
+    uploadRequestKeys.delete(file);
+    return completed;
+  } catch (error) {
+    // These failures mean the server rejected/deleted the pending attachment.
+    // Keep ambiguous failures cached so retry completes the original upload.
+    if (error.status === 404 || ["FILE_REQUIRED", "FILE_TOO_LARGE", "FILE_TYPE_NOT_ALLOWED",
+      "FILE_EXTENSION_MISMATCH", "FILE_SIZE_MISMATCH", "BLOB_NOT_PRIVATE", "BLOB_PATH_MISMATCH"]
+      .includes(error.payload?.error)) {
+      pendingCompletions.delete(file);
+      uploadRequestKeys.delete(file);
+    }
+    throw error;
+  }
 }
 
 async function request(path, options = {}) {
@@ -111,9 +141,10 @@ export const api = {
     return request(`/submissions?${params.toString()}`);
   },
 
-  createSubmission(type, data) {
+  createSubmission(type, data, idempotencyKey) {
     return request("/submissions", {
       method: "POST",
+      ...(idempotencyKey ? { headers: { "Idempotency-Key": idempotencyKey } } : {}),
       json: { type, data }
     });
   },
@@ -145,24 +176,35 @@ export const api = {
 
   async uploadAttachment(id, file, kind = "additional") {
     const submissionId = encodeURIComponent(id);
+    const attachmentKind = kind === "primary" ? "primary" : "additional";
     const previous = pendingCompletions.get(file);
-    if (previous?.submissionId === id) {
-      const completed = await request(previous.path, { method: "POST", json: {} });
-      pendingCompletions.delete(file);
-      return completed;
+    if (previous?.submissionId === id && previous.kind === attachmentKind) {
+      return completeAttachment(file, previous);
+    }
+    let attempt = uploadRequestKeys.get(file);
+    if (attempt?.submissionId !== id || attempt?.kind !== attachmentKind) {
+      attempt = { submissionId: id, kind: attachmentKind, key: globalThis.crypto?.randomUUID?.() };
+      uploadRequestKeys.set(file, attempt);
     }
     const intent = await request(`/submissions/${submissionId}/attachments/upload-intent`, {
       method: "POST",
+      ...(attempt.key ? { headers: { "Idempotency-Key": attempt.key } } : {}),
       json: {
         originalName: file.name,
         mimeType: uploadMimeType(file),
         size: file.size,
-        kind: kind === "primary" ? "primary" : "additional"
+        kind: attachmentKind
       }
     });
     const grant = intent?.upload;
-    if (!grant?.attachmentId || !grant?.uploadUrl || grant.method !== "PUT") {
+    if (!grant?.attachmentId || (grant.status !== "ready" && (!grant.uploadUrl || grant.method !== "PUT"))) {
       throw new ApiError("invalid_upload_grant", 500, intent);
+    }
+    const path = `/submissions/${submissionId}/attachments/${encodeURIComponent(grant.attachmentId)}/complete`;
+    const completion = { submissionId: id, kind: attachmentKind, attachmentId: grant.attachmentId, path };
+    if (grant.status === "ready") {
+      pendingCompletions.set(file, completion);
+      return completeAttachment(file, completion);
     }
 
     let uploaded = false;
@@ -178,15 +220,13 @@ export const api = {
         throw new ApiError("blob_upload_failed", uploadResponse.status);
       }
       uploaded = true;
-      const path = `/submissions/${submissionId}/attachments/${encodeURIComponent(grant.attachmentId)}/complete`;
-      pendingCompletions.set(file, { submissionId: id, path });
-      const completed = await request(path, { method: "POST", json: {} });
-      pendingCompletions.delete(file);
-      return completed;
+      pendingCompletions.set(file, completion);
+      return await completeAttachment(file, completion);
     } catch (error) {
       if (!uploaded) {
         try {
           await request(`/attachments/${encodeURIComponent(grant.attachmentId)}`, { method: "DELETE" });
+          uploadRequestKeys.delete(file);
         } catch {
           // The server keeps the pending row for authenticated reconciliation.
         }
@@ -198,6 +238,7 @@ export const api = {
   improveText({ text, field, mode, language }) {
     return request("/ai/improve", {
       method: "POST",
+      signal: AbortSignal.timeout(25_000),
       json: { text, field, mode, language }
     });
   },

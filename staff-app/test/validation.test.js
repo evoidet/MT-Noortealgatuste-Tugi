@@ -13,6 +13,17 @@ test("money and quantities reject booleans, arrays and objects instead of coerci
 
 import { validateSubmissionData } from "../src/validation.js";
 
+test("long news paragraphs and string input remain valid after persistence", () => {
+  for (const text of ["õ".repeat(8_000), "A paragraph.\n\n".repeat(59).trim()]) {
+    const saved = validateSubmissionData("news", { title: "Long article", content: text });
+    assert.deepEqual(validateSubmissionData("news", saved, { final: true }), saved);
+    assert.equal(saved.content.join("\n\n"), text);
+  }
+  for (const content of ["x".repeat(30_001), ["x".repeat(16_000), "y".repeat(16_000)], "x\n\n".repeat(61)]) {
+    assert.throws(() => validateSubmissionData("news", { title: "Too long", content }), { code: "VALIDATION_ERROR" });
+  }
+});
+
 test("calculated financial totals stay within the persisted monetary bounds", () => {
   assert.throws(() => validateSubmissionData("invoice", { items: [{ quantity: 2, unitPrice: 10_000_000 }] }), { code: "VALIDATION_ERROR" });
   assert.throws(() => validateSubmissionData("expense", { items: [{ amount: 6_000_000 }, { amount: 6_000_000 }] }), { code: "VALIDATION_ERROR" });

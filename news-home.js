@@ -92,9 +92,10 @@
 
     const authorHtml = (item) => {
       const author = typeof item.author === "string" ? item.author.trim() : "";
-      return author
+      const role = typeof item.authorRole === "string" ? item.authorRole.trim() : "";
+      return author || role
         ? `<span class="home-news-author">${escapeHtml(
-            t("news.ui.author", { author })
+            [author ? t("news.ui.author", { author }) : "", role].filter(Boolean).join(" · ")
           )}</span>`
         : "";
     };
@@ -107,7 +108,7 @@
           item.imagePosition || "center center"
         )}"
       >
-        <img
+        ${item.image ? `<img
           class="news-image-primary${item.imageFit === "contain"
             ? " news-image-contain"
             : ""}"
@@ -117,7 +118,7 @@
           height="750"
           loading="lazy"
           decoding="async"
-        >
+        >` : ""}
       </div>
     `;
 

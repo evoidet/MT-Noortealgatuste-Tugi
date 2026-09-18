@@ -168,12 +168,14 @@ function previewImageData(data, attachments) {
   const additional = images.filter((attachment) => attachment !== primary);
   return {
     ...data,
-    _mainImagePreview: data?._mainImagePreview || (!data?.image && primary
+    _mainImagePreview: data?._mainImagePreview || (primary
       ? attachmentDownloadUrl(primary, { inline: true })
       : ""),
-    _additionalImagePreviews: Array.isArray(data?._additionalImagePreviews) && data._additionalImagePreviews.length
-      ? data._additionalImagePreviews
-      : additional.map((attachment) => attachmentDownloadUrl(attachment, { inline: true })).filter(Boolean)
+    // After saving, attachments include both earlier images and this upload.
+    // Using just the newly selected files hid images already on the draft.
+    _additionalImagePreviews: additional.some((attachment) => attachment.id)
+      ? additional.map((attachment) => attachmentDownloadUrl(attachment, { inline: true })).filter(Boolean)
+      : data?._additionalImagePreviews || []
   };
 }
 
@@ -309,8 +311,9 @@ export function renderNewsPreview(data) {
   const categoryLabel = t(`news.categories.${data.category || "initiatives"}`) || t("common.nav.news");
   const author = String(data.author || "").trim();
   const authorText = author
-    ? t("news.ui.author", { author })
+    ? [t("news.ui.author", { author }), data.authorRole].filter(Boolean).join(" · ")
     : t("staff.common.notProvided");
+  const summary = data.summary || data.excerpt;
 
   return `
     <div class="staff-news-preview news-main">
@@ -322,8 +325,9 @@ export function renderNewsPreview(data) {
               <time datetime="${escapeHtml(data.date || "")}">${escapeHtml(formatDate(data.date))}</time>
             </div>
             <h1>${escapeHtml(data.title || t("staff.news.untitled"))}</h1>
-            <p>${escapeHtml(data.summary || data.excerpt || t("staff.common.notProvided"))}</p>
+            ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
             <span class="news-article-author">${escapeHtml(authorText)}</span>
+            ${data.project ? `<span class="news-article-project">${escapeHtml(data.project)}</span>` : ""}
           </div>
 
           <div class="news-article-hero">

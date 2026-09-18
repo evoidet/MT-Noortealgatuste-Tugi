@@ -11,6 +11,14 @@
   },
   "rewrites": [
     {
+      "source": "/uudised",
+      "destination": "/uudised.html"
+    },
+    {
+      "source": "/uudised/",
+      "destination": "/uudised.html"
+    },
+    {
       "source": "/api/staff",
       "destination": "/api"
     },

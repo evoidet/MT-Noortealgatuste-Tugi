@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
+import { ApiError } from "../public/api.js";
 
 const publicRoot = new URL("../public/", import.meta.url);
 
@@ -60,7 +61,8 @@ async function submissionUiHarness(api) {
   const shell = { querySelectorAll: () => controls };
   const context = vm.createContext({
     api,
-    ApiError: Error,
+    ApiError,
+    crypto: globalThis.crypto,
     t: (key) => key,
     escapeHtml: (value) => value,
     contentToParagraphs: (value) => value ? [value] : [],
@@ -79,7 +81,7 @@ async function submissionUiHarness(api) {
     collectFormData = () => ({ invoiceNumber: "TEST-ONLY" });
     state.formType = "invoice";
     state.preview = { type: "invoice", data: { invoiceNumber: "TEST-ONLY" } };
-    ({ state, saveDraft, savePreview, openPreview, handleAction, collectNewsData, canCreate });
+    ({ state, saveData, saveDraft, savePreview, openPreview, handleAction, collectNewsData, canCreate, resetFormState });
   `, context);
   return { ...ui, controls, attributes, permanentlyDisabled };
 }
@@ -188,4 +190,111 @@ test("news image upload failure keeps the saved draft and never submits", async 
   assert.equal(ui.state.editingId, "news-image");
   assert.equal(ui.state.preview.data.title, "Image article");
   assert.equal(ui.state.pendingFiles.get("news-main").length, 1);
+});
+
+test("a lost news create response reuses one key and preserves edits on recovery", async () => {
+  const keys = [];
+  let updates = 0;
+  const ui = await submissionUiHarness({
+    createSubmission: async (_type, _data, key) => {
+      keys.push(key);
+      if (keys.length === 1) throw new ApiError("network_error", 0);
+      return { item: { id: "one-draft", type: "news", status: "DRAFT", data: { title: "Original" } }, replayed: true };
+    },
+    updateSubmission: async (id, data) => {
+      updates++;
+      assert.equal(id, "one-draft");
+      assert.equal(data.title, "Edited after disconnect");
+      return { item: { id, type: "news", status: "DRAFT", data } };
+    }
+  });
+  await assert.rejects(ui.saveData("news", { title: "Original", content: ["Body"] }));
+  const saved = await ui.saveData("news", { title: "Edited after disconnect", content: ["Body"] });
+  assert.equal(keys.length, 2);
+  assert.match(keys[0], /^[0-9a-f-]{36}$/);
+  assert.equal(keys[0], keys[1]);
+  assert.equal(saved.data.title, "Edited after disconnect");
+  assert.equal(updates, 1);
+  ui.resetFormState();
+  assert.equal(ui.state.createRequestKey, null);
+});
+
+test("news double clicks share one create and one submit operation", async () => {
+  let finishCreate;
+  let creates = 0, submits = 0;
+  const ui = await submissionUiHarness({
+    createSubmission: () => { creates++; return new Promise((resolve) => { finishCreate = resolve; }); },
+    submitSubmission: async (id) => { submits++; return { item: { id, type: "news", status: "PUBLISHED" } }; }
+  });
+  ui.state.formType = "news";
+  ui.state.preview = { type: "news", data: { title: "Minimum article", content: ["Body"], summary: "" } };
+  const first = ui.savePreview(ui.controls[0], true);
+  await ui.savePreview(ui.controls[0], true);
+  await ui.savePreview(ui.controls[1], false);
+  assert.equal(creates, 1);
+  finishCreate({ item: { id: "one-news", type: "news", status: "DRAFT" } });
+  await first;
+  assert.equal(submits, 1);
+  assert.equal(ui.state.view, "success");
+});
+
+test("a lost submit response confirms durable news success", async () => {
+  let confirms = 0;
+  const ui = await submissionUiHarness({
+    createSubmission: async () => ({ item: { id: "persisted-news", type: "news", status: "DRAFT" } }),
+    submitSubmission: async () => { throw new ApiError("network_error", 0); },
+    getSubmission: async () => { confirms++; return { item: { id: "persisted-news", type: "news", status: "PUBLISHED" } }; }
+  });
+  ui.state.formType = "news";
+  ui.state.preview = { type: "news", data: { title: "Published despite disconnect", content: ["Body"] } };
+  await ui.savePreview(ui.controls[0], true);
+  assert.equal(confirms, 1);
+  assert.equal(ui.state.view, "success");
+  assert.equal(ui.state.lastSubmitted.record.id, "persisted-news");
+});
+
+test("retry checks an uncertain submit before attempting to edit finalized news", async () => {
+  let confirms = 0, submits = 0;
+  const ui = await submissionUiHarness({
+    createSubmission: async () => ({ item: { id: "persisted-news", type: "news", status: "DRAFT" } }),
+    submitSubmission: async () => { submits++; throw new ApiError("network_error", 0); },
+    getSubmission: async () => {
+      if (++confirms === 1) throw new ApiError("network_error", 0);
+      return { item: { id: "persisted-news", type: "news", status: "PUBLISHED" } };
+    },
+    updateSubmission: async () => assert.fail("Finalized article must not be PATCHed")
+  });
+  ui.state.formType = "news";
+  ui.state.preview = { type: "news", data: { title: "Retried publication", content: ["Body"] } };
+  await ui.savePreview(ui.controls[0], true);
+  assert.notEqual(ui.state.view, "success");
+  assert.equal(ui.state.preview.data.title, "Retried publication");
+  await ui.savePreview(ui.controls[0], true);
+  assert.equal(submits, 1);
+  assert.equal(ui.state.view, "success");
+});
+
+test("required news fields reject whitespace and recover immediately after editing", async () => {
+  const source = await readFile(new URL("app.js", publicRoot), "utf8");
+  const title = { value: "   ", error: "", setCustomValidity(value) { this.error = value; } };
+  const content = { value: "Article text", error: "", setCustomValidity(value) { this.error = value; } };
+  let reported = false;
+  const form = {
+    querySelectorAll: () => [title, content],
+    checkValidity: () => !title.error && !content.error,
+    reportValidity: () => { reported = true; },
+    classList: { add() {} }
+  };
+  const context = vm.createContext({
+    document: { getElementById: (id) => id === "submissionForm" ? form : null },
+    t: (key) => key
+  });
+  vm.runInContext(source.replace(/^import[\s\S]*?from "\.\/[^"\n]+";\s*/gm, "").replace("void init();", ""), context);
+  const ui = vm.runInContext("showToast = () => {}; ({ validateCurrentForm, clearControlValidation });", context);
+  assert.equal(ui.validateCurrentForm(), false);
+  assert.equal(reported, true);
+  title.value = "Valid title";
+  ui.clearControlValidation(title);
+  assert.equal(title.error, "");
+  assert.equal(ui.validateCurrentForm(), true);
 });

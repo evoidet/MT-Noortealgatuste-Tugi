@@ -161,6 +161,7 @@
     const searchInput = document.getElementById("newsSearch");
     const resultsText = document.getElementById("newsResultsText");
     const articleTarget = document.getElementById("newsArticleContent");
+    const loadStatus = document.getElementById("newsLoadStatus");
     const heroCount = document.getElementById("newsHeroCount");
     const hero = document.querySelector(".news-hero");
     const siteOrigin = "https://www.noortetugi.ee";
@@ -169,6 +170,12 @@
     const setMetaContent = (selector, content) => {
       document.querySelector(selector)?.setAttribute("content", content);
     };
+
+    if (loadStatus && window.NEWS_LOAD_STATUS === "unavailable") {
+      loadStatus.hidden = false;
+      loadStatus.innerHTML = `${escapeHtml(t("news.ui.listLoadError"))} <button type="button">${escapeHtml(t("news.ui.retry"))}</button>`;
+      loadStatus.querySelector("button").addEventListener("click", () => window.location.reload());
+    }
 
     const setNewsMetadata = ({
       pageTitle,
@@ -179,7 +186,7 @@
       image = "/assets/logo-header.png",
       type = "website"
     }) => {
-      const absoluteImageUrl = new URL(image, siteOrigin).href;
+      const absoluteImageUrl = new URL(image || "/assets/logo-header.png", siteOrigin).href;
 
       document.title = pageTitle;
       document
@@ -218,9 +225,10 @@
 
     const authorHtml = (item, className = "news-author") => {
       const author = typeof item.author === "string" ? item.author.trim() : "";
-      return author
+      const role = typeof item.authorRole === "string" ? item.authorRole.trim() : "";
+      return author || role
         ? `<span class="${className}">${escapeHtml(
-            t("news.ui.author", { author })
+            [author ? t("news.ui.author", { author }) : "", role].filter(Boolean).join(" · ")
           )}</span>`
         : "";
     };
@@ -238,7 +246,7 @@
           item.imagePosition || "center center"
         )}"
       >
-        <img
+        ${item.image ? `<img
           class="news-image-primary${item.imageFit === "contain"
             ? " news-image-contain"
             : ""}"
@@ -251,12 +259,16 @@
           ${options.fetchPriority
             ? `fetchpriority="${escapeHtml(options.fetchPriority)}"`
             : ""}
-        >
+        >` : ""}
       </div>
     `;
 
     const originalImageHtml = (item) => {
-      if (!item.originalImage) return "";
+      const images = Array.isArray(item.additionalImages) && item.additionalImages.length
+        ? item.additionalImages
+        : item.originalImage ? [item.originalImage] : [];
+      const sources = [...new Set(images.filter((source) => typeof source === "string" && source.trim()))];
+      if (!sources.length) return "";
 
       const width = Number(item.originalImageWidth);
       const height = Number(item.originalImageHeight);
@@ -269,19 +281,19 @@
         ? `width="${Math.round(width)}" height="${Math.round(height)}"`
         : "";
 
-      return `
+      return sources.map((source) => `
         <figure class="news-article-original" data-news-reveal>
           <img
-            src="${escapeHtml(item.originalImage)}"
+            src="${escapeHtml(source)}"
             alt="${escapeHtml(
               item.imageAlt || item.title || t("news.ui.photo")
             )}"
-            ${dimensions}
+            ${source === item.originalImage ? dimensions : ""}
             loading="lazy"
             decoding="async"
           >
         </figure>
-      `;
+      `).join("");
     };
 
     const cardHtml = (item, index = 0) => `
@@ -369,6 +381,8 @@
         item.title,
         item.excerpt,
         item.author,
+        item.authorRole,
+        item.project,
         item.categoryLabel,
         ...(Array.isArray(item.content) ? item.content : [])
       ]
@@ -570,7 +584,7 @@
       setNewsMetadata({
         pageTitle: `${item.title} | MTÜ Noortealgatuste Tugi`,
         socialTitle: item.title,
-        description: item.excerpt,
+        description: item.excerpt || item.content?.find((paragraph) => typeof paragraph === "string" && paragraph.trim())?.slice(0, 200) || item.title,
         canonicalUrl,
         image: item.image,
         type: "article"
@@ -609,8 +623,9 @@
           </div>
 
           <h1>${escapeHtml(item.title)}</h1>
-          <p>${escapeHtml(item.excerpt)}</p>
+          ${item.excerpt ? `<p>${escapeHtml(item.excerpt)}</p>` : ""}
           ${authorHtml(item, "news-article-author")}
+          ${item.project ? `<span class="news-article-author">${escapeHtml(t("news.ui.project", { project: item.project }))}</span>` : ""}
         </div>
 
         <div class="news-article-hero" data-news-reveal>
@@ -708,17 +723,22 @@
 
     if (selectedArticle) {
       renderArticle(selectedArticle);
+    } else if (articleId && listingView && articleView && articleTarget) {
+      listingView.hidden = true;
+      articleView.hidden = false;
+      if (hero) hero.hidden = true;
+      const missing = window.NEWS_ARTICLE_STATUS === "missing";
+      const title = t(missing ? "news.ui.notFoundTitle" : "news.ui.loadErrorTitle");
+      setNewsMetadata({ pageTitle: title, socialTitle: title, description: title });
+      articleTarget.innerHTML = `
+        <div class="news-empty-state" role="status">
+          <h1>${escapeHtml(title)}</h1>
+          <p>${escapeHtml(t(missing ? "news.ui.notFoundText" : "news.ui.loadErrorText"))}</p>
+          ${missing ? "" : `<button type="button" class="news-button news-button-primary" data-news-retry>${escapeHtml(t("news.ui.retry"))}</button>`}
+          <a class="news-article-back" href="/uudised.html${currentLanguage === "et" ? "" : `?lang=${encodeURIComponent(currentLanguage)}`}">${escapeHtml(t("news.ui.back"))}</a>
+        </div>`;
+      articleTarget.querySelector("[data-news-retry]")?.addEventListener("click", () => window.location.reload());
     } else {
-      if (articleId) {
-        const listingUrl = new URL(window.location.href);
-        listingUrl.searchParams.delete("id");
-        window.history.replaceState(
-          window.history.state,
-          "",
-          `${listingUrl.pathname}${listingUrl.search}${listingUrl.hash}`
-        );
-      }
-
       renderListing();
     }
 

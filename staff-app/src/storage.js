@@ -481,6 +481,7 @@ export async function createClientUploadGrant({
   originalName,
   mimeType,
   size,
+  pathname: existingPathname = undefined,
   ttlMs = undefined,
   callback = undefined,
   blobClient = defaultBlobClient
@@ -492,7 +493,14 @@ export async function createClientUploadGrant({
     mimeType,
     size
   });
-  const pathname = createAttachmentBlobPathname(validated.extension);
+  const pathname = existingPathname === undefined
+    ? createAttachmentBlobPathname(validated.extension)
+    : assertBlobPathname(existingPathname);
+  if (originalExtension(pathname) !== validated.extension) {
+    throw new StorageError("BLOB_PATH_MISMATCH", "The upload path does not match the file type.", {
+      status: 409
+    });
+  }
   const lifetime = validateTtl(ttlMs, {
     fallback: DEFAULT_CLIENT_UPLOAD_TTL_MS,
     maximum: 15 * 60_000

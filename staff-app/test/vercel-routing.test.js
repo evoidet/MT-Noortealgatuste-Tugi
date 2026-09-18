@@ -40,10 +40,13 @@ test("Vercel routes every staff API path to the single Express function", async 
   assert.equal(vercelConfig.buildCommand, "npm run build");
   assert.match(packageJson.scripts.build, /tools\/build-vercel\.mjs/);
   assert.match(handlerSource, /staff-app\/src\/vercel\.js/);
-  assert.deepEqual(vercelConfig.rewrites, [
+  assert.deepEqual(vercelConfig.rewrites.filter((entry) => entry.source.startsWith("/api/")), [
     { source: "/api/staff", destination: "/api" },
     { source: "/api/staff/:path*", destination: "/api" }
   ]);
+  for (const source of ["/uudised", "/uudised/"]) {
+    assert.deepEqual(vercelConfig.rewrites.find((entry) => entry.source === source), { source, destination: "/uudised.html" });
+  }
   assert.deepEqual(Object.keys(vercelConfig.functions), ["api/index.js"]);
   for (const source of ["/admin", "/admin/(.*)"]) {
     const headers = Object.fromEntries(vercelConfig.headers.find((entry) => entry.source === source).headers.map(({ key, value }) => [key, value]));

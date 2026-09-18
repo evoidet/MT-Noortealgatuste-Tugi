@@ -793,6 +793,25 @@
     ],
     "news.ui.soon": ["Peagi", "Coming soon", "Скоро"],
     "news.ui.author": ["Autor: {{author}}", "Author: {{author}}", "Автор: {{author}}"],
+    "news.ui.project": ["Projekt: {{project}}", "Project: {{project}}", "Проект: {{project}}"],
+    "news.ui.notFoundTitle": ["Uudist ei leitud", "Article not found", "Новость не найдена"],
+    "news.ui.notFoundText": [
+      "See uudis ei ole avaldatud või link ei kehti.",
+      "This article is not published or the link is invalid.",
+      "Эта новость не опубликована или ссылка недействительна."
+    ],
+    "news.ui.loadErrorTitle": ["Uudist ei saanud laadida", "Article could not be loaded", "Не удалось загрузить новость"],
+    "news.ui.loadErrorText": [
+      "Uudist ei saanud praegu laadida. Palun proovi uuesti.",
+      "The article is temporarily unavailable. Please try again.",
+      "Новость временно недоступна. Попробуйте ещё раз."
+    ],
+    "news.ui.retry": ["Proovi uuesti", "Try again", "Попробовать снова"],
+    "news.ui.listLoadError": [
+      "Kõiki uudiseid ei saanud laadida. Palun proovi uuesti.",
+      "Some news items could not be loaded. Please try again.",
+      "Не удалось загрузить все новости. Попробуйте ещё раз."
+    ],
     "news.ui.photo": ["Uudise foto", "News photo", "Фотография к новости"],
     "news.ui.addPhoto": [
       "Uudise foto ei ole saadaval",

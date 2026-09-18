@@ -90,26 +90,76 @@
   // The static catalogue and its translation tooling remain the baseline.
   // Staff articles arrive already localized through the existing public API.
   // Never request authenticated drafts or replace the catalogue on failure.
+  windowObject.NEWS_LOAD_STATUS = "unavailable";
+  const isPublishedArticle = function (item) {
+    return item && item.published === true && typeof item.id === "string" && item.id.trim() &&
+      typeof item.title === "string" && item.title.trim() && Array.isArray(item.content) &&
+      item.content.some(function (paragraph) { return typeof paragraph === "string" && paragraph.trim(); });
+  };
+  const mergeArticles = function (published) {
+    const merged = new Map(windowObject.NEWS_ITEMS.map(function (item) { return [item.id, item]; }));
+    published.filter(isPublishedArticle).forEach(function (item) {
+      merged.set(item.id, { ...item, categoryLabel: categoryLabels[item.category] || t("common.nav.news") });
+    });
+    windowObject.NEWS_ITEMS = [...merged.values()];
+  };
+
   if (typeof windowObject.fetch === "function") {
     const language = windowObject.I18N?.getLanguage() || "et";
-    windowObject.NEWS_READY = windowObject.fetch(
-      `/api/staff/public/news?lang=${encodeURIComponent(language)}`,
-      { credentials: "omit", signal: windowObject.AbortSignal.timeout(5000) }
-    ).then(function (response) {
-      if (!response.ok) throw new Error("Published news unavailable");
-      return response.json();
-    }).then(function (payload) {
-      const published = Array.isArray(payload.items) ? payload.items.filter(function (item) {
-        return item && item.published === true && typeof item.id === "string" &&
-          item.title && Array.isArray(item.content);
-      }) : [];
-      const merged = new Map(windowObject.NEWS_ITEMS.map(function (item) { return [item.id, item]; }));
-      published.forEach(function (item) {
-        merged.set(item.id, { ...item, categoryLabel: categoryLabels[item.category] || t("common.nav.news") });
-      });
-      windowObject.NEWS_ITEMS = [...merged.values()];
-    }).catch(function () {
-      // Static news stays available during API outages and local/offline use.
-    });
+    const requestJson = async function (url) {
+      // AbortSignal.timeout is not available in every supported browser.
+      const controller = typeof windowObject.AbortController === "function"
+        ? new windowObject.AbortController() : null;
+      const timer = controller
+        ? windowObject.setTimeout(function () { controller.abort(); }, 5000) : null;
+      try {
+        const response = await windowObject.fetch(url, {
+          credentials: "omit",
+          signal: controller?.signal || windowObject.AbortSignal?.timeout?.(5000)
+        });
+        if (!response.ok) throw Object.assign(new Error("Published news unavailable"), { status: response.status });
+        return await response.json();
+      } finally {
+        if (timer !== null) windowObject.clearTimeout(timer);
+      }
+    };
+    windowObject.NEWS_LOAD_STATUS = "loading";
+    windowObject.NEWS_READY = (async function () {
+      try {
+        let offset = 0;
+        while (true) {
+          const payload = await requestJson(
+            `/api/staff/public/news?lang=${encodeURIComponent(language)}${offset ? `&offset=${offset}` : ""}`
+          );
+          if (!Array.isArray(payload?.items)) throw new Error("Invalid published news response");
+          mergeArticles(payload.items);
+          if (payload.nextOffset === undefined || payload.nextOffset === null) break;
+          if (!Number.isSafeInteger(payload.nextOffset) || payload.nextOffset <= offset || !payload.items.length) {
+            throw new Error("Invalid published news pagination");
+          }
+          offset = payload.nextOffset;
+        }
+        windowObject.NEWS_LOAD_STATUS = "ready";
+      } catch {
+        // Static news stays available during API outages and local/offline use.
+        windowObject.NEWS_LOAD_STATUS = "unavailable";
+      }
+
+      const articleId = new URLSearchParams(windowObject.location?.search || "").get("id");
+      if (!articleId || windowObject.NEWS_ITEMS.some(function (item) { return item.id === articleId; })) return;
+      // A listing page can fail while an individual published article is available.
+      try {
+        const payload = await requestJson(
+          `/api/staff/public/news/${encodeURIComponent(articleId)}?lang=${encodeURIComponent(language)}`
+        );
+        if (!isPublishedArticle(payload?.item) || payload.item.id !== articleId) {
+          throw new Error("Invalid published article response");
+        }
+        mergeArticles([payload.item]);
+        windowObject.NEWS_ARTICLE_STATUS = "ready";
+      } catch (error) {
+        windowObject.NEWS_ARTICLE_STATUS = error.status === 404 ? "missing" : "unavailable";
+      }
+    })();
   }
 })(window);

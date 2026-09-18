@@ -608,6 +608,26 @@ body.news-page .news-toolbar > p {
 
 /* Featured card */
 
+body.news-page .news-load-notice {
+  margin: 0 0 24px;
+  padding: 16px 20px;
+  border: 1px solid rgba(14, 59, 3, 0.2);
+  border-radius: 16px;
+  color: var(--news-text);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+body.news-page .news-load-notice button {
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 body.news-page .news-featured-card,
 body.news-page .news-card {
   --news-rotate-x: 0deg;

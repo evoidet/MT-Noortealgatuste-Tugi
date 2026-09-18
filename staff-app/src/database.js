@@ -508,21 +508,47 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       type,
       creatorId,
       data,
+      idempotencyKey = null,
       reimbursementRecipientEmail = null,
       reimbursementRecipientName = null
     }) {
-      const id = randomUUID();
+      if (idempotencyKey !== null && (type !== "news" ||
+          typeof idempotencyKey !== "string" ||
+          !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(idempotencyKey))) {
+        throw Object.assign(new Error("The news idempotency key must be a UUID."), {
+          code: "INVALID_IDEMPOTENCY_KEY", status: 400
+        });
+      }
+      const id = idempotencyKey?.toLowerCase() ?? randomUUID();
       const revisionId = randomUUID();
       const serialized = JSON.stringify(data ?? {});
       return transaction(async (client) => {
-        await client.query(`
+        // News does not depend on finance-only schema additions. Keep those
+        // nullable recipient columns scoped to expense writes.
+        const recipientColumns = type === "expense"
+          ? ", reimbursement_recipient_email, reimbursement_recipient_name" : "";
+        const recipientValues = type === "expense" ? ", $5, $6" : "";
+        const values = [id, type, creatorId, serialized];
+        if (type === "expense") values.push(reimbursementRecipientEmail, reimbursementRecipientName);
+        const inserted = await client.query(`
           INSERT INTO submissions (
             id, type, creator_id, status, data_json, revision_no,
-            created_at, updated_at, submitted_at,
-            reimbursement_recipient_email, reimbursement_recipient_name
-          ) VALUES ($1, $2, $3, 'DRAFT', $4::jsonb, 1, NOW(), NOW(), NULL, $5, $6)
-        `, [id, type, creatorId, serialized,
-          reimbursementRecipientEmail, reimbursementRecipientName]);
+            created_at, updated_at, submitted_at${recipientColumns}
+          ) VALUES ($1, $2, $3, 'DRAFT', $4::jsonb, 1, NOW(), NOW(), NULL${recipientValues})
+          ${idempotencyKey ? "ON CONFLICT (id) DO NOTHING" : ""}
+          RETURNING id
+        `, values);
+        if (idempotencyKey && !inserted.rows.length) {
+          // A lost create response must recover the same article, including
+          // its images and final status; never overwrite it with retry input.
+          const existing = await getSubmissionWith(client, id, { forUpdate: true });
+          if (!existing || existing.type !== type || existing.creatorId !== creatorId) {
+            throw Object.assign(new Error("The idempotency key belongs to another submission."), {
+              code: "IDEMPOTENCY_KEY_CONFLICT", status: 409
+            });
+          }
+          return { ...existing, replayed: true };
+        }
         await client.query(`
           INSERT INTO revisions (
             id, submission_id, revision_no, data_json, event, created_by, created_at
@@ -578,18 +604,33 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       return result.rows.map(mapSubmission);
     },
 
-    async listPublishedNews(limit = 250) {
+    async listPublishedNews(limit = 250, { offset = 0 } = {}) {
+      const parsedOffset = Number(offset);
+      const boundedOffset = Number.isSafeInteger(parsedOffset) && parsedOffset >= 0
+        ? Math.min(parsedOffset, 1_000_000) : 0;
       const result = await pool.query(`
         SELECT s.*, u.email AS creator_email, u.name AS creator_name
         FROM submissions AS s
         JOIN users AS u ON u.id = s.creator_id
         WHERE s.type = 'news' AND s.status = 'PUBLISHED'
         ORDER BY
-          CASE WHEN COALESCE((s.data_json ->> 'featured')::boolean, false) THEN 0 ELSE 1 END,
-          COALESCE(s.published_at, s.updated_at) DESC
-        LIMIT $1
-      `, [boundedLimit(limit, 100, 250)]);
+          CASE WHEN s.data_json ->> 'featured' = 'true' THEN 0 ELSE 1 END,
+          COALESCE(s.published_at, s.updated_at) DESC, s.id
+        LIMIT $1 OFFSET $2
+      `, [boundedLimit(limit, 100, 250), boundedOffset]);
       return result.rows.map(mapSubmission);
+    },
+
+    async getPublishedNewsBySlug(slug) {
+      const result = await pool.query(`
+        SELECT s.*, u.email AS creator_email, u.name AS creator_name
+        FROM submissions AS s
+        JOIN users AS u ON u.id = s.creator_id
+        WHERE s.type = 'news' AND s.status = 'PUBLISHED'
+          AND COALESCE(NULLIF(btrim(s.data_json ->> 'slug'), ''), 'news-' || s.id) = $1
+        LIMIT 1
+      `, [String(slug ?? "").trim()]);
+      return mapSubmission(result.rows[0]);
     },
 
     async updateSubmission({
@@ -621,13 +662,15 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
           return currentSubmission;
         }
         const nextRevision = currentSubmission.revision + 1;
+        const recipientUpdate = currentSubmission.type === "expense"
+          ? ", reimbursement_recipient_email = $4, reimbursement_recipient_name = $5" : "";
+        const values = [id, serialized, nextRevision];
+        if (currentSubmission.type === "expense") values.push(nextRecipientEmail, nextRecipientName);
         await client.query(`
           UPDATE submissions
-          SET data_json = $2::jsonb, revision_no = $3, updated_at = NOW(),
-              reimbursement_recipient_email = $4,
-              reimbursement_recipient_name = $5
+          SET data_json = $2::jsonb, revision_no = $3, updated_at = NOW()${recipientUpdate}
           WHERE id = $1
-        `, [id, serialized, nextRevision, nextRecipientEmail, nextRecipientName]);
+        `, values);
         await client.query(`
           INSERT INTO revisions (
             id, submission_id, revision_no, data_json, event, created_by, created_at
@@ -747,24 +790,46 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
     },
 
     async createPendingAttachment(input) {
+      const idempotencyKey = input.idempotencyKey;
+      if (idempotencyKey !== undefined && (typeof idempotencyKey !== "string" ||
+          !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(idempotencyKey))) {
+        throw Object.assign(new Error("The upload idempotency key must be a UUID."), {
+          code: "INVALID_IDEMPOTENCY_KEY", status: 400
+        });
+      }
+      const id = idempotencyKey?.toLowerCase() ?? input.id ?? randomUUID();
+      const kind = input.kind === "primary" ? "primary" : "additional";
       const result = await pool.query(`
         INSERT INTO attachments (
           id, submission_id, uploader_id, storage_name, storage_status,
           blob_pathname, blob_url, original_name, mime_type, kind,
           size_bytes, sha256, created_at
         ) VALUES ($1, $2, $3, NULL, 'pending', $4, NULL, $5, $6, $7, $8, $9, NOW())
+        ${idempotencyKey ? "ON CONFLICT (id) DO NOTHING" : ""}
         RETURNING *
       `, [
-        input.id ?? randomUUID(),
+        id,
         input.submissionId,
         input.uploaderId,
         input.blobPathname ?? null,
         input.originalName,
         input.mimeType,
-        input.kind === "primary" ? "primary" : "additional",
+        kind,
         input.size ?? 0,
         input.sha256 ?? null
       ]);
+      if (idempotencyKey && !result.rows.length) {
+        const existing = await database.getAttachment(id, { includePending: true });
+        if (!existing || existing.submissionId !== input.submissionId ||
+            existing.uploaderId !== input.uploaderId || existing.originalName !== input.originalName ||
+            existing.mimeType !== input.mimeType || existing.size !== (input.size ?? 0) ||
+            existing.kind !== kind || existing.storageStatus === "delete_pending") {
+          throw Object.assign(new Error("The upload idempotency key belongs to another attachment."), {
+            code: "IDEMPOTENCY_KEY_CONFLICT", status: 409
+          });
+        }
+        return existing;
+      }
       return mapAttachment(result.rows[0]);
     },
 

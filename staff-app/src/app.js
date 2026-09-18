@@ -36,6 +36,7 @@ import {
   openPrivateAttachment,
   persistUploadedFileWithRecord,
   readPrivateAttachment,
+  validateClientUploadMetadata,
   verifyClientUploadedFile
 } from "./storage.js";
 import { aiRequestSchema, reviewSchema, validateSubmissionData } from "./validation.js";
@@ -309,7 +310,8 @@ function validationResponse(response, error) {
     "SUBMISSION_DELIVERY_PENDING",
     "REIMBURSEMENT_RECIPIENT_NOT_ALLOWED",
     "INVOICE_ARCHIVE_FAILED",
-    "NEWS_SLUG_CONFLICT"
+    "NEWS_SLUG_CONFLICT",
+    "IDEMPOTENCY_KEY_CONFLICT"
   ]);
   if (!knownCodes.has(error.code)) return false;
   const status = error.status || (userValidationCodes.has(error.code)
@@ -391,6 +393,7 @@ export function createStaffApp({
   aiAssistant = createAiAssistant(config),
   driveArchiveService = createDriveArchiveService(config),
   documentGenerator = generateSubmissionDocument,
+  clientUploadGrantCreator = createClientUploadGrant,
   clientUploadedFileVerifier = verifyClientUploadedFile,
   privateAttachmentReader = readPrivateAttachment,
   privateAttachmentOpener = openPrivateAttachment
@@ -493,6 +496,18 @@ export function createStaffApp({
       }
       return work(submission);
     });
+  }
+
+  function validateNewsImageReferences(data, attachments) {
+    const ready = (id, primary) => attachments.some((attachment) => attachment.id === id &&
+      (attachment.kind === "primary") === primary && attachment.mimeType?.startsWith("image/") &&
+      (!attachment.storageStatus || attachment.storageStatus === "ready"));
+    if ((data.mainImageAttachmentId && !ready(data.mainImageAttachmentId, true)) ||
+      (data.additionalImageAttachmentIds || []).some((id) => !ready(id, false))) {
+      throw Object.assign(new Error("A selected news image is not available."), {
+        code: "VALIDATION_ERROR", fields: [{ field: "image", reason: "invalid" }]
+      });
+    }
   }
 
   async function auditSafely(entry, logMessage = "Completed operation could not be audited:") {
@@ -778,7 +793,8 @@ export function createStaffApp({
         fontSrc: ["'self'", "data:"],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
-        imgSrc: ["'self'", "data:", "blob:"],
+        // The News form explicitly supports HTTPS image URLs as well as uploads.
+        imgSrc: ["'self'", "https:", "data:", "blob:"],
         objectSrc: ["'none'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'"],
@@ -845,12 +861,35 @@ export function createStaffApp({
 
   app.get("/api/staff/public/news", asyncRoute(async (request, response) => {
     const language = normalizeNewsLanguage(String(request.query.lang ?? "et"));
-    const submissions = await database.listPublishedNews(100);
+    const offset = Number(request.query.offset ?? 0);
+    if (!Number.isSafeInteger(offset) || offset < 0 || offset > 1_000_000) {
+      return response.status(400).json({ error: "INVALID_OFFSET" });
+    }
+    const pageSize = 25;
+    const submissions = await database.listPublishedNews(pageSize, { offset });
     const items = (await Promise.all(submissions.map(async (submission) =>
       toPublicNewsItem(submission, await database.listAttachments(submission.id), language)
     ))).filter((item) => item?.id && item?.title && Array.isArray(item?.content));
-    response.set("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
-    response.json({ items });
+    // A new publication must appear immediately. Cached offset pages can also
+    // skip articles when a newer publication shifts the following page.
+    response.set("Cache-Control", "no-store");
+    response.json({ items, nextOffset: submissions.length === pageSize ? offset + pageSize : null });
+  }));
+
+  app.get("/api/staff/public/news/:slug", asyncRoute(async (request, response) => {
+    const slug = request.params.slug;
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 180) {
+      return response.status(404).json({ error: "NOT_FOUND" });
+    }
+    const submission = await database.getPublishedNewsBySlug(slug);
+    if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
+    const language = normalizeNewsLanguage(String(request.query.lang ?? "et"));
+    const item = toPublicNewsItem(submission, await database.listAttachments(submission.id), language);
+    if (!item?.id || !item.title || !Array.isArray(item.content)) {
+      return response.status(404).json({ error: "NOT_FOUND" });
+    }
+    response.set("Cache-Control", "no-store");
+    response.json({ item });
   }));
 
   app.get(
@@ -918,10 +957,15 @@ export function createStaffApp({
     }
     try {
       const { data, recipient } = prepareSubmissionInput(type, request.body?.data ?? {}, request.user);
+      const idempotencyKey = type === "news" ? request.get("Idempotency-Key") : undefined;
+      if (idempotencyKey && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
+        return response.status(400).json({ error: "INVALID_IDEMPOTENCY_KEY" });
+      }
       const submission = await database.createSubmission({
         type,
         creatorId: request.user.id,
         data,
+        idempotencyKey: idempotencyKey?.toLowerCase(),
         reimbursementRecipientEmail: recipient?.email,
         reimbursementRecipientName: recipient?.name
       });
@@ -932,7 +976,8 @@ export function createStaffApp({
         targetId: submission.id,
         ipHash: auth.clientIpHash(request)
       });
-      response.status(201).json({ item: await summarizeSubmission(submission, database, true) });
+      response.status(201).json({ item: await summarizeSubmission(submission, database, true),
+        replayed: Boolean(submission.replayed) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
     }
@@ -1062,6 +1107,7 @@ export function createStaffApp({
           throw error;
         }
         const attachments = await database.listAttachments(submission.id);
+        if (submission.type === "news") validateNewsImageReferences(data, attachments);
         if (submission.type === "expense" && !attachments.some((attachment) => attachment.kind === "primary")) {
           const error = new Error("A primary expense attachment is required.");
           error.code = "PRIMARY_ATTACHMENT_REQUIRED";
@@ -1305,6 +1351,8 @@ export function createStaffApp({
     let nextStatus = statusForDecision[parsed.data.decision];
     if (submission.type === "news" && parsed.data.decision === "approve") nextStatus = "PUBLISHED";
     if (nextStatus === "PUBLISHED") {
+      const data = validateSubmissionData("news", submission.data, { final: true });
+      validateNewsImageReferences(data, await database.listAttachments(submission.id));
       try {
         await database.assertSubmissionSchema("news");
         await database.assertNewsPublicationSchema();
@@ -1399,25 +1447,47 @@ export function createStaffApp({
         } catch {
           console.error("Blob reconciliation could not run.");
         }
+        const idempotencyKey = request.get("Idempotency-Key")?.toLowerCase();
+        if (idempotencyKey && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
+          return response.status(400).json({ error: "INVALID_IDEMPOTENCY_KEY" });
+        }
+        const kind = request.body?.kind === "primary" ? "primary" : "additional";
+        const metadata = validateClientUploadMetadata({ config, submission,
+          originalName: request.body?.originalName, mimeType: request.body?.mimeType, size: request.body?.size });
+        const previous = idempotencyKey
+          ? await database.getAttachment(idempotencyKey, { includePending: true }) : null;
+        if (previous && (previous.submissionId !== submission.id || previous.uploaderId !== request.user.id ||
+          previous.kind !== kind || previous.size !== metadata.size ||
+          previous.mimeType !== metadata.mimeType || previous.originalName !== metadata.originalName)) {
+          return response.status(409).json({ error: "IDEMPOTENCY_KEY_CONFLICT" });
+        }
+        if (previous?.storageStatus === "ready") {
+          return response.json({ upload: { attachmentId: previous.id, status: "ready" } });
+        }
+        if (previous && previous.storageStatus !== "pending") {
+          return response.status(409).json({ error: "INVALID_ATTACHMENT_STATE" });
+        }
         const existing = await database.listAttachments(submission.id, { includePending: true });
-        if (existing.filter((attachment) => attachment.storageStatus !== "delete_pending").length >= 100) {
+        if (!previous && existing.filter((attachment) => attachment.storageStatus !== "delete_pending").length >= 100) {
           return response.status(400).json({ error: "FILE_COUNT_LIMIT" });
         }
-        const grant = await createClientUploadGrant({
+        const grant = await clientUploadGrantCreator({
           config,
           submission,
+          pathname: previous?.blobPathname,
           originalName: request.body?.originalName,
           mimeType: request.body?.mimeType,
           size: request.body?.size
         });
-        const attachment = await database.createPendingAttachment({
+        const attachment = previous || await database.createPendingAttachment({
           submissionId: submission.id,
           uploaderId: request.user.id,
+          idempotencyKey,
           blobPathname: grant.pathname,
           originalName: grant.originalName,
           mimeType: grant.mimeType,
           size: grant.size,
-          kind: request.body?.kind === "primary" ? "primary" : "additional"
+          kind
         });
         response.status(201).json({
           upload: {

@@ -19,6 +19,7 @@ const state = {
   current: null,
   formType: null,
   editingId: null,
+  createRequestKey: null,
   preview: null,
   pendingFiles: new Map(),
   localNewsFile: null,
@@ -39,6 +40,7 @@ const state = {
   formOperation: false,
   previewing: false,
   submitting: false,
+  submissionAttempted: false,
   deliveryError: null,
   validationIssues: []
 };
@@ -429,6 +431,7 @@ function applyFormValidationIssues(type) {
 }
 
 function clearControlValidation(control) {
+  control?.setCustomValidity?.("");
   if (!control?.matches?.("[aria-invalid='true']")) return;
   const container = control.closest(".staff-field, .staff-file-field");
   control.removeAttribute("aria-invalid");
@@ -583,10 +586,12 @@ function resetFormState() {
   state.uploadedFiles = new Set();
   state.formType = null;
   state.editingId = null;
+  state.createRequestKey = null;
   state.preview = null;
   state.lastSubmitted = null;
   state.previewing = false;
   state.submitting = false;
+  state.submissionAttempted = false;
   state.deliveryError = null;
   state.validationIssues = [];
 }
@@ -919,6 +924,7 @@ function field({
   wide = false,
   min = "",
   max = "",
+  maxLength = "",
   step = "",
   inputmode = "",
   ai = null,
@@ -935,6 +941,7 @@ function field({
     placeholder ? `placeholder="${escapeHtml(t(placeholder))}"` : "",
     min !== "" ? `min="${escapeHtml(min)}"` : "",
     max !== "" ? `max="${escapeHtml(max)}"` : "",
+    maxLength !== "" ? `maxlength="${escapeHtml(maxLength)}"` : "",
     step !== "" ? `step="${escapeHtml(step)}"` : "",
     inputmode ? `inputmode="${escapeHtml(inputmode)}"` : ""
   ].filter(Boolean).join(" ");
@@ -1143,7 +1150,7 @@ function newsForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "newsTitle", label: "staff.news.title", value: data.title, required: true, wide: true, placeholder: "staff.news.titlePlaceholder", ai: { field: "news.title", mode: "news" } })}
+        ${field({ id: "newsTitle", label: "staff.news.title", value: data.title, required: true, maxLength: 180, wide: true, placeholder: "staff.news.titlePlaceholder", ai: { field: "news.title", mode: "news" } })}
         ${field({ id: "newsSlug", label: "staff.news.slug", value: data.slug || data.id, placeholder: "staff.news.slugPlaceholder", hint: "staff.news.slugHint" })}
         ${field({ id: "newsDate", label: "staff.news.date", value: data.date, type: "date" })}
         ${selectField({
@@ -1159,7 +1166,7 @@ function newsForm(data) {
         ${field({ id: "newsRegistrationUrl", label: "staff.news.registrationUrl", value: data.registrationUrl, type: "url", wide: true, placeholder: "staff.news.registrationUrlPlaceholder" })}
         ${field({ id: "newsAuthor", label: "staff.news.author", value: data.author ?? state.session?.user?.name, autocomplete: "name" })}
         ${field({ id: "newsAuthorRole", label: "staff.news.authorRole", value: data.authorRole, placeholder: "staff.news.authorRolePlaceholder" })}
-        ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", rows: 4, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "news.summary", mode: "news" } })}
+        ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", maxLength: 600, rows: 4, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "news.summary", mode: "news" } })}
       </div>
     </section>
 
@@ -1172,7 +1179,7 @@ function newsForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "newsContent", label: "staff.news.content", value: Array.isArray(data.content) ? data.content.join("\n\n") : data.content, type: "textarea", rows: 14, required: true, wide: true, placeholder: "staff.news.contentPlaceholder", hint: "staff.news.contentHint", ai: { field: "news.content", mode: "news" } })}
+        ${field({ id: "newsContent", label: "staff.news.content", value: Array.isArray(data.content) ? data.content.join("\n\n") : data.content, type: "textarea", maxLength: 30000, rows: 14, required: true, wide: true, placeholder: "staff.news.contentPlaceholder", hint: "staff.news.contentHint", ai: { field: "news.content", mode: "news" } })}
       </div>
     </section>
 
@@ -1602,6 +1609,9 @@ function validateCurrentForm() {
   const form = document.getElementById("submissionForm");
   if (!form) return false;
 
+  form.querySelectorAll("[required]").forEach((control) => {
+    control.setCustomValidity(control.value.trim() ? "" : t("staff.errors.requiredFields"));
+  });
   const valid = form.checkValidity();
 
   if (!valid) {
@@ -1672,7 +1682,8 @@ async function saveData(type, data) {
       throw new ApiError("invalid_submission_response", 500, payload);
     }
   } else {
-    const payload = await api.createSubmission(type, cleanData);
+    if (type === "news") state.createRequestKey ||= globalThis.crypto?.randomUUID?.();
+    const payload = await api.createSubmission(type, cleanData, state.createRequestKey);
     saved = normalizeSubmission(extractSubmission(payload));
 
     if (!saved?.id) {
@@ -1680,6 +1691,14 @@ async function saveData(type, data) {
     }
 
     state.editingId = saved.id;
+    // A previous create may have committed before its response was lost. Keep
+    // any edits made since that attempt when the server recovers the draft.
+    if (payload?.replayed) {
+      const updated = await api.updateSubmission(saved.id, cleanData);
+      const recovered = normalizeSubmission(extractSubmission(updated));
+      if (recovered?.id !== saved.id) throw new ApiError("invalid_submission_response", 502, updated);
+      saved = recovered;
+    }
   }
 
   await uploadPendingFiles(saved.id || state.editingId);
@@ -1789,7 +1808,7 @@ async function openPreview(button) {
     const saved = await saveData(type, collected);
     const payload = await api.getSubmission(saved.id);
     const refreshed = normalizeSubmission(extractSubmission(payload));
-    if (!refreshed?.id) throw new ApiError("missing_submission_id", 500, payload);
+    if (refreshed?.id !== saved.id) throw new ApiError("invalid_submission_response", 502, payload);
     state.current = refreshed;
     state.editingId = refreshed.id;
     state.validationIssues = [];
@@ -1833,7 +1852,8 @@ function renderSubmissionSuccess(type, record) {
 }
 
 async function recoverCompletedSubmission(error) {
-  if (!(error instanceof ApiError) || ![403, 409].includes(error.status) || !state.editingId || !state.preview) {
+  if ((!state.submissionAttempted && !(error instanceof ApiError && [403, 409].includes(error.status))) ||
+      !state.editingId || !state.preview) {
     return false;
   }
   try {
@@ -1844,7 +1864,7 @@ async function recoverCompletedSubmission(error) {
       : state.preview.type === "news"
         ? ["submitted", "published"]
         : ["submitted"];
-    if (!record || !completedStatuses.includes(String(record.status || "").toLowerCase())) return false;
+    if (record?.id !== state.editingId || !completedStatuses.includes(String(record.status || "").toLowerCase())) return false;
     const type = state.preview.type;
     showToast(`staff.success.${type}Toast`, "success");
     resetFormState();
@@ -1873,9 +1893,13 @@ async function savePreview(button, submit = false) {
   const finishOperation = beginFormOperation(button, submit ? "staff.preview.submitting" : "staff.form.saving");
 
   try {
+    // A disconnected response does not prove the submit failed. Confirm its
+    // persisted status before trying to PATCH a now-finalized submission.
+    if (submit && state.submissionAttempted && await recoverCompletedSubmission(null)) return;
     const saved = await saveData(state.preview.type, state.preview.data);
 
     if (submit) {
+      state.submissionAttempted = true;
       const payload = await api.submitSubmission(saved.id);
       const submitted = normalizeSubmission(extractSubmission(payload));
       const completedStatuses = state.preview.type === "invoice"

@@ -43,6 +43,14 @@ function isSafeExternalUrl(value) {
 const imagePositionToken = "(?:left|center|right|top|bottom|(?:100|[1-9]?\\d)%)";
 const imagePositionPattern = new RegExp(`^${imagePositionToken}(?:\\s+${imagePositionToken})?$`);
 
+// Validate the persisted paragraph representation as well as textarea input.
+// A successful draft must remain valid when the same data is submitted again.
+const newsContent = z.union([
+  z.string().trim().max(30_000),
+  z.array(z.string().trim().max(30_000)).max(60)
+]).transform(paragraphs).refine((value) => value.length <= 60 && value.join("\n\n").length <= 30_000,
+  { message: "Article text is too long." });
+
 const localizedNews = z.object({
   title: optionalText(180),
   excerpt: optionalText(600),
@@ -61,10 +69,7 @@ const newsFields = z.object({
   excerpt: optionalText(600),
   author: optionalText(160),
   authorRole: optionalText(160),
-  content: z.union([
-    z.string().trim().max(30_000),
-    z.array(z.string().trim().max(6_000)).max(60)
-  ]).optional().default([]),
+  content: newsContent.optional().default([]),
   project: optionalText(160),
   registrationUrl: optionalText(2_048).refine(isSafeExternalUrl, { message: "Invalid registration URL." }),
   image: optionalText(500).refine(isSafePublicImageUrl, { message: "Unsafe image URL." }),

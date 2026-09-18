@@ -166,6 +166,28 @@ test("client upload grant exposes only a scoped presigned PUT URL", async () => 
   assert.equal(presignOptions.addRandomSuffix, false);
 });
 
+test("retry grants reuse the persisted upload path and reject a mismatched file extension", async () => {
+  const pathname = `staff-attachments/${"a".repeat(64)}.png`;
+  const paths = [];
+  const blobClient = {
+    async issueSignedToken(options) { paths.push(options.pathname); return {}; },
+    async presignUrl(_token, options) {
+      assert.equal(options.pathname, pathname);
+      assert.equal(options.allowOverwrite, false);
+      return { presignedUrl: "https://upload.example.test/retry" };
+    }
+  };
+  const options = { config, submission: { type: "news" }, originalName: "photo.png",
+    mimeType: "image/png", size: png.length, pathname, blobClient };
+  const grant = await createClientUploadGrant(options);
+  assert.equal(grant.pathname, pathname);
+  assert.deepEqual(paths, [pathname]);
+  await assert.rejects(createClientUploadGrant({ ...options,
+    pathname: `staff-attachments/${"a".repeat(64)}.jpg` }), { code: "BLOB_PATH_MISMATCH", status: 409 });
+  await assert.rejects(createClientUploadGrant({ ...options, pathname: "../../image.png" }),
+    { code: "BLOB_PATH_INVALID" });
+});
+
 test("database failure after a server upload compensates by deleting the Blob", async () => {
   let deleted;
   const blobClient = {
