@@ -8,6 +8,8 @@ import { createStaffApp } from "../../src/app.js";
 import { loadConfig } from "../../src/config.js";
 import { openDatabase } from "../../src/database.js";
 import { createAiAssistant } from "../../src/ai.js";
+import { createGitHubNewsPublisher } from "../../src/github-news.js";
+import { publishedArticlesForReconciliation } from "../../src/news-reconciliation.js";
 import { createClientUploadGrant, verifyClientUploadedFile, openPrivateAttachment } from "../../src/storage.js";
 import { loadMigrations } from "../../scripts/db-migrate.mjs";
 
@@ -57,9 +59,10 @@ export async function newsWorkflowFixture() {
     await database.createSession({ tokenHash: createHash("sha256").update(`synthetic-${role}`).digest("base64url"),
       userId: users[role].id, expiresAt: new Date(Date.now() + 3600000).toISOString(), userAgentHash: null, ipHash: null });
   }
-  const state = { origin: "http://localhost:3100", blobs: new Map(), aiMode: "missing", aiCalls: 0,
+  const state = { origin: "http://localhost:3100", blobs: new Map(), publishedNews: [], publishCalls: 0,
+    failPublish: false, aiMode: "missing", aiCalls: 0,
     failFinalization: false, failCreateResponse: false, failSubmitResponse: false,
-    failResponseReads: false, failUploadResponse: false, blobPutCount: 0 };
+    failResponseReads: false, failUploadResponse: false, failUpload: false, blobPutCount: 0 };
   const failedReadIds = new Set();
   const listReviews = database.listReviews.bind(database);
   database.listReviews = async (id) => {
@@ -88,6 +91,27 @@ export async function newsWorkflowFixture() {
     if (state.aiMode === "error") throw Object.assign(new Error("Synthetic provider failure"), { status: 503 });
     return { status: "completed", output_text: JSON.parse(input.input).text.replace("palju noored", "palju noori") };
   } } } });
+  const githubPublisher = createGitHubNewsPublisher({ githubRepository: "synthetic/repo", githubToken: "synthetic" }, {
+    loadPublishedArticles: () => publishedArticlesForReconciliation(database, state.origin),
+    fetchImpl: async (_url, options) => {
+      if (state.failPublish) return { ok: false, status: 503, json: async () => ({}) };
+      if (options.method === "GET") return { ok: true, status: 200, json: async () => ({
+        sha: `file-${state.publishCalls}`, content: Buffer.from(JSON.stringify(state.publishedNews)).toString("base64")
+      }) };
+      const body = JSON.parse(options.body);
+      if (body.sha !== `file-${state.publishCalls}`) return { ok: false, status: 409, json: async () => ({}) };
+      state.publishedNews = JSON.parse(Buffer.from(body.content, "base64").toString("utf8"));
+      state.publishCalls++;
+      return { ok: true, status: 200, json: async () => ({ commit: { sha: `commit-${state.publishCalls}` } }) };
+    }
+  });
+  const newsPublisher = { publish(article, options) {
+    const publicArticle = { ...article,
+      image: article.image ? new URL(new URL(article.image).pathname, state.origin).href : "",
+      originalImage: article.originalImage ? new URL(new URL(article.originalImage).pathname, state.origin).href : "",
+      additionalImages: (article.additionalImages || []).map((url) => new URL(new URL(url).pathname, state.origin).href) };
+    return githubPublisher.publish(publicArticle, options);
+  } };
   const missingAi = createAiAssistant(config);
   const setStatus = database.setSubmissionStatus.bind(database);
   database.setSubmissionStatus = async (input) => {
@@ -106,6 +130,7 @@ export async function newsWorkflowFixture() {
       clientUploadGrantCreator: (input) => createClientUploadGrant({ ...input, blobClient }),
       clientUploadedFileVerifier: (input) => verifyClientUploadedFile({ ...input, blobClient }),
       privateAttachmentOpener: (input) => openPrivateAttachment({ ...input, blobClient }),
+      newsPublisher,
       mailService: { async sendExpenseSubmitted() { assert.fail("News must not send finance email"); } },
       driveArchiveService: { enabled: false }
     }).app;

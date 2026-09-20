@@ -562,6 +562,16 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       return getSubmissionWith(pool, id);
     },
 
+    async listNewsForReconciliation() {
+      const result = await pool.query(`
+        SELECT s.*, u.email AS creator_email, u.name AS creator_name
+        FROM submissions AS s JOIN users AS u ON u.id = s.creator_id
+        WHERE s.type = 'news' AND s.status = 'PUBLISHED'
+        ORDER BY COALESCE(s.published_at, s.created_at), s.id
+      `);
+      return result.rows.map(mapSubmission);
+    },
+
     async listSubmissions(limit = 250) {
       const result = await pool.query(`
         SELECT s.*, u.email AS creator_email, u.name AS creator_name
@@ -602,35 +612,6 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
         LIMIT $3
       `, [allowedTypes, type, boundedLimit(limit, 250, 500)]);
       return result.rows.map(mapSubmission);
-    },
-
-    async listPublishedNews(limit = 250, { offset = 0 } = {}) {
-      const parsedOffset = Number(offset);
-      const boundedOffset = Number.isSafeInteger(parsedOffset) && parsedOffset >= 0
-        ? Math.min(parsedOffset, 1_000_000) : 0;
-      const result = await pool.query(`
-        SELECT s.*, u.email AS creator_email, u.name AS creator_name
-        FROM submissions AS s
-        JOIN users AS u ON u.id = s.creator_id
-        WHERE s.type = 'news' AND s.status = 'PUBLISHED'
-        ORDER BY
-          CASE WHEN s.data_json ->> 'featured' = 'true' THEN 0 ELSE 1 END,
-          COALESCE(s.published_at, s.updated_at) DESC, s.id
-        LIMIT $1 OFFSET $2
-      `, [boundedLimit(limit, 100, 250), boundedOffset]);
-      return result.rows.map(mapSubmission);
-    },
-
-    async getPublishedNewsBySlug(slug) {
-      const result = await pool.query(`
-        SELECT s.*, u.email AS creator_email, u.name AS creator_name
-        FROM submissions AS s
-        JOIN users AS u ON u.id = s.creator_id
-        WHERE s.type = 'news' AND s.status = 'PUBLISHED'
-          AND COALESCE(NULLIF(btrim(s.data_json ->> 'slug'), ''), 'news-' || s.id) = $1
-        LIMIT 1
-      `, [String(slug ?? "").trim()]);
-      return mapSubmission(result.rows[0]);
     },
 
     async updateSubmission({

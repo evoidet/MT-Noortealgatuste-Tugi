@@ -13,15 +13,15 @@ const publicFiles = new Set([
   "tunnustusgala.html", "privaatsuspoliitika.html", "dokumendid.html",
   "style.css", "home.css", "news.css", "vorgustik.css", "camp.css", "street.css",
   "gala.css", "privacy.css", "documents.css", "translations.js", "i18n.js",
-  "script.js", "site-config.js", "sender-init.js", "news-data.js", "news-home.js",
+  "script.js", "site-config.js", "sender-init.js", "news-data.js", "published-news.json", "news-home.js",
   "news.js", "news-photo-lightbox.js", "favicon.ico", "favicon.png",
   "apple-touch-icon.png", "robots.txt", "sitemap.xml"
 ]);
 
-async function runNodeScript(relativePath) {
+async function runNodeScript(relativePath, args = []) {
   const scriptPath = resolve(projectRoot, relativePath);
   await new Promise((resolveRun, rejectRun) => {
-    const child = spawn(process.execPath, [scriptPath], {
+    const child = spawn(process.execPath, [scriptPath, ...args], {
       cwd: projectRoot,
       env: process.env,
       stdio: "inherit"
@@ -42,6 +42,7 @@ async function runNodeScript(relativePath) {
 if (process.env.VERCEL_ENV === "production") {
   await runNodeScript("staff-app/scripts/db-migrate.mjs");
   await runNodeScript("staff-app/scripts/db-check.mjs");
+  await runNodeScript("staff-app/scripts/reconcile-news.mjs", ["--check"]);
 }
 
 if (outputDirectory !== expectedOutputDirectory || dirname(outputDirectory) !== projectRoot) {

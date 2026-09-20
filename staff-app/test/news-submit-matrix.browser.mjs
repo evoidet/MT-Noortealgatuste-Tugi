@@ -140,8 +140,8 @@ try {
     const staffRead = await context.request.get(`${origin}/api/staff/submissions/${item.id}`);
     assert.equal(staffRead.status(), 200);
     assert.equal((await staffRead.json()).item.status, "PUBLISHED");
-    const feed = await (await fetch(`${origin}/api/staff/public/news?lang=et`)).json();
-    assert.ok(feed.items.some((entry) => entry.id === item.data.slug), "Listed publicly after app restart");
+    const feed = await (await fetch(`${origin}/published-news.json`)).json();
+    assert.ok(feed.some((entry) => entry.id === item.data.slug), "Listed publicly after app restart");
     await publicPage.goto(`${origin}/uudised?lang=et&id=${item.data.slug}`);
     await publicPage.locator("#newsArticleContent h1").waitFor();
     assert.equal(await publicPage.locator("#newsArticleContent h1").innerText(), title);

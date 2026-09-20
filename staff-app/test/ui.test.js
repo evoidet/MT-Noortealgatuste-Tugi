@@ -239,16 +239,20 @@ test("news double clicks share one create and one submit operation", async () =>
 });
 
 test("a lost submit response confirms durable news success", async () => {
-  let confirms = 0;
+  let confirms = 0, reconciles = 0;
   const ui = await submissionUiHarness({
     createSubmission: async () => ({ item: { id: "persisted-news", type: "news", status: "DRAFT" } }),
-    submitSubmission: async () => { throw new ApiError("network_error", 0); },
+    submitSubmission: async () => {
+      if (++reconciles === 1) throw new ApiError("network_error", 0);
+      return { item: { id: "persisted-news", type: "news", status: "PUBLISHED" } };
+    },
     getSubmission: async () => { confirms++; return { item: { id: "persisted-news", type: "news", status: "PUBLISHED" } }; }
   });
   ui.state.formType = "news";
   ui.state.preview = { type: "news", data: { title: "Published despite disconnect", content: ["Body"] } };
   await ui.savePreview(ui.controls[0], true);
   assert.equal(confirms, 1);
+  assert.equal(reconciles, 2);
   assert.equal(ui.state.view, "success");
   assert.equal(ui.state.lastSubmitted.record.id, "persisted-news");
 });
@@ -257,7 +261,10 @@ test("retry checks an uncertain submit before attempting to edit finalized news"
   let confirms = 0, submits = 0;
   const ui = await submissionUiHarness({
     createSubmission: async () => ({ item: { id: "persisted-news", type: "news", status: "DRAFT" } }),
-    submitSubmission: async () => { submits++; throw new ApiError("network_error", 0); },
+    submitSubmission: async () => {
+      if (++submits === 1) throw new ApiError("network_error", 0);
+      return { item: { id: "persisted-news", type: "news", status: "PUBLISHED" } };
+    },
     getSubmission: async () => {
       if (++confirms === 1) throw new ApiError("network_error", 0);
       return { item: { id: "persisted-news", type: "news", status: "PUBLISHED" } };
@@ -270,8 +277,21 @@ test("retry checks an uncertain submit before attempting to edit finalized news"
   assert.notEqual(ui.state.view, "success");
   assert.equal(ui.state.preview.data.title, "Retried publication");
   await ui.savePreview(ui.controls[0], true);
-  assert.equal(submits, 1);
+  assert.equal(submits, 2);
   assert.equal(ui.state.view, "success");
+});
+
+test("database PUBLISHED status cannot hide a failed repository reconciliation", async () => {
+  const ui = await submissionUiHarness({
+    createSubmission: async () => ({ item: { id: "legacy-news", type: "news", status: "DRAFT" } }),
+    submitSubmission: async () => { throw new ApiError("GITHUB_PUBLISH_FAILED", 503); },
+    getSubmission: async () => ({ item: { id: "legacy-news", type: "news", status: "PUBLISHED" } })
+  });
+  ui.state.formType = "news";
+  ui.state.preview = { type: "news", data: { title: "Legacy article", content: ["Body"] } };
+  await ui.savePreview(ui.controls[0], true);
+  assert.notEqual(ui.state.view, "success");
+  assert.equal(ui.state.preview.data.title, "Legacy article");
 });
 
 test("required news fields reject whitespace and recover immediately after editing", async () => {

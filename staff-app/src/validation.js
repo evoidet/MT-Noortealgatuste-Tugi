@@ -40,6 +40,21 @@ function isSafeExternalUrl(value) {
   }
 }
 
+export const newsUrlValidationMessages = Object.freeze({
+  registrationUrl: "Registration URL is invalid.",
+  image: "Image URL is invalid."
+});
+
+// Preserve the existing empty-string representation in stored news data. An
+// optional URL is normalized before its URL validator ever sees a value.
+const optionalNewsUrl = (maximum, validate, message) => z.preprocess((input) => {
+  const value = typeof input === "string" ? input.trim() : input;
+  return value === undefined || value === null || value === "" ? "" : value;
+}, z.union([
+  z.literal(""),
+  z.string().max(maximum, { message }).refine((value) => !value || validate(value), { message })
+]));
+
 const imagePositionToken = "(?:left|center|right|top|bottom|(?:100|[1-9]?\\d)%)";
 const imagePositionPattern = new RegExp(`^${imagePositionToken}(?:\\s+${imagePositionToken})?$`);
 
@@ -71,8 +86,8 @@ const newsFields = z.object({
   authorRole: optionalText(160),
   content: newsContent.optional().default([]),
   project: optionalText(160),
-  registrationUrl: optionalText(2_048).refine(isSafeExternalUrl, { message: "Invalid registration URL." }),
-  image: optionalText(500).refine(isSafePublicImageUrl, { message: "Unsafe image URL." }),
+  registrationUrl: optionalNewsUrl(2_048, isSafeExternalUrl, newsUrlValidationMessages.registrationUrl),
+  image: optionalNewsUrl(2_048, isSafePublicImageUrl, newsUrlValidationMessages.image),
   imageAlt: optionalText(240),
   imagePosition: z.string().trim().max(60).regex(imagePositionPattern).optional().default("center center"),
   imageFit: z.enum(["cover", "contain"]).optional().default("cover"),
@@ -267,7 +282,9 @@ export function validateSubmissionData(type, input, { final = false } = {}) {
     error.code = "VALIDATION_ERROR";
     error.issues = result.error.issues.map((issue) => ({
       path: issue.path.join("."),
-      code: issue.code
+      code: issue.code,
+      ...(type === "news" && newsUrlValidationMessages[issue.path.join(".")]
+        ? { message: newsUrlValidationMessages[issue.path.join(".")] } : {})
     }));
     throw error;
   }

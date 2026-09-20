@@ -234,6 +234,54 @@ test("news registration URL is optional and accepts only HTTP(S) URLs", () => {
   );
 });
 
+test("optional news URLs normalize before validation and accept Google Forms links", () => {
+  for (const empty of [undefined, null, "", "   \t\n"]) {
+    const result = validateSubmissionData("news", {
+      title: "Title", content: ["Body"], registrationUrl: empty, image: empty
+    }, { final: true });
+    assert.equal(result.registrationUrl, "");
+    assert.equal(result.image, "");
+  }
+  for (const registrationUrl of [
+    "https://forms.gle/XXXXXXXX",
+    "https://docs.google.com/forms/d/e/XXXXXXXX/viewform",
+    "https://example.org/register?event=123"
+  ]) {
+    const result = validateSubmissionData("news", {
+      title: "Title", content: ["Body"], registrationUrl: `  ${registrationUrl}  `
+    }, { final: true });
+    assert.equal(result.registrationUrl, registrationUrl);
+    assert.equal(validateSubmissionData("news", result, { final: true }).registrationUrl, registrationUrl);
+  }
+  const image = `https://example.org/image.png?version=${"a".repeat(600)}`;
+  assert.equal(validateSubmissionData("news", { image: ` ${image} ` }).image, image);
+  assert.equal(validateSubmissionData("news", { image: " /assets/news/photo.png " }).image, "/assets/news/photo.png");
+});
+
+test("news URL validation reports every invalid URL field with a safe specific message", () => {
+  for (const [field, message] of [
+    ["registrationUrl", "Registration URL is invalid."], ["image", "Image URL is invalid."]
+  ]) {
+    for (const value of ["not a URL", "javascript:alert(1)", "https://user:password@example.org/", true,
+      `https://example.org/${"a".repeat(2_048)}`]) {
+      const error = captureValidationError(() => validateSubmissionData("news", { [field]: value }), "VALIDATION_ERROR");
+      assert.ok(error.issues.length);
+      for (const issue of error.issues) {
+        assert.equal(issue.path, field);
+        assert.equal(issue.message, message);
+      }
+      assert.equal(JSON.stringify(error.issues).includes("password"), false);
+    }
+  }
+  const error = captureValidationError(() => validateSubmissionData("news", {
+    registrationUrl: "bad registration", image: "bad image"
+  }), "VALIDATION_ERROR");
+  assert.deepEqual(error.issues.map(({ path, message }) => ({ path, message })), [
+    { path: "registrationUrl", message: "Registration URL is invalid." },
+    { path: "image", message: "Image URL is invalid." }
+  ]);
+});
+
 
 test("news needs only title and body; optional values normalize without generating summary", () => {
   for (const empty of [undefined, "", null]) {

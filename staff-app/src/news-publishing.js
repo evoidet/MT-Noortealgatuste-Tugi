@@ -61,6 +61,11 @@ function attachmentUrl(submissionId, attachmentId) {
   return `/api/staff/public/news/${encodeURIComponent(submissionId)}/attachments/${encodeURIComponent(attachmentId)}`;
 }
 
+function absolutePublicUrl(origin, value) {
+  if (!value) return "";
+  return new URL(value, origin).href;
+}
+
 export function normalizeNewsLanguage(value) {
   return supportedLanguages.has(value) ? value : "et";
 }
@@ -104,5 +109,59 @@ export function toPublicNewsItem(submission, attachments = [], requestedLanguage
     authorRole: data.authorRole,
     project: data.project,
     registrationUrl: safePublicExternalUrl(data.registrationUrl)
+  };
+}
+
+export function toRepositoryNewsItem(submission, attachments = [], publicSiteOrigin) {
+  if (!submission || submission.type !== "news") return null;
+  const data = submission.data ?? {};
+  const sourceLanguage = normalizeNewsLanguage(data.language);
+  const primary = attachments.find((entry) => entry.kind === "primary" && entry.storageStatus === "ready");
+  const additional = attachments.filter((entry) => entry.kind !== "primary" && entry.storageStatus === "ready");
+  const base = {
+    title: String(data.title || "").trim(),
+    excerpt: String(data.summary || data.excerpt || "").trim(),
+    imageAlt: String(data.imageAlt || "").trim(),
+    displayDate: "",
+    content: paragraphs(data.content)
+  };
+  const translations = {};
+  for (const language of ["et", "en", "ru"]) {
+    const candidate = language === sourceLanguage ? base : data.translations?.[language];
+    if (!candidate || typeof candidate !== "object") continue;
+    translations[language] = {
+      title: String(candidate.title || base.title).trim(),
+      excerpt: String(candidate.excerpt || candidate.summary || base.excerpt).trim(),
+      imageAlt: String(candidate.imageAlt || base.imageAlt).trim(),
+      displayDate: String(candidate.displayDate || "").trim(),
+      content: paragraphs(candidate.content?.length ? candidate.content : base.content)
+    };
+  }
+  translations[sourceLanguage] = base;
+  const image = primary
+    ? absolutePublicUrl(publicSiteOrigin, attachmentUrl(submission.id, primary.id))
+    : absolutePublicUrl(publicSiteOrigin, safePublicImageUrl(data.image));
+  return {
+    submissionId: submission.id,
+    id: typeof data.slug === "string" && data.slug.trim() ? data.slug.trim() : `news-${submission.id}`,
+    sourceLanguage,
+    category: data.category || "events",
+    date: publicationDate(data.date, submission),
+    image,
+    imagePosition: data.imagePosition || "center center",
+    imageFit: data.imageFit === "contain" ? "contain" : "cover",
+    originalImage: additional[0]
+      ? absolutePublicUrl(publicSiteOrigin, attachmentUrl(submission.id, additional[0].id)) : "",
+    additionalImages: additional.map((attachment) =>
+      absolutePublicUrl(publicSiteOrigin, attachmentUrl(submission.id, attachment.id))),
+    featured: data.featured === true || data.featured === "true",
+    placeholder: false,
+    published: true,
+    ...base,
+    author: data.author || "",
+    authorRole: data.authorRole || "",
+    project: data.project || "",
+    registrationUrl: safePublicExternalUrl(data.registrationUrl),
+    translations
   };
 }

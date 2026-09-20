@@ -44,12 +44,12 @@ Top-level optional news values accept omitted, undefined, null and empty-string 
 1. Authenticated staff use the existing Google session and CSRF-protected API.
 2. Save/Submit first POSTs `/api/staff/submissions` or PATCHes the existing ID. The database transaction stores the JSONB article, owner, DRAFT status and revision. The create response is HTTP 201 with an ID only after transaction commit.
 3. Optional uploads use upload-intent → presigned private Blob PUT → completion. Completion verifies the uploaded bytes and records ready attachment metadata. The prepared local image now follows this same flow. Failed uploads retain the draft and preview for retry and cannot report submission success.
-4. POST `/api/staff/submissions/:id/submit` validates title/body, fills missing slug/date, saves normalized data and awaits the final database status transaction. Normal members become `SUBMITTED`; authorized news reviewers submitting their own news publish directly.
-5. Reviewers see `SUBMITTED`/`UNDER_REVIEW` in the review queue. Approval stores a review and transitions the article to `PUBLISHED`, including its publication timestamp. Self-review remains forbidden.
-6. `/api/staff/public/news?lang=...` exposes published records. `news-data.js` merges them with static catalogue entries; the homepage and `uudised.html?id=<slug>` render them. No new HTML file, GitHub commit, or per-article deployment is required. Public feed caching may briefly delay visibility (30-second browser cache; 60-second shared cache with a stale window).
+4. POST `/api/staff/submissions/:id/submit` validates title/body and URLs, fills missing slug/date, generates the public article, and directly commits `published-news.json` to GitHub `main` through the server-side Contents API.
+5. GitHub must confirm the commit before the database transaction changes the article to `PUBLISHED`. A retry after a later database failure is idempotent and does not duplicate the article.
+6. `news-data.js` loads `/published-news.json` from the deployed repository build and merges it with the legacy repository catalogue. PostgreSQL is no longer a public article-content API.
 7. Published image URLs use `/api/staff/public/news/<submission ID>/attachments/<attachment ID>`, which streams private Blob bytes only for published news. Images remain private before publication.
 
-No permanent serverless filesystem writes are used by this news pipeline. Vercel recommends persistent object storage for writes: https://vercel.com/kb/guide/how-can-i-use-files-in-serverless-functions . Existing PostgreSQL/Blob architecture is preserved. No database migration is needed for these fixes because optional metadata is stored in JSONB.
+No permanent serverless filesystem writes are used. PostgreSQL retains workflow and history, Blob retains images, and GitHub is the public content source. See [NEWS-PUBLISHING.md](NEWS-PUBLISHING.md).
 
 AI improvement remains a separately requested enhancement. Submission never invokes AI, SMTP or Drive archival. Existing AI error handling and provider tests remain in place.
 
@@ -73,7 +73,7 @@ For the identified ID, inspect its revisions, reviews, attachments (including pe
 
 ## Environment variable names only
 
-No new variables were introduced or changed.
+Repository publication adds `GITHUB_TOKEN`, `GITHUB_REPOSITORY`, and `GITHUB_BRANCH`; `GITHUB_API_URL` is optional.
 
 Feature/runtime: `APP_URL`, `GOOGLE_CALLBACK_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SESSION_SECRET`, `STORAGE_DATABASE_URL`, `BLOB_READ_WRITE_TOKEN`.
 

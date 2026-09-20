@@ -250,6 +250,23 @@ test("client completion re-verifies content and deletes a rejected Blob", async 
   });
 });
 
+test("news image completion validates the generated private URL after upload", async () => {
+  const pathname = `staff-attachments/${"a".repeat(64)}.png`;
+  const attachment = { blobPathname: pathname, originalName: "image.png", mimeType: "image/png", size: png.length };
+  const verify = (url) => verifyClientUploadedFile({
+    config, submission: { type: "news" }, attachment,
+    blobClient: { async get() {
+      return { statusCode: 200, stream: streamOf(png), blob: { pathname, url, size: png.length } };
+    } }
+  });
+  const stored = await verify(privateUrl(pathname));
+  assert.equal(stored.blobUrl, privateUrl(pathname));
+  assert.equal(stored.mimeType, "image/png");
+  for (const url of [undefined, "not a URL", "https://example.org/image.png", "http://unit-test.private.blob.vercel-storage.com/image.png"]) {
+    await assert.rejects(verify(url), { code: "BLOB_NOT_PRIVATE", status: 503 });
+  }
+});
+
 test("download grants are private, short-lived, and pathname-scoped", async () => {
   const pathname = `staff-attachments/${"b".repeat(64)}.pdf`;
   let issueOptions;

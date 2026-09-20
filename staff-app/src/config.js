@@ -272,6 +272,10 @@ export function loadConfig(overrides = {}) {
     (production ? "" : randomBytes(32).toString("base64url"));
   const storageDatabaseUrl = overrides.storageDatabaseUrl ?? process.env.STORAGE_DATABASE_URL ?? "";
   const blobReadWriteToken = overrides.blobReadWriteToken ?? process.env.BLOB_READ_WRITE_TOKEN ?? "";
+  const githubToken = String(overrides.githubToken ?? process.env.GITHUB_TOKEN ?? "").trim();
+  const githubRepository = String(overrides.githubRepository ?? process.env.GITHUB_REPOSITORY ?? "").trim();
+  const githubBranch = String(overrides.githubBranch ?? process.env.GITHUB_BRANCH ?? "main").trim();
+  const githubApiUrl = String(overrides.githubApiUrl ?? process.env.GITHUB_API_URL ?? "https://api.github.com").trim();
   const googleClientId = overrides.googleClientId ?? process.env.GOOGLE_CLIENT_ID ?? "";
   const googleClientSecret = overrides.googleClientSecret ?? process.env.GOOGLE_CLIENT_SECRET ?? "";
   const smtpUser = String(overrides.smtpUser ?? process.env.STAFF_SMTP_USER ?? "").trim();
@@ -288,6 +292,18 @@ export function loadConfig(overrides = {}) {
   requiredInProduction("GOOGLE_CLIENT_SECRET", googleClientSecret, production);
   requiredInProduction("SESSION_SECRET", sessionSecret, production);
   requiredInProduction("BLOB_READ_WRITE_TOKEN", blobReadWriteToken, production);
+  requiredInProduction("GITHUB_TOKEN", githubToken, production);
+  requiredInProduction("GITHUB_REPOSITORY", githubRepository, production);
+  if (githubRepository && !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(githubRepository)) {
+    throw new Error("GITHUB_REPOSITORY must use the owner/repository format.");
+  }
+  if (githubBranch !== "main") {
+    throw new Error("GITHUB_BRANCH must be main for direct news publishing.");
+  }
+  const parsedGitHubApiUrl = absoluteHttpUrl(githubApiUrl, "GITHUB_API_URL", production);
+  if (production && parsedGitHubApiUrl.protocol !== "https:") {
+    throw new Error("GITHUB_API_URL must use HTTPS in production.");
+  }
   if (production && Buffer.byteLength(sessionSecret, "utf8") < 32) {
     throw new Error("SESSION_SECRET must contain at least 32 bytes in production.");
   }
@@ -416,6 +432,10 @@ export function loadConfig(overrides = {}) {
     baseUrl: appUrl,
     storageDatabaseUrl,
     blobReadWriteToken,
+    githubToken,
+    githubRepository,
+    githubBranch,
+    githubApiUrl: parsedGitHubApiUrl.origin,
     googleClientId,
     googleClientSecret,
     googleCallbackUrl,

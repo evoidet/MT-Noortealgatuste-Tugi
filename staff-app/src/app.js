@@ -14,8 +14,10 @@ import {
 } from "./documents.js";
 import { archiveFingerprint, createDriveArchiveService } from "./drive-archive.js";
 import { createMailService } from "./mail.js";
+import { createGitHubNewsPublisher } from "./github-news.js";
+import { publishedArticlesForReconciliation } from "./news-reconciliation.js";
 import { safeOperationalError } from "./safe-errors.js";
-import { normalizeNewsLanguage, toPublicNewsItem } from "./news-publishing.js";
+import { toRepositoryNewsItem } from "./news-publishing.js";
 import {
   canCreateType,
   canEditSubmission,
@@ -39,7 +41,7 @@ import {
   validateClientUploadMetadata,
   verifyClientUploadedFile
 } from "./storage.js";
-import { aiRequestSchema, reviewSchema, validateSubmissionData } from "./validation.js";
+import { aiRequestSchema, newsUrlValidationMessages, reviewSchema, validateSubmissionData } from "./validation.js";
 
 const sourceDirectory = dirname(fileURLToPath(import.meta.url));
 const publicDirectory = resolve(sourceDirectory, "../public");
@@ -195,7 +197,11 @@ function userValidationIssues(error) {
     const key = `${field}:${reason}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    issues.push({ field, message: userValidationMessage(field, reason) });
+    // Only retain known, fixed URL messages. Never forward arbitrary schema or
+    // provider messages that could contain submitted values or internal data.
+    const urlMessage = newsUrlValidationMessages[field];
+    issues.push({ field, message: urlMessage && issue.message === urlMessage
+      ? urlMessage : userValidationMessage(field, reason) });
   }
   return issues;
 }
@@ -289,9 +295,10 @@ function newsFailure(response) {
       create: "NEWS_CREATE_FAILED", save: "NEWS_SAVE_FAILED",
       submit: "NEWS_SUBMIT_FAILED", image: "NEWS_IMAGE_UPLOAD_FAILED"
     }[operation],
-    message: operation === "image" ? "Image upload failed. Please try again."
+    message: operation === "image" ? "Image upload failed."
       : operation === "submit" ? "Unable to submit the news article. Please try again."
       : "Unable to save the news article. Please try again.",
+    ...(operation === "image" ? { field: "image" } : {}),
     stage: response.locals.newsStage || "database"
   };
 }
@@ -336,6 +343,15 @@ function validationResponse(response, error) {
     "REIMBURSEMENT_RECIPIENT_NOT_ALLOWED",
     "INVOICE_ARCHIVE_FAILED",
     "NEWS_SLUG_CONFLICT",
+    "NEWS_EXPORT_INVALID",
+    "GITHUB_NETWORK_ERROR",
+    "GITHUB_AUTHENTICATION_FAILED",
+    "GITHUB_REPOSITORY_NOT_FOUND",
+    "GITHUB_NEWS_FILE_INVALID",
+    "GITHUB_DIRECT_COMMIT_REJECTED",
+    "GITHUB_RATE_LIMITED",
+    "GITHUB_CONFLICT",
+    "GITHUB_PUBLISH_FAILED",
     "IDEMPOTENCY_KEY_CONFLICT"
   ]);
   if (!knownCodes.has(error.code)) return false;
@@ -354,6 +370,12 @@ function validationResponse(response, error) {
   if (userValidationCodes.has(error.code)) {
     payload.message = "Dokumendis on parandamist vajavaid välju.";
     payload.fields = userValidationIssues(error);
+    const urlIssue = payload.fields.find((issue) =>
+      newsUrlValidationMessages[issue.field] === issue.message);
+    if (urlIssue) {
+      payload.field = urlIssue.field;
+      payload.message = urlIssue.message;
+    }
   } else {
     if (Array.isArray(error.fields)) payload.fields = error.fields;
     if (Array.isArray(error.issues)) payload.issues = error.issues;
@@ -363,6 +385,10 @@ function validationResponse(response, error) {
     payload.stage = userValidationCodes.has(error.code) ? "validation"
       : error.code === "SUBMISSION_SCHEMA_NOT_READY" ? "schema"
       : response.locals.newsStage || "database";
+    if (response.locals.newsOperation === "image" && !userValidationCodes.has(error.code)) {
+      payload.field = "image";
+      payload.message = "Image upload failed.";
+    }
   }
   response.status(status).json(payload);
   return true;
@@ -427,7 +453,12 @@ export function createStaffApp({
   clientUploadGrantCreator = createClientUploadGrant,
   clientUploadedFileVerifier = verifyClientUploadedFile,
   privateAttachmentReader = readPrivateAttachment,
-  privateAttachmentOpener = openPrivateAttachment
+  privateAttachmentOpener = openPrivateAttachment,
+  newsPublisher = config.environment === "test" && (!config.githubToken || !config.githubRepository)
+    ? { publish: async () => ({ published: true, unchanged: false, operation: "add", commitSha: "test-commit" }) }
+    : createGitHubNewsPublisher(config, {
+      loadPublishedArticles: () => publishedArticlesForReconciliation(database, config.publicSiteOrigin)
+    })
 }) {
   const app = express();
   const auth = createAuth({ config, database });
@@ -894,39 +925,6 @@ export function createStaffApp({
     response.json(payload);
   }));
 
-  app.get("/api/staff/public/news", asyncRoute(async (request, response) => {
-    const language = normalizeNewsLanguage(String(request.query.lang ?? "et"));
-    const offset = Number(request.query.offset ?? 0);
-    if (!Number.isSafeInteger(offset) || offset < 0 || offset > 1_000_000) {
-      return response.status(400).json({ error: "INVALID_OFFSET" });
-    }
-    const pageSize = 25;
-    const submissions = await database.listPublishedNews(pageSize, { offset });
-    const items = (await Promise.all(submissions.map(async (submission) =>
-      toPublicNewsItem(submission, await database.listAttachments(submission.id), language)
-    ))).filter((item) => item?.id && item?.title && Array.isArray(item?.content));
-    // A new publication must appear immediately. Cached offset pages can also
-    // skip articles when a newer publication shifts the following page.
-    response.set("Cache-Control", "no-store");
-    response.json({ items, nextOffset: submissions.length === pageSize ? offset + pageSize : null });
-  }));
-
-  app.get("/api/staff/public/news/:slug", asyncRoute(async (request, response) => {
-    const slug = request.params.slug;
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 180) {
-      return response.status(404).json({ error: "NOT_FOUND" });
-    }
-    const submission = await database.getPublishedNewsBySlug(slug);
-    if (!submission) return response.status(404).json({ error: "NOT_FOUND" });
-    const language = normalizeNewsLanguage(String(request.query.lang ?? "et"));
-    const item = toPublicNewsItem(submission, await database.listAttachments(submission.id), language);
-    if (!item?.id || !item.title || !Array.isArray(item.content)) {
-      return response.status(404).json({ error: "NOT_FOUND" });
-    }
-    response.set("Cache-Control", "no-store");
-    response.json({ item });
-  }));
-
   app.get(
     "/api/staff/public/news/:submissionId/attachments/:attachmentId",
     publicMediaLimiter,
@@ -1089,7 +1087,9 @@ export function createStaffApp({
           newsStage(response, "response");
           newsRelations = await submissionRelations(submission.id, database);
         }
-        const directNewsPublish = submission.type === "news" && canReviewType(request.user, "news");
+        // News submission is direct publication: the GitHub commit to main is
+        // the external publication boundary for every authorized staff member.
+        const directNewsPublish = submission.type === "news";
         const finalStatus = submission.type === "invoice"
           ? "APPROVED"
           : directNewsPublish
@@ -1099,6 +1099,18 @@ export function createStaffApp({
         // A completed expense retry may finish an independent Drive archive,
         // but it never returns to the SMTP path.
         if (submission.status === finalStatus) {
+          if (submission.type === "news") {
+            newsStage(response, "github");
+            const publication = await newsPublisher.publish(
+              toRepositoryNewsItem(submission, newsRelations.attachments, config.publicSiteOrigin),
+              { preserveExisting: true }
+            );
+            if (!publication?.published) {
+              throw Object.assign(new Error("GitHub did not confirm news reconciliation."), {
+                code: "GITHUB_PUBLISH_FAILED", status: 502
+              });
+            }
+          }
           if (submission.type === "expense") {
             await retryCompletedExpenseArchive(
               submission,
@@ -1346,6 +1358,24 @@ export function createStaffApp({
           }
         }
 
+        let publication = null;
+        if (prepared.type === "news") {
+          const article = toRepositoryNewsItem(prepared, attachments, config.publicSiteOrigin);
+          if (!article) {
+            throw Object.assign(new Error("The repository news article could not be generated."), {
+              code: "NEWS_EXPORT_INVALID", status: 422
+            });
+          }
+          newsStage(response, "github");
+          publication = await newsPublisher.publish(article);
+          if (!publication?.published) {
+            throw Object.assign(new Error("GitHub did not confirm news publication."), {
+              code: "GITHUB_PUBLISH_FAILED", status: 502
+            });
+          }
+        }
+
+        newsStage(response, "database");
         let finalized;
         try {
           finalized = await database.setSubmissionStatus({
@@ -1377,7 +1407,12 @@ export function createStaffApp({
               : `${auditPrefix[prepared.type]}_SUBMITTED`,
           targetType: prepared.type,
           targetId: prepared.id,
-          ipHash: auth.clientIpHash(request)
+          ipHash: auth.clientIpHash(request),
+          ...(publication ? { metadata: {
+            commitSha: publication.commitSha || null,
+            path: publication.path || "published-news.json",
+            unchanged: publication.unchanged === true
+          } } : {})
         }, "Submission completion could not be audited:");
         return finalized;
       });
@@ -1411,7 +1446,8 @@ export function createStaffApp({
     if (submission.type === "news" && parsed.data.decision === "approve") nextStatus = "PUBLISHED";
     if (nextStatus === "PUBLISHED") {
       const data = validateSubmissionData("news", submission.data, { final: true });
-      validateNewsImageReferences(data, await database.listAttachments(submission.id));
+      const attachments = await database.listAttachments(submission.id);
+      validateNewsImageReferences(data, attachments);
       try {
         await database.assertSubmissionSchema("news");
         await database.assertNewsPublicationSchema();
@@ -1420,6 +1456,16 @@ export function createStaffApp({
           submissionId: submission.id, stage: "schema", ...safeOperationalError(error)
         });
         return response.status(503).json({ error: "SUBMISSION_SCHEMA_NOT_READY" });
+      }
+      response.locals.newsOperation = "submit";
+      newsStage(response, "github");
+      const publication = await newsPublisher.publish(
+        toRepositoryNewsItem(submission, attachments, config.publicSiteOrigin)
+      );
+      if (!publication?.published) {
+        throw Object.assign(new Error("GitHub did not confirm news publication."), {
+          code: "GITHUB_PUBLISH_FAILED", status: 502
+        });
       }
     }
     const updated = await database.addReview({

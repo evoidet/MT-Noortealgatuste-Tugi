@@ -88,7 +88,7 @@ test("news saves and publishes on the news schema without finance recipient colu
   assert.equal(final.status, "PUBLISHED");
   assert.ok(final.publishedAt);
   assert.equal(final.reimbursementRecipientEmail, null);
-  assert.equal((await database.listPublishedNews())[0].id, draft.id);
+  assert.equal((await database.getSubmission(draft.id)).status, "PUBLISHED");
 });
 
 test("an upload-intent retry keeps one pending or ready attachment and rejects another payload", async (t) => {
@@ -108,33 +108,6 @@ test("an upload-intent retry keeps one pending or ready attachment and rejects a
   await assert.rejects(database.createPendingAttachment({ ...input, originalName: "different.png" }),
     { code: "IDEMPOTENCY_KEY_CONFLICT", status: 409 });
   assert.equal((await engine.query("SELECT count(*)::int AS count FROM attachments")).rows[0].count, 1);
-});
-
-test("public SQL tolerates legacy metadata and retrieves articles beyond the listing limit", async (t) => {
-  const { engine, database, user } = await fixture(t);
-  const old = await database.createSubmission({ type: "news", creatorId: user.id,
-    data: { title: "Old article", slug: "old-article", content: "Legacy body", featured: "unexpected" } });
-  await database.setSubmissionStatus({ id: old.id, userId: user.id, status: "PUBLISHED", event: "PUBLISHED" });
-  await engine.query("UPDATE submissions SET published_at = '2020-01-01' WHERE id = $1", [old.id]);
-  await engine.query(`INSERT INTO submissions (id, type, creator_id, status, data_json, created_at, updated_at, published_at)
-    SELECT 'recent-' || value, 'news', $1, 'PUBLISHED',
-      jsonb_build_object('slug', 'recent-' || value, 'title', 'Recent article', 'content', jsonb_build_array('Article text')),
-      NOW(), NOW(), NOW() FROM generate_series(1, 101) AS value`, [user.id]);
-  const listed = await database.listPublishedNews(100);
-  assert.equal(listed.length, 100);
-  assert.equal(listed.some((item) => item.id === old.id), false);
-  assert.equal((await database.getPublishedNewsBySlug("old-article")).id, old.id);
-  const nextPage = await database.listPublishedNews(100, { offset: 100 });
-  assert.equal(nextPage.length, 2);
-  assert.equal(nextPage.at(-1).id, old.id);
-  assert.equal(new Set([...listed, ...nextPage].map((item) => item.id)).size, 102);
-  assert.deepEqual(await database.listPublishedNews(100, { offset: -1 }), listed);
-  assert.equal((await database.listPublishedNews(250)).length, 102);
-  const draft = await database.createSubmission({ type: "news", creatorId: user.id, data: { title: "Draft" } });
-  assert.equal(await database.getPublishedNewsBySlug(`news-${draft.id}`), null);
-  await database.setSubmissionStatus({ id: draft.id, userId: user.id, status: "PUBLISHED", event: "PUBLISHED" });
-  assert.equal((await database.getPublishedNewsBySlug(`news-${draft.id}`)).id, draft.id);
-  assert.equal(await database.getPublishedNewsBySlug("missing-article"), null);
 });
 
 test("archive migration preserves legacy rows and is repeat-safe", async (t) => {
@@ -425,6 +398,7 @@ test("Workspace member news draft, preview, submit and admin publication use the
     storageDatabaseUrl: "postgresql://unused.invalid/test", sessionSecret: "synthetic-session-secret-for-test-only-1234567890",
     blobReadWriteToken: "", googleClientId: "", googleClientSecret: "", openAiApiKey: "",
     smtpHost: "", smtpUser: "", smtpPassword: "", mailFrom: "", enableDevAuth: false });
+  const publishedNews = [];
   const { app } = createStaffApp({
     config,
     database,
@@ -434,7 +408,12 @@ test("Workspace member news draft, preview, submit and admin publication use the
     },
     mailService: {
       async sendExpenseSubmitted() { assert.fail("News must not send finance mail"); }
-    }
+    },
+    newsPublisher: { async publish(article) {
+      const index = publishedNews.findIndex((item) => item.submissionId === article.submissionId);
+      if (index === -1) publishedNews.push(article); else publishedNews[index] = article;
+      return { published: true, operation: index === -1 ? "add" : "update", path: "published-news.json" };
+    } }
   });
   async function client(user) {
     const token = `synthetic-${user.id}`;
@@ -482,7 +461,7 @@ test("Workspace member news draft, preview, submit and admin publication use the
     mimeType: "image/png", kind: "primary", size: 10, storageName: "synthetic-image", sha256: "a".repeat(64) });
   const publicImagePath = `/api/staff/public/news/${id}/attachments/${image.id}`;
   assert.equal((await request(app).get(publicImagePath)).status, 404);
-  assert.equal((await request(app).get("/api/staff/public/news")).body.items.length, 0);
+  assert.equal((await request(app).get("/api/staff/public/news")).status, 401);
   // The same escaped renderer is used by the browser preview.
   globalThis.window = { I18N: { t: (key) => key, locale: () => "et-EE" } };
   try {
@@ -493,32 +472,20 @@ test("Workspace member news draft, preview, submit and admin publication use the
   } finally { delete globalThis.window; }
   const submitted = await writer.write("post", `${path}/submit`, {});
   assert.equal(submitted.status, 200);
-  assert.equal(submitted.body.item.status, "SUBMITTED");
-  assert.equal(submitted.body.item.publishedAt, null);
-  assert.equal((await request(app).get("/api/staff/public/news")).body.items.length, 0);
+  assert.equal(submitted.body.item.status, "PUBLISHED");
+  assert.ok(submitted.body.item.publishedAt);
+  assert.equal(publishedNews.length, 1);
   assert.equal((await writer.write("post", `${path}/review`, { decision: "approve" })).status, 403);
   assert.equal((await writer.write("patch", path, { data })).status, 403);
-  // Publication preflight fails before changing a review or status; repair is repeatable.
-  await engine.exec("DROP INDEX submissions_published_news_idx; ALTER TABLE submissions DROP COLUMN published_at");
-  assert.equal((await reviewer.write("post", `${path}/review`, { decision: "approve" })).status, 503);
-  assert.equal((await database.getSubmission(id)).status, "SUBMITTED");
-  assert.equal((await database.listReviews(id)).length, 0);
-  const migration = (await loadMigrations()).find((entry) => entry.version === "005");
-  await engine.exec(migration.sql);
-  await engine.exec(migration.sql);
-  const published = await reviewer.write("post", `${path}/review`, { decision: "approve" });
-  assert.equal(published.status, 200);
-  assert.equal(published.body.item.status, "PUBLISHED");
-  assert.ok(published.body.item.publishedAt);
-  const feed = await request(app).get("/api/staff/public/news?lang=et");
-  assert.equal(feed.body.items[0].id, data.slug);
-  assert.equal(feed.body.items[0].title, data.title);
-  assert.equal(feed.body.items[0].image, publicImagePath);
-  assert.equal(feed.body.items[0].registrationUrl, data.registrationUrl);
+  const feedItem = publishedNews[0];
+  assert.equal(feedItem.id, data.slug);
+  assert.equal(feedItem.title, data.title);
+  assert.equal(new URL(feedItem.image).pathname, publicImagePath);
+  assert.equal(feedItem.registrationUrl, data.registrationUrl);
   for (const key of ["category", "project", "author", "authorRole", "imageAlt", "imageFit", "imagePosition", "featured"]) {
-    assert.deepEqual(feed.body.items[0][key], data[key]);
+    assert.deepEqual(feedItem[key], data[key]);
   }
-  assert.equal((await request(app).get("/api/staff/public/news?lang=en")).body.items[0].title, "Youth news");
+  assert.equal(feedItem.translations.en.title, "Youth news");
 
   // Real PostgreSQL-compatible transactions and HTTP handlers, without AI/mail.
   // Read through a second repository instance to rule out in-memory persistence.
@@ -537,17 +504,11 @@ test("Workspace member news draft, preview, submit and admin publication use the
     assert.deepEqual((await reader.getSubmission(minimalId)).data.content, body);
     const submittedMinimal = await writer.write("post", `${minimalPath}/submit`, {});
     assert.equal(submittedMinimal.status, 200);
-    assert.equal(submittedMinimal.body.item.status, "SUBMITTED");
+    assert.equal(submittedMinimal.body.item.status, "PUBLISHED");
     assert.equal(submittedMinimal.body.item.data.slug, `news-${minimalId}`);
     assert.match(submittedMinimal.body.item.data.date, /^\d{4}-\d{2}-\d{2}$/);
-    const pending = await reviewer.get("/api/staff/submissions?scope=review&type=news");
-    assert.ok(pending.body.items.some((item) => item.id === minimalId));
-    assert.equal((await reader.getSubmission(minimalId)).status, "SUBMITTED");
-    const approved = await reviewer.write("post", `${minimalPath}/review`, { decision: "approve" });
-    assert.equal(approved.status, 200);
     assert.equal((await reader.getSubmission(minimalId)).status, "PUBLISHED");
-    const publicResponse = await request(app).get("/api/staff/public/news");
-    const publicItem = publicResponse.body.items.find((item) => item.id === `news-${minimalId}`);
+    const publicItem = publishedNews.find((item) => item.id === `news-${minimalId}`);
     assert.equal(publicItem.excerpt, "");
     assert.equal(publicItem.image, "");
     assert.deepEqual(publicItem.content, body);

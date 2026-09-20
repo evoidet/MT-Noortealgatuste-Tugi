@@ -28,6 +28,26 @@ test("build includes reviewed public entries and excludes arbitrary root scripts
   }
 });
 
+test("production build stops before replacing assets when published news preservation fails", async () => {
+  const root = await mkdtemp(resolve(tmpdir(), "noortetugi-preservation-test-"));
+  try {
+    await mkdir(resolve(root, "tools"));
+    await mkdir(resolve(root, "dist"));
+    await mkdir(resolve(root, "staff-app/scripts"), { recursive: true });
+    await writeFile(resolve(root, "dist/previous.html"), "Previous deployment");
+    await writeFile(resolve(root, "tools/build-vercel.mjs"), await readFile(resolve(repositoryRoot, "tools/build-vercel.mjs")));
+    for (const file of ["db-migrate.mjs", "db-check.mjs"]) await writeFile(resolve(root, `staff-app/scripts/${file}`), "");
+    await writeFile(resolve(root, "staff-app/scripts/reconcile-news.mjs"),
+      'if (!process.argv.includes("--check")) throw new Error("Expected read-only check"); process.exitCode = 1;');
+    await assert.rejects(promisify(execFile)(process.execPath, [resolve(root, "tools/build-vercel.mjs")], {
+      env: { ...process.env, VERCEL_ENV: "production" }
+    }));
+    assert.equal(await readFile(resolve(root, "dist/previous.html"), "utf8"), "Previous deployment");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("Vercel routes every staff API path to the single Express function", async () => {
   const [packageJson, vercelConfig, handlerSource, buildSource] = await Promise.all([
     readFile(resolve(repositoryRoot, "package.json"), "utf8").then(JSON.parse),

@@ -5,7 +5,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/index.js": {
-      "includeFiles": "staff-app/private/templates/documents/**",
+      "includeFiles": "{staff-app/private/templates/documents/**,news-data.js}",
       "maxDuration": 60
     }
   },

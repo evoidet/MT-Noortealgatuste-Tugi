@@ -109,6 +109,10 @@ APP_URL=https://www.noortetugi.ee
 SESSION_SECRET
 ALLOWED_GOOGLE_DOMAIN=noortetugi.ee
 BLOB_READ_WRITE_TOKEN
+GITHUB_TOKEN
+GITHUB_REPOSITORY=evoidet/MT-Noortealgatuste-Tugi
+GITHUB_BRANCH=main
+PUBLIC_SITE_ORIGIN=https://www.noortetugi.ee
 FINANCE_NOTIFICATION_EMAIL=finance@noortetugi.ee
 STAFF_SMTP_HOST=smtp.gmail.com
 STAFF_SMTP_PORT=465
@@ -118,6 +122,11 @@ STAFF_SMTP_USER=staff@noortetugi.ee
 STAFF_SMTP_PASSWORD=<Google App Password for STAFF_SMTP_USER>
 STAFF_MAIL_FROM=Noorte Tugi <staff@noortetugi.ee>
 ```
+
+`GITHUB_TOKEN` must be a sensitive server-side value with Contents read/write
+access to only the configured repository. Main must permit this identity to
+update `published-news.json` directly. See [NEWS-PUBLISHING.md](NEWS-PUBLISHING.md)
+for publication, retry, and Vercel verification steps.
 
 `SESSION_SECRET` must contain at least 32 bytes of unpredictable data. Generate
 one locally and paste it directly into Vercel; never commit it:

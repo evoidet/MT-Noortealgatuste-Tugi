@@ -64,18 +64,10 @@ try {
     await page.locator('[data-action="submit-preview"]').click();
     await page.locator(".staff-success-view").waitFor();
   }
-  async function approve(id) {
-    const session = await (await reviewer.request.get(`${origin}/api/staff/session`)).json();
-    const response = await reviewer.request.post(`${origin}/api/staff/submissions/${id}/review`, {
-      headers: { "X-CSRF-Token": session.csrfToken }, data: { decision: "approve" }
-    });
-    assert.equal(response.status(), 200);
-    assert.equal((await response.json()).item.status, "PUBLISHED");
-  }
   async function checkPublic(item, paragraphs, metadata = {}) {
-    const feed = await (await fetch(`${origin}/api/staff/public/news?lang=et`)).json();
-    const publicItem = feed.items.find((entry) => entry.id === item.data.slug);
-    assert.ok(publicItem, "Article returned by public API");
+    const feed = await (await fetch(`${origin}/published-news.json`)).json();
+    const publicItem = feed.find((entry) => entry.id === item.data.slug);
+    assert.ok(publicItem, "Article returned by repository catalogue");
     assert.deepEqual(publicItem.content, paragraphs);
     await publicPage.goto(`${origin}/uudised?lang=et`);
     await publicPage.locator(`#newsListingView a[href*="${item.data.slug}"]`).first().waitFor();
@@ -88,13 +80,10 @@ try {
     if (publicItem.image) {
       await publicPage.locator(".news-article-image img").waitFor();
       await publicPage.waitForFunction(() => document.querySelector(".news-article-image img")?.naturalWidth > 0);
-      const image = await fetch(`${origin}${publicItem.image}`);
+      const image = await fetch(new URL(new URL(publicItem.image).pathname, origin));
       assert.equal(image.status, 200);
       assert.ok((await image.arrayBuffer()).byteLength > 0);
     }
-    const direct = await fetch(`${origin}/api/staff/public/news/${item.data.slug}`);
-    assert.equal(direct.status, 200);
-    assert.equal((await direct.json()).item.title, item.data.title);
     // Exercise scroll-triggered visibility and lazy images before visual QA;
     // a full-page screenshot alone does not trigger IntersectionObserver.
     for (const element of await publicPage.locator("#newsArticleContent [data-news-reveal]").all()) {
@@ -111,7 +100,7 @@ try {
     await publicPage.screenshot({ path: fileURLToPath(new URL(`${item.data.slug}.png`, artifactDirectory)), fullPage: true });
   }
 
-  // Exact minimum sequence: form -> preview -> submit -> separate reviewer -> public.
+  // Exact minimum sequence: form -> preview -> direct repository publish -> public.
   const minimalBody = 'õ ä ö ü š ž: "Tsitaat" ja O’Connor.\n\nTeine lõik.';
   const minimum = await start(writer, "Minimum workflow article", minimalBody);
   assert.equal(await minimum.locator('[data-action="open-ai"][data-target="newsTitle"]').count(), 0);
@@ -119,13 +108,11 @@ try {
   await submit(minimum);
   let state = await snapshot();
   const minimumItem = state.items.find((item) => item.data.title === "Minimum workflow article");
-  assert.equal(minimumItem.status, "SUBMITTED");
+  assert.equal(minimumItem.status, "PUBLISHED");
   assert.equal(minimumItem.data.summary, "");
-  assert.equal((await fetch(`${origin}/api/staff/public/news/${minimumItem.data.slug}`)).status, 404);
-  await approve(minimumItem.id);
   await control({ restart: true });
   await checkPublic(minimumItem, minimalBody.split("\n\n"));
-  console.log("PASS minimum: real form/preview/submit/persistence/reviewer/public listing/article after app restart");
+  console.log("PASS minimum: real form/preview/direct publish/public listing/article after app restart");
   await minimum.close();
 
   // Full metadata, real selected image and optional AI correction, direct publication.

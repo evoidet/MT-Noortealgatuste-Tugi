@@ -200,6 +200,14 @@ function friendlyErrorKey(error) {
     NEWS_RESPONSE_FAILED: "staff.errors.invalidResponse",
     NEWS_IMAGE_UPLOAD_FAILED: "staff.errors.imageUploadFailed",
     NEWS_SLUG_CONFLICT: "staff.errors.newsSlugConflict",
+    GITHUB_NETWORK_ERROR: "staff.errors.newsPublishFailed",
+    GITHUB_AUTHENTICATION_FAILED: "staff.errors.newsPublishConfiguration",
+    GITHUB_REPOSITORY_NOT_FOUND: "staff.errors.newsPublishConfiguration",
+    GITHUB_NEWS_FILE_INVALID: "staff.errors.newsPublishConfiguration",
+    GITHUB_DIRECT_COMMIT_REJECTED: "staff.errors.newsPublishDirectCommit",
+    GITHUB_RATE_LIMITED: "staff.errors.newsPublishFailed",
+    GITHUB_CONFLICT: "staff.errors.newsPublishFailed",
+    GITHUB_PUBLISH_FAILED: "staff.errors.newsPublishFailed",
     BLOB_UPLOAD_FAILED: "staff.errors.imageUploadFailed",
     BLOB_NOT_CONFIGURED: "staff.errors.imageUploadFailed",
     BLOB_NOT_FOUND: "staff.errors.imageUploadFailed",
@@ -266,6 +274,7 @@ function handleError(error, options = {}) {
     return;
   }
 
+  if (state.formType === "news" && renderSubmissionValidation(error)) return;
   showToast(friendlyErrorKey(error), "error");
 }
 
@@ -276,7 +285,7 @@ function safeClientError(error) {
     code: String(error instanceof ApiError
       ? error.code || error?.payload?.error || "API_ERROR"
       : "CLIENT_ERROR").slice(0, 80),
-    stage: ["database", "response", "upload", "validation", "authentication", "schema"].includes(error?.stage)
+    stage: ["database", "response", "upload", "validation", "authentication", "schema", "github"].includes(error?.stage)
       ? error.stage : undefined
   };
 }
@@ -331,12 +340,17 @@ function renderSubmissionDeliveryState() {
 }
 
 function structuredValidation(error) {
-  if (!(error instanceof ApiError) || ![400, 422].includes(error.status)) return null;
+  if (!(error instanceof ApiError) ||
+      (![400, 422].includes(error.status) && error.code !== "NEWS_IMAGE_UPLOAD_FAILED")) return null;
   const fields = Array.isArray(error.payload?.fields)
     ? error.payload.fields
       .map((issue) => ({
         field: String(issue?.field || "").slice(0, 180),
-        message: String(issue?.message || "").trim().slice(0, 500)
+        message: state.formType === "news" && error.code === "VALIDATION_ERROR" &&
+          ((issue?.field === "registrationUrl" && issue.message === "Registration URL is invalid.") ||
+           (issue?.field === "image" && issue.message === "Image URL is invalid."))
+          ? t(issue.field === "registrationUrl" ? "staff.errors.registrationUrlInvalid" : "staff.errors.imageUrlInvalid")
+          : String(issue?.message || "").trim().slice(0, 500)
       }))
       .filter((issue) => issue.field || issue.message)
     : [];
@@ -349,8 +363,17 @@ function structuredValidation(error) {
 
 function renderSubmissionValidation(error) {
   const validation = structuredValidation(error);
+  if (!validation) return false;
+  const form = document.getElementById("submissionForm");
+  if (form && state.formType === "news" &&
+      validation.fields.some((issue) => document.getElementById(validationControlId("news", issue.field)))) {
+    form.querySelectorAll('[aria-invalid="true"]').forEach(clearControlValidation);
+    state.validationIssues = validation.fields;
+    applyFormValidationIssues(state.formType);
+    return true;
+  }
   const preview = document.querySelector(".staff-preview-view");
-  if (!validation || !preview) return false;
+  if (!preview) return false;
   preview.querySelector(".staff-validation-summary")?.remove();
   state.validationIssues = validation.fields;
   const summary = document.createElement("section");
@@ -411,7 +434,11 @@ function validationControlId(type, field) {
       date: "newsDate",
       summary: "newsSummary",
       content: "newsContent",
-      author: "newsAuthor"
+      author: "newsAuthor",
+      registrationUrl: "newsRegistrationUrl",
+      image: "newsImage",
+      mainImageAttachmentId: "newsMainImage",
+      additionalImageAttachmentIds: "newsAdditionalImages"
     }
   };
   if (direct[type]?.[field]) return direct[type][field];
@@ -446,6 +473,7 @@ function applyFormValidationIssues(type) {
     control.setAttribute("aria-describedby", descriptionId);
     const container = control.closest(".staff-field, .staff-file-field");
     container?.classList.add("staff-field--invalid");
+    container?.querySelector(".staff-field-error")?.remove();
     if (container && issue.message) {
       const message = document.createElement("small");
       message.id = descriptionId;
@@ -468,6 +496,9 @@ function clearControlValidation(control) {
   control.removeAttribute("aria-describedby");
   container?.classList.remove("staff-field--invalid");
   container?.querySelector(".staff-field-error")?.remove();
+  if (state.formType === "news") {
+    state.validationIssues = state.validationIssues.filter((issue) => validationControlId("news", issue.field) !== control.id);
+  }
 }
 
 function setBusy(button, busy, key = "staff.common.working") {
@@ -1222,7 +1253,7 @@ function newsForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "newsImage", label: "staff.news.imageUrl", value: localNewsImagePath(data.image) ? new URL(data.image, window.location.origin).href : data.image, type: "url", wide: true, placeholder: "staff.news.imageUrlPlaceholder", hint: "staff.news.imageUrlHint" })}
+        ${field({ id: "newsImage", label: "staff.news.imageUrl", value: localNewsImagePath(data.image) ? new URL(data.image, window.location.origin).href : data.image, inputmode: "url", wide: true, placeholder: "staff.news.imageUrlPlaceholder", hint: "staff.news.imageUrlHint" })}
         ${field({ id: "newsImageAlt", label: "staff.news.imageAlt", value: data.imageAlt, wide: true, placeholder: "staff.news.imageAltPlaceholder" })}
         ${field({ id: "newsImagePosition", label: "staff.news.imagePosition", value: data.imagePosition || "center center", hint: "staff.news.imagePositionHint" })}
         ${selectField({
@@ -1635,9 +1666,53 @@ function cleanSubmissionData(data) {
   );
 }
 
+function newsUrlValidationIssues(data) {
+  const issues = [];
+  for (const field of ["registrationUrl", "image"]) {
+    const input = data[field];
+    const value = typeof input === "string" ? input.trim() : input;
+    if (value === undefined || value === null || value === "") continue;
+    let valid = typeof value === "string" && value.length <= 2048;
+    if (valid && field === "image" && value.startsWith("/") && !value.startsWith("//")) {
+      // Existing site-relative image paths are supported by the backend.
+    } else if (valid) {
+      try {
+        const url = new URL(value);
+        valid = (field === "image" ? url.protocol === "https:" : ["http:", "https:"].includes(url.protocol)) &&
+          !url.username && !url.password;
+      } catch {
+        valid = false;
+      }
+    }
+    if (!valid) issues.push({ field, message: t(field === "registrationUrl"
+      ? "staff.errors.registrationUrlInvalid" : "staff.errors.imageUrlInvalid") });
+  }
+  return issues;
+}
+
+function validateNewsUrlFields() {
+  const data = {};
+  for (const [field, id] of [["registrationUrl", "newsRegistrationUrl"], ["image", "newsImage"]]) {
+    const control = document.getElementById(id);
+    if (!control) continue;
+    clearControlValidation(control);
+    control.value = control.value.trim();
+    data[field] = control.value;
+  }
+  // A selected image is uploaded separately; its stored attachment takes
+  // precedence over the optional URL. Never validate a preview/blob URL.
+  if (state.pendingFiles.get("news-main")?.length) data.image = "";
+  const issues = newsUrlValidationIssues(data);
+  if (!issues.length) return true;
+  state.validationIssues = issues;
+  applyFormValidationIssues("news");
+  return false;
+}
+
 function validateCurrentForm() {
   const form = document.getElementById("submissionForm");
   if (!form) return false;
+  if (state.formType === "news" && !validateNewsUrlFields()) return false;
 
   form.querySelectorAll("[required]").forEach((control) => {
     control.setCustomValidity(control.value.trim() ? "" : t("staff.errors.requiredFields"));
@@ -1689,7 +1764,18 @@ async function uploadPendingFiles(submissionId) {
     const kind = group.endsWith("-primary") || group === "news-main" ? "primary" : "additional";
     const files = groupFiles.filter((file) => !state.uploadedFiles.has(fileFingerprint(file)));
     for (const file of files) {
-      await api.uploadAttachment(submissionId, file, kind);
+      try {
+        await api.uploadAttachment(submissionId, file, kind);
+      } catch (error) {
+        if (!group.startsWith("news-") ||
+            ([401, 403].includes(error.status) && error.code !== "BLOB_UPLOAD_FAILED")) throw error;
+        throw new ApiError("NEWS_IMAGE_UPLOAD_FAILED", [401, 403].includes(error.status) ? 502 : error.status || 502, {
+          error: "NEWS_IMAGE_UPLOAD_FAILED", stage: "upload",
+          message: t("staff.errors.imageUploadFailed"),
+          fields: [{ field: kind === "primary" ? "mainImageAttachmentId" : "additionalImageAttachmentIds",
+            message: t("staff.errors.imageUploadFailed") }]
+        });
+      }
       state.uploadedFiles.add(fileFingerprint(file));
     }
   }
@@ -1700,7 +1786,7 @@ async function saveData(type, data) {
     throw new ApiError("NEWS_LOCAL_IMAGE_NOT_SAVED", 400);
   }
   const cleanData = cleanSubmissionData(data);
-  if (type === "news" && state.localNewsImage?.path === cleanData.image) {
+  if (type === "news" && (state.localNewsImage?.path === cleanData.image || state.pendingFiles.get("news-main")?.length)) {
     cleanData.image = "";
   }
   let saved;
@@ -1743,6 +1829,7 @@ async function saveData(type, data) {
 async function saveDraft(button) {
   if (state.formOperation) return null;
   if (state.formType !== "news" && !validateCurrentForm()) return null;
+  if (state.formType === "news" && !validateNewsUrlFields()) return null;
   const data = collectFormData();
   const finishOperation = beginFormOperation(button, "staff.form.saving");
 
@@ -1892,9 +1979,15 @@ async function recoverCompletedSubmission(error) {
     const completedStatuses = state.preview.type === "invoice"
       ? ["approved"]
       : state.preview.type === "news"
-        ? ["submitted", "published"]
+        ? ["published"]
         : ["submitted"];
     if (record?.id !== state.editingId || !completedStatuses.includes(String(record.status || "").toLowerCase())) return false;
+    if (state.preview.type === "news") {
+      // A legacy PUBLISHED database row alone is not proof that GitHub has it.
+      // The idempotent submit endpoint reconciles the repository before success.
+      const confirmed = normalizeSubmission(extractSubmission(await api.submitSubmission(record.id)));
+      if (confirmed?.id !== record.id || String(confirmed.status || "").toLowerCase() !== "published") return false;
+    }
     const type = state.preview.type;
     showToast(`staff.success.${type}Toast`, "success");
     resetFormState();
@@ -1933,7 +2026,7 @@ async function savePreview(button, submit = false) {
       const payload = await api.submitSubmission(saved.id);
       const submitted = normalizeSubmission(extractSubmission(payload));
       const completedStatuses = state.preview.type === "invoice"
-        ? ["approved"] : state.preview.type === "news" ? ["submitted", "published"] : ["submitted"];
+        ? ["approved"] : state.preview.type === "news" ? ["published"] : ["submitted"];
       if (!submitted?.id || submitted.id !== saved.id ||
           !completedStatuses.includes(String(submitted.status || "").toLowerCase())) {
         throw new ApiError("invalid_submission_response", 500, payload);

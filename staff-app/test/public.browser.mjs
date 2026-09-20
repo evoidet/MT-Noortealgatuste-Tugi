@@ -21,20 +21,14 @@ const individualArticles = new Map();
 const server = createServer(async (req, res) => {
   const requestUrl = new URL(req.url, "http://localhost");
   const pathname = requestUrl.pathname;
-  if (pathname === "/api/staff/public/news" || pathname.startsWith("/api/staff/public/news/")) {
+  if (pathname === "/published-news.json") {
     if (publicApiMode === "error") {
       res.writeHead(503, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "UNAVAILABLE" }));
     } else if (publicApiMode === "html") {
       res.writeHead(200, { "Content-Type": "text/html" }).end("<html>Service unavailable</html>");
-    } else if (pathname === "/api/staff/public/news") {
-      const offset = Number(requestUrl.searchParams.get("offset") || 0);
-      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({
-        items: publishedItems.slice(offset, offset + 25), nextOffset: offset + 25 < publishedItems.length ? offset + 25 : null
-      }));
     } else {
-      const id = decodeURIComponent(pathname.slice("/api/staff/public/news/".length));
-      const item = individualArticles.get(id);
-      res.writeHead(item ? 200 : 404, { "Content-Type": "application/json" }).end(JSON.stringify(item ? { item } : { error: "NOT_FOUND" }));
+      const articles = new Map([...individualArticles, ...publishedItems.map((item) => [item.id, item])]);
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify([...articles.values()]));
     }
     return;
   }
@@ -54,7 +48,7 @@ await new Promise((done) => server.listen(0, "127.0.0.1", done));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_CHANNEL ? { channel: process.env.BROWSER_CHANNEL } : {}) });
 const failures = [];
-const expectedHttpErrors = new Set(["/api/staff/public/news/missing-audit-article"]);
+const expectedHttpErrors = new Set(["/published-news.json"]);
 try {
   const routes = (await readdir(root)).filter((name) => name.endsWith(".html"));
   const context = await browser.newContext({ reducedMotion: "reduce" });
