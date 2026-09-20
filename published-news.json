@@ -1,1 +1,53 @@
-[]
+[
+  {
+    "submissionId": "ac82aa32-1e2a-4442-9778-ad7bd76741b5",
+    "id": "news-ac82aa32-1e2a-4442-9778-ad7bd76741b5",
+    "sourceLanguage": "et",
+    "category": "initiatives",
+    "date": "2026-09-20",
+    "image": "https://noortetugi.ee/api/staff/public/news/ac82aa32-1e2a-4442-9778-ad7bd76741b5/attachments/6477b8fb-99fe-4fdc-97ea-55f3ce852309",
+    "imagePosition": "center center",
+    "imageFit": "cover",
+    "originalImage": "",
+    "additionalImages": [],
+    "featured": true,
+    "placeholder": false,
+    "published": true,
+    "title": "Meie esimene Erasmus+ projekt ootab osalejaid!",
+    "excerpt": "Peagi toimub Riias Erasmus+ koolitusprojekt „Detect to Protect“, mille eesmärk on arendada noorte digipädevusi, meediakirjaoskust ja teadmisi tehisintellektist. Projekt pakub 18–35-aastastele osalejatele praktilisi õpikogemusi ning võimalust kohtuda noortega teistest Euroopa riikidest.",
+    "imageAlt": "",
+    "displayDate": "",
+    "content": [
+      "Meil on suur rõõm teatada, et meie esimene Erasmus+ projekt „Detect to Protect“ toimub juba peagi Riias, Lätis. Nüüd otsime noori, kes soovivad sellest rahvusvahelisest õpikogemusest osa saada!",
+      "„Detect to Protect“ on Erasmus+ koolitusprojekt, mille eesmärk on arendada digipädevusi ning anda osalejatele praktilisi oskusi, mida tänapäeva digimaailmas vaja läheb.",
+      "Koolituse jooksul räägime ja õpime lähemalt digivahenditest, tehisintellektist, meediapädevusest ja väärinfo äratundmisest. Samuti pöörame tähelepanu vastutustundlikule digikäitumisele ning teadlikule ja mõtestatud sotsiaalmeedia ning teiste veebiplatvormide kasutamisele.",
+      "Õppimine toimub töötubade, arutelude, loominguliste ülesannete ja teiste mitteformaalse õppe meetodite kaudu. Lisaks uutele teadmistele ja praktilistele oskustele annab projekt võimaluse kohtuda noortega erinevatest Euroopa riikidest, jagada kogemusi ning luua uusi rahvusvahelisi kontakte.",
+      "Kandideerima on oodatud 18–35-aastased noored, kes tunnevad huvi digimaailma, meediapädevuse, tehisintellekti või noorsootöö vastu ning soovivad arendada oma teadmisi ja oskusi rahvusvahelises keskkonnas.",
+      "📍 Toimumiskoht: Riia, Läti",
+      "Kui soovid saada osa meie esimesest Erasmus+ projektist ja veeta samal ajal ühe põneva õpikogemuse Riias, tutvu kindlasti projekti täpsema infoga!",
+      "👉 https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing"
+    ],
+    "author": "Egor Stepanov",
+    "authorRole": "Finatsjuht",
+    "project": "Erasmus+",
+    "registrationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform",
+    "translations": {
+      "et": {
+        "title": "Meie esimene Erasmus+ projekt ootab osalejaid!",
+        "excerpt": "Peagi toimub Riias Erasmus+ koolitusprojekt „Detect to Protect“, mille eesmärk on arendada noorte digipädevusi, meediakirjaoskust ja teadmisi tehisintellektist. Projekt pakub 18–35-aastastele osalejatele praktilisi õpikogemusi ning võimalust kohtuda noortega teistest Euroopa riikidest.",
+        "imageAlt": "",
+        "displayDate": "",
+        "content": [
+          "Meil on suur rõõm teatada, et meie esimene Erasmus+ projekt „Detect to Protect“ toimub juba peagi Riias, Lätis. Nüüd otsime noori, kes soovivad sellest rahvusvahelisest õpikogemusest osa saada!",
+          "„Detect to Protect“ on Erasmus+ koolitusprojekt, mille eesmärk on arendada digipädevusi ning anda osalejatele praktilisi oskusi, mida tänapäeva digimaailmas vaja läheb.",
+          "Koolituse jooksul räägime ja õpime lähemalt digivahenditest, tehisintellektist, meediapädevusest ja väärinfo äratundmisest. Samuti pöörame tähelepanu vastutustundlikule digikäitumisele ning teadlikule ja mõtestatud sotsiaalmeedia ning teiste veebiplatvormide kasutamisele.",
+          "Õppimine toimub töötubade, arutelude, loominguliste ülesannete ja teiste mitteformaalse õppe meetodite kaudu. Lisaks uutele teadmistele ja praktilistele oskustele annab projekt võimaluse kohtuda noortega erinevatest Euroopa riikidest, jagada kogemusi ning luua uusi rahvusvahelisi kontakte.",
+          "Kandideerima on oodatud 18–35-aastased noored, kes tunnevad huvi digimaailma, meediapädevuse, tehisintellekti või noorsootöö vastu ning soovivad arendada oma teadmisi ja oskusi rahvusvahelises keskkonnas.",
+          "📍 Toimumiskoht: Riia, Läti",
+          "Kui soovid saada osa meie esimesest Erasmus+ projektist ja veeta samal ajal ühe põneva õpikogemuse Riias, tutvu kindlasti projekti täpsema infoga!",
+          "👉 https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing"
+        ]
+      }
+    }
+  }
+]
