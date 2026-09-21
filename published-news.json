@@ -3,7 +3,7 @@
     "submissionId": "ac82aa32-1e2a-4442-9778-ad7bd76741b5",
     "id": "news-ac82aa32-1e2a-4442-9778-ad7bd76741b5",
     "sourceLanguage": "et",
-    "category": "initiatives",
+    "category": "events",
     "date": "2026-09-20",
     "image": "https://noortetugi.ee/api/staff/public/news/ac82aa32-1e2a-4442-9778-ad7bd76741b5/attachments/6477b8fb-99fe-4fdc-97ea-55f3ce852309",
     "imagePosition": "center center",
@@ -31,6 +31,16 @@
     "authorRole": "Finatsjuht",
     "project": "Erasmus+",
     "registrationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform",
+    "links": [
+      {
+        "label": "Registreeru",
+        "url": "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform"
+      },
+      {
+        "label": "Lisainfo ja materjalid",
+        "url": "https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing"
+      }
+    ],
     "translations": {
       "et": {
         "title": "Meie esimene Erasmus+ projekt ootab osalejaid!",
@@ -46,6 +56,40 @@
           "📍 Toimumiskoht: Riia, Läti",
           "Kui soovid saada osa meie esimesest Erasmus+ projektist ja veeta samal ajal ühe põneva õpikogemuse Riias, tutvu kindlasti projekti täpsema infoga!",
           "👉 https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing"
+        ],
+        "links": [
+          {
+            "label": "Registreeru",
+            "url": "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform"
+          },
+          {
+            "label": "Lisainfo ja materjalid",
+            "url": "https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing"
+          }
+        ]
+      },
+      "en": {
+        "links": [
+          {
+            "label": "Register",
+            "url": "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform"
+          },
+          {
+            "label": "More information and materials",
+            "url": "https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing"
+          }
+        ]
+      },
+      "ru": {
+        "links": [
+          {
+            "label": "Зарегистрироваться",
+            "url": "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform"
+          },
+          {
+            "label": "Дополнительная информация и материалы",
+            "url": "https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing"
+          }
         ]
       }
     }
