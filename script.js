@@ -705,7 +705,8 @@ document.addEventListener("DOMContentLoaded", function () {
         setCountdownValue(hoursElement, 0, "common.countdown.hours");
         setCountdownValue(minutesElement, 0, "common.countdown.minutes");
         setCountdownValue(secondsElement, 0, "common.countdown.seconds");
-        finishedElement.textContent = t("camp.countdown.started");
+        countdown.classList.add("is-finished");
+        finishedElement.textContent = t("camp.countdown.finished");
 
         if (intervalId !== null) {
           window.clearInterval(intervalId);

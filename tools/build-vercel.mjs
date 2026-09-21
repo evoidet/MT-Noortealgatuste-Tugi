@@ -42,7 +42,13 @@ async function runNodeScript(relativePath, args = []) {
 if (process.env.VERCEL_ENV === "production") {
   await runNodeScript("staff-app/scripts/db-migrate.mjs");
   await runNodeScript("staff-app/scripts/db-check.mjs");
-  await runNodeScript("staff-app/scripts/reconcile-news.mjs", ["--check"]);
+  const newsReconciliationEnabled =
+    process.env.NEWS_RECONCILIATION_CHECK?.trim().toLowerCase() !== "false";
+  if (newsReconciliationEnabled) {
+    await runNodeScript("staff-app/scripts/reconcile-news.mjs", ["--check"]);
+  } else {
+    console.log("Skipped news reconciliation check because NEWS_RECONCILIATION_CHECK=false.");
+  }
 }
 
 if (outputDirectory !== expectedOutputDirectory || dirname(outputDirectory) !== projectRoot) {

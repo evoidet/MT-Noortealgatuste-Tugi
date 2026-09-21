@@ -35,8 +35,8 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="/style.css?v=20260812-3">
-  <link rel="stylesheet" href="/camp.css?v=20260812-1">
-  <script src="/translations.js?v=20260821-1"></script>
+  <link rel="stylesheet" href="/camp.css?v=20260921-1">
+  <script src="/translations.js?v=20260921-1"></script>
   <script src="/i18n.js?v=20260723-2"></script>
   <script src="/sender-init.js"></script>
 </head>
@@ -147,15 +147,13 @@
           </p>
 
           <div class="camp-buttons">
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform"
-              class="camp-primary-button"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-i18n="camp.hero.registerNow"
+            <span
+              class="camp-registration-status"
+              role="status"
+              data-i18n="camp.registration.closed"
             >
-              Registreeru laagrisse
-            </a>
+              Registreerimine on lõppenud
+            </span>
 
             <a href="#camp-about" class="camp-secondary-button" data-i18n="camp.hero.discover">
               Tutvu laagriga
@@ -287,7 +285,7 @@
   data-event-date="2026-09-19T10:00:00+03:00"
 >
   <div class="camp-countdown-heading">
-    <span data-i18n="camp.countdown.label">LAAGRI ALGUSENI ON JÄÄNUD</span>
+    <span data-i18n="camp.countdown.finishedLabel">LAAGER ON LÕPPENUD</span>
     <h3 data-i18n="camp.countdown.meet">Kohtume 19.–20. septembril 2026</h3>
   </div>
 
@@ -543,6 +541,160 @@
       </div>
     </section>
 
+    <!-- ================= GALLERY ================= -->
+
+    <section
+      class="camp-gallery-section"
+      id="camp-gallery"
+      aria-labelledby="camp-gallery-title"
+    >
+      <div class="camp-gallery-header">
+        <div class="camp-section-heading camp-section-heading-light">
+          <span class="camp-section-label" data-i18n="camp.gallery.label">FOTOGALERII</span>
+          <h2 id="camp-gallery-title" data-i18n="camp.gallery.title">
+            Hetked projektikirjutamise laagrist
+          </h2>
+          <p data-i18n="camp.gallery.description">
+            Vaata hetki 19.–20. septembril 2026 Toila SPA Hotellis toimunud laagrist.
+          </p>
+        </div>
+
+        <div class="camp-gallery-note">
+          <strong data-i18n="camp.gallery.count">5 fotot</strong>
+          <span data-i18n="camp.gallery.note">Klõpsa fotol, et avada see täissuuruses.</span>
+        </div>
+      </div>
+
+      <div class="camp-gallery-grid">
+        <a
+          class="camp-gallery-item"
+          href="assets/laager/laager-01.jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Ava laagri foto 1"
+          aria-haspopup="dialog"
+          data-i18n-aria-label="camp.gallery.photo1Open"
+        >
+          <img
+            src="assets/laager/laager-01.jpg"
+            alt="Hetk projektikirjutamise laagrist 1"
+            width="960"
+            height="1280"
+            loading="lazy"
+            decoding="async"
+            data-i18n-alt="camp.gallery.photo1"
+          >
+          <i class="camp-gallery-zoom-hint" aria-hidden="true">+</i>
+          <span data-i18n="camp.gallery.photo1">Hetk laagrist · 01</span>
+        </a>
+
+        <a
+          class="camp-gallery-item"
+          href="assets/laager/laager-02.jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Ava laagri foto 2"
+          aria-haspopup="dialog"
+          data-i18n-aria-label="camp.gallery.photo2Open"
+        >
+          <img
+            src="assets/laager/laager-02.jpg"
+            alt="Hetk projektikirjutamise laagrist 2"
+            width="960"
+            height="1280"
+            loading="lazy"
+            decoding="async"
+            data-i18n-alt="camp.gallery.photo2"
+          >
+          <i class="camp-gallery-zoom-hint" aria-hidden="true">+</i>
+          <span data-i18n="camp.gallery.photo2">Hetk laagrist · 02</span>
+        </a>
+
+        <a
+          class="camp-gallery-item"
+          href="assets/laager/laager-03.jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Ava laagri foto 3"
+          aria-haspopup="dialog"
+          data-i18n-aria-label="camp.gallery.photo3Open"
+        >
+          <img
+            src="assets/laager/laager-03.jpg"
+            alt="Hetk projektikirjutamise laagrist 3"
+            width="1280"
+            height="960"
+            loading="lazy"
+            decoding="async"
+            data-i18n-alt="camp.gallery.photo3"
+          >
+          <i class="camp-gallery-zoom-hint" aria-hidden="true">+</i>
+          <span data-i18n="camp.gallery.photo3">Hetk laagrist · 03</span>
+        </a>
+
+        <a
+          class="camp-gallery-item"
+          href="assets/laager/laager-04.jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Ava laagri foto 4"
+          aria-haspopup="dialog"
+          data-i18n-aria-label="camp.gallery.photo4Open"
+        >
+          <img
+            src="assets/laager/laager-04.jpg"
+            alt="Hetk projektikirjutamise laagrist 4"
+            width="1280"
+            height="960"
+            loading="lazy"
+            decoding="async"
+            data-i18n-alt="camp.gallery.photo4"
+          >
+          <i class="camp-gallery-zoom-hint" aria-hidden="true">+</i>
+          <span data-i18n="camp.gallery.photo4">Hetk laagrist · 04</span>
+        </a>
+
+        <a
+          class="camp-gallery-item"
+          href="assets/laager/laager-05.jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Ava laagri foto 5"
+          aria-haspopup="dialog"
+          data-i18n-aria-label="camp.gallery.photo5Open"
+        >
+          <img
+            src="assets/laager/laager-05.jpg"
+            alt="Hetk projektikirjutamise laagrist 5"
+            width="1280"
+            height="960"
+            loading="lazy"
+            decoding="async"
+            data-i18n-alt="camp.gallery.photo5"
+          >
+          <i class="camp-gallery-zoom-hint" aria-hidden="true">+</i>
+          <span data-i18n="camp.gallery.photo5">Hetk laagrist · 05</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ================= REGISTRATION CLOSED ================= -->
+
+    <section class="camp-registration" id="camp-registration">
+      <div class="camp-registration-content">
+        <span class="camp-section-label" data-i18n="camp.registration.label">REGISTREERIMINE</span>
+        <h2 data-i18n="camp.registration.title">Laager on lõppenud</h2>
+        <p data-i18n="camp.registration.description">
+          Ida-Virumaa noorte projektikirjutamise laager toimus 19.–20. septembril 2026.
+          Registreerimine on suletud.
+        </p>
+        <div class="camp-registration-closed" role="status">
+          <span aria-hidden="true">✓</span>
+          <strong data-i18n="camp.registration.closed">Registreerimine on lõppenud</strong>
+        </div>
+      </div>
+    </section>
+
     <!-- ================= CONTACT ================= -->
 
     <section class="camp-section camp-contact">
@@ -712,7 +864,7 @@
 
 
 <script src="/site-config.js"></script>
-<script src="/script.js?v=20260821-1"></script>
+<script src="/script.js?v=20260921-1"></script>
 
 <script>
   (() => {

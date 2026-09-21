@@ -1063,6 +1063,59 @@
       "The camp has begun!",
       "Лагерь начался!"
     ],
+    "camp.countdown.finishedLabel": [
+      "LAAGER ON LÕPPENUD",
+      "THE CAMP HAS ENDED",
+      "ЛАГЕРЬ ЗАВЕРШЁН"
+    ],
+    "camp.countdown.finished": [
+      "Üritus toimus 19.–20. septembril 2026.",
+      "The event took place on 19–20 September 2026.",
+      "Мероприятие прошло 19–20 сентября 2026 года."
+    ],
+    "camp.gallery.label": ["FOTOGALERII", "PHOTO GALLERY", "ФОТОГАЛЕРЕЯ"],
+    "camp.gallery.title": [
+      "Hetked projektikirjutamise laagrist",
+      "Moments from the project-writing camp",
+      "Моменты из лагеря по написанию проектов"
+    ],
+    "camp.gallery.description": [
+      "Vaata hetki 19.–20. septembril 2026 Toila SPA Hotellis toimunud laagrist.",
+      "See moments from the camp held at Toila SPA Hotel on 19–20 September 2026.",
+      "Посмотрите моменты из лагеря, прошедшего 19–20 сентября 2026 года в Toila SPA Hotel."
+    ],
+    "camp.gallery.count": ["5 fotot", "5 photos", "5 фотографий"],
+    "camp.gallery.note": [
+      "Klõpsa fotol, et avada see täissuuruses.",
+      "Click a photo to open it full size.",
+      "Нажмите на фотографию, чтобы открыть её в полном размере."
+    ],
+    "camp.gallery.photo1": ["Hetk laagrist · 01", "Camp moment · 01", "Момент из лагеря · 01"],
+    "camp.gallery.photo2": ["Hetk laagrist · 02", "Camp moment · 02", "Момент из лагеря · 02"],
+    "camp.gallery.photo3": ["Hetk laagrist · 03", "Camp moment · 03", "Момент из лагеря · 03"],
+    "camp.gallery.photo4": ["Hetk laagrist · 04", "Camp moment · 04", "Момент из лагеря · 04"],
+    "camp.gallery.photo5": ["Hetk laagrist · 05", "Camp moment · 05", "Момент из лагеря · 05"],
+    "camp.gallery.photo1Open": ["Ava laagri foto 1", "Open camp photo 1", "Открыть фотографию лагеря 1"],
+    "camp.gallery.photo2Open": ["Ava laagri foto 2", "Open camp photo 2", "Открыть фотографию лагеря 2"],
+    "camp.gallery.photo3Open": ["Ava laagri foto 3", "Open camp photo 3", "Открыть фотографию лагеря 3"],
+    "camp.gallery.photo4Open": ["Ava laagri foto 4", "Open camp photo 4", "Открыть фотографию лагеря 4"],
+    "camp.gallery.photo5Open": ["Ava laagri foto 5", "Open camp photo 5", "Открыть фотографию лагеря 5"],
+    "camp.registration.label": ["REGISTREERIMINE", "REGISTRATION", "РЕГИСТРАЦИЯ"],
+    "camp.registration.title": [
+      "Laager on lõppenud",
+      "The camp has ended",
+      "Лагерь завершён"
+    ],
+    "camp.registration.description": [
+      "Ida-Virumaa noorte projektikirjutamise laager toimus 19.–20. septembril 2026. Registreerimine on suletud.",
+      "The Ida-Viru County youth project-writing camp took place on 19–20 September 2026. Registration is closed.",
+      "Лагерь по написанию проектов для молодёжи Ида-Вирумаа прошёл 19–20 сентября 2026 года. Регистрация закрыта."
+    ],
+    "camp.registration.closed": [
+      "Registreerimine on lõppenud",
+      "Registration is closed",
+      "Регистрация закрыта"
+    ],
     "camp.audience.label": ["KELLELE?", "WHO IS IT FOR?", "ДЛЯ КОГО?"],
     "camp.audience.title": [
       "Ootame aktiivseid noori ja noortetiime",

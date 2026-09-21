@@ -48,6 +48,50 @@ test("production build stops before replacing assets when published news preserv
   }
 });
 
+test("production news reconciliation is enabled by default and disabled only by false", async (t) => {
+  const cases = [
+    { name: "missing variable", value: undefined, reconcile: true },
+    { name: "true", value: "true", reconcile: true },
+    { name: "false", value: "false", reconcile: false },
+    { name: "normalized false", value: "  FALSE  ", reconcile: false }
+  ];
+
+  for (const testCase of cases) {
+    await t.test(testCase.name, async () => {
+      const root = await mkdtemp(resolve(tmpdir(), "noortetugi-reconciliation-test-"));
+      try {
+        await mkdir(resolve(root, "tools"));
+        await mkdir(resolve(root, "assets"));
+        await mkdir(resolve(root, "staff-app/public"), { recursive: true });
+        await mkdir(resolve(root, "staff-app/scripts"), { recursive: true });
+        await writeFile(resolve(root, "tools/build-vercel.mjs"), await readFile(resolve(repositoryRoot, "tools/build-vercel.mjs")));
+        for (const [file, marker] of [["db-migrate.mjs", "migrate"], ["db-check.mjs", "check"]]) {
+          await writeFile(resolve(root, `staff-app/scripts/${file}`),
+            `import { appendFile } from "node:fs/promises"; await appendFile(new URL("../../steps.log", import.meta.url), ${JSON.stringify(marker + "\n")});`);
+        }
+        await writeFile(resolve(root, "staff-app/scripts/reconcile-news.mjs"),
+          'import { appendFile } from "node:fs/promises"; await appendFile(new URL("../../steps.log", import.meta.url), "reconcile:" + process.argv.slice(2).join(",") + "\\n");');
+
+        const env = { ...process.env, VERCEL_ENV: "production" };
+        if (testCase.value === undefined) delete env.NEWS_RECONCILIATION_CHECK;
+        else env.NEWS_RECONCILIATION_CHECK = testCase.value;
+        const { stdout } = await promisify(execFile)(process.execPath, [resolve(root, "tools/build-vercel.mjs")], { env });
+        const steps = (await readFile(resolve(root, "steps.log"), "utf8")).trim().split("\n");
+
+        assert.deepEqual(steps.slice(0, 2), ["migrate", "check"]);
+        assert.equal(steps.includes("reconcile:--check"), testCase.reconcile);
+        if (testCase.reconcile) {
+          assert.doesNotMatch(stdout, /Skipped news reconciliation check/);
+        } else {
+          assert.match(stdout, /Skipped news reconciliation check because NEWS_RECONCILIATION_CHECK=false\./);
+        }
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
 test("Vercel routes every staff API path to the single Express function", async () => {
   const [packageJson, vercelConfig, handlerSource, buildSource] = await Promise.all([
     readFile(resolve(repositoryRoot, "package.json"), "utf8").then(JSON.parse),
