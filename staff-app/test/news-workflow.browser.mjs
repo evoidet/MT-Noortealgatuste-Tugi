@@ -120,8 +120,12 @@ try {
   const full = await start(reviewer, "Full workflow article", "Töötoas osales palju noored.");
   const fields = { newsSlug: "full-workflow-article", newsDate: "2026-09-16", newsSummary: "Kokkuvõte.",
     newsProject: "Noorte projekt", newsAuthor: "Mari Maasikas", newsAuthorRole: "Korraldaja",
-    newsRegistrationUrl: "https://example.org/register?project=youth", newsImageAlt: "Töötoa foto" };
+    newsImageAlt: "Töötoa foto" };
   for (const [id, value] of Object.entries(fields)) await full.locator(`#${id}`).fill(value);
+  const registrationUrl = "https://example.org/register?project=youth";
+  await full.locator('[data-action="add-line"][data-type="news-link"]').click();
+  await full.locator('[id^="newsLinkLabel"]').fill("Registreeru");
+  await full.locator('[id^="newsLinkUrl"]').fill(registrationUrl);
   await full.locator("#newsCategory").selectOption("initiatives");
   await full.locator('label[for="newsFeatured"]').click();
   assert.equal(await full.locator("#newsFeatured").isChecked(), true);
@@ -146,7 +150,7 @@ try {
   await control({ restart: true });
   await checkPublic(fullItem, ["Töötoas osales palju noori."], { summary: fields.newsSummary,
     project: fields.newsProject, author: fields.newsAuthor, role: fields.newsAuthorRole });
-  assert.equal(await publicPage.locator(".news-article-link").getAttribute("href"), fields.newsRegistrationUrl);
+  assert.equal(await publicPage.locator(".news-article-link").getAttribute("href"), registrationUrl);
   assert.equal(await publicPage.locator(".news-article-original img").count(), 2);
   console.log("PASS full: metadata/AI/image grant+PUT+verification+persisted image/publication/render after app restart");
   await full.close();

@@ -79,7 +79,7 @@ try {
     await page.locator("#newsTitle").fill(title);
     // Filling the title generates a suggested slug. Clear optional fields
     // afterwards so the test really exercises the backend's blank defaults.
-    for (const id of ["newsSlug", "newsDate", "newsAuthor", "newsAuthorRole", "newsProject", "newsRegistrationUrl", "newsImageAlt"]) {
+    for (const id of ["newsSlug", "newsDate", "newsAuthor", "newsAuthorRole", "newsProject", "newsImageAlt"]) {
       await page.locator(`#${id}`).fill("");
     }
     await page.locator("#newsSummary").fill(summary);

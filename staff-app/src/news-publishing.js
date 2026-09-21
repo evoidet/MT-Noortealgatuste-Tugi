@@ -1,4 +1,9 @@
 const supportedLanguages = new Set(["et", "en", "ru"]);
+const detectToProtectPrefix = "Meil on suur rõõm teatada, et meie esimene Erasmus+ projekt „Detect to Protect“";
+const detectToProtectLinks = Object.freeze([
+  { label: "Rohkem infot", url: "https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing" },
+  { label: "Registreeru", url: "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform" }
+]);
 
 function usable(value) {
   if (typeof value === "string") return value.trim() !== "";
@@ -49,12 +54,39 @@ function safePublicExternalUrl(value) {
   if (!text) return "";
   try {
     const url = new URL(text);
-    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password
+    return url.protocol === "https:" && !url.username && !url.password
       ? url.href
       : "";
   } catch {
     return "";
   }
+}
+
+export function normalizeNewsLinks(data = {}) {
+  const candidates = Array.isArray(data.links) ? data.links : [];
+  const links = [];
+  const seen = new Set();
+  for (const candidate of candidates) {
+    const label = typeof candidate?.label === "string" ? candidate.label.trim() : "";
+    const url = safePublicExternalUrl(candidate?.url);
+    if (!label || !url || seen.has(url)) continue;
+    seen.add(url);
+    links.push({ label, url });
+  }
+  const registrationUrl = safePublicExternalUrl(data.registrationUrl);
+  if (registrationUrl && !seen.has(registrationUrl)) links.push({ label: "Registreeru", url: registrationUrl });
+  if (paragraphs(data.content)[0]?.startsWith(detectToProtectPrefix)) {
+    const otherLinks = links.filter((link) => !detectToProtectLinks.some((required) => required.url === link.url));
+    return [...otherLinks.slice(0, 8), ...detectToProtectLinks];
+  }
+  return links.slice(0, 10);
+}
+
+function normalizedNewsContent(data) {
+  const content = paragraphs(data.content);
+  return content[0]?.startsWith(detectToProtectPrefix)
+    ? content.filter((paragraph) => paragraph !== detectToProtectLinks[0].url)
+    : content;
 }
 
 function attachmentUrl(submissionId, attachmentId) {
@@ -104,11 +136,14 @@ export function toPublicNewsItem(submission, attachments = [], requestedLanguage
     excerpt: localizedValue(data, fallback, localized, "excerpt") || data.summary || "",
     imageAlt: localizedValue(data, fallback, localized, "imageAlt") || data.imageAlt,
     displayDate: localizedValue(data, fallback, localized, "displayDate") || "",
-    content: paragraphs(localizedValue(data, fallback, localized, "content") || data.content),
+    content: language === sourceLanguage
+      ? normalizedNewsContent(data)
+      : paragraphs(localizedValue(data, fallback, localized, "content") || data.content),
     author: data.author,
     authorRole: data.authorRole,
     project: data.project,
-    registrationUrl: safePublicExternalUrl(data.registrationUrl)
+    registrationUrl: safePublicExternalUrl(data.registrationUrl),
+    links: normalizeNewsLinks(data)
   };
 }
 
@@ -123,7 +158,7 @@ export function toRepositoryNewsItem(submission, attachments = [], publicSiteOri
     excerpt: String(data.summary || data.excerpt || "").trim(),
     imageAlt: String(data.imageAlt || "").trim(),
     displayDate: "",
-    content: paragraphs(data.content)
+    content: normalizedNewsContent(data)
   };
   const translations = {};
   for (const language of ["et", "en", "ru"]) {
@@ -162,6 +197,7 @@ export function toRepositoryNewsItem(submission, attachments = [], publicSiteOri
     authorRole: data.authorRole || "",
     project: data.project || "",
     registrationUrl: safePublicExternalUrl(data.registrationUrl),
+    links: normalizeNewsLinks(data),
     translations
   };
 }

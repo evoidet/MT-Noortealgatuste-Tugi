@@ -626,7 +626,8 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       return transaction(async (client) => {
         const currentSubmission = await getSubmissionWith(client, id, { forUpdate: true });
         if (!currentSubmission) return null;
-        if (!["DRAFT", "NEEDS_CHANGES"].includes(currentSubmission.status)) {
+        if (!["DRAFT", "NEEDS_CHANGES"].includes(currentSubmission.status) &&
+            !(currentSubmission.type === "news" && currentSubmission.status === "PUBLISHED")) {
           throw createWorkflowStateError();
         }
         // Do not create a new revision for an identical retry. The expense

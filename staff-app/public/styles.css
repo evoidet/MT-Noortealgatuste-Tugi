@@ -1541,6 +1541,17 @@ body.staff-page select {
   font-weight: 850;
 }
 
+.staff-line-order {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.staff-line-order .staff-button {
+  min-width: 2.75rem;
+  padding: 0.45rem 0.75rem;
+}
+
 .staff-line-total {
   display: flex;
   min-height: 46px;

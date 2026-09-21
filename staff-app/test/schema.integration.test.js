@@ -476,7 +476,12 @@ test("Workspace member news draft, preview, submit and admin publication use the
   assert.ok(submitted.body.item.publishedAt);
   assert.equal(publishedNews.length, 1);
   assert.equal((await writer.write("post", `${path}/review`, { decision: "approve" })).status, 403);
-  assert.equal((await writer.write("patch", path, { data })).status, 403);
+  const publishedEdit = await writer.write("patch", path, { data: { ...data,
+    links: [{ label: "Rohkem infot", url: "https://example.org/more" }] } });
+  assert.equal(publishedEdit.status, 200);
+  assert.equal(publishedEdit.body.item.id, id);
+  assert.equal(publishedEdit.body.item.status, "PUBLISHED");
+  assert.equal(publishedEdit.body.item.data.publicationPending, true);
   const feedItem = publishedNews[0];
   assert.equal(feedItem.id, data.slug);
   assert.equal(feedItem.title, data.title);

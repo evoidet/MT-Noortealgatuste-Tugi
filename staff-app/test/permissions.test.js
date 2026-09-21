@@ -53,12 +53,14 @@ test("members manage their own news and expenses without finance or publication 
   assert.equal(permissions.includes("submission:read:own"), false);
 });
 
-test("own submissions are editable only in draft and needs-changes states", () => {
+test("own submissions are editable in draft states and published news remains editable", () => {
   assert.equal(canEditSubmission(member, submission("expense", member.id, "DRAFT")), true);
   assert.equal(canEditSubmission(member, submission("expense", member.id, "NEEDS_CHANGES")), true);
   assert.equal(canEditSubmission(member, submission("expense", member.id, "SUBMITTED")), false);
   assert.equal(canEditSubmission(member, submission("expense", member.id, "APPROVED")), false);
   assert.equal(canSubmitSubmission(member, submission("expense", member.id, "REJECTED")), false);
+  assert.equal(canEditSubmission(member, submission("news", member.id, "PUBLISHED")), true);
+  assert.equal(canSubmitSubmission(member, submission("news", member.id, "PUBLISHED")), true);
 });
 
 test("editor can manage own news and expense submissions but cannot create invoices", () => {

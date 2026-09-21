@@ -2320,6 +2320,13 @@ body.news-page .news-article-link {
     box-shadow 0.25s ease;
 }
 
+body.news-page .news-article-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
 body.news-page .news-article-link:hover {
   background: var(--news-dark);
   color: var(--news-white);

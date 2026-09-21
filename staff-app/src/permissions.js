@@ -96,7 +96,8 @@ export function canEditSubmission(user, submission, context = {}) {
     submission.creatorId !== user.id ||
     !hasPermission(user, `${submission.type}:update:own`, context)
   ) return false;
-  return ["DRAFT", "NEEDS_CHANGES"].includes(submission.status);
+  return ["DRAFT", "NEEDS_CHANGES"].includes(submission.status) ||
+    (submission.type === "news" && submission.status === "PUBLISHED");
 }
 
 export function canSubmitSubmission(user, submission, context = {}) {

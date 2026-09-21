@@ -214,24 +214,18 @@ test("final news validation normalizes paragraphs and requires publishable conte
   assert.deepEqual(new Set(error.fields), new Set(["content"]));
 });
 
-test("news registration URL is optional and accepts only HTTP(S) URLs", () => {
+test("news registration URL is optional in drafts and requires HTTPS on publish", () => {
   assert.equal(validateSubmissionData("news", {}).registrationUrl, "");
   assert.equal(
     validateSubmissionData("news", { registrationUrl: "https://example.org/register" }).registrationUrl,
     "https://example.org/register",
   );
-  assert.equal(
-    validateSubmissionData("news", { registrationUrl: "http://example.org/register" }).registrationUrl,
-    "http://example.org/register",
-  );
-  captureValidationError(
-    () => validateSubmissionData("news", { registrationUrl: "ftp://example.org/register" }),
-    "VALIDATION_ERROR",
-  );
-  captureValidationError(
-    () => validateSubmissionData("news", { registrationUrl: "not a URL" }),
-    "VALIDATION_ERROR",
-  );
+  assert.equal(validateSubmissionData("news", { registrationUrl: "not a URL" }).registrationUrl, "not a URL");
+  for (const registrationUrl of ["http://example.org/register", "ftp://example.org/register", "not a URL"]) {
+    captureValidationError(() => validateSubmissionData("news", {
+      title: "Title", content: ["Body"], registrationUrl
+    }, { final: true }), "VALIDATION_ERROR");
+  }
 });
 
 test("optional news URLs normalize before validation and accept Google Forms links", () => {
@@ -264,7 +258,9 @@ test("news URL validation reports every invalid URL field with a safe specific m
   ]) {
     for (const value of ["not a URL", "javascript:alert(1)", "https://user:password@example.org/", true,
       `https://example.org/${"a".repeat(2_048)}`]) {
-      const error = captureValidationError(() => validateSubmissionData("news", { [field]: value }), "VALIDATION_ERROR");
+      const error = captureValidationError(() => validateSubmissionData("news", {
+        title: "Title", content: ["Body"], [field]: value
+      }, { final: true }), "VALIDATION_ERROR");
       assert.ok(error.issues.length);
       for (const issue of error.issues) {
         assert.equal(issue.path, field);
@@ -274,12 +270,44 @@ test("news URL validation reports every invalid URL field with a safe specific m
     }
   }
   const error = captureValidationError(() => validateSubmissionData("news", {
-    registrationUrl: "bad registration", image: "bad image"
-  }), "VALIDATION_ERROR");
+    title: "Title", content: ["Body"], registrationUrl: "bad registration", image: "bad image"
+  }, { final: true }), "VALIDATION_ERROR");
   assert.deepEqual(error.issues.map(({ path, message }) => ({ path, message })), [
     { path: "registrationUrl", message: "Registration URL is invalid." },
     { path: "image", message: "Image URL is invalid." }
   ]);
+});
+
+test("news drafts preserve incomplete links while publication validates exact rows", () => {
+  const draft = validateSubmissionData("news", {
+    slug: "Temporary Slug", links: [{ label: "", url: "not ready" }]
+  });
+  assert.equal(draft.slug, "Temporary Slug");
+  assert.deepEqual(draft.links, [{ label: "", url: "not ready" }]);
+
+  const error = captureValidationError(() => validateSubmissionData("news", {
+    title: "Title", content: ["Body"], links: [
+      { label: "", url: "https://example.org" },
+      { label: "Rohkem infot", url: "javascript:alert(1)" }
+    ]
+  }, { final: true }), "VALIDATION_ERROR");
+  assert.deepEqual(error.issues.map(({ path, message }) => ({ path, message })), [
+    { path: "links.0.label", message: "Please enter link text." },
+    { path: "links.1.url", message: "Please enter a valid HTTPS URL." }
+  ]);
+});
+
+test("news publication trims, deduplicates, and supports normal HTTPS action links", () => {
+  const links = [
+    { label: " Registreeru ", url: " https://forms.gle/example " },
+    { label: "Duplicate", url: "https://forms.gle/example" },
+    { label: "Programm", url: "https://docs.google.com/forms/d/e/example/viewform" },
+    { label: "Rohkem infot", url: "https://drive.google.com/file/d/example/view" },
+    { label: "Koduleht", url: "https://noortetugi.ee/uudised.html" }
+  ];
+  const result = validateSubmissionData("news", { title: "Title", content: ["Body"], links }, { final: true });
+  assert.equal(result.links.length, 4);
+  assert.deepEqual(result.links[0], { label: "Registreeru", url: "https://forms.gle/example" });
 });
 
 

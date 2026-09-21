@@ -21,6 +21,7 @@ const generated = Object.freeze({
   submissionId: "11111111-1111-4111-8111-111111111111", id: "repository-news",
   sourceLanguage: "et", published: true, title: "Repo uudis", excerpt: "Kokkuvõte", content: ["Sisu"],
   registrationUrl: "https://forms.gle/example",
+  links: [{ label: "Rohkem infot", url: "https://drive.google.com/file/d/example/view" }],
   translations: { en: { title: "Repository news", excerpt: "Summary", content: ["Body"] } }
 });
 
@@ -30,6 +31,7 @@ test("public catalogue loads the generated repository file and localizes it", as
   const item = window.NEWS_ITEMS.find((entry) => entry.id === generated.id);
   assert.equal(item.title, "Repository news");
   assert.equal(item.registrationUrl, generated.registrationUrl);
+  assert.deepEqual(item.links, generated.links);
   assert.equal(window.NEWS_LOAD_STATUS, "ready");
 });
 

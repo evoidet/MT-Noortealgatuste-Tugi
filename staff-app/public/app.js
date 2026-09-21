@@ -442,6 +442,11 @@ function validationControlId(type, field) {
     }
   };
   if (direct[type]?.[field]) return direct[type][field];
+  const link = /^links\.(\d+)\.(label|url)$/.exec(field);
+  if (type === "news" && link) {
+    const row = document.querySelectorAll('[data-line-item="news-link"]')[Number(link[1])];
+    return row?.querySelector(`[id^="newsLink${link[2] === "label" ? "Label" : "Url"}"]`)?.id || "";
+  }
   const item = /^items\.(\d+)\.(.+)$/.exec(field);
   if (!item) return "";
   const index = item[1];
@@ -1201,7 +1206,11 @@ async function saveLocalNewsImage(button) {
 }
 
 function newsForm(data) {
+  const links = Array.isArray(data.links) && data.links.length
+    ? data.links
+    : data.registrationUrl ? [{ label: t("staff.news.legacyRegistrationLabel"), url: data.registrationUrl }] : [];
   return `
+    <input id="newsRegistrationUrl" type="hidden" value="">
     <section class="staff-form-section">
       <div class="staff-form-section-heading">
         <span>01</span>
@@ -1224,11 +1233,26 @@ function newsForm(data) {
           }))
         })}
         ${field({ id: "newsProject", label: "staff.news.project", value: data.project, placeholder: "staff.news.projectPlaceholder" })}
-        ${field({ id: "newsRegistrationUrl", label: "staff.news.registrationUrl", value: data.registrationUrl, type: "url", wide: true, placeholder: "staff.news.registrationUrlPlaceholder" })}
         ${field({ id: "newsAuthor", label: "staff.news.author", value: data.author ?? state.session?.user?.name, autocomplete: "name" })}
         ${field({ id: "newsAuthorRole", label: "staff.news.authorRole", value: data.authorRole, placeholder: "staff.news.authorRolePlaceholder" })}
         ${field({ id: "newsSummary", label: "staff.news.summary", value: data.summary || data.excerpt, type: "textarea", maxLength: 600, rows: 4, wide: true, placeholder: "staff.news.summaryPlaceholder", ai: { field: "news.summary", mode: "news" } })}
       </div>
+    </section>
+
+    <section class="staff-form-section">
+      <div class="staff-form-section-heading">
+        <span>03</span>
+        <div>
+          <h2>${escapeHtml(t("staff.news.linksSection"))}</h2>
+          <p>${escapeHtml(t("staff.news.linksSectionText"))}</p>
+        </div>
+      </div>
+      <div id="newsLinks" class="staff-line-items">
+        ${links.map(newsLinkRow).join("")}
+      </div>
+      <button class="staff-add-line" type="button" data-action="add-line" data-type="news-link">
+        <span aria-hidden="true">＋</span><span>${escapeHtml(t("staff.news.addLink"))}</span>
+      </button>
     </section>
 
     <section class="staff-form-section">
@@ -1246,7 +1270,7 @@ function newsForm(data) {
 
     <section class="staff-form-section">
       <div class="staff-form-section-heading">
-        <span>03</span>
+        <span>04</span>
         <div>
           <h2>${escapeHtml(t("staff.news.imagesSection"))}</h2>
           <p>${escapeHtml(t("staff.news.imagesSectionText"))}</p>
@@ -1272,6 +1296,22 @@ function newsForm(data) {
       </div>
     </section>
   `;
+}
+
+function newsLinkRow(link = {}, index = 0) {
+  return `
+    <fieldset class="staff-line-item" data-line-item="news-link">
+      <legend>${escapeHtml(t("staff.news.linkLegend", { number: index + 1 }))}</legend>
+      <button class="staff-line-remove" type="button" data-action="remove-line" data-i18n-aria-label="staff.common.remove"><span aria-hidden="true">×</span></button>
+      <div class="staff-form-grid">
+        ${field({ id: `newsLinkLabel${index}`, label: "staff.news.linkLabel", value: link.label, maxLength: 160 })}
+        ${field({ id: `newsLinkUrl${index}`, label: "staff.news.linkUrl", value: link.url, inputmode: "url", maxLength: 2048, placeholder: "staff.news.registrationUrlPlaceholder" })}
+      </div>
+      <div class="staff-line-order">
+        <button type="button" class="staff-button staff-button--ghost" data-action="move-link" data-direction="up">↑</button>
+        <button type="button" class="staff-button staff-button--ghost" data-action="move-link" data-direction="down">↓</button>
+      </div>
+    </fieldset>`;
 }
 
 function expenseItemRow(item = {}, index = 0) {
@@ -1545,6 +1585,10 @@ function collectNewsData() {
     category: inputValue("newsCategory"),
     project: inputValue("newsProject"),
     registrationUrl: inputValue("newsRegistrationUrl"),
+    links: [...(document.querySelectorAll?.('[data-line-item="news-link"]') || [])].map((row) => ({
+      label: row.querySelector('[id^="newsLinkLabel"]')?.value?.trim() || "",
+      url: row.querySelector('[id^="newsLinkUrl"]')?.value?.trim() || ""
+    })),
     title: inputValue("newsTitle"),
     summary: inputValue("newsSummary"),
     excerpt: inputValue("newsSummary"),
@@ -1678,7 +1722,7 @@ function newsUrlValidationIssues(data) {
     } else if (valid) {
       try {
         const url = new URL(value);
-        valid = (field === "image" ? url.protocol === "https:" : ["http:", "https:"].includes(url.protocol)) &&
+        valid = url.protocol === "https:" &&
           !url.username && !url.password;
       } catch {
         valid = false;
@@ -1687,6 +1731,18 @@ function newsUrlValidationIssues(data) {
     if (!valid) issues.push({ field, message: t(field === "registrationUrl"
       ? "staff.errors.registrationUrlInvalid" : "staff.errors.imageUrlInvalid") });
   }
+  (data.links || []).forEach((link, index) => {
+    if (!link.label && !link.url) return;
+    if (!link.label) issues.push({ field: `links.${index}.label`, message: t("staff.errors.linkLabelRequired") });
+    let valid = Boolean(link.url) && link.url.length <= 2048;
+    if (valid) {
+      try {
+        const url = new URL(link.url);
+        valid = url.protocol === "https:" && !url.username && !url.password;
+      } catch { valid = false; }
+    }
+    if (!valid) issues.push({ field: `links.${index}.url`, message: t("staff.errors.linkUrlInvalid") });
+  });
   return issues;
 }
 
@@ -1702,6 +1758,15 @@ function validateNewsUrlFields() {
   // A selected image is uploaded separately; its stored attachment takes
   // precedence over the optional URL. Never validate a preview/blob URL.
   if (state.pendingFiles.get("news-main")?.length) data.image = "";
+  data.links = [...(document.querySelectorAll?.('[data-line-item="news-link"]') || [])].map((row) => {
+    const label = row.querySelector('[id^="newsLinkLabel"]');
+    const url = row.querySelector('[id^="newsLinkUrl"]');
+    clearControlValidation(label);
+    clearControlValidation(url);
+    label.value = label.value.trim();
+    url.value = url.value.trim();
+    return { label: label.value, url: url.value };
+  });
   const issues = newsUrlValidationIssues(data);
   if (!issues.length) return true;
   state.validationIssues = issues;
@@ -1829,7 +1894,6 @@ async function saveData(type, data) {
 async function saveDraft(button) {
   if (state.formOperation) return null;
   if (state.formType !== "news" && !validateCurrentForm()) return null;
-  if (state.formType === "news" && !validateNewsUrlFields()) return null;
   const data = collectFormData();
   const finishOperation = beginFormOperation(button, "staff.form.saving");
 
@@ -2053,7 +2117,7 @@ async function savePreview(button, submit = false) {
 function updateLineLegends(type) {
   document.querySelectorAll(`[data-line-item="${type}"]`).forEach((row, index) => {
     const legend = row.querySelector("legend");
-    if (legend) legend.textContent = t(`staff.${type}.itemLegend`, { number: index + 1 });
+    if (legend) legend.textContent = t(type === "news-link" ? "staff.news.linkLegend" : `staff.${type}.itemLegend`, { number: index + 1 });
   });
 }
 
@@ -2465,12 +2529,13 @@ function useAiSuggestion() {
 }
 
 function addLine(type) {
-  const container = document.getElementById(type === "expense" ? "expenseItems" : "invoiceItems");
+  const container = document.getElementById(type === "expense" ? "expenseItems" : type === "invoice" ? "invoiceItems" : "newsLinks");
   if (!container) return;
+  if (type === "news-link" && container.children.length >= 10) return showToast("staff.news.linkLimit", "error");
   const uniqueIndex = Date.now();
   container.insertAdjacentHTML(
     "beforeend",
-    type === "expense" ? expenseItemRow({}, uniqueIndex) : invoiceItemRow({}, uniqueIndex)
+    type === "expense" ? expenseItemRow({}, uniqueIndex) : type === "invoice" ? invoiceItemRow({}, uniqueIndex) : newsLinkRow({}, uniqueIndex)
   );
   applyTranslations(container.lastElementChild);
   updateLineLegends(type);
@@ -2484,7 +2549,7 @@ function removeLine(button) {
   const type = row.dataset.lineItem;
   const rows = document.querySelectorAll(`[data-line-item="${type}"]`);
 
-  if (rows.length <= 1) {
+  if (type !== "news-link" && rows.length <= 1) {
     showToast(`staff.${type}.oneItemRequired`, "error");
     return;
   }
@@ -2492,6 +2557,16 @@ function removeLine(button) {
   row.remove();
   updateLineLegends(type);
   updateLiveTotals();
+}
+
+function moveNewsLink(button) {
+  const row = button.closest('[data-line-item="news-link"]');
+  if (!row) return;
+  const sibling = button.dataset.direction === "up" ? row.previousElementSibling : row.nextElementSibling;
+  if (!sibling) return;
+  if (button.dataset.direction === "up") row.parentElement.insertBefore(row, sibling);
+  else row.parentElement.insertBefore(sibling, row);
+  updateLineLegends("news-link");
 }
 
 function slugify(value) {
@@ -2648,6 +2723,11 @@ async function handleAction(button) {
 
   if (action === "remove-line") {
     removeLine(button);
+    return;
+  }
+
+  if (action === "move-link") {
+    moveNewsLink(button);
     return;
   }
 

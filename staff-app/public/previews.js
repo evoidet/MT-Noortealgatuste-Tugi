@@ -110,7 +110,7 @@ function safeImageUrl(value) {
 function safeExternalUrl(value) {
   try {
     const url = new URL(String(value || ""));
-    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+    return url.protocol === "https:" && !url.username && !url.password ? url.href : "";
   } catch (error) {
     return "";
   }
@@ -307,7 +307,17 @@ function renderNewsGallery(data) {
 
 export function renderNewsPreview(data) {
   const content = contentToParagraphs(data.content);
+  const links = [];
+  const seen = new Set();
+  for (const candidate of Array.isArray(data.links) ? data.links : []) {
+    const label = String(candidate?.label || "").trim();
+    const url = safeExternalUrl(candidate?.url);
+    if (!label || !url || seen.has(url)) continue;
+    seen.add(url);
+    links.push({ label, url });
+  }
   const registrationUrl = safeExternalUrl(data.registrationUrl);
+  if (registrationUrl && !seen.has(registrationUrl)) links.push({ label: t("news.ui.register"), url: registrationUrl });
   const categoryLabel = t(`news.categories.${data.category || "initiatives"}`) || t("common.nav.news");
   const author = String(data.author || "").trim();
   const authorText = author
@@ -339,12 +349,10 @@ export function renderNewsPreview(data) {
               ${content.length
                 ? content.map(renderNewsParagraph).join("")
                 : `<p>${escapeHtml(t("staff.news.contentEmpty"))}</p>`}
-              ${registrationUrl ? `
-                <a class="news-article-link" href="${escapeHtml(registrationUrl)}" target="_blank" rel="noopener noreferrer">
-                  ${escapeHtml(t("news.ui.register"))}
-                  <span aria-hidden="true">↗</span>
-                </a>
-              ` : ""}
+              ${links.length ? `<div class="news-article-links">${links.map((link) => `
+                <a class="news-article-link" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
+                  ${escapeHtml(link.label)} <span aria-hidden="true">↗</span>
+                </a>`).join("")}</div>` : ""}
               ${renderNewsGallery(data)}
             </article>
 

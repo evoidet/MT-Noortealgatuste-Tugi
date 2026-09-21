@@ -71,7 +71,11 @@ try {
     await page.locator('[data-action="start-form"][data-type="news"]').click();
     await page.locator("#newsTitle").fill(title);
     await page.locator("#newsContent").fill("Browser URL regression article.\n\nReal database and uploaded image verification.");
-    await page.locator("#newsRegistrationUrl").fill(registrationUrl);
+    if (registrationUrl.trim()) {
+      await page.locator('[data-action="add-line"][data-type="news-link"]').click();
+      await page.locator('[id^="newsLinkLabel"]').fill("Registreeru");
+      await page.locator('[id^="newsLinkUrl"]').fill(registrationUrl);
+    }
     // The user must never need to supply the generated image URL themselves.
     assert.equal(await page.locator("#newsImage").inputValue(), "");
     if (withImage) await page.locator("#newsMainImage").setInputFiles({
@@ -120,7 +124,9 @@ try {
     assert.equal(items.length, 1);
     const item = items[0];
     assert.equal(item.status, "PUBLISHED");
-    assert.equal(item.data.registrationUrl, test.registration.trim());
+    assert.equal(item.data.registrationUrl, "");
+    const expectedUrl = test.registration.trim();
+    assert.deepEqual(item.data.links, expectedUrl ? [{ label: "Registreeru", url: expectedUrl }] : []);
     const attachments = state.attachments.filter((attachment) => attachment.submissionId === item.id);
     assert.equal(attachments.length, 1);
     assert.equal(attachments[0].storageStatus, "ready");
@@ -166,31 +172,40 @@ try {
   console.log("PASS browser legacy slug conflict: rejected without publication success or replacement");
 
   for (const { field, value, expected } of [
-    { field: "newsRegistrationUrl", value: "not-a-registration-url", expected: "Registration URL is invalid." },
+    { field: "newsLinkUrl", value: "not-a-registration-url", expected: "Please enter a valid HTTPS URL." },
     { field: "newsImage", value: "not-an-image-url", expected: "Image URL is invalid." }
   ]) {
     const page = await form(`Invalid ${field}`);
-    await page.locator(`#${field}`).fill(value);
+    if (field === "newsLinkUrl") {
+      await page.locator('[data-action="add-line"][data-type="news-link"]').click();
+      await page.locator('[id^="newsLinkLabel"]').fill("Registreeru");
+      await page.locator('[id^="newsLinkUrl"]').fill(value);
+    } else await page.locator(`#${field}`).fill(value);
+    const controlId = field === "newsLinkUrl" ? await page.locator('[id^="newsLinkUrl"]').getAttribute("id") : field;
     const countBefore = (await snapshot()).items.length;
     await page.locator('#submissionForm button[type="submit"]').click();
-    await fieldMessage(page, field, expected);
+    await fieldMessage(page, controlId, expected);
     await page.screenshot({ path: fileURLToPath(new URL(`${field}-error.png`, evidenceDirectory)) });
     assert.equal((await snapshot()).items.length, countBefore, "Invalid form never creates a draft");
-    await page.locator(`#${field}`).fill("https://example.org/corrected");
-    assert.equal(await page.locator(`#${field}`).getAttribute("aria-invalid"), null);
+    await page.locator(`#${controlId}`).fill("https://example.org/corrected");
+    assert.equal(await page.locator(`#${controlId}`).getAttribute("aria-invalid"), null);
     assert.equal(await page.locator(".staff-field-error").count(), 0, "Correcting the field clears its old error");
     console.log(`PASS real browser validation: ${expected} adjacent to #${field}; submission blocked`);
     await page.close();
   }
 
   const draftPage = await form("Invalid URL draft");
-  await draftPage.locator("#newsRegistrationUrl").fill("invalid-draft-registration");
+  await draftPage.locator('[data-action="add-line"][data-type="news-link"]').click();
+  await draftPage.locator('[id^="newsLinkLabel"]').fill("Registreeru");
+  await draftPage.locator('[id^="newsLinkUrl"]').fill("invalid-draft-registration");
   const beforeDraft = (await snapshot()).items.length;
   await draftPage.locator('[data-action="save-draft"]').click();
-  await fieldMessage(draftPage, "newsRegistrationUrl", "Registration URL is invalid.");
-  assert.equal((await snapshot()).items.length, beforeDraft);
+  await draftPage.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
+  assert.equal((await snapshot()).items.length, beforeDraft + 1);
+  await draftPage.locator('#submissionForm button[type="submit"]').click();
+  await fieldMessage(draftPage, await draftPage.locator('[id^="newsLinkUrl"]').getAttribute("id"), "Please enter a valid HTTPS URL.");
   await draftPage.close();
-  console.log("PASS real browser draft validation: malformed registration shows adjacent field error and prevents save");
+  console.log("PASS real browser draft validation: malformed link saves as draft and blocks preview with an inline row error");
 
   // Server-produced relative image URLs and longer ordinary HTTPS image URLs
   // remain valid when reopening or editing a draft without uploading again.
@@ -209,7 +224,8 @@ try {
     const response = await apiPage.evaluate(async ({ field }) => {
       const { api } = await import("/admin/api.js");
       try {
-        await api.createSubmission("news", { title: "Invalid backend URL", content: "Backend rejection", [field]: "not-a-url" });
+        const created = await api.createSubmission("news", { title: "Invalid backend URL", content: "Backend rejection", [field]: "not-a-url" });
+        await api.submitSubmission(created.item.id);
         return { unexpectedSuccess: true };
       } catch (error) {
         return { status: error.status, code: error.code, payload: error.payload };
@@ -228,7 +244,7 @@ try {
   const failedUploadPage = await form("Failed image upload", "https://forms.gle/ValidRegistration", true);
   await failedUploadPage.locator('#submissionForm button[type="submit"]').click();
   await fieldMessage(failedUploadPage, "newsMainImage", "Image upload failed.");
-  assert.equal(await failedUploadPage.locator("#newsRegistrationUrl").getAttribute("aria-invalid"), null);
+  assert.equal(await failedUploadPage.locator('[id^="newsLinkUrl"]').getAttribute("aria-invalid"), null);
   assert.doesNotMatch(await failedUploadPage.locator("body").innerText(), /Registration URL is invalid\./);
   let failedState = await snapshot();
   const failedDraft = failedState.items.find((item) => item.data.title === "Failed image upload");

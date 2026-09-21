@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { toPublicNewsItem } from "../src/news-publishing.js";
+import { toPublicNewsItem, toRepositoryNewsItem } from "../src/news-publishing.js";
 
 function published(data) {
   return { id: "fixture", type: "news", status: "PUBLISHED", data,
@@ -17,6 +17,21 @@ test("legacy string content, empty slug and invalid optional metadata remain rea
   assert.equal(item.date, "2026-09-16");
   assert.equal(item.featured, false);
   assert.equal(toPublicNewsItem({ ...published({}), status: "SUBMITTED" }), null);
+});
+
+test("multiple action links are exported and legacy registrationUrl is deduplicated", () => {
+  const submission = published({ title: "Links", content: ["Body"], registrationUrl: "https://forms.gle/example",
+    links: [
+      { label: "Registreeru", url: "https://forms.gle/example" },
+      { label: "Rohkem infot", url: "https://drive.google.com/file/d/example/view" },
+      { label: "Unsafe", url: "javascript:alert(1)" }
+    ] });
+  const item = toPublicNewsItem(submission);
+  assert.deepEqual(item.links, [
+    { label: "Registreeru", url: "https://forms.gle/example" },
+    { label: "Rohkem infot", url: "https://drive.google.com/file/d/example/view" }
+  ]);
+  assert.deepEqual(toRepositoryNewsItem(submission, [], "https://noortetugi.ee").links, item.links);
 });
 
 test("the source language is not replaced by an Estonian fallback translation", () => {

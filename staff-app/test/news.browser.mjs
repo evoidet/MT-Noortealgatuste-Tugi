@@ -84,12 +84,9 @@ try {
       await page.locator("#newsContent").fill("Pikk lõik ".repeat(200));
       await page.locator("#newsAuthor").fill("Synthetic Writer");
       const registrationUrl = "https://example.org/register";
-      assert.equal(await page.locator('label[for="newsRegistrationUrl"] .staff-field-label').innerText(), {
-        et: "Registreerimise link",
-        ru: "Ссылка на регистрацию",
-        en: "Registration link"
-      }[language]);
-      await page.locator("#newsRegistrationUrl").fill(registrationUrl);
+      await page.locator('[data-action="add-line"][data-type="news-link"]').click();
+      await page.locator('[id^="newsLinkLabel"]').fill("Registreeru");
+      await page.locator('[id^="newsLinkUrl"]').fill(registrationUrl);
       await page.locator("#newsMainImage").setInputFiles({ name: "synthetic.png", mimeType: "image/png", buffer: png });
       await page.locator('[data-action="open-ai"][data-target="newsSummary"]').click();
       await page.locator("#aiGenerateButton").click();
@@ -109,16 +106,12 @@ try {
       await page.locator('[data-action="open-submission"]').click();
       await page.locator('[data-action="edit-submission"]').click();
       assert.equal(await page.locator("#newsTitle").inputValue(), title);
-      assert.equal(await page.locator("#newsRegistrationUrl").inputValue(), registrationUrl);
+      assert.equal(await page.locator('[id^="newsLinkUrl"]').inputValue(), registrationUrl);
       assert.equal(item.attachments.length, 1);
       await checkLayout(page, width, `${language} editor`);
       await page.locator('#submissionForm button[type="submit"]').click();
       await page.locator(".staff-preview-view").waitFor();
-      assert.equal(await page.locator(`a.news-article-link[href="${registrationUrl}"]`).innerText(), {
-        et: "Registreeru\n↗",
-        ru: "Зарегистрироваться\n↗",
-        en: "Register\n↗"
-      }[language]);
+      assert.equal(await page.locator(`a.news-article-link[href="${registrationUrl}"]`).innerText(), "Registreeru\n↗");
       await checkLayout(page, width, `${language} preview`);
       await page.locator('[data-action="submit-preview"]').click();
       await page.locator(".staff-validation-summary").waitFor();
@@ -207,17 +200,17 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
     page.on("pageerror", (error) => failures.push(error.message));
     const title = { et: "Avaldatud uudis", ru: "Опубликованная новость", en: "Published news" }[language];
-    await page.route("**/api/staff/**", async (route) => {
-      const url = new URL(route.request().url());
-      if (url.pathname.endsWith("/public/news")) {
-        assert.equal(url.searchParams.get("lang"), language);
-        await route.fulfill({ json: { items: [{ id: "published-browser", published: true, category: "events",
-          title, excerpt: "Public summary", content: ["Public article body", "<img src=x onerror=alert(1)>"],
-          date: "2026-09-05", featured: true, image: "/assets/logo.png",
-          registrationUrl: "https://example.org/register" },
-        { id: "legacy-browser", published: true, category: "events", title: "Legacy article",
-          excerpt: "", content: ["Legacy body"], date: "2026-09-04" }] } });
-      } else await route.fulfill({ json: { authenticated: false } });
+    await page.route("**/published-news.json", async (route) => {
+      await route.fulfill({ json: [
+        { submissionId: "11111111-1111-4111-8111-111111111111", id: "published-browser", sourceLanguage: language,
+          published: true, category: "events", title, excerpt: "Public summary",
+          content: ["Public article body", "<img src=x onerror=alert(1)>"], date: "2026-09-05",
+          featured: true, image: "/assets/logo.png", registrationUrl: "https://example.org/register",
+          translations: { [language]: { title, excerpt: "Public summary", content: ["Public article body", "<img src=x onerror=alert(1)>"] } } },
+        { submissionId: "22222222-2222-4222-8222-222222222222", id: "legacy-browser", sourceLanguage: language,
+          published: true, category: "events", title: "Legacy article", excerpt: "", content: ["Legacy body"],
+          date: "2026-09-04", translations: { [language]: { title: "Legacy article", content: ["Legacy body"] } } }
+      ] });
     });
     await page.goto(`${origin}/?lang=${language}`);
     await page.locator('#homeNewsList a[href*="published-browser"]').first().waitFor();

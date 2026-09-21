@@ -46,3 +46,17 @@ test("preview keeps existing gallery images when another image was just added", 
   assert.match(html, /src="\/api\/staff\/attachments\/new\/download\?inline=1"/);
   assert.doesNotMatch(html, /blob:/);
 });
+
+test("preview renders every safe action link and escapes labels", (t) => {
+  browser(t);
+  const html = renderSubmissionPreview("news", { title: "Links", content: ["Body"], links: [
+    { label: "Rohkem infot", url: "https://drive.google.com/file/d/example/view" },
+    { label: '<img src=x onerror="alert(1)">', url: "https://forms.gle/example" },
+    { label: "Unsafe", url: "javascript:alert(1)" },
+    { label: "Data", url: "data:text/html,bad" }
+  ] });
+  assert.match(html, /Rohkem infot/);
+  assert.match(html, /&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;/);
+  assert.equal((html.match(/target="_blank" rel="noopener noreferrer"/g) || []).length, 2);
+  assert.doesNotMatch(html, /href="javascript:|href="data:/);
+});

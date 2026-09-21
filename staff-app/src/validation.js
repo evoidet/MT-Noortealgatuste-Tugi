@@ -34,7 +34,7 @@ function isSafeExternalUrl(value) {
   if (!value) return true;
   try {
     const url = new URL(value);
-    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password;
+    return url.protocol === "https:" && !url.username && !url.password;
   } catch {
     return false;
   }
@@ -42,21 +42,18 @@ function isSafeExternalUrl(value) {
 
 export const newsUrlValidationMessages = Object.freeze({
   registrationUrl: "Registration URL is invalid.",
-  image: "Image URL is invalid."
+  image: "Image URL is invalid.",
+  linkLabel: "Please enter link text.",
+  linkUrl: "Please enter a valid HTTPS URL."
 });
-
-// Preserve the existing empty-string representation in stored news data. An
-// optional URL is normalized before its URL validator ever sees a value.
-const optionalNewsUrl = (maximum, validate, message) => z.preprocess((input) => {
-  const value = typeof input === "string" ? input.trim() : input;
-  return value === undefined || value === null || value === "" ? "" : value;
-}, z.union([
-  z.literal(""),
-  z.string().max(maximum, { message }).refine((value) => !value || validate(value), { message })
-]));
 
 const imagePositionToken = "(?:left|center|right|top|bottom|(?:100|[1-9]?\\d)%)";
 const imagePositionPattern = new RegExp(`^${imagePositionToken}(?:\\s+${imagePositionToken})?$`);
+const detectToProtectPrefix = "Meil on suur rõõm teatada, et meie esimene Erasmus+ projekt „Detect to Protect“";
+const detectToProtectLinks = Object.freeze([
+  { label: "Rohkem infot", url: "https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing" },
+  { label: "Registreeru", url: "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform" }
+]);
 
 // Validate the persisted paragraph representation as well as textarea input.
 // A successful draft must remain valid when the same data is submitted again.
@@ -75,7 +72,7 @@ const localizedNews = z.object({
 }).strict();
 
 const newsFields = z.object({
-  slug: z.string().trim().max(180).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional().or(z.literal("")),
+  slug: optionalText(180),
   language: z.enum(["et", "en", "ru"]).optional().default("et"),
   date: optionalDate,
   category: z.enum(["achievements", "events", "initiatives", "opportunities"]).optional().default("events"),
@@ -86,14 +83,19 @@ const newsFields = z.object({
   authorRole: optionalText(160),
   content: newsContent.optional().default([]),
   project: optionalText(160),
-  registrationUrl: optionalNewsUrl(2_048, isSafeExternalUrl, newsUrlValidationMessages.registrationUrl),
-  image: optionalNewsUrl(2_048, isSafePublicImageUrl, newsUrlValidationMessages.image),
+  registrationUrl: optionalText(2_048),
+  links: z.array(z.object({
+    label: z.string().trim().max(160),
+    url: z.string().trim().max(2_048)
+  }).strict()).max(10).optional().default([]),
+  image: optionalText(2_048),
   imageAlt: optionalText(240),
   imagePosition: z.string().trim().max(60).regex(imagePositionPattern).optional().default("center center"),
   imageFit: z.enum(["cover", "contain"]).optional().default("cover"),
   featured: z.boolean().optional().default(false),
   placeholder: z.literal(false).optional().default(false),
   published: z.literal(false).optional().default(false),
+  publicationPending: z.boolean().optional().default(false),
   translations: z.object({
     et: localizedNews.optional(),
     en: localizedNews.optional(),
@@ -215,6 +217,26 @@ function ensureFinal(type, data) {
   if (type === "news") {
     requireValue("title", data.title);
     requireValue("content", paragraphs(data.content));
+    const issues = [];
+    if (data.slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug)) {
+      issues.push({ path: "slug", code: "invalid_format" });
+    }
+    if (data.registrationUrl && !isSafeExternalUrl(data.registrationUrl)) {
+      issues.push({ path: "registrationUrl", code: "custom", message: newsUrlValidationMessages.registrationUrl });
+    }
+    if (data.image && !isSafePublicImageUrl(data.image)) {
+      issues.push({ path: "image", code: "custom", message: newsUrlValidationMessages.image });
+    }
+    data.links.forEach((link, index) => {
+      if (!link.label && !link.url) return;
+      if (!link.label) issues.push({ path: `links.${index}.label`, code: "required", message: newsUrlValidationMessages.linkLabel });
+      if (!link.url || !isSafeExternalUrl(link.url)) {
+        issues.push({ path: `links.${index}.url`, code: "custom", message: newsUrlValidationMessages.linkUrl });
+      }
+    });
+    if (issues.length) {
+      throw Object.assign(new Error("Submission data is invalid."), { code: "VALIDATION_ERROR", issues });
+    }
   } else if (type === "expense") {
     requireValue("project", data.project);
     requireValue("person", data.person || data.claimantName);
@@ -291,6 +313,21 @@ export function validateSubmissionData(type, input, { final = false } = {}) {
   if (type === "news") {
     result.data.content = paragraphs(result.data.content);
     if (!result.data.summary && result.data.excerpt) result.data.summary = result.data.excerpt;
+    const links = result.data.links.filter((link) => link.label || link.url);
+    if (result.data.registrationUrl && isSafeExternalUrl(result.data.registrationUrl) &&
+        !links.some((link) => link.url === result.data.registrationUrl)) {
+      links.push({ label: "Registreeru", url: result.data.registrationUrl });
+    }
+    result.data.links = final
+      ? links.filter((link, index) => links.findIndex((other) => other.url === link.url) === index)
+      : links;
+    if (result.data.content[0]?.startsWith(detectToProtectPrefix)) {
+      result.data.content = result.data.content.filter((paragraph) =>
+        paragraph !== detectToProtectLinks[0].url);
+      const otherLinks = result.data.links.filter((link) =>
+        !detectToProtectLinks.some((required) => required.url === link.url));
+      result.data.links = [...otherLinks.slice(0, 8), ...detectToProtectLinks];
+    }
   }
   if (type === "expense") {
     if (!result.data.goal && result.data.purpose) result.data.goal = result.data.purpose;

@@ -176,7 +176,7 @@ try {
           creatorName: user.name, creatorEmail: user.email, status: "DRAFT", attachments: [], reviews: [] };
         result = { item };
       } else if (req.method() === "PATCH") { const body = req.postDataJSON(); payloads.push(body); item.data = body.data; result = { item }; }
-      else if (path.endsWith("/submit")) { item.status = "SUBMITTED"; result = { item }; }
+      else if (path.endsWith("/submit")) { item.status = "PUBLISHED"; result = { item }; }
       else if (path === "/api/staff/submissions") result = { items: item ? [item] : [] };
       else if (/\/submissions\/[^/]+$/.test(path)) result = { item };
       else { unexpectedApis.push(`${req.method()} ${path}`); return route.fulfill({ status: 500, json: { error: "UNEXPECTED_SYNTHETIC_REQUEST" } }); }
@@ -197,7 +197,9 @@ try {
     await page.locator("#newsSummary").fill("Synthetic image summary");
     await page.locator("#newsContent").fill("Synthetic article content.");
     await page.locator("#newsAuthor").fill(user.name);
-    await page.locator("#newsRegistrationUrl").fill("https://example.test/registration");
+    await page.locator('[data-action="add-line"][data-type="news-link"]').click();
+    await page.locator('[id^="newsLinkLabel"]').fill("Registreeru");
+    await page.locator('[id^="newsLinkUrl"]').fill("https://example.test/registration");
     await page.locator('[data-action="save-draft"]').click();
     await waitIdle(page);
     assert.equal(item.data.image, "", "News without an image still saves as before");
@@ -281,16 +283,16 @@ try {
     for (const [key, value] of Object.entries(originalData)) if (key !== "image") assert.deepEqual(item.data[key], value, `Existing ${key} field preserved`);
     assert.equal(item.id, "00000000-0000-4000-8000-000000000001");
     assert.equal(item.data.slug, "synthetic-local-image");
-    assert.equal(item.data.registrationUrl, "https://example.test/registration");
+    assert.deepEqual(item.data.links, [{ label: "Registreeru", url: "https://example.test/registration" }]);
     assert.equal(item.attachments.length, 1, "Prepared image uploaded persistently");
     await page.locator('[data-action="submit-preview"]').click();
     await waitIdle(page);
-    assert.equal(item.status, "SUBMITTED", "Local image follows the existing news submission path");
+    assert.equal(item.status, "PUBLISHED", "Local image follows the existing news submission path");
     assert.equal(item.data.image, "", "Local-only paths must not be persisted as deployed assets");
     const published = toPublicNewsItem({ ...item, status: "PUBLISHED" }, item.attachments, language);
     assert.equal(published.image, `/api/staff/public/news/${item.id}/attachments/synthetic-image`, "Published image uses persistent storage");
     assert.equal(published.id, "synthetic-local-image", "Public article ID stays derived from the existing slug");
-    assert.equal(published.registrationUrl, "https://example.test/registration");
+    assert.deepEqual(published.links, [{ label: "Registreeru", url: "https://example.test/registration" }]);
     assert.ok(payloads.every((payload) => !Object.keys(payload.data).some((key) => key.startsWith("_"))), "Preview blobs must not be stored in news data");
     assert.deepEqual(unexpectedApis, [], "Only expected storage endpoints are called");
     console.log(`PASS local news ${width}px ${language}: no-image draft, cancel/denied/wrong folder, selection/conflict guards, unique local saves, preview/submit, preserved fields/slug/id, persistent image upload`);

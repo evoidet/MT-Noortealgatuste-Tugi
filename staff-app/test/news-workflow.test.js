@@ -38,7 +38,7 @@ async function draft(actor, data = article, idempotencyKey) {
   return response.body.item;
 }
 
-test("News create, update and final submit identify the invalid URL field without exposing input", async (t) => {
+test("News drafts accept temporary invalid URLs and final submit identifies the exact field", async (t) => {
   const { reviewer, engine, reader } = await fixture(t);
   const created = await draft(reviewer);
   const path = `/api/staff/submissions/${created.id}`;
@@ -46,13 +46,13 @@ test("News create, update and final submit identify the invalid URL field withou
     ["registrationUrl", "Registration URL is invalid."], ["image", "Image URL is invalid."]
   ]) {
     const data = { ...article, [field]: "https://user:password@example.org/private" };
-    const responses = [
-      await reviewer.write("post", "/api/staff/submissions", { type: "news", data }),
-      await reviewer.write("patch", path, { data })
-    ];
+    const createResponse = await reviewer.write("post", "/api/staff/submissions", { type: "news", data });
+    const patchResponse = await reviewer.write("patch", path, { data });
+    assert.equal(createResponse.status, 201, JSON.stringify(createResponse.body));
+    assert.equal(patchResponse.status, 200, JSON.stringify(patchResponse.body));
     // An older persisted draft is revalidated at final submission as well.
     await engine.query("UPDATE submissions SET data_json = $2::jsonb WHERE id = $1", [created.id, JSON.stringify(data)]);
-    responses.push(await reviewer.write("post", `${path}/submit`));
+    const responses = [await reviewer.write("post", `${path}/submit`)];
     for (const response of responses) {
       assert.equal(response.status, 422, JSON.stringify(response.body));
       assert.equal(response.body.ok, false);
@@ -65,9 +65,11 @@ test("News create, update and final submit identify the invalid URL field withou
     }
     assert.equal((await reader.getSubmission(created.id)).status, "DRAFT");
   }
-  const both = await reviewer.write("post", "/api/staff/submissions", {
+  const bothDraft = await reviewer.write("post", "/api/staff/submissions", {
     type: "news", data: { ...article, registrationUrl: "bad registration", image: "bad image" }
   });
+  assert.equal(bothDraft.status, 201);
+  const both = await reviewer.write("post", `/api/staff/submissions/${bothDraft.body.item.id}/submit`);
   assert.deepEqual(both.body.fields, [
     { field: "registrationUrl", message: "Registration URL is invalid." },
     { field: "image", message: "Image URL is invalid." }
@@ -255,6 +257,53 @@ test("News finalization failure retains the draft and an idempotent retry finali
   assert.equal(state.publishedNews.length, 1);
   assert.equal(state.publishedNews[0].title, article.title);
   assert.deepEqual(state.publishedNews[0].content, article.content);
+});
+
+test("an authorized published edit updates the same UUID and remains idempotent", async (t) => {
+  const { reviewer, reader, state } = await fixture(t);
+  const created = await draft(reviewer, { ...article, slug: "same-article" });
+  const path = `/api/staff/submissions/${created.id}`;
+  assert.equal((await reviewer.write("post", `${path}/submit`)).status, 200);
+  const edited = { ...article, slug: "same-article", links: [
+    { label: "Rohkem infot", url: "https://drive.google.com/file/d/example/view" },
+    { label: "Registreeru", url: "https://forms.gle/example" }
+  ] };
+  const saved = await reviewer.write("patch", path, { data: edited });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  assert.equal(saved.body.item.status, "PUBLISHED");
+  assert.equal(saved.body.item.data.publicationPending, true);
+  const republished = await reviewer.write("post", `${path}/submit`);
+  assert.equal(republished.status, 200, JSON.stringify(republished.body));
+  assert.equal(republished.body.item.id, created.id);
+  assert.equal(republished.body.item.data.publicationPending, false);
+  assert.equal(state.publishedNews.length, 1);
+  assert.equal(state.publishedNews[0].submissionId, created.id);
+  assert.equal(state.publishedNews[0].id, "same-article");
+  assert.deepEqual(state.publishedNews[0].links, edited.links);
+  const revision = republished.body.item.revision;
+  assert.equal((await reviewer.write("post", `${path}/submit`)).body.item.revision, revision);
+  assert.equal((await reader.getSubmission(created.id)).status, "PUBLISHED");
+});
+
+test("Detect to Protect keeps its identity while replacing the standalone URL with two CTAs", async (t) => {
+  const { reviewer, state } = await fixture(t);
+  const drive = "https://drive.google.com/file/d/13RPUWnFmn0ZCOxL1NhGIVkXiEGU0gB8B/view?usp=sharing";
+  const created = await draft(reviewer, {
+    title: "Detect to Protect", slug: "detect-to-protect", image: "https://example.org/detect.jpg",
+    content: ["Meil on suur rõõm teatada, et meie esimene Erasmus+ projekt „Detect to Protect“ on alanud.", drive]
+  });
+  const response = await reviewer.write("post", `/api/staff/submissions/${created.id}/submit`);
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  const item = state.publishedNews[0];
+  assert.equal(item.submissionId, created.id);
+  assert.equal(item.id, "detect-to-protect");
+  assert.equal(new URL(item.image).pathname, "/detect.jpg");
+  assert.equal(item.content.includes(drive), false);
+  assert.deepEqual(item.links, [
+    { label: "Rohkem infot", url: drive },
+    { label: "Registreeru", url: "https://docs.google.com/forms/d/e/1FAIpQLSdplr-1qJB0OuEBsfPKmByK4zJK_UitA9sOHVQdI9G78t0_mA/viewform" }
+  ]);
+  assert.equal(state.publishedNews.length, 1);
 });
 
 test("GitHub publication failure is safe, specific and leaves the news draft retryable", async (t) => {

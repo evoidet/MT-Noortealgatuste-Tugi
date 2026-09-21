@@ -57,7 +57,7 @@
     const safeExternalUrl = (value) => {
       try {
         const url = new URL(String(value || ""));
-        return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password
+        return url.protocol === "https:" && !url.username && !url.password
           ? url.href
           : "";
       } catch {
@@ -593,7 +593,19 @@
       const content = Array.isArray(item.content) && item.content.length
         ? item.content
         : [item.excerpt];
+      const links = [];
+      const seenLinks = new Set();
+      for (const candidate of Array.isArray(item.links) ? item.links : []) {
+        const label = String(candidate?.label || "").trim();
+        const url = safeExternalUrl(candidate?.url);
+        if (!label || !url || seenLinks.has(url)) continue;
+        seenLinks.add(url);
+        links.push({ label, url });
+      }
       const registrationUrl = safeExternalUrl(item.registrationUrl);
+      if (registrationUrl && !seenLinks.has(registrationUrl)) {
+        links.push({ label: t("news.ui.register"), url: registrationUrl });
+      }
 
       const related = sortItems(
         sortedItems.filter((candidate) => candidate.id !== item.id)
@@ -648,17 +660,10 @@
             )
             .join("")}
 
-            ${registrationUrl ? `
-              <a
-                class="news-article-link"
-                href="${escapeHtml(registrationUrl)}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                ${escapeHtml(t("news.ui.register"))}
-                <span aria-hidden="true">↗</span>
-              </a>
-            ` : ""}
+            ${links.length ? `<div class="news-article-links">${links.map((link) => `
+              <a class="news-article-link" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">
+                ${escapeHtml(link.label)} <span aria-hidden="true">↗</span>
+              </a>`).join("")}</div>` : ""}
 
             ${item.placeholder ? `
               <div class="news-article-placeholder-note">

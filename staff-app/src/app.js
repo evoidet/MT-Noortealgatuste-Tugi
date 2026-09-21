@@ -199,7 +199,10 @@ function userValidationIssues(error) {
     seen.add(key);
     // Only retain known, fixed URL messages. Never forward arbitrary schema or
     // provider messages that could contain submitted values or internal data.
-    const urlMessage = newsUrlValidationMessages[field];
+    const linkPart = /^links\.\d+\.(label|url)$/.exec(field)?.[1];
+    const urlMessage = newsUrlValidationMessages[field] ||
+      (linkPart === "label" ? newsUrlValidationMessages.linkLabel :
+       linkPart === "url" ? newsUrlValidationMessages.linkUrl : "");
     issues.push({ field, message: urlMessage && issue.message === urlMessage
       ? urlMessage : userValidationMessage(field, reason) });
   }
@@ -1037,11 +1040,15 @@ export function createStaffApp({
     if (submission.type === "news") response.locals.newsOperation = "save";
     try {
       newsStage(response, "validation");
-      const { data, recipient } = prepareSubmissionInput(
+      const preparedInput = prepareSubmissionInput(
         submission.type,
         request.body?.data ?? {},
         request.user
       );
+      const data = submission.type === "news" && submission.status === "PUBLISHED"
+        ? { ...preparedInput.data, publicationPending: true }
+        : preparedInput.data;
+      const { recipient } = preparedInput;
       newsStage(response, "response");
       const relations = submission.type === "news" ? await submissionRelations(submission.id, database) : null;
       newsStage(response, "database");
@@ -1099,11 +1106,14 @@ export function createStaffApp({
         // A completed expense retry may finish an independent Drive archive,
         // but it never returns to the SMTP path.
         if (submission.status === finalStatus) {
+          let publishData;
           if (submission.type === "news") {
+            publishData = validateSubmissionData("news", submission.data, { final: true });
+            validateNewsImageReferences(publishData, newsRelations.attachments);
             newsStage(response, "github");
             const publication = await newsPublisher.publish(
-              toRepositoryNewsItem(submission, newsRelations.attachments, config.publicSiteOrigin),
-              { preserveExisting: true }
+              toRepositoryNewsItem({ ...submission, data: publishData }, newsRelations.attachments, config.publicSiteOrigin),
+              { preserveExisting: submission.data?.publicationPending !== true }
             );
             if (!publication?.published) {
               throw Object.assign(new Error("GitHub did not confirm news reconciliation."), {
@@ -1117,6 +1127,20 @@ export function createStaffApp({
               request.user,
               auth.clientIpHash(request)
             );
+          }
+          if (submission.data?.publicationPending === true) {
+            newsStage(response, "database");
+            try {
+              return await database.updateSubmission({
+                id: submission.id,
+                userId: request.user.id,
+                data: { ...publishData, publicationPending: false },
+                event: "PUBLISHED_EDIT_CONFIRMED"
+              });
+            } catch (error) {
+              console.error("Published edit finalization failed:", safeOperationalError(error));
+              throw error;
+            }
           }
           return submission;
         }
