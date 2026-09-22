@@ -1090,11 +1090,11 @@
       "Click a photo to open it full size.",
       "Нажмите на фотографию, чтобы открыть её в полном размере."
     ],
-    "camp.gallery.photo1": ["Hetk laagrist · 01", "Camp moment · 01", "Момент из лагеря · 01"],
-    "camp.gallery.photo2": ["Hetk laagrist · 02", "Camp moment · 02", "Момент из лагеря · 02"],
-    "camp.gallery.photo3": ["Hetk laagrist · 03", "Camp moment · 03", "Момент из лагеря · 03"],
-    "camp.gallery.photo4": ["Hetk laagrist · 04", "Camp moment · 04", "Момент из лагеря · 04"],
-    "camp.gallery.photo5": ["Hetk laagrist · 05", "Camp moment · 05", "Момент из лагеря · 05"],
+    "camp.gallery.photo1": ["Hetk laagrist · 1", "Camp moment · 1", "Момент из лагеря · 1"],
+    "camp.gallery.photo2": ["Hetk laagrist · 2", "Camp moment · 2", "Момент из лагеря · 2"],
+    "camp.gallery.photo3": ["Hetk laagrist · 3", "Camp moment · 3", "Момент из лагеря · 3"],
+    "camp.gallery.photo4": ["Hetk laagrist · 4", "Camp moment · 4", "Момент из лагеря · 4"],
+    "camp.gallery.photo5": ["Hetk laagrist · 5", "Camp moment · 5", "Момент из лагеря · 5"],
     "camp.gallery.photo1Open": ["Ava laagri foto 1", "Open camp photo 1", "Открыть фотографию лагеря 1"],
     "camp.gallery.photo2Open": ["Ava laagri foto 2", "Open camp photo 2", "Открыть фотографию лагеря 2"],
     "camp.gallery.photo3Open": ["Ava laagri foto 3", "Open camp photo 3", "Открыть фотографию лагеря 3"],
@@ -1705,51 +1705,51 @@
     "gala.gallery.atmosphere": ["Gala õhkkond", "Gala atmosphere", "Атмосфера гала-вечера"],
     "gala.gallery.awards": ["Autasustamine", "Awards", "Награждение"],
     "gala.gallery.memories": ["Mälestused", "Memories", "Воспоминания"],
-    "gala.gallery.item01Add": ["Foto 01 ei ole saadaval", "Photo 01 unavailable", "Фото 01 недоступно"],
+    "gala.gallery.item01Add": ["Foto 1 ei ole saadaval", "Photo 1 unavailable", "Фото 1 недоступно"],
     "gala.gallery.item01Open": [
       "Ava foto: Ida-Virumaa noorte tunnustusgala",
       "Open photo: Ida-Virumaa noorte tunnustusgala",
       "Открыть фото: Ida-Virumaa noorte tunnustusgala"
     ],
-    "gala.gallery.item02Add": ["Foto 02 ei ole saadaval", "Photo 02 unavailable", "Фото 02 недоступно"],
+    "gala.gallery.item02Add": ["Foto 2 ei ole saadaval", "Photo 2 unavailable", "Фото 2 недоступно"],
     "gala.gallery.item02Open": ["Ava foto: Külalised", "Open photo: Guests", "Открыть фото: Гости"],
-    "gala.gallery.item03Add": ["Foto 03 ei ole saadaval", "Photo 03 unavailable", "Фото 03 недоступно"],
+    "gala.gallery.item03Add": ["Foto 3 ei ole saadaval", "Photo 3 unavailable", "Фото 3 недоступно"],
     "gala.gallery.item03Open": [
       "Ava foto: Hetked täis inspiratsiooni",
       "Open photo: Moments full of inspiration",
       "Открыть фото: Моменты вдохновения"
     ],
-    "gala.gallery.item04Add": ["Foto 04 ei ole saadaval", "Photo 04 unavailable", "Фото 04 недоступно"],
+    "gala.gallery.item04Add": ["Foto 4 ei ole saadaval", "Photo 4 unavailable", "Фото 4 недоступно"],
     "gala.gallery.item04Open": [
       "Ava foto: Improteater",
       "Open photo: Improvisational theatre",
       "Открыть фото: Импровизационный театр"
     ],
-    "gala.gallery.item05Add": ["Foto 05 ei ole saadaval", "Photo 05 unavailable", "Фото 05 недоступно"],
+    "gala.gallery.item05Add": ["Foto 5 ei ole saadaval", "Photo 5 unavailable", "Фото 5 недоступно"],
     "gala.gallery.item05Open": [
       "Ava foto: Pidulik õhtu",
       "Open photo: Celebratory evening",
       "Открыть фото: Торжественный вечер"
     ],
-    "gala.gallery.item06Add": ["Foto 06 ei ole saadaval", "Photo 06 unavailable", "Фото 06 недоступно"],
+    "gala.gallery.item06Add": ["Foto 6 ei ole saadaval", "Photo 6 unavailable", "Фото 6 недоступно"],
     "gala.gallery.item06Open": [
       "Ava foto: Laureaatide tunnustamine",
       "Open photo: Recognising the laureates",
       "Открыть фото: Награждение лауреатов"
     ],
-    "gala.gallery.item07Add": ["Foto 07 ei ole saadaval", "Photo 07 unavailable", "Фото 07 недоступно"],
+    "gala.gallery.item07Add": ["Foto 7 ei ole saadaval", "Photo 7 unavailable", "Фото 7 недоступно"],
     "gala.gallery.item07Open": [
       "Ava foto: Peaesineja",
       "Open photo: Headline performer",
       "Открыть фото: Главный исполнитель"
     ],
-    "gala.gallery.item08Add": ["Foto 08 ei ole saadaval", "Photo 08 unavailable", "Фото 08 недоступно"],
+    "gala.gallery.item08Add": ["Foto 8 ei ole saadaval", "Photo 8 unavailable", "Фото 8 недоступно"],
     "gala.gallery.item08Open": [
       "Ava foto: Vabatahtlikud",
       "Open photo: Volunteers",
       "Открыть фото: Волонтёры"
     ],
-    "gala.gallery.item09Add": ["Foto 09 ei ole saadaval", "Photo 09 unavailable", "Фото 09 недоступно"],
+    "gala.gallery.item09Add": ["Foto 9 ei ole saadaval", "Photo 9 unavailable", "Фото 9 недоступно"],
     "gala.gallery.item09Open": [
       "Ava foto: Korraldusmeeskond",
       "Open photo: Organising team",

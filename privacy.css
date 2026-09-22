@@ -432,7 +432,7 @@ body.privacy-page .privacy-intro-card {
 }
 
 body.privacy-page .privacy-intro-card::before {
-  content: "01";
+  content: "1";
   position: absolute;
   right: 24px;
   bottom: -18px;
