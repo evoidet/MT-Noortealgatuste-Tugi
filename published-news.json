@@ -1,5 +1,51 @@
 [
   {
+    "submissionId": "76a223a1-fe5c-4317-ad8f-4a3e7b442612",
+    "id": "projektikirjutamise-laager-toi-kokku-motiveeritud-ja-tegusad-noored",
+    "sourceLanguage": "et",
+    "category": "events",
+    "date": "2026-09-23",
+    "image": "https://noortetugi.ee/api/staff/public/news/76a223a1-fe5c-4317-ad8f-4a3e7b442612/attachments/460c368e-34f9-4529-b9a1-87440de16638",
+    "imagePosition": "center center",
+    "imageFit": "cover",
+    "originalImage": "",
+    "additionalImages": [],
+    "featured": false,
+    "placeholder": false,
+    "published": true,
+    "title": "Projektikirjutamise laager tõi kokku motiveeritud ja tegusad noored",
+    "excerpt": "Kahepäevane laager andis noortele võimaluse oma ideid arendada, õppida projektide koostamist ja leida uusi koostöövõimalusi. Tulemuseks olid värsked ideed ja väärtuslikud kogemused Ida-Virumaa noorte algatuste toetamiseks.",
+    "imageAlt": "",
+    "displayDate": "",
+    "content": [
+      "Projektikirjutamise laager oli sisukas ja inspireeriv kahepäevane kohtumine, kus noored said arendada oma projektikirjutamise oskusi, jagada ideid ning töötada meeskondades oma algatuste edasiarendamisega.",
+      "Laagri jooksul omandasid noored uusi teadmisi projektide koostamisest, eesmärkide seadmisest, tegevuste planeerimisest, eelarve koostamisest ja sobivate rahastusvõimaluste leidmisest. Lisaks said osalejad väärtuslikke kogemusi meeskonnatöös, oma ideede tutvustamisel ning suhtlemisel teiste noorte ja juhendajatega.",
+      "Eriti rõõmustav oli noorte motivatsioon ja aktiivne kaasatus kogu laagri vältel. Noored tulid kaasa oma ideede ja mõtetega ning olid valmis neid arendama ja teistega jagama. Laagri lõpuks oli tekkinud palju huvitavaid ja erinevaid ideid, millel on potentsiaali pakkuda lahendusi ning luua uusi võimalusi Ida-Virumaa noortele ja kogukondadele. Mitmed ideed puudutavad teemasid ja vajadusi, mis on piirkonna arengus kindlasti olulised.",
+      "Lisaks uutele teadmistele said noored laagrist kaasa uusi tutvusi, kogemusi ja kontakte, mis võivad neile edaspidi kasuks tulla. Loodame, et laagris tekkinud ideed ei jää ainult paberile, vaid viiakse järgnevate kuude jooksul samm-sammult ellu.",
+      "Projektikirjutamise laager pakkus hea võimaluse ideede arendamiseks, uute oskuste omandamiseks ja koostöövõrgustiku loomiseks. Meil on hea meel näha, kui palju potentsiaali ja tegutsemistahet Ida-Virumaa noortes on."
+    ],
+    "author": "Jekaterina Rogožina",
+    "authorRole": "Turundusjuht",
+    "project": "Ida-Virumaa Noorte Projektikirjutamise Laager 2026",
+    "registrationUrl": "",
+    "links": [],
+    "translations": {
+      "et": {
+        "title": "Projektikirjutamise laager tõi kokku motiveeritud ja tegusad noored",
+        "excerpt": "Kahepäevane laager andis noortele võimaluse oma ideid arendada, õppida projektide koostamist ja leida uusi koostöövõimalusi. Tulemuseks olid värsked ideed ja väärtuslikud kogemused Ida-Virumaa noorte algatuste toetamiseks.",
+        "imageAlt": "",
+        "displayDate": "",
+        "content": [
+          "Projektikirjutamise laager oli sisukas ja inspireeriv kahepäevane kohtumine, kus noored said arendada oma projektikirjutamise oskusi, jagada ideid ning töötada meeskondades oma algatuste edasiarendamisega.",
+          "Laagri jooksul omandasid noored uusi teadmisi projektide koostamisest, eesmärkide seadmisest, tegevuste planeerimisest, eelarve koostamisest ja sobivate rahastusvõimaluste leidmisest. Lisaks said osalejad väärtuslikke kogemusi meeskonnatöös, oma ideede tutvustamisel ning suhtlemisel teiste noorte ja juhendajatega.",
+          "Eriti rõõmustav oli noorte motivatsioon ja aktiivne kaasatus kogu laagri vältel. Noored tulid kaasa oma ideede ja mõtetega ning olid valmis neid arendama ja teistega jagama. Laagri lõpuks oli tekkinud palju huvitavaid ja erinevaid ideid, millel on potentsiaali pakkuda lahendusi ning luua uusi võimalusi Ida-Virumaa noortele ja kogukondadele. Mitmed ideed puudutavad teemasid ja vajadusi, mis on piirkonna arengus kindlasti olulised.",
+          "Lisaks uutele teadmistele said noored laagrist kaasa uusi tutvusi, kogemusi ja kontakte, mis võivad neile edaspidi kasuks tulla. Loodame, et laagris tekkinud ideed ei jää ainult paberile, vaid viiakse järgnevate kuude jooksul samm-sammult ellu.",
+          "Projektikirjutamise laager pakkus hea võimaluse ideede arendamiseks, uute oskuste omandamiseks ja koostöövõrgustiku loomiseks. Meil on hea meel näha, kui palju potentsiaali ja tegutsemistahet Ida-Virumaa noortes on."
+        ]
+      }
+    }
+  },
+  {
     "submissionId": "ac82aa32-1e2a-4442-9778-ad7bd76741b5",
     "id": "news-ac82aa32-1e2a-4442-9778-ad7bd76741b5",
     "sourceLanguage": "et",
