@@ -44,6 +44,10 @@ function validExpense(overrides = {}) {
   return {
     project: "Noorte arengupäev",
     person: "Mari Maasikas",
+    email: "mari@noortetugi.ee",
+    accountHolder: "Mari Maasikas",
+    iban: "EE101010101010101010",
+    expenseCategory: "Materjalid",
     date: "2026-08-29",
     location: "Narva",
     activity: "Korraldasin noortele töötoa.",
@@ -99,6 +103,36 @@ test("final expense validation accepts current UI fields and recalculates totals
   assert.equal(Object.hasOwn(result.items[0], "originalTotal"), false);
   assert.equal(result.amount, 12.35);
   assert.equal(result.requestedTotalEUR, 12.35);
+});
+
+test("final expense validation requires contact, bank details and expense type", () => {
+  const error = captureValidationError(
+    () => validateSubmissionData("expense", validExpense({
+      email: "",
+      accountHolder: "",
+      iban: "",
+      expenseCategory: "",
+    }), { final: true }),
+    "INCOMPLETE_SUBMISSION",
+  );
+
+  assert.deepEqual(new Set(error.fields), new Set([
+    "email",
+    "accountHolder",
+    "iban",
+    "expenseCategory",
+  ]));
+});
+
+test("expense IBAN is validated and stored once in canonical form", () => {
+  const result = validateSubmissionData("expense", validExpense({
+    iban: "ee10 1010 1010 1010 1010",
+  }), { final: true });
+  assert.equal(result.iban, "EE101010101010101010");
+  assert.throws(
+    () => validateSubmissionData("expense", validExpense({ iban: "EE12" }), { final: true }),
+    { code: "VALIDATION_ERROR" },
+  );
 });
 
 test("final expense validation reports every incomplete line-item field", () => {

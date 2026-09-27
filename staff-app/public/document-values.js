@@ -79,6 +79,14 @@ export function formatDate(value, { required = false, field = "date" } = {}) {
   return iso ? `${iso[3]}.${iso[2]}.${iso[1]}` : text;
 }
 
+export function normalizeIban(value) {
+  return String(value || "").replace(/\s+/g, "").toUpperCase();
+}
+
+export function isValidIban(value) {
+  return /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(normalizeIban(value));
+}
+
 export function normalizeExpense(data = {}, meta = {}) {
   const required = !meta.preview;
   const recipient = data.recipient && typeof data.recipient === "object" ? data.recipient : {};
@@ -205,12 +213,33 @@ export function normalizeExpense(data = {}, meta = {}) {
     field: "recipient.name",
     maxLength: 250,
   });
-  const rawIban = firstDefined(recipient.iban, data.iban);
-  const iban = cleanText(rawIban, {
+  const rawContactEmail = firstDefined(recipient.email, data.email, configuredRecipient.email);
+  const contactEmail = cleanText(rawContactEmail, {
     fallback: "—",
+    required,
+    field: "recipient.email",
+    maxLength: 254,
+  });
+  const rawAccountHolder = firstDefined(recipient.accountHolder, data.accountHolder);
+  const accountHolder = cleanText(rawAccountHolder, {
+    fallback: "—",
+    required,
+    field: "recipient.accountHolder",
+    maxLength: 250,
+  });
+  const rawIban = firstDefined(recipient.iban, data.iban);
+  const iban = normalizeIban(cleanText(rawIban, {
+    fallback: "—",
+    required,
     field: "recipient.iban",
     maxLength: 80,
-  }).toUpperCase();
+  }));
+  if (rawIban && !isValidIban(iban)) {
+    throw new DocumentValidationError("recipient.iban is invalid", {
+      field: "recipient.iban",
+      reason: "invalid_format",
+    });
+  }
   const generatedDocumentNumber = meta.submission?.id
     ? `KA-${String(meta.submission.id).slice(0, 8).toUpperCase()}`
     : undefined;
@@ -224,11 +253,9 @@ export function normalizeExpense(data = {}, meta = {}) {
   });
 
   const contactParts = [
-    firstDefined(configuredRecipient.email, recipient.email, data.email),
+    rawContactEmail ? contactEmail : undefined,
     firstDefined(recipient.phone, data.phone),
-    firstDefined(recipient.accountHolder, data.accountHolder)
-      ? `Kontoomanik: ${cleanText(firstDefined(recipient.accountHolder, data.accountHolder), { maxLength: 250 })}`
-      : undefined,
+    rawAccountHolder ? `Kontoomanik: ${accountHolder}` : undefined,
     rawIban ? `IBAN: ${iban}` : undefined,
   ].filter(Boolean);
 
@@ -259,7 +286,7 @@ export function normalizeExpense(data = {}, meta = {}) {
         field: "recipient.role",
         maxLength: 200,
       }),
-      contactAccountIban: cleanText(firstDefined(data.contactAccountIban, contactParts.join("; ")), {
+      contactAccountIban: cleanText(firstDefined(contactParts.join("; "), data.contactAccountIban), {
         field: "contactAccountIban",
         maxLength: 700,
       }),
@@ -269,6 +296,7 @@ export function normalizeExpense(data = {}, meta = {}) {
         maxLength: 500,
       }),
       expenseType: cleanText(firstDefined(data.expenseType, data.costType, data.expenseCategory), {
+        required,
         field: "expenseType",
         maxLength: 300,
       }),
@@ -341,4 +369,3 @@ export function normalizeExpense(data = {}, meta = {}) {
     documentNumber,
   };
 }
-

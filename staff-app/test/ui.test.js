@@ -32,6 +32,34 @@ test("submission UI renders persistent structured issues and requires positive m
     /"staff\.expense\.reimbursementRecipient": \["Kellele raha tagastatakse\?", "Reimbursement recipient", "Кому возвращаются деньги\?"\]/);
 });
 
+test("expense form exposes guided structured fields and a single IBAN input", async () => {
+  const source = await readFile(new URL("app.js", publicRoot), "utf8");
+  const translations = await readFile(new URL("staff-translations.js", publicRoot), "utf8");
+
+  for (const id of [
+    "expenseContactEmail",
+    "expenseAccountHolder",
+    "expenseIban",
+    "expenseClaimantRole",
+    "expenseCategory",
+    "expenseFundingSource",
+    "expenseParticipants",
+  ]) {
+    assert.match(source, new RegExp(`id: "${id}"`));
+  }
+  assert.equal((source.match(/id: "expenseIban"/g) || []).length, 1);
+  assert.match(source, /iban: normalizeIban\(inputValue\("expenseIban"\)\)/);
+  for (const text of [
+    "Sisesta hüvitise saaja e-post, pangakonto omaniku nimi ja IBAN, kuhu hüvitis kantakse.",
+    "Märgi inimese roll organisatsioonis või selle tegevuse juures.",
+    "Vali või sisesta, millise kululiigiga on tegemist.",
+    "Märgi projekt, rahastusallikas või sisemine eelarverida, mille arvelt kulu hüvitatakse.",
+    "Märgi tegevuses osalenud või sellest otseselt kasu saanud inimesed.",
+  ]) {
+    assert.ok(translations.includes(text), `Missing Estonian helper text: ${text}`);
+  }
+});
+
 test("AI suggestions change a form field only through the explicit use action", async () => {
   const source = await readFile(new URL("app.js", publicRoot), "utf8");
   const generateStart = source.indexOf("async function generateAiSuggestion()");

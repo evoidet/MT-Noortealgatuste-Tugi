@@ -356,7 +356,9 @@ test("HTTP expense flow prepares real DOCX, sends once and finalizes without pub
   const id = created.body.item.id;
   assert.match(id, /^[0-9a-f-]{36}$/);
   const data = { project: "Synthetic workshop", person: "client text is not trusted",
-    reimbursementRecipientEmail: "other@example.test", date: "2026-09-01",
+    reimbursementRecipientEmail: "other@example.test", email: "other@example.test",
+    accountHolder: "Other Recipient", iban: "EE101010101010101010",
+    expenseCategory: "Materials", date: "2026-09-01",
     location: "Tallinn", activity: "Hosted a workshop.", purpose: "Materials for the workshop.",
     result: "Ten participants completed the activity.", items: [{ date: "2026-09-01",
       documentNumber: "SYN-001", vendor: "Synthetic supplier", description: "Materials", amount: 12.35 }] };

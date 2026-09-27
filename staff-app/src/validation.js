@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidIban, normalizeIban } from "../public/document-values.js";
 
 const optionalText = (maximum) => z.string().trim().max(maximum).optional().default("");
 const requiredText = (maximum) => z.string().trim().min(1).max(maximum);
@@ -17,6 +18,9 @@ const optionalMoney = z.union([money, z.literal(""), z.null()]).optional().trans
 // an explicitly supplied gross amount.
 const optionalExpenseMoney = z.union([money, z.literal(""), z.null()]).optional()
   .transform((value) => value === "" || value === null || value === undefined ? undefined : value);
+const ibanInput = z.string().trim().max(50)
+  .transform(normalizeIban)
+  .refine((value) => !value || isValidIban(value));
 const identifier = z.string().trim().max(100).regex(/^[\p{L}\p{N} ._\-/]*$/u).optional().default("");
 
 function isSafePublicImageUrl(value) {
@@ -160,7 +164,7 @@ const expenseDraft = z.object({
   email: z.string().trim().email().max(254).optional().or(z.literal("")),
   phone: optionalText(60),
   accountHolder: optionalText(200),
-  iban: z.string().trim().toUpperCase().max(34).regex(/^[A-Z]{2}[0-9A-Z ]*$/).optional().or(z.literal("")),
+  iban: ibanInput.optional().default(""),
   submittedTo: optionalText(200),
   signatureName: optionalText(200),
   signatureDate: optionalDate,
@@ -240,6 +244,10 @@ function ensureFinal(type, data) {
   } else if (type === "expense") {
     requireValue("project", data.project);
     requireValue("person", data.person || data.claimantName);
+    requireValue("email", data.email);
+    requireValue("accountHolder", data.accountHolder);
+    requireValue("iban", data.iban);
+    requireValue("expenseCategory", data.expenseCategory);
     requireValue("date", data.date);
     requireValue("location", data.location);
     requireValue("activity", data.activity);

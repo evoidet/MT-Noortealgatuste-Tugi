@@ -96,6 +96,10 @@ function expenseData() {
   return {
     project: "Noorte arengupäev",
     person: "Mari Maasikas",
+    email: "mari@noortetugi.ee",
+    accountHolder: "Mari Maasikas",
+    iban: "EE101010101010101010",
+    expenseCategory: "Materjalid",
     date: "2026-08-29",
     location: "Narva",
     activity: "Korraldasin noortele töötoa.",

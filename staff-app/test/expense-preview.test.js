@@ -10,6 +10,10 @@ function expense(overrides = {}) {
   return {
     project: "Õpilaste töötuba õ ä ö ü š ž",
     person: "Saved recipient",
+    email: "recipient@example.test",
+    accountHolder: "Saved recipient",
+    iban: "EE101010101010101010",
+    expenseCategory: "Materjalid",
     date: "2026-09-08",
     location: "Jõhvi",
     activity: "Juhendasin noorte töötuba.",
@@ -22,7 +26,7 @@ function expense(overrides = {}) {
 }
 
 test("expense preview follows the updated six-section document with approved recipient and saved number", () => {
-  const data = validateSubmissionData("expense", expense(), { final: true });
+  const data = validateSubmissionData("expense", expense({ accountHolder: "Jüri Põld" }), { final: true });
   const html = renderExpensePreview(data, {
     submission: { id: "6559a6ad-0000-4000-8000-000000000001" },
     reimbursementRecipient: { name: "Jüri Põld", email: "juri@example.test" },
@@ -33,7 +37,7 @@ test("expense preview follows the updated six-section document with approved rec
     "2. Tegevuse sisu, vajalikkus ja tulemus", "HÜVITATAVA KULU ARVESTUS",
     "3. Taotlus ja hüvitise saaja kinnitused", "4. Hüvitise saaja allkiri", "5. Lisad",
     "6. MTÜ kinnitus ja finantsjuhi allkiri", "KA-6559A6AD / 08.09.2026",
-    "Jüri Põld", "juri@example.test", "Õpilaste töötuba õ ä ö ü š ž", "08.09.2026 — Jõhvi",
+    "Jüri Põld", "recipient@example.test", "Õpilaste töötuba õ ä ö ü š ž", "08.09.2026 — Jõhvi",
     "Näide OÜ — Töötoa materjalid", "07.09.2026", "TŠ-123", "12,35 €", "0,00 €",
     "tšekk.pdf", "Egor Stepanov", "finantsjuht", "Allkirjastatakse digitaalselt", "Digitaalallkirja ajatempel"
   ]) assert.ok(html.includes(text), `Missing preview content: ${text}`);

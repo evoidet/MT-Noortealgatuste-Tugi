@@ -73,7 +73,11 @@ const userValidationCodes = new Set([
 const validationFieldAliases = Object.freeze({
   documentDate: "date",
   "recipient.name": "person",
+  "recipient.email": "email",
+  "recipient.accountHolder": "accountHolder",
+  "recipient.iban": "iban",
   activityName: "project",
+  expenseType: "expenseCategory",
   whereWhen: "location",
   activitiesAndRole: "activity",
   necessity: "goal"
@@ -85,13 +89,20 @@ const validationFieldLabels = Object.freeze({
   summary: "Kokkuvõte",
   content: "Sisu",
   author: "Autor",
-  project: "Projekt",
-  person: "Esitaja",
+  project: "Tegevus / projekt",
+  person: "Hüvitise saaja",
   reimbursementRecipientEmail: "Hüvitise saaja",
+  email: "Kontakt / e-post",
+  accountHolder: "Kontoomanik",
+  iban: "IBAN",
+  claimantRole: "Roll seoses MTÜ tegevusega",
+  expenseCategory: "Kulu liik",
+  fundingSource: "Rahastusallikas / eelarverida",
   location: "Koht",
   activity: "Tegevuse kirjeldus",
   goal: "Kulu eesmärk ja vajalikkus",
   result: "Tulemus",
+  participants: "Osalejad / kasusaajad",
   items: "Kuluread",
   amount: "Kogusumma",
   attachments: "Peamine kuludokument",
@@ -173,6 +184,8 @@ function userValidationMessage(field, reason) {
   const label = validationFieldLabel(field);
   if (field === "attachments") return "Palun lisa peamine kuludokument.";
   if (field === "items") return "Palun lisa vähemalt üks korrektne kulurida.";
+  if (field === "email" && reason !== "required") return "Palun sisesta korrektne e-posti aadress.";
+  if (field === "iban" && reason !== "required") return "Palun sisesta korrektne IBAN.";
   if (reason === "amount_reconciliation") {
     return `${label}: hüvitatav ja mittehüvitatav osa ei tohi kokku ületada kulu kogusummat.`;
   }

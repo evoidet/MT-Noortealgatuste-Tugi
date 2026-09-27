@@ -60,7 +60,11 @@ function expenseData(overrides = {}) {
     documentNumber: "KA-QA-2026",
     documentDate: "2026-09-12",
     recipientName: "Õie Testkasutaja",
+    email: "oie@example.test",
+    accountHolder: "Õie Testkasutaja",
+    iban: "EE101010101010101010",
     activityName: "Õppepäev",
+    expenseType: "Materjalid",
     whereWhen: "12.09.2026 Jõhvis",
     activitiesAndRole: "Juhendasin töötuba.",
     necessity: "Materjalid olid õppepäevaks vajalikud.",
@@ -195,10 +199,43 @@ test("expense output contains actual values and attachments but no sample instru
   assert.equal(documentXml.includes("{/attachments}"), false);
 });
 
+test("expense output reuses one IBAN in the contact row and reimbursement sentence", async () => {
+  const iban = "EE101010101010101010";
+  const result = await generateExpenseReportDocument(expenseData({
+    iban,
+    accountHolder: "Mihhail Semiyanov",
+    contactAccountIban: "Vananenud kontakt; IBAN: EE999999999999999999",
+  }));
+  const text = decodeXmlText(documentParts(result.buffer).xml);
+
+  assert.equal(text.split(iban).length - 1, 2);
+  assert.ok(text.includes(`Kontoomanik: Mihhail Semiyanov; IBAN: ${iban}`));
+  assert.ok(text.includes(`arvelduskontole ${iban}.`));
+  assert.equal(text.includes("EE999999999999999999"), false);
+});
+
+test("final expense document rejects missing structured bank and category data", async () => {
+  for (const [field, expectedField] of [
+    ["email", "recipient.email"],
+    ["accountHolder", "recipient.accountHolder"],
+    ["iban", "recipient.iban"],
+    ["expenseType", "expenseType"],
+  ]) {
+    await assert.rejects(
+      () => generateExpenseReportDocument(expenseData({ [field]: "" })),
+      (error) => error instanceof DocumentValidationError && error.details?.field === expectedField,
+    );
+  }
+});
+
 test("current UI expense data remains generator-valid after final normalization", async () => {
   const normalized = validateSubmissionData("expense", {
     project: "Noorte arengupäev",
     person: "Mari Maasikas",
+    email: "mari@noortetugi.ee",
+    accountHolder: "Sofia Germ",
+    iban: "EE101010101010101010",
+    expenseCategory: "Materjalid",
     date: "2026-08-29",
     location: "Narva",
     activity: "Korraldasin noortele töötoa.",
@@ -227,7 +264,7 @@ test("current UI expense data remains generator-valid after final normalization"
   const text = decodeXmlText(documentParts(result.buffer).xml);
   assert.match(text, /12,35 €/);
   assert.match(text, /Sofia Germ/);
-  assert.match(text, /sofia@noortetugi\.ee/);
+  assert.match(text, /mari@noortetugi\.ee/);
   assert.doesNotMatch(text, /Mari Maasikas/);
 });
 
@@ -235,6 +272,10 @@ test("accepted foreign-currency and reimbursement aliases render consistently", 
   const normalized = validateSubmissionData("expense", {
     project: "Rahvusvaheline noortekohtumine",
     person: "Mari Maasikas",
+    email: "mari@noortetugi.ee",
+    accountHolder: "Mari Maasikas",
+    iban: "EE101010101010101010",
+    expenseCategory: "Materjalid",
     date: "2026-08-29",
     location: "Helsingi",
     activity: "Korraldasin kohtumise.",
@@ -267,11 +308,9 @@ test("new expense signature blocks use digital signing placeholders without impl
   const result = await generateExpenseReportDocument(expenseData({
     recipientRole: "",
     contactAccountIban: "",
-    expenseType: null,
     locationPeriodRoute: "",
     fundingSource: "",
     participants: "",
-    iban: "",
     attachments: [],
     signatureStatus: "",
     signatureDate: "",
@@ -286,7 +325,7 @@ test("new expense signature blocks use digital signing placeholders without impl
   assert.ok(applicantSignature.includes("Digitaalallkirja ajatempel"));
   assert.equal(applicantSignature.includes("12.09.2026"), false, "document date must not stand in for a signing date");
   assert.ok(text.includes("Lisad puuduvad"));
-  assert.ok(text.includes("arvelduskontole —."));
+  assert.ok(text.includes("arvelduskontole EE101010101010101010."));
   assert.doesNotMatch(text, /undefined|null|\{[\/#]?[A-Za-z][A-Za-z0-9]*\}/);
   assert.equal((documentXml.match(/<w:sectPr\b/g) || []).length, 1);
 });
@@ -390,6 +429,7 @@ test("maximum supported expense field lengths and fifty rows survive validation 
     documentDate: "2026-09-12",
     project: longText("Projekt", 240),
     person: longText("Nimi", 200),
+    email: `${"a".repeat(230)}@example.test`,
     claimantRole: longText("Roll", 160),
     date: "2026-09-12",
     location: longText("Koht", 500),
@@ -507,6 +547,9 @@ test("supported expense role, category and period fields appear in the report", 
   const normalized = validateSubmissionData("expense", {
     project: "Test project",
     person: "Test Person",
+    email: "test@example.test",
+    accountHolder: "Test Person",
+    iban: "EE101010101010101010",
     date: "2026-08-29",
     location: "Narva",
     period: "August 2026",

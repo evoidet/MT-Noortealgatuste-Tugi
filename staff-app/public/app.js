@@ -1,4 +1,5 @@
 import { api, ApiError, setCsrfToken } from "./api.js";
+import { isValidIban, normalizeIban } from "./document-values.js";
 import { prepareNewsImage, saveNewsImageToDirectory } from "./news-local-image.js";
 import {
   contentToParagraphs,
@@ -410,11 +411,18 @@ function validationControlId(type, field) {
       project: "expenseProject",
       person: "expenseReimbursementRecipient",
       reimbursementRecipientEmail: "expenseReimbursementRecipient",
+      email: "expenseContactEmail",
+      accountHolder: "expenseAccountHolder",
+      iban: "expenseIban",
+      claimantRole: "expenseClaimantRole",
+      expenseCategory: "expenseCategory",
+      fundingSource: "expenseFundingSource",
       date: "expenseDate",
       location: "expenseLocation",
       activity: "expenseActivity",
       goal: "expensePurpose",
       result: "expenseResult",
+      participants: "expenseParticipants",
       amount: "expenseItemAmount0",
       attachments: "expensePrimaryDocument"
     },
@@ -995,7 +1003,9 @@ function field({
   inputmode = "",
   ai = null,
   rows = 5,
-  autocomplete = "off"
+  autocomplete = "off",
+  requiredMessage = "",
+  invalidMessage = ""
 }) {
   const attributes = [
     `id="${escapeHtml(id)}"`,
@@ -1004,6 +1014,8 @@ function field({
     `value="${escapeHtml(value)}"`,
     `autocomplete="${escapeHtml(autocomplete)}"`,
     required ? "required" : "",
+    requiredMessage ? `data-required-message="${escapeHtml(t(requiredMessage))}"` : "",
+    invalidMessage ? `data-invalid-message="${escapeHtml(t(invalidMessage))}"` : "",
     placeholder ? `placeholder="${escapeHtml(t(placeholder))}"` : "",
     min !== "" ? `min="${escapeHtml(min)}"` : "",
     max !== "" ? `max="${escapeHtml(max)}"` : "",
@@ -1046,11 +1058,13 @@ function aiButton(targetId, fieldName, mode = "fix_language") {
   `;
 }
 
-function selectField({ id, label, value = "", options, required = false, wide = false, hint = "" }) {
+function selectField({
+  id, label, value = "", options, required = false, wide = false, hint = "", requiredMessage = ""
+}) {
   return `
     <label class="staff-field${wide ? " staff-field--wide" : ""}" for="${escapeHtml(id)}">
       <span class="staff-field-label"><span>${escapeHtml(t(label))}${required ? `<span aria-hidden="true"> *</span>` : ""}</span></span>
-      <select id="${escapeHtml(id)}" name="${escapeHtml(id)}"${required ? " required" : ""}>
+      <select id="${escapeHtml(id)}" name="${escapeHtml(id)}"${required ? " required" : ""}${requiredMessage ? ` data-required-message="${escapeHtml(t(requiredMessage))}"` : ""}>
         ${options.map((option) => `
           <option value="${escapeHtml(option.value)}"${String(option.value) === String(value) ? " selected" : ""}>
             ${escapeHtml(option.labelText ?? t(option.label))}
@@ -1322,11 +1336,11 @@ function expenseItemRow(item = {}, index = 0) {
         <span aria-hidden="true">×</span>
       </button>
       <div class="staff-form-grid">
-        ${field({ id: `expenseItemDate${index}`, label: "staff.expense.itemDate", value: item.date, type: "date", required: true })}
-        ${field({ id: `expenseDocumentNumber${index}`, label: "staff.expense.documentNumber", value: item.documentNumber, required: true })}
-        ${field({ id: `expenseVendor${index}`, label: "staff.expense.vendor", value: item.vendor, required: true })}
-        ${field({ id: `expenseItemDescription${index}`, label: "staff.expense.itemDescription", value: item.description, required: true, wide: true })}
-        ${field({ id: `expenseItemAmount${index}`, label: "staff.common.amount", value: item.amount, type: "number", required: true, min: "0.01", step: "0.01", inputmode: "decimal" })}
+        ${field({ id: `expenseItemDate${index}`, label: "staff.expense.itemDate", value: item.date, type: "date", required: true, requiredMessage: "staff.errors.expenseItemDateRequired" })}
+        ${field({ id: `expenseDocumentNumber${index}`, label: "staff.expense.documentNumber", value: item.documentNumber, required: true, placeholder: "staff.expense.documentNumberPlaceholder", requiredMessage: "staff.errors.expenseDocumentNumberRequired" })}
+        ${field({ id: `expenseVendor${index}`, label: "staff.expense.vendor", value: item.vendor, required: true, requiredMessage: "staff.errors.expenseVendorRequired" })}
+        ${field({ id: `expenseItemDescription${index}`, label: "staff.expense.itemDescription", value: item.description, required: true, wide: true, placeholder: "staff.expense.itemDescriptionPlaceholder", requiredMessage: "staff.errors.expenseDescriptionRequired" })}
+        ${field({ id: `expenseItemAmount${index}`, label: "staff.common.amount", value: item.amount, type: "number", required: true, min: "0.01", step: "0.01", inputmode: "decimal", requiredMessage: "staff.errors.expenseAmountRequired", invalidMessage: "staff.errors.expenseAmountInvalid" })}
       </div>
     </fieldset>
   `;
@@ -1340,6 +1354,9 @@ function expenseForm(data) {
     (reimbursementRecipients.some((recipient) => recipient.email === ownRecipientEmail)
       ? ownRecipientEmail
       : reimbursementRecipients[0]?.email || "");
+  const selectedRecipient = reimbursementRecipients.find((recipient) => recipient.email === selectedRecipientEmail);
+  const contactEmail = data.email || selectedRecipientEmail;
+  const accountHolder = data.accountHolder || data.person || selectedRecipient?.name || "";
   return `
     <section class="staff-form-section">
       <div class="staff-form-section-heading">
@@ -1350,22 +1367,30 @@ function expenseForm(data) {
         </div>
       </div>
       <div class="staff-form-grid">
-        ${field({ id: "expenseProject", label: "staff.expense.project", value: data.project, required: true, placeholder: "staff.expense.projectPlaceholder" })}
+        ${field({ id: "expenseProject", label: "staff.expense.project", value: data.project, required: true, maxLength: 240, placeholder: "staff.expense.projectPlaceholder", requiredMessage: "staff.errors.expenseProjectRequired" })}
         ${selectField({
           id: "expenseReimbursementRecipient",
           label: "staff.expense.reimbursementRecipient",
           value: selectedRecipientEmail,
           required: true,
+          requiredMessage: "staff.errors.expenseRecipientRequired",
           options: reimbursementRecipients.map((recipient) => ({
             value: recipient.email,
-            labelText: recipient.name
+            labelText: `${recipient.name} — ${recipient.email}`
           }))
         })}
-        ${field({ id: "expenseDate", label: "staff.expense.date", value: data.date, type: "date", required: true })}
-        ${field({ id: "expenseLocation", label: "staff.expense.location", value: data.location, required: true, placeholder: "staff.expense.locationPlaceholder" })}
-        ${field({ id: "expenseActivity", label: "staff.expense.activity", value: data.activity, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.activityPlaceholder", ai: { field: "expense.activity", mode: "formal" } })}
-        ${field({ id: "expensePurpose", label: "staff.expense.purpose", value: data.purpose, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.purposePlaceholder", ai: { field: "expense.goal", mode: "formal" } })}
-        ${field({ id: "expenseResult", label: "staff.expense.result", value: data.result, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.resultPlaceholder", ai: { field: "expense.result", mode: "formal" } })}
+        ${field({ id: "expenseContactEmail", label: "staff.expense.contactEmail", value: contactEmail, type: "email", required: true, maxLength: 254, placeholder: "staff.expense.contactEmailPlaceholder", hint: "staff.expense.bankDetailsHint", autocomplete: "email", requiredMessage: "staff.errors.expenseContactEmailRequired", invalidMessage: "staff.errors.expenseContactEmailInvalid" })}
+        ${field({ id: "expenseAccountHolder", label: "staff.expense.accountHolder", value: accountHolder, required: true, maxLength: 200, placeholder: "staff.expense.accountHolderPlaceholder", autocomplete: "name", requiredMessage: "staff.errors.expenseAccountHolderRequired" })}
+        ${field({ id: "expenseIban", label: "staff.expense.iban", value: data.iban, required: true, maxLength: 50, placeholder: "staff.expense.ibanPlaceholder", autocomplete: "off", requiredMessage: "staff.errors.expenseIbanRequired", invalidMessage: "staff.errors.expenseIbanInvalid" })}
+        ${field({ id: "expenseClaimantRole", label: "staff.expense.claimantRole", value: data.claimantRole, maxLength: 160, placeholder: "staff.expense.claimantRolePlaceholder", hint: "staff.expense.claimantRoleHint" })}
+        ${field({ id: "expenseCategory", label: "staff.expense.expenseCategory", value: data.expenseCategory, required: true, maxLength: 240, placeholder: "staff.expense.expenseCategoryPlaceholder", hint: "staff.expense.expenseCategoryHint", requiredMessage: "staff.errors.expenseCategoryRequired" })}
+        ${field({ id: "expenseFundingSource", label: "staff.expense.fundingSource", value: data.fundingSource, maxLength: 240, placeholder: "staff.expense.fundingSourcePlaceholder", hint: "staff.expense.fundingSourceHint" })}
+        ${field({ id: "expenseDate", label: "staff.expense.date", value: data.date, type: "date", required: true, requiredMessage: "staff.errors.expenseDateRequired" })}
+        ${field({ id: "expenseLocation", label: "staff.expense.location", value: data.location, required: true, placeholder: "staff.expense.locationPlaceholder", requiredMessage: "staff.errors.expenseLocationRequired" })}
+        ${field({ id: "expenseActivity", label: "staff.expense.activity", value: data.activity, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.activityPlaceholder", requiredMessage: "staff.errors.expenseActivityRequired", ai: { field: "expense.activity", mode: "formal" } })}
+        ${field({ id: "expensePurpose", label: "staff.expense.purpose", value: data.purpose, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.purposePlaceholder", requiredMessage: "staff.errors.expensePurposeRequired", ai: { field: "expense.goal", mode: "formal" } })}
+        ${field({ id: "expenseResult", label: "staff.expense.result", value: data.result, type: "textarea", rows: 5, required: true, wide: true, placeholder: "staff.expense.resultPlaceholder", requiredMessage: "staff.errors.expenseResultRequired", ai: { field: "expense.result", mode: "formal" } })}
+        ${field({ id: "expenseParticipants", label: "staff.expense.participants", value: data.participants, type: "textarea", rows: 3, wide: true, maxLength: 2000, placeholder: "staff.expense.participantsPlaceholder", hint: "staff.expense.participantsHint", ai: { field: "expense.participants", mode: "formal" } })}
       </div>
     </section>
 
@@ -1404,6 +1429,26 @@ function expenseForm(data) {
       </div>
     </section>
   `;
+}
+
+function updateExpenseRecipientDetails() {
+  const select = document.getElementById("expenseReimbursementRecipient");
+  const contact = document.getElementById("expenseContactEmail");
+  const accountHolder = document.getElementById("expenseAccountHolder");
+  const recipients = state.session?.reimbursementRecipients || [];
+  const selected = recipients.find((recipient) => recipient.email === select?.value);
+  if (!selected) return;
+
+  const knownEmails = new Set(recipients.map((recipient) => recipient.email));
+  const knownNames = new Set(recipients.map((recipient) => recipient.name));
+  if (contact && (!contact.value.trim() || knownEmails.has(contact.value.trim().toLowerCase()))) {
+    contact.value = selected.email;
+    clearControlValidation(contact);
+  }
+  if (accountHolder && (!accountHolder.value.trim() || knownNames.has(accountHolder.value.trim()))) {
+    accountHolder.value = selected.name;
+    clearControlValidation(accountHolder);
+  }
 }
 
 function invoiceItemRow(item = {}, index = 0) {
@@ -1644,11 +1689,18 @@ function collectExpenseData() {
     project: inputValue("expenseProject"),
     person: reimbursementRecipient?.name || "",
     reimbursementRecipientEmail,
+    email: inputValue("expenseContactEmail"),
+    accountHolder: inputValue("expenseAccountHolder"),
+    iban: normalizeIban(inputValue("expenseIban")),
+    claimantRole: inputValue("expenseClaimantRole"),
+    expenseCategory: inputValue("expenseCategory"),
+    fundingSource: inputValue("expenseFundingSource"),
     date: inputValue("expenseDate"),
     location: inputValue("expenseLocation"),
     activity: inputValue("expenseActivity"),
     purpose: inputValue("expensePurpose"),
     result: inputValue("expenseResult"),
+    participants: inputValue("expenseParticipants"),
     items,
     amount: items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   };
@@ -1780,8 +1832,27 @@ function validateCurrentForm() {
   if (state.formType === "news" && !validateNewsUrlFields()) return false;
 
   form.querySelectorAll("[required]").forEach((control) => {
-    control.setCustomValidity(control.value.trim() ? "" : t("staff.errors.requiredFields"));
+    control.setCustomValidity("");
+    const value = String(control.value || "").trim();
+    if (!value) {
+      control.setCustomValidity(control.dataset?.requiredMessage || t("staff.errors.requiredFields"));
+    } else if ((control.validity?.typeMismatch || control.validity?.rangeUnderflow || control.validity?.badInput) &&
+        control.dataset?.invalidMessage) {
+      control.setCustomValidity(control.dataset.invalidMessage);
+    }
   });
+
+  if (state.formType === "expense") {
+    const iban = document.getElementById("expenseIban");
+    if (iban?.value) {
+      iban.value = normalizeIban(iban.value);
+      if (!iban.value) {
+        iban.setCustomValidity(iban.dataset?.requiredMessage || t("staff.errors.expenseIbanRequired"));
+      } else if (!isValidIban(iban.value)) {
+        iban.setCustomValidity(iban.dataset?.invalidMessage || t("staff.errors.expenseIbanInvalid"));
+      }
+    }
+  }
   const valid = form.checkValidity();
 
   if (!valid) {
@@ -2835,6 +2906,10 @@ function attachEvents() {
 
     if (target.id === "invoiceCurrency") {
       updateLiveTotals();
+    }
+
+    if (target.id === "expenseReimbursementRecipient") {
+      updateExpenseRecipientDetails();
     }
   });
 
