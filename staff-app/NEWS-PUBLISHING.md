@@ -30,6 +30,9 @@ to a `PUBLISHED` news submission.
 - `GITHUB_BRANCH`: must be `main`.
 - `PUBLIC_SITE_ORIGIN`: canonical HTTPS public origin used in image URLs.
 - `GITHUB_API_URL`: optional; defaults to `https://api.github.com`.
+- `OPENAI_API_KEY`: required for news publishing. It remains server-side and
+  powers language detection, proofreading, and ET/RU/EN translation.
+- `OPENAI_MODEL`: optional; defaults to `gpt-5-mini`.
 
 GitHub must allow this token to update `published-news.json` directly on main.
 If a ruleset requires pull requests or blocks the token, Submit returns a safe

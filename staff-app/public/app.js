@@ -2148,7 +2148,10 @@ async function savePreview(button, submit = false) {
     document.querySelector(".staff-delivery-notice")?.remove();
     document.querySelector(".staff-validation-summary")?.remove();
   }
-  const finishOperation = beginFormOperation(button, submit ? "staff.preview.submitting" : "staff.form.saving");
+  const operationLabel = submit
+    ? state.preview.type === "news" ? "staff.news.publishing" : "staff.preview.submitting"
+    : "staff.form.saving";
+  const finishOperation = beginFormOperation(button, operationLabel);
 
   try {
     // A disconnected response does not prove the submit failed. Confirm its

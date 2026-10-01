@@ -267,6 +267,7 @@
     "staff.news.detailTitle": ["Uudise detailid", "News details", "Детали новости"],
     "staff.news.formDescription": ["Koosta uudis olemasoleva avaliku veebilehe stiilis.", "Prepare news in the style of the existing public website.", "Подготовьте новость в стиле существующего сайта."],
     "staff.news.previewDescription": ["Kontrolli teksti ja pilte enne saatmist.", "Check the text and images before submitting.", "Проверьте текст и изображения перед отправкой."],
+    "staff.news.publishing": ["Töötlen AI-ga, tõlgin ja avaldan…", "Processing with AI, translating and publishing…", "Обработка с ИИ, перевод и публикация…"],
     "staff.news.basicSection": ["Põhiandmed", "Basic details", "Основные данные"],
     "staff.news.basicSectionText": ["Pealkiri, kuupäev, kategooria ja autor.", "Title, date, category and author.", "Заголовок, дата, категория и автор."],
     "staff.news.contentSection": ["Sisu", "Content", "Содержание"],

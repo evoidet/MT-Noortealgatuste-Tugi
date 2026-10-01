@@ -344,6 +344,7 @@ function validationResponse(response, error) {
     "BLOB_CLEANUP_REQUIRED",
     "INVALID_ATTACHMENT_STATE",
     "AI_UNAVAILABLE",
+    "AI_PROVIDER_FAILED",
     "AI_EMPTY_RESPONSE",
     "AI_INVALID_RESPONSE",
     "AI_INCOMPLETE_RESPONSE",
@@ -489,6 +490,32 @@ export function createStaffApp({
   const reimbursementRecipientMap = config.reimbursementRecipients instanceof Map
     ? config.reimbursementRecipients
     : new Map();
+
+  async function prepareNewsData(data) {
+    const localized = await ai.prepareNews({
+      title: data.title,
+      summary: data.summary || data.excerpt || "",
+      content: data.content,
+      imageAlt: data.imageAlt || ""
+    });
+    const source = localized[localized.sourceLanguage];
+    return validateSubmissionData("news", {
+      ...data,
+      language: localized.sourceLanguage,
+      title: source.title,
+      summary: source.summary,
+      excerpt: source.summary,
+      content: source.content,
+      imageAlt: source.imageAlt,
+      translations: Object.fromEntries(["et", "ru", "en"].map((language) => [language, {
+        title: localized[language].title,
+        excerpt: localized[language].summary,
+        content: localized[language].content,
+        imageAlt: localized[language].imageAlt,
+        displayDate: ""
+      }]))
+    }, { final: true });
+  }
 
   function availableReimbursementRecipients(user) {
     if (reimbursementRecipientMap.size > 0) {
@@ -1123,6 +1150,10 @@ export function createStaffApp({
           if (submission.type === "news") {
             publishData = validateSubmissionData("news", submission.data, { final: true });
             validateNewsImageReferences(publishData, newsRelations.attachments);
+            if (submission.data?.publicationPending === true) {
+              newsStage(response, "ai");
+              publishData = await prepareNewsData(publishData);
+            }
             newsStage(response, "github");
             const publication = await newsPublisher.publish(
               toRepositoryNewsItem({ ...submission, data: publishData }, newsRelations.attachments, config.publicSiteOrigin),
@@ -1199,6 +1230,8 @@ export function createStaffApp({
           if (submission.type === "news") {
             data.slug ||= `news-${submission.id}`;
             data.date ||= new Date().toISOString().slice(0, 10);
+            newsStage(response, "ai");
+            data = await prepareNewsData(data);
           }
           if (submission.type === "expense") {
             logExpenseStage(submission.id, "validate", "complete");

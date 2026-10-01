@@ -183,17 +183,17 @@ Vercel environment changes apply only to new deployments. After adding or
 rotating any SMTP variable, create a new Production deployment before testing
 the expense submission flow.
 
-### Optional AI writing suggestions
+### AI processing
 
-Set `OPENAI_API_KEY` as a sensitive Production variable to enable the manual
-writing-suggestion controls for supported prose fields. `OPENAI_MODEL` is
-optional and defaults to `gpt-5-mini`. The user sees the original text and the
-suggestion side by side, and the suggestion replaces the form field only after
-the user explicitly accepts it.
+Set `OPENAI_API_KEY` as a sensitive Production variable. It enables the manual
+writing-suggestion controls and is required at runtime to publish news: the
+server detects the submitted language, proofreads it, and creates ET/RU/EN
+versions before the GitHub commit. `OPENAI_MODEL` is optional and defaults to
+`gpt-5-mini`. Never expose either value through browser configuration.
 
 Final expense submission never invokes AI or rewrites data using AI. When
-`OPENAI_API_KEY` is absent, the normal expense submission flow remains fully
-available without AI assistance. Amounts, dates, currencies, references,
+`OPENAI_API_KEY` is absent, expense submission remains fully available without
+AI assistance, but news publication returns `AI_UNAVAILABLE`. Amounts, dates, currencies, references,
 payment details, identities, line items, attachments, and other structured or
 financial fields are not AI-editable.
 

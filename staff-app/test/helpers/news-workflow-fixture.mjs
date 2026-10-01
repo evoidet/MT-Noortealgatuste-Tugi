@@ -60,7 +60,7 @@ export async function newsWorkflowFixture() {
       userId: users[role].id, expiresAt: new Date(Date.now() + 3600000).toISOString(), userAgentHash: null, ipHash: null });
   }
   const state = { origin: "http://localhost:3100", blobs: new Map(), publishedNews: [], publishCalls: 0,
-    failPublish: false, aiMode: "missing", aiCalls: 0,
+    failPublish: false, aiMode: "ready", aiCalls: 0,
     failFinalization: false, failCreateResponse: false, failSubmitResponse: false,
     failResponseReads: false, failUploadResponse: false, failUpload: false, blobPutCount: 0 };
   const failedReadIds = new Set();
@@ -89,7 +89,15 @@ export async function newsWorkflowFixture() {
   const ai = createAiAssistant(config, { client: { responses: { async create(input) {
     state.aiCalls++;
     if (state.aiMode === "error") throw Object.assign(new Error("Synthetic provider failure"), { status: 503 });
-    return { status: "completed", output_text: JSON.parse(input.input).text.replace("palju noored", "palju noori") };
+    if (state.aiMode === "malformed") return { status: "completed", output_text: "not json" };
+    const payload = JSON.parse(input.input);
+    if (typeof payload.text === "string") {
+      return { status: "completed", output_text: payload.text.replace("palju noored", "palju noori") };
+    }
+    const version = { title: payload.title.replace("palju noored", "palju noori"), summary: payload.summary,
+      content: payload.content.map((entry) => entry.replace("palju noored", "palju noori")), imageAlt: payload.imageAlt };
+    return { status: "completed", output_text: JSON.stringify({ sourceLanguage: "et",
+      et: version, ru: version, en: version }) };
   } } } });
   const githubPublisher = createGitHubNewsPublisher({ githubRepository: "synthetic/repo", githubToken: "synthetic" }, {
     loadPublishedArticles: () => publishedArticlesForReconciliation(database, state.origin),
@@ -126,7 +134,8 @@ export async function newsWorkflowFixture() {
   function makeApp() {
     return createStaffApp({ config, database,
       aiAssistant: { get available() { return state.aiMode !== "missing"; },
-        improve(input) { return (state.aiMode === "missing" ? missingAi : ai).improve(input); } },
+        improve(input) { return (state.aiMode === "missing" ? missingAi : ai).improve(input); },
+        prepareNews(input) { return (state.aiMode === "missing" ? missingAi : ai).prepareNews(input); } },
       clientUploadGrantCreator: (input) => createClientUploadGrant({ ...input, blobClient }),
       clientUploadedFileVerifier: (input) => verifyClientUploadedFile({ ...input, blobClient }),
       privateAttachmentOpener: (input) => openPrivateAttachment({ ...input, blobClient }),

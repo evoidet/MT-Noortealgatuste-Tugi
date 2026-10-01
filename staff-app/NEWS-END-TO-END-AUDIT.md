@@ -84,7 +84,7 @@ Derived from source code. No secret values/files were read. Existing shared appl
 | `ADMIN_EMAILS` | Reviewer/admin authorization; without configured admins, submission can work but publication needs an authorized reviewer |
 | `ALLOWED_GOOGLE_DOMAIN` | Defaults to `noortetugi.ee` |
 | `ALLOWED_STAFF_EMAILS` / `STAFF_ALLOWED_EMAILS` | Additional allowlist; empty uses domain policy |
-| `OPENAI_API_KEY` | Optional correction; absent hides AI controls, AI endpoint returns `AI_UNAVAILABLE`, normal submission works |
+| `OPENAI_API_KEY` | Required for news publication; absent hides manual controls and publishing returns `AI_UNAVAILABLE` before GitHub |
 | `OPENAI_MODEL` | Defaults to `gpt-5-mini`; malformed supplied identifier fails configuration validation |
 | `PUBLIC_SITE_ORIGIN` | Defaults to `APP_URL` |
 | `STAFF_MAX_UPLOAD_MB` | Per-file size, default 15 MiB |

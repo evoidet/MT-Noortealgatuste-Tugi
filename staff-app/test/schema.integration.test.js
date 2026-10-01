@@ -404,6 +404,11 @@ test("Workspace member news draft, preview, submit and admin publication use the
   const { app } = createStaffApp({
     config,
     database,
+    aiAssistant: { available: true, async improve({ text }) { return text; }, async prepareNews(data) {
+      const version = { title: data.title, summary: data.summary || "", content: data.content,
+        imageAlt: data.imageAlt || "" };
+      return { sourceLanguage: "et", et: version, ru: version, en: version };
+    } },
     driveArchiveService: {
       enabled: true,
       async archiveExpense() { assert.fail("News must not use the expense Drive archive"); }
@@ -492,7 +497,7 @@ test("Workspace member news draft, preview, submit and admin publication use the
   for (const key of ["category", "project", "author", "authorRole", "imageAlt", "imageFit", "imagePosition", "featured"]) {
     assert.deepEqual(feedItem[key], data[key]);
   }
-  assert.equal(feedItem.translations.en.title, "Youth news");
+  assert.equal(feedItem.translations.en.title, data.title);
 
   // Real PostgreSQL-compatible transactions and HTTP handlers, without AI/mail.
   // Read through a second repository instance to rule out in-memory persistence.

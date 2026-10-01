@@ -127,3 +127,75 @@ test("malformed and oversized provider text is rejected instead of coerced or tr
     }), { code: "AI_INVALID_RESPONSE" });
   }
 });
+
+function newsOutput(sourceLanguage, source) {
+  return JSON.stringify({
+    sourceLanguage,
+    et: { title: source.title.et, summary: source.summary.et, content: source.content.et, imageAlt: "" },
+    ru: { title: source.title.ru, summary: source.summary.ru, content: source.content.ru, imageAlt: "" },
+    en: { title: source.title.en, summary: source.summary.en, content: source.content.en, imageAlt: "" }
+  });
+}
+
+test("news preparation detects each supported source language and returns all translations", async (t) => {
+  const versions = {
+    title: { et: "Üritus 12.10.2026", ru: "Мероприятие 12.10.2026", en: "Event 12.10.2026" },
+    summary: { et: "", ru: "", en: "" },
+    content: {
+      et: ["Kohtume 12.10.2026. Lisainfo: https://example.test/info", "Õ ä ö ü."],
+      ru: ["Встречаемся 12.10.2026. Подробнее: https://example.test/info", "Кириллица."],
+      en: ["We meet on 12.10.2026. More: https://example.test/info", "English text."]
+    }
+  };
+  for (const language of ["et", "ru", "en"]) {
+    await t.test(language, async () => {
+      const client = fakeClient(() => newsOutput(language, versions));
+      const result = await assistantWith(client).prepareNews({
+        title: versions.title[language], summary: "", content: versions.content[language]
+      });
+      assert.equal(result.sourceLanguage, language);
+      assert.deepEqual(Object.keys(result), ["sourceLanguage", "et", "ru", "en"]);
+      assert.equal(result.et.content.length, 2);
+      assert.equal(client.calls[0].max_output_tokens, 48_000);
+      assert.equal(client.calls[0].text.format.type, "json_schema");
+      assert.deepEqual(JSON.parse(client.calls[0].input).content, versions.content[language]);
+    });
+  }
+});
+
+test("news preparation rejects malformed, incomplete, and fact-changing output", async () => {
+  const input = { title: "Event 2026", summary: "", content: ["Visit https://example.test on 12.10.2026."] };
+  await assert.rejects(assistantWith(fakeClient(() => "not json")).prepareNews(input),
+    { code: "AI_INVALID_RESPONSE" });
+  await assert.rejects(assistantWith(fakeClient(() => JSON.stringify({ sourceLanguage: "en" }))).prepareNews(input),
+    { code: "AI_INCOMPLETE_RESPONSE" });
+  const changed = {
+    title: { et: "Üritus 2027", ru: "Событие 2027", en: "Event 2027" },
+    summary: { et: "", ru: "", en: "" },
+    content: {
+      et: ["Vaata https://example.test 12.10.2026."],
+      ru: ["Смотрите https://example.test 12.10.2026."],
+      en: ["Visit https://example.test on 12.10.2026."]
+    }
+  };
+  await assert.rejects(assistantWith(fakeClient(() => newsOutput("en", changed))).prepareNews(input),
+    { code: "AI_FACT_GUARD_REJECTED" });
+
+  const inventedOptionalFields = {
+    title: { et: "Sündmus 2026", ru: "Событие 2026", en: "Event 2026" },
+    summary: { et: "Uus kokkuvõte", ru: "Новое резюме", en: "New summary" },
+    content: {
+      et: ["Külasta https://example.test 12.10.2026."],
+      ru: ["Посетите https://example.test 12.10.2026."],
+      en: ["Visit https://example.test on 12.10.2026."]
+    }
+  };
+  await assert.rejects(assistantWith(fakeClient(() => newsOutput("en", inventedOptionalFields))).prepareNews(input),
+    { code: "AI_FACT_GUARD_REJECTED" });
+
+  const removedUrl = structuredClone(changed);
+  removedUrl.title = { et: input.title, ru: input.title, en: input.title };
+  removedUrl.content.et = ["Külasta meid 12.10.2026."];
+  await assert.rejects(assistantWith(fakeClient(() => newsOutput("en", removedUrl))).prepareNews(input),
+    { code: "AI_FACT_GUARD_REJECTED" });
+});

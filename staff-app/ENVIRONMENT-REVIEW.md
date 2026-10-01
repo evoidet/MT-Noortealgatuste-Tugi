@@ -20,7 +20,7 @@ This review inspected application source and synthetic local tests. No environme
 | `ALLOWED_STAFF_EMAILS` | Additional exact email allowlist | Optional | Entries must belong to the allowed domain; callback and existing-session checks |
 | `ADMIN_EMAILS` | Administrator assignment and active-session authorization | Optional | Entries must belong to the allowed domain; removed administrator entries immediately lose elevated session permissions |
 | `BLOB_READ_WRITE_TOKEN` | Private Blob server operations and scoped grants | Production | Startup presence; provider validates token at runtime |
-| `OPENAI_API_KEY` | Optional AI text improvement | Optional | Presence gates availability; OpenAI validates credentials at runtime |
+| `OPENAI_API_KEY` | AI text improvement and news translation | Required to publish news | Kept server-side; OpenAI validates credentials at runtime |
 | `OPENAI_MODEL` | AI model selection | Optional | Nonempty identifier without whitespace; OpenAI validates model availability at runtime |
 | `STAFF_SESSION_TTL_HOURS` | Session expiration | Optional | Strict whole-number and bounded-range validation |
 | `STAFF_MAX_UPLOAD_MB` | Upload size limit | Optional | Strict whole-number/range validation; declared and actual size checks at upload |

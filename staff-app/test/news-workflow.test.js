@@ -112,6 +112,24 @@ test("News saves uploaded image URLs automatically with Google Forms links or no
   }
 });
 
+test("AI provider and malformed translation failures stop publication and preserve the draft", async (t) => {
+  const { reviewer, reader, state } = await fixture(t);
+  for (const [mode, code, status] of [
+    ["error", "AI_PROVIDER_FAILED", 502],
+    ["malformed", "AI_INVALID_RESPONSE", 502],
+    ["missing", "AI_UNAVAILABLE", 503]
+  ]) {
+    const created = await draft(reviewer, { ...article, title: `AI failure ${mode}` });
+    state.aiMode = mode;
+    const response = await reviewer.write("post", `/api/staff/submissions/${created.id}/submit`);
+    assert.equal(response.status, status, JSON.stringify(response.body));
+    assert.equal(response.body.error, code);
+    assert.equal(response.body.stage, "ai");
+    assert.equal((await reader.getSubmission(created.id)).status, "DRAFT");
+  }
+  assert.equal(state.publishCalls, 0);
+});
+
 test("News HTTP create replays are durable, ownership scoped and do not reset saved or submitted data", async (t) => {
   const { app, writer, reviewer, reader, engine } = await fixture(t);
   const key = randomUUID();
