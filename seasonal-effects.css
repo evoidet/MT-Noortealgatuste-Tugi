@@ -1,0 +1,105 @@
+/* =========================================================
+   SEASONAL EFFECTS
+   Lightweight, decorative autumn layer shared by public pages
+   ========================================================= */
+
+.seasonal-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  overflow: clip;
+  contain: layout paint style;
+  pointer-events: none;
+  user-select: none;
+}
+
+.seasonal-effect-item {
+  position: absolute;
+  top: -48px;
+  left: var(--seasonal-x);
+  display: block;
+  width: var(--seasonal-size);
+  height: var(--seasonal-size);
+  color: var(--seasonal-color);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: seasonal-leaf-fall var(--seasonal-duration) linear var(--seasonal-delay) infinite;
+}
+
+.seasonal-effect-item svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.seasonal-effect-item--pumpkin {
+  animation-name: seasonal-pumpkin-fall;
+}
+
+.seasonal-effects[data-paused="true"] .seasonal-effect-item {
+  animation-play-state: paused;
+}
+
+@keyframes seasonal-leaf-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -12vh, 0) rotate(0deg);
+  }
+
+  9% {
+    opacity: var(--seasonal-opacity);
+  }
+
+  48% {
+    transform: translate3d(var(--seasonal-sway), 52vh, 0) rotate(var(--seasonal-spin-mid));
+  }
+
+  88% {
+    opacity: var(--seasonal-opacity);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--seasonal-drift), 116vh, 0) rotate(var(--seasonal-spin));
+  }
+}
+
+@keyframes seasonal-pumpkin-fall {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translate3d(0, -12vh, 0) rotate(0deg);
+  }
+
+  27% {
+    opacity: var(--seasonal-opacity);
+  }
+
+  50% {
+    transform: translate3d(var(--seasonal-sway), 55vh, 0) rotate(var(--seasonal-spin-mid));
+  }
+
+  64% {
+    opacity: var(--seasonal-opacity);
+  }
+
+  74%,
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--seasonal-drift), 116vh, 0) rotate(var(--seasonal-spin));
+  }
+}
+
+@media (max-width: 700px) {
+  .seasonal-effect-item[data-seasonal-desktop-only="true"] {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seasonal-effects {
+    display: none !important;
+  }
+}

@@ -500,8 +500,10 @@
       "Shapes the organisation’s public image in the community and is responsible for development activities.",
       "Формирует образ организации в сообществе и отвечает за её развитие."
     ],
+    "home.team.founder": ["Asutaja", "Founder", "Основатель"],
+    "home.team.founderFemale": ["Asutaja", "Founder", "Основательница"],
     "home.team.projectManager": [
-      "Projekti juht",
+      "Projektijuht",
       "Project Manager",
       "Руководитель проектов"
     ],
@@ -509,6 +511,11 @@
       "Tegeleb projektide kirjutamise, uute võimaluste leidmise ning välissuhete arendamisega.",
       "Writes project proposals, identifies new opportunities and develops international relations.",
       "Занимается подготовкой проектных заявок, поиском новых возможностей и развитием международных связей."
+    ],
+    "home.team.projectManagerGeneralText": [
+      "Juhib projekte ning koordineerib nende ettevalmistamist ja elluviimist.",
+      "Leads projects and coordinates their preparation and delivery.",
+      "Руководит проектами и координирует их подготовку и реализацию."
     ],
     "home.team.finance": ["Finantsjuht", "Finance Manager", "Финансовый руководитель"],
     "home.team.financeText": [
@@ -536,15 +543,20 @@
       "Responsible for the organisation’s marketing, social media and public relations.",
       "Отвечает за маркетинг организации, социальные сети и связи с общественностью."
     ],
-    "home.team.communicationAssistant": [
-      "Kommunikatsioonijuhi assistent",
-      "Communications Assistant",
-      "Ассистент руководителя по коммуникациям"
+    "home.team.communicationSpecialist": [
+      "Kommunikatsioonispetsialist",
+      "Communications Specialist",
+      "Специалист по коммуникациям"
     ],
-    "home.team.communicationAssistantText": [
-      "Aitab kaasa kommunikatsiooni, info jagamise ja kogukondlike tegevuste elluviimisele.",
-      "Supports communications, information sharing and community activities.",
-      "Помогает в коммуникации, распространении информации и реализации общественных мероприятий."
+    "home.team.communicationSpecialistText": [
+      "Tegeleb kommunikatsiooni, info jagamise ja kogukondlike tegevuste elluviimisega.",
+      "Handles communications, information sharing and the delivery of community activities.",
+      "Занимается коммуникацией, распространением информации и реализацией общественных мероприятий."
+    ],
+    "home.team.photoPending": [
+      "Foto lisatakse peagi",
+      "Photo coming soon",
+      "Фото скоро появится"
     ],
     "home.team.openMario": [
       "Ava Mario Polshini täispikk foto",

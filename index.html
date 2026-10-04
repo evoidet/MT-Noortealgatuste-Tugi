@@ -77,12 +77,14 @@
 
   <!-- Общие стили сайта -->
   <link rel="stylesheet" href="/style.css?v=20260812-3">
+  <link rel="stylesheet" href="/seasonal-effects.css?v=20261004-1">
 
   <!-- Стили главной страницы -->
-  <link rel="stylesheet" href="/home.css?v=20260812-1">
-  <script src="/translations.js?v=20260821-1"></script>
+  <link rel="stylesheet" href="/home.css?v=20261004-1">
+  <script src="/translations.js?v=20261004-1"></script>
   <script src="/i18n.js?v=20260723-2"></script>
   <script src="/sender-init.js"></script>
+  <script type="module" src="/seasonal-effects.js?v=20261004-1"></script>
 </head>
 
 <body class="home-page">
@@ -612,42 +614,10 @@
             <div class="home-person-info">
               <p class="home-person-role" data-i18n="home.team.executiveDirector">Tegevjuht</p>
               <h3>Mihhail Semiyanov</h3>
-              <a class="home-person-email" href="mailto:mihhail@noortetugi.ee">mihhail@noortetugi.ee</a>
+              <a class="home-person-email" href="mailto:mihhail.semiyanov@noortetugi.ee">mihhail.semiyanov@noortetugi.ee</a>
               <p data-i18n="home.team.executiveDirectorText">
                 Kujundab organisatsiooni kuvandit kogukonnas ning 
                 vastutab arendustegevuste eest.
-              </p>
-            </div>
-          </article>
-
-          <article class="home-person-card home-person-card-lead" data-reveal data-tilt>
-            <div class="home-person-photo-wrap">
-              <img
-                src="assets/team/optimized/mario-480.webp"
-                srcset="
-                  assets/team/optimized/mario-480.webp 480w,
-                  assets/team/optimized/mario-960.webp 960w
-                "
-                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
-                data-full="assets/team/optimized/mario-960.webp"
-                alt="Mario Polshin"
-                class="team-photo team-photo-clickable"
-                width="480"
-                height="640"
-                loading="lazy"
-                decoding="async"
-                tabindex="0"
-                role="button"
-                aria-label="Ava Mario Polshini täispikk foto"
-               data-i18n-aria-label="home.team.openMario">
-            </div>
-            <div class="home-person-info">
-              <p class="home-person-role" data-i18n="home.team.projectManager">Projektijuht</p>
-              <h3>Mario Polshin</h3>
-              <a class="home-person-email" href="mailto:mario@noortetugi.ee">mario@noortetugi.ee</a>
-              <p data-i18n="home.team.projectManagerText">
-                Tegeleb projektide kirjutamise, uute võimaluste
-                leidmise ning välissuhete arendamisega.
               </p>
             </div>
           </article>
@@ -666,14 +636,14 @@
           <article class="home-person-card" data-reveal data-tilt>
             <div class="home-person-photo-wrap">
               <img
-                src="assets/team/optimized/egor-480.webp"
+                src="assets/team/optimized/mario-480.webp"
                 srcset="
-                  assets/team/optimized/egor-480.webp 480w,
-                  assets/team/optimized/egor-960.webp 960w
+                  assets/team/optimized/mario-480.webp 480w,
+                  assets/team/optimized/mario-960.webp 960w
                 "
                 sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
-                data-full="assets/team/optimized/egor-960.webp"
-                alt="Egor Stepanov"
+                data-full="assets/team/optimized/mario-960.webp"
+                alt="Mario Polshin"
                 class="team-photo team-photo-clickable"
                 width="480"
                 height="640"
@@ -681,16 +651,16 @@
                 decoding="async"
                 tabindex="0"
                 role="button"
-                aria-label="Ava Egor Stepanovi täispikk foto"
-               data-i18n-aria-label="home.team.openEgor">
+                aria-label="Ava Mario Polshini täispikk foto"
+                data-i18n-aria-label="home.team.openMario">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role" data-i18n="home.team.finance">Finantsjuht</p>
-              <h3>Egor Stepanov</h3>
-              <a class="home-person-email" href="mailto:egor@noortetugi.ee">egor@noortetugi.ee</a>
-              <p data-i18n="home.team.financeText">
-                Tegeleb organisatsiooni rahaliste küsimuste, eelarve
-                koostamise ja finantsaruandlusega.
+              <p class="home-person-role"><span data-i18n="home.team.founder">Asutaja</span><span aria-hidden="true"> · </span><span data-i18n="home.team.projectManager">Projektijuht</span></p>
+              <h3>Mario Polshin</h3>
+              <a class="home-person-email" href="mailto:mario.polshin@noortetugi.ee">mario.polshin@noortetugi.ee</a>
+              <p data-i18n="home.team.projectManagerText">
+                Tegeleb projektide kirjutamise, uute võimaluste
+                leidmise ning välissuhete arendamisega.
               </p>
             </div>
           </article>
@@ -714,20 +684,52 @@
                 tabindex="0"
                 role="button"
                 aria-label="Ava Sofia Germi täispikk foto"
-               data-i18n-aria-label="home.team.openSofia">
+                data-i18n-aria-label="home.team.openSofia">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role" data-i18n="home.team.communication">Kommunikatsioonijuht</p>
+              <p class="home-person-role"><span data-i18n="home.team.founderFemale">Asutaja</span><span aria-hidden="true"> · </span><span data-i18n="home.team.projectManager">Projektijuht</span></p>
               <h3>Sofia Germ</h3>
-              <a class="home-person-email" href="mailto:sofia@noortetugi.ee">sofia@noortetugi.ee</a>
-              <p data-i18n="home.team.communicationText">
-                Vastutab kommunikatsiooni, avaliku info ja organisatsiooni
-                nähtavuse arendamise eest.
+              <a class="home-person-email" href="mailto:sofia.germ@noortetugi.ee">sofia.germ@noortetugi.ee</a>
+              <p data-i18n="home.team.projectManagerGeneralText">
+                Juhib projekte ning koordineerib nende ettevalmistamist
+                ja elluviimist.
               </p>
             </div>
           </article>
 
           <article class="home-person-card" data-reveal data-reveal-delay="140" data-tilt>
+            <div class="home-person-photo-wrap">
+              <img
+                src="assets/team/optimized/egor-480.webp"
+                srcset="
+                  assets/team/optimized/egor-480.webp 480w,
+                  assets/team/optimized/egor-960.webp 960w
+                "
+                sizes="(max-width: 700px) 88vw, (max-width: 1100px) 44vw, 300px"
+                data-full="assets/team/optimized/egor-960.webp"
+                alt="Egor Stepanov"
+                class="team-photo team-photo-clickable"
+                width="480"
+                height="640"
+                loading="lazy"
+                decoding="async"
+                tabindex="0"
+                role="button"
+                aria-label="Ava Egor Stepanovi täispikk foto"
+               data-i18n-aria-label="home.team.openEgor">
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role"><span data-i18n="home.team.founder">Asutaja</span><span aria-hidden="true"> · </span><span data-i18n="home.team.finance">Finantsjuht</span></p>
+              <h3>Egor Stepanov</h3>
+              <a class="home-person-email" href="mailto:egor.stepanov@noortetugi.ee">egor.stepanov@noortetugi.ee</a>
+              <p data-i18n="home.team.financeText">
+                Tegeleb organisatsiooni rahaliste küsimuste, eelarve
+                koostamise ja finantsaruandlusega.
+              </p>
+            </div>
+          </article>
+
+          <article class="home-person-card" data-reveal data-reveal-delay="210" data-tilt>
             <div class="home-person-photo-wrap">
               <img
                 src="assets/team/optimized/jekaterina-480.webp"
@@ -749,9 +751,9 @@
                data-i18n-aria-label="home.team.openJekaterina">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role" data-i18n="home.team.marketing">Turundusjuht</p>
+              <p class="home-person-role"><span data-i18n="home.team.founderFemale">Asutaja</span><span aria-hidden="true"> · </span><span data-i18n="home.team.marketing">Turundusjuht</span></p>
               <h3>Jekaterina Rogožina</h3>
-              <a class="home-person-email" href="mailto:jekaterina@noortetugi.ee">jekaterina@noortetugi.ee</a>
+              <a class="home-person-email" href="mailto:jekaterina.rogozina@noortetugi.ee">jekaterina.rogozina@noortetugi.ee</a>
               <p data-i18n="home.team.marketingText">
                 Vastutab organisatsiooni turundustegevuste, sotsiaalmeedia
                 ja avalike suhete eest.
@@ -759,7 +761,7 @@
             </div>
           </article>
 
-          <article class="home-person-card" data-reveal data-reveal-delay="210" data-tilt>
+          <article class="home-person-card" data-reveal data-reveal-delay="280" data-tilt>
             <div class="home-person-photo-wrap">
               <img
                 src="assets/team/optimized/andrei-480.webp"
@@ -781,12 +783,56 @@
                data-i18n-aria-label="home.team.openAndrei">
             </div>
             <div class="home-person-info">
-              <p class="home-person-role" data-i18n="home.team.communicationAssistant">Kommunikatsioonijuhi assistent</p>
+              <p class="home-person-role" data-i18n="home.team.communicationSpecialist">Kommunikatsioonispetsialist</p>
               <h3>Andrei Ostretsov</h3>
-              <a class="home-person-email" href="mailto:andrei@noortetugi.ee">andrei@noortetugi.ee</a>
-              <p data-i18n="home.team.communicationAssistantText">
-                Aitab kaasa kommunikatsiooni, info jagamise ja kogukondlike
-                tegevuste elluviimisele.
+              <a class="home-person-email" href="mailto:andrei.ostretsov@noortetugi.ee">andrei.ostretsov@noortetugi.ee</a>
+              <p data-i18n="home.team.communicationSpecialistText">
+                Tegeleb kommunikatsiooni, info jagamise ja kogukondlike
+                tegevuste elluviimisega.
+              </p>
+            </div>
+          </article>
+
+          <article class="home-person-card" data-reveal data-reveal-delay="350" data-tilt>
+            <div class="home-person-photo-wrap home-person-photo-wrap-placeholder">
+              <div
+                class="team-photo team-photo-placeholder"
+                role="img"
+                aria-label="Foto lisatakse peagi"
+                data-i18n-aria-label="home.team.photoPending"
+              >
+                <span aria-hidden="true">EK</span>
+              </div>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role" data-i18n="home.team.projectManager">Projektijuht</p>
+              <h3>Erik Kovaltšuk</h3>
+              <a class="home-person-email" href="mailto:erik.kovaltsuk@noortetugi.ee">erik.kovaltsuk@noortetugi.ee</a>
+              <p data-i18n="home.team.projectManagerGeneralText">
+                Juhib projekte ning koordineerib nende ettevalmistamist
+                ja elluviimist.
+              </p>
+            </div>
+          </article>
+
+          <article class="home-person-card" data-reveal data-reveal-delay="420" data-tilt>
+            <div class="home-person-photo-wrap home-person-photo-wrap-placeholder">
+              <div
+                class="team-photo team-photo-placeholder"
+                role="img"
+                aria-label="Foto lisatakse peagi"
+                data-i18n-aria-label="home.team.photoPending"
+              >
+                <span aria-hidden="true">MK</span>
+              </div>
+            </div>
+            <div class="home-person-info">
+              <p class="home-person-role" data-i18n="home.team.finance">Finantsjuht</p>
+              <h3>Mihhail Komarov</h3>
+              <a class="home-person-email" href="mailto:mihhail.komarov@noortetugi.ee">mihhail.komarov@noortetugi.ee</a>
+              <p data-i18n="home.team.financeText">
+                Tegeleb organisatsiooni rahaliste küsimuste, eelarve
+                koostamise ja finantsaruandlusega.
               </p>
             </div>
           </article>

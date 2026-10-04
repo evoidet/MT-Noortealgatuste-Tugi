@@ -879,7 +879,7 @@ document.addEventListener("DOMContentLoaded", function () {
      MEESKONNA FOTODE SUJUV LAADIMINE
      ========================================================= */
 
-  document.querySelectorAll(".team-photo").forEach(function (image) {
+  document.querySelectorAll("img.team-photo").forEach(function (image) {
     if (image.complete) {
       image.classList.add("loaded");
     } else {

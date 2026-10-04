@@ -11,9 +11,9 @@ const expectedOutputDirectory = resolve(projectRoot, "dist");
 const publicFiles = new Set([
   "index.html", "uudised.html", "vorgustik.html", "laager.html", "street.html",
   "tunnustusgala.html", "privaatsuspoliitika.html", "dokumendid.html",
-  "style.css", "home.css", "news.css", "vorgustik.css", "camp.css", "street.css",
+  "style.css", "seasonal-effects.css", "home.css", "news.css", "vorgustik.css", "camp.css", "street.css",
   "gala.css", "privacy.css", "documents.css", "translations.js", "i18n.js",
-  "script.js", "site-config.js", "sender-init.js", "news-data.js", "published-news.json", "news-home.js",
+  "script.js", "seasonal-effects.js", "site-config.js", "sender-init.js", "news-data.js", "published-news.json", "news-home.js",
   "news.js", "news-photo-lightbox.js", "favicon.ico", "favicon.png",
   "apple-touch-icon.png", "robots.txt", "sitemap.xml"
 ]);
