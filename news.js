@@ -421,7 +421,10 @@
       });
     };
 
+    let revealObserver = null;
     const initRevealAndTilt = (root = document) => {
+      // Search/filter rerenders replace these nodes. Release old targets first.
+      revealObserver?.disconnect();
       const reducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
@@ -431,7 +434,7 @@
       if (reducedMotion || !("IntersectionObserver" in window)) {
         revealItems.forEach((item) => item.classList.add("is-visible"));
       } else {
-        const observer = new IntersectionObserver(
+        revealObserver = new IntersectionObserver(
           (entries, currentObserver) => {
             entries.forEach((entry) => {
               if (!entry.isIntersecting) return;
@@ -445,7 +448,7 @@
           }
         );
 
-        revealItems.forEach((item) => observer.observe(item));
+        revealItems.forEach((item) => revealObserver.observe(item));
       }
 
       if (

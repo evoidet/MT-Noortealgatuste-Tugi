@@ -2,6 +2,9 @@
 export const NEWS_IMAGE_LIMITS = Object.freeze({
   maxBytes: 25 * 1024 * 1024,
   maxPixels: 40_000_000,
+  passthroughMaxBytes: 512 * 1024,
+  passthroughMaxWidth: 1920,
+  passthroughMaxHeight: 1280,
   width: 1200,
   height: 750,
   minAspect: 1.49,
@@ -164,7 +167,7 @@ function encodeCanvas(canvas, type, quality) {
   });
 }
 
-/** Prepare one raster image in the browser; conforming JPEG/PNG/WebP files retain their original bytes. */
+/** Keep small, web-sized originals; normalize larger covers with the existing encoder. */
 export async function prepareNewsImage(file, dependencies = {}) {
   if (!file || typeof file.arrayBuffer !== "function" || !file.size) invalidImage();
   if (file.size > NEWS_IMAGE_LIMITS.maxBytes) throw new NewsImageError("image-too-large");
@@ -183,6 +186,9 @@ export async function prepareNewsImage(file, dependencies = {}) {
     const aspect = width / height;
     if (["jpg", "png", "webp"].includes(metadata.extension) &&
         width >= NEWS_IMAGE_LIMITS.width && height >= NEWS_IMAGE_LIMITS.height &&
+        width <= NEWS_IMAGE_LIMITS.passthroughMaxWidth &&
+        height <= NEWS_IMAGE_LIMITS.passthroughMaxHeight &&
+        file.size <= NEWS_IMAGE_LIMITS.passthroughMaxBytes &&
         aspect >= NEWS_IMAGE_LIMITS.minAspect && aspect <= NEWS_IMAGE_LIMITS.maxAspect &&
         metadata.orientation === 1 && !metadata.animated) {
       return { blob: file, extension: metadata.extension, width, height, unchanged: true };

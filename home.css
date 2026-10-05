@@ -2029,6 +2029,7 @@ body.home-page .home-person-info {
 }
 
 body.home-page .home-person-role {
+  overflow-wrap: anywhere;
   margin: 0 0 7px;
   color: var(--home-green);
   font-size: 11px;

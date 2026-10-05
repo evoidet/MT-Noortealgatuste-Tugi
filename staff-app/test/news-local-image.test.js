@@ -133,6 +133,22 @@ test("conforming JPEG, PNG and all WebP headers preserve the exact input without
   }
 });
 
+test("large covers are optimized even when their aspect ratio already conforms", async () => {
+  for (const [file, width, height] of [
+    [png(4800, 3000), 4800, 3000],
+    [new Blob([png(1600, 1000), new Uint8Array(NEWS_IMAGE_LIMITS.passthroughMaxBytes)], { type: "image/png" }), 1600, 1000]
+  ]) {
+    const { dependencies, calls } = browser(width, height);
+    const result = await prepareNewsImage(file, dependencies);
+    assert.equal(result.unchanged, false);
+    assert.equal(result.width, 1200);
+    assert.equal(result.height, 750);
+    assert.equal(result.extension, "webp");
+    assert.equal(calls.encodes.length, 1);
+    assert.equal(calls.closed, 1);
+  }
+});
+
 test("format is determined from bytes rather than a filename or MIME hint", async () => {
   const file = png(1200, 750, "image/jpeg");
   assert.equal((await prepareNewsImage(file, browser(1200, 750).dependencies)).extension, "png");
