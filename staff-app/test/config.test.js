@@ -168,11 +168,11 @@ test("production reimbursement recipients require stable workspace emails and di
 test("the noortetugi workspace includes the approved reimbursement recipients", () => {
   const config = loadConfig(productionOverrides({ reimbursementRecipients: undefined }));
   assert.deepEqual([...config.reimbursementRecipients], [
-    ["sofia@noortetugi.ee", "Sofia Germ"],
-    ["andrei@noortetugi.ee", "Andrei Ostretsov"],
-    ["jekaterina@noortetugi.ee", "Jekaterina Rogožina"],
-    ["mihhail@noortetugi.ee", "Mihhail Semiyanov"],
-    ["mario@noortetugi.ee", "Mario Polshin"]
+    ["sofia.germ@noortetugi.ee", "Sofia Germ"],
+    ["andrei.ostretsov@noortetugi.ee", "Andrei Ostretsov"],
+    ["jekaterina.rogozina@noortetugi.ee", "Jekaterina Rogožina"],
+    ["mihhail.semiyanov@noortetugi.ee", "Mihhail Semiyanov"],
+    ["mario.polshin@noortetugi.ee", "Mario Polshin"]
   ]);
 });
 

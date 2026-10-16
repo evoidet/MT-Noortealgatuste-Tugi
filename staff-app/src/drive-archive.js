@@ -1,7 +1,9 @@
+import { currentEmail } from "./staff-identities.js";
 import { extname } from "node:path";
 import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
-import { google } from "googleapis";
+// Import only Drive instead of eagerly loading every generated Google API.
+import * as google from "googleapis/build/src/apis/drive/index.js";
 
 // The service must discover a pre-existing configured root/personal folder and
 // recover tagged objects it created there. Explicit folder grants or Shared
@@ -312,7 +314,8 @@ export function createDriveArchiveService(config, overrides = {}) {
           "The reimbursement recipient is not approved."
         );
       }
-      const parentFolderId = config.googleDriveUserFolderMap.get(recipientEmail);
+      const parentFolderId = config.googleDriveUserFolderMap.get(currentEmail(recipientEmail)) ||
+        config.googleDriveUserFolderMap.get(recipientEmail);
       if (!parentFolderId) {
         throw new DriveArchiveError(
           "DRIVE_FOLDER_NOT_CONFIGURED",

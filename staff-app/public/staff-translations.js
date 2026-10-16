@@ -357,7 +357,7 @@
     "staff.expense.person": ["Hüvitise saaja", "Reimbursement recipient", "Получатель возмещения"],
     "staff.expense.reimbursementRecipient": ["Kellele raha tagastatakse?", "Reimbursement recipient", "Кому возвращаются деньги?"],
     "staff.expense.contactEmail": ["Kontakt / e-post", "Contact / email", "Контакт / эл. почта"],
-    "staff.expense.contactEmailPlaceholder": ["nt mihhail@noortetugi.ee", "e.g. mihhail@noortetugi.ee", "напр. mihhail@noortetugi.ee"],
+    "staff.expense.contactEmailPlaceholder": ["nt mihhail.semiyanov@noortetugi.ee", "e.g. mihhail.semiyanov@noortetugi.ee", "напр. mihhail.semiyanov@noortetugi.ee"],
     "staff.expense.accountHolder": ["Kontoomanik", "Account holder", "Владелец счёта"],
     "staff.expense.accountHolderPlaceholder": ["nt Mihhail Semiyanov", "e.g. Mihhail Semiyanov", "напр. Mihhail Semiyanov"],
     "staff.expense.iban": ["IBAN", "IBAN", "IBAN"],

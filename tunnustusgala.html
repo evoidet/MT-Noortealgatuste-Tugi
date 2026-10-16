@@ -1118,7 +1118,7 @@
 
         lastFocusedItem = item;
 
-        lightboxImage.src = image.currentSrc || image.src;
+        lightboxImage.src = image.dataset.full || image.currentSrc || image.src;
         lightboxImage.alt = image.alt;
 
         const galleryCaption = item.querySelector(

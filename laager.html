@@ -1039,7 +1039,7 @@
         item.addEventListener("click", (event) => {
           event.preventDefault();
 
-          lightboxImage.src = image.currentSrc || image.src;
+          lightboxImage.src = image.dataset.full || image.currentSrc || image.src;
           lightboxImage.alt = image.alt;
 
           const caption = item.querySelector("span");

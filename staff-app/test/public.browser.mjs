@@ -225,6 +225,27 @@ try {
     await page.waitForLoadState("networkidle");
     assert.equal(await page.locator("#newsArticleContent h1").innerText(), minimum.title);
   }
+  for (const [route, cardSelector, overlaySelector] of [
+    ["laager.html", ".camp-gallery-item", ".camp-lightbox img"],
+    ["tunnustusgala.html", ".gala-gallery-item", ".gala-lightbox img"],
+    ["uudised.html", ".news-article-image", ".news-photo-lightbox-image"]
+  ]) {
+    label = `full-resolution lightbox ${route}`;
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${origin}/${route}?lang=et`, { waitUntil: "networkidle" });
+    if (route === "uudised.html") {
+      // Listing cards navigate to an article; the article photo opens its lightbox.
+      await page.locator(".news-featured-media").first().click();
+      await page.locator("#newsArticleContent h1").waitFor();
+    }
+    const card = page.locator(`${cardSelector}:has(img[data-full])`).first();
+    const original = await card.locator("img").getAttribute("data-full");
+    assert.ok(original && !original.includes("/responsive/"));
+    await card.click();
+    await page.locator(overlaySelector).waitFor({ state: "visible" });
+    assert.equal(await page.locator(overlaySelector).getAttribute("src"), original);
+    await page.waitForFunction((selector) => { const img = document.querySelector(selector); return img.complete && img.naturalWidth > 0; }, overlaySelector);
+  }
   assert.deepEqual(failures, []);
   console.log(`PASS: public pages, static and published articles, optional fields, images, category/search, older links, API errors/retry; screenshots: ${output}`);
 } finally {

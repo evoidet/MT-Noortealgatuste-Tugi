@@ -1,3 +1,5 @@
+import { currentEmail } from "./staff-identities.js";
+import { financialRoutes } from "./financial-routes.js";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { Readable } from "node:stream";
@@ -534,8 +536,8 @@ export function createStaffApp({
   }
 
   function selectedReimbursementRecipient(value, user) {
-    const requested = String(value || "").trim().toLowerCase();
-    const ownEmail = String(user?.email || "").trim().toLowerCase();
+    const requested = currentEmail(value);
+    const ownEmail = currentEmail(user?.email);
     if (reimbursementRecipientMap.size === 0) {
       if (!requested || requested === ownEmail) {
         return { email: ownEmail, name: String(user?.name || user?.email || "").trim() };
@@ -923,7 +925,10 @@ export function createStaffApp({
     next();
   });
   app.use(express.json({ limit: "256kb", strict: true }));
-  app.use(auth.optionalSession);
+  // Published image requests have their own publication/attachment checks below.
+  // Avoid a session lookup/write for every image requested by a signed-in member.
+  app.use((request, response, next) => request.path.startsWith('/api/staff/public/news/')
+    ? next() : auth.optionalSession(request, response, next));
 
   app.use("/assets", express.static(sharedAssetsDirectory, {
     dotfiles: "deny",
@@ -954,16 +959,11 @@ export function createStaffApp({
     const payload = auth.sessionPayload(request);
     if (payload.authenticated) {
       payload.permissions = permissionsForUser(request.user, permissionContext);
+      payload.financialAccess = database.hasFinancialAccess ? await database.hasFinancialAccess(request.user.id) : false;
       payload.aiAvailable = ai.available;
       payload.documentTemplates = getDocumentTemplateAvailability();
       payload.reimbursementRecipients = availableReimbursementRecipients(request.user);
-      if (request.user.role === "admin") {
-        try {
-          await reconcileBlobStorage({ config, database, limit: 10 });
-        } catch {
-          console.error("Blob reconciliation could not run during admin session bootstrap.");
-        }
-      }
+
     }
     response.json(payload);
   }));
@@ -994,6 +994,23 @@ export function createStaffApp({
       if (!opened || opened.statusCode !== 200 || !opened.stream) {
         return response.status(404).json({ error: "NOT_FOUND" });
       }
+      if (request.query.w !== undefined || request.query.format !== undefined) {
+        const width = Number(request.query.w);
+        const format = String(request.query.format || 'webp');
+        if (![480, 960, 1440].includes(width) || !['webp','avif'].includes(format) || !attachment.mimeType.startsWith('image/')) {
+          await opened.stream.cancel();
+          return response.status(400).json({ error: 'INVALID_IMAGE_VARIANT' });
+        }
+        try {
+          const { responsivePublicImage } = await import('./public-image.js');
+          const buffer = await responsivePublicImage(opened, width, format);
+          return response.set({ 'Content-Type': `image/${format}`, 'Cache-Control': 'public, max-age=3600, s-maxage=86400', 'X-Content-Type-Options': 'nosniff' }).send(buffer);
+        } catch (error) {
+          // A cold gallery can exceed the decoder queue. Preserve a working
+          // image by streaming its original bytes instead of returning a 503.
+          if (error.code !== 'IMAGE_BUSY') return response.status(422).json({ error: 'IMAGE_PROCESSING_FAILED' });
+        }
+      }
       response.set({
         "Content-Type": attachment.mimeType,
         "Content-Length": String(opened.blob.size),
@@ -1009,6 +1026,8 @@ export function createStaffApp({
   app.post("/api/staff/logout", auth.requireSession, auth.verifyCsrf, auth.logout);
 
   app.use("/api/staff", auth.requireSession);
+
+  app.use("/api/staff/financial", financialRoutes({ database, auth, mailService, limiter: mutationLimiter }));
 
   app.get("/api/staff/submissions", asyncRoute(async (request, response) => {
     const scope = request.query.scope === "review" ? "review" : "mine";

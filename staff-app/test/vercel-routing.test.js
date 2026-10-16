@@ -16,6 +16,7 @@ test("build includes reviewed public entries and excludes arbitrary root scripts
     await mkdir(resolve(root, "assets"));
     await mkdir(resolve(root, "staff-app/public"), { recursive: true });
     await writeFile(resolve(root, "tools/build-vercel.mjs"), await readFile(resolve(repositoryRoot, "tools/build-vercel.mjs")));
+    await writeFile(resolve(root, "tools/optimize-images.mjs"), "export async function optimizeImages() {}");
     await writeFile(resolve(root, "index.html"), "<h1>Public</h1>");
     await writeFile(resolve(root, "unpublished-notes.txt"), "Synthetic internal note");
     await writeFile(resolve(root, "internal-tool.js"), "// Synthetic internal script");
@@ -36,6 +37,7 @@ test("production build stops before replacing assets when published news preserv
     await mkdir(resolve(root, "staff-app/scripts"), { recursive: true });
     await writeFile(resolve(root, "dist/previous.html"), "Previous deployment");
     await writeFile(resolve(root, "tools/build-vercel.mjs"), await readFile(resolve(repositoryRoot, "tools/build-vercel.mjs")));
+    await writeFile(resolve(root, "tools/optimize-images.mjs"), "export async function optimizeImages() {}");
     for (const file of ["db-migrate.mjs", "db-check.mjs"]) await writeFile(resolve(root, `staff-app/scripts/${file}`), "");
     await writeFile(resolve(root, "staff-app/scripts/reconcile-news.mjs"),
       'if (!process.argv.includes("--check")) throw new Error("Expected read-only check"); process.exitCode = 1;');
@@ -65,6 +67,7 @@ test("production news reconciliation is enabled by default and disabled only by 
         await mkdir(resolve(root, "staff-app/public"), { recursive: true });
         await mkdir(resolve(root, "staff-app/scripts"), { recursive: true });
         await writeFile(resolve(root, "tools/build-vercel.mjs"), await readFile(resolve(repositoryRoot, "tools/build-vercel.mjs")));
+    await writeFile(resolve(root, "tools/optimize-images.mjs"), "export async function optimizeImages() {}");
         for (const [file, marker] of [["db-migrate.mjs", "migrate"], ["db-check.mjs", "check"]]) {
           await writeFile(resolve(root, `staff-app/scripts/${file}`),
             `import { appendFile } from "node:fs/promises"; await appendFile(new URL("../../steps.log", import.meta.url), ${JSON.stringify(marker + "\n")});`);

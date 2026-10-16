@@ -88,7 +88,7 @@ async function completeAttachment(file, completion) {
   }
 }
 
-async function request(path, options = {}) {
+export async function request(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
   const headers = new Headers(options.headers || {});
   headers.set("Accept", "application/json");

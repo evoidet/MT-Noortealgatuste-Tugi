@@ -16,6 +16,10 @@ async function main() {
     await database.assertDriveArchiveSchema();
     await database.assertReimbursementRecipientSchema();
     await database.assertInvoiceDriveArchiveSchema();
+    await database.raw.query('SELECT id, kind, number, status, data, issuer, pdf, version, correction_of FROM financial_documents LIMIT 0');
+    await database.raw.query('SELECT user_id FROM financial_access LIMIT 0');
+    await database.raw.query('SELECT document_id, actor_id, snapshot FROM financial_history LIMIT 0');
+    await database.raw.query('SELECT document_id, recipient, status FROM financial_deliveries LIMIT 0');
     // Deployment-wide checks stay here rather than coupling expense submission
     // to news migration/index availability at runtime.
     const indexes = await database.raw.query(`SELECT indexname FROM pg_indexes

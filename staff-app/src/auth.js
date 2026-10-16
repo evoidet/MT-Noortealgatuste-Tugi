@@ -1,3 +1,4 @@
+import { policyHasEmail, newMembers } from "./staff-identities.js";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { parse as parseCookies } from "cookie";
 import { OAuth2Client } from "google-auth-library";
@@ -160,7 +161,7 @@ export function createAuth({ config, database, googleClient: suppliedGoogleClien
     if (session) {
       const email = normalizeEmail(session.user?.email);
       if (!emailHasExactDomain(email, config.allowedGoogleDomain) ||
-          (config.allowedStaffEmails.size > 0 && !config.allowedStaffEmails.has(email))) {
+          (config.allowedStaffEmails.size > 0 && !policyHasEmail(config.allowedStaffEmails, email) && !newMembers.includes(email))) {
         await database.deleteSession(sha256(token));
         clearSessionCookie(response);
         return next();
@@ -168,7 +169,7 @@ export function createAuth({ config, database, googleClient: suppliedGoogleClien
       // Apply changed access policy to existing sessions as well as new logins.
       const user = {
         ...session.user,
-        role: session.user.role === "admin" && !config.adminEmails.has(email)
+        role: session.user.role === "admin" && !policyHasEmail(config.adminEmails, email)
           ? "member"
           : session.user.role
       };
@@ -292,7 +293,7 @@ export function createAuth({ config, database, googleClient: suppliedGoogleClien
         emailHasExactDomain(email, config.allowedGoogleDomain) &&
         expiresAtSeconds * 1000 > Date.now()
       );
-      const allowedByList = config.allowedStaffEmails.size === 0 || config.allowedStaffEmails.has(email);
+      const allowedByList = config.allowedStaffEmails.size === 0 || policyHasEmail(config.allowedStaffEmails, email) || newMembers.includes(email);
       if (!authorizedIdentity || !allowedByList) {
         await auditSafely({
           user: email ? { email } : null,
@@ -308,8 +309,9 @@ export function createAuth({ config, database, googleClient: suppliedGoogleClien
         email,
         name: (suppliedName || email.split("@")[0]).slice(0, 160),
         profilePictureUrl: profilePictureUrl(payload.picture),
-        role: config.adminEmails.has(email) ? "admin" : "member"
+        role: policyHasEmail(config.adminEmails, email) ? "admin" : "member"
       });
+      await database.grantVerifiedFinancialAccess?.(user);
       await createSession(request, response, user);
       await auditSafely({ user, action: "LOGIN_SUCCESS", ipHash: clientIpHash(request) });
       response.redirect(attempt.redirectPath);

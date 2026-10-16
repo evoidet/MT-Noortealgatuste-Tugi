@@ -251,6 +251,7 @@
             ? " news-image-contain"
             : ""}"
           src="${escapeHtml(item.image || "")}"
+          ${window.newsImageAttributes?.(item.image) || ""}
           alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
           width="1200"
           height="750"
@@ -285,6 +286,7 @@
         <figure class="news-article-original" data-news-reveal>
           <img
             src="${escapeHtml(source)}"
+            ${window.newsImageAttributes?.(source) || ""}
             alt="${escapeHtml(
               item.imageAlt || item.title || t("news.ui.photo")
             )}"

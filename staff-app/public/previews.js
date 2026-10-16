@@ -406,7 +406,7 @@ export function renderExpensePreview(data, options = {}) {
     ["Dokumendi nr / kuupäev", values.documentNumberAndDate],
     ["Organisatsioon / registrikood", "MTÜ Noortealgatuste Tugi, 80652930"],
     ["Juriidiline aadress", "Maleva tn 35-32, Ahtme linnaosa, Kohtla-Järve linn, Ida-Viru maakond, 31025"],
-    ["Dokument esitatakse", "Egor Stepanov, finantsjuht / juhatuse liige, egor@noortetugi.ee"],
+    ["Dokument esitatakse", "Egor Stepanov, finantsjuht / juhatuse liige, egor.stepanov@noortetugi.ee"],
     ["Hüvitise saaja", values.recipientName],
     ["Roll seoses MTÜ tegevusega", values.recipientRole],
     ["Kontakt, kontoomanik ja IBAN", values.contactAccountIban],

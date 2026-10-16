@@ -1,3 +1,4 @@
+import { optimizeImages } from "./optimize-images.mjs";
 import { spawn } from "node:child_process";
 import { cp, mkdir, readdir, rm } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
@@ -14,7 +15,7 @@ const publicFiles = new Set([
   "style.css", "seasonal-effects.css", "home.css", "news.css", "vorgustik.css", "camp.css", "street.css",
   "gala.css", "privacy.css", "documents.css", "translations.js", "i18n.js",
   "script.js", "seasonal-effects.js", "site-config.js", "sender-init.js", "news-data.js", "published-news.json", "news-home.js",
-  "news.js", "news-photo-lightbox.js", "favicon.ico", "favicon.png",
+  "responsive-images.js", "news.js", "news-photo-lightbox.js", "favicon.ico", "favicon.png",
   "apple-touch-icon.png", "robots.txt", "sitemap.xml"
 ]);
 
@@ -65,5 +66,7 @@ for (const entry of await readdir(projectRoot, { withFileTypes: true })) {
 
 await cp(resolve(projectRoot, "assets"), resolve(outputDirectory, "assets"), { recursive: true });
 await cp(resolve(projectRoot, "staff-app/public"), resolve(outputDirectory, "admin"), { recursive: true });
+
+await optimizeImages(projectRoot, outputDirectory, publicFiles);
 
 console.log("Prepared the public site and staff admin assets in dist/.");

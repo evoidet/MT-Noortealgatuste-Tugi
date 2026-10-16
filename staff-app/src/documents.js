@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import Docxtemplater from "docxtemplater";
 import PizZip from "pizzip";
+import { emailChanges } from "./staff-identities.js";
 
 import {
   DocumentValidationError, cleanText, firstDefined, formatDate, formatMoney,
@@ -54,7 +55,17 @@ async function loadTemplate(kind) {
     if (!templatePath) {
       throw new Error(`Unknown document template kind: ${kind}`);
     }
-    const pending = readFile(templatePath).catch((error) => {
+    const pending = readFile(templatePath).then((buffer) => {
+      // Retain the original template file and existing historical documents,
+      // but use verified current contacts in every newly generated document.
+      const zip = new PizZip(buffer);
+      for (const name of Object.keys(zip.files).filter(name => name.startsWith("word/") && /\.(xml|rels)$/.test(name))) {
+        let xml = zip.file(name).asText();
+        for (const [oldEmail, newEmail] of Object.entries(emailChanges)) xml = xml.split(oldEmail).join(newEmail);
+        zip.file(name, xml);
+      }
+      return zip.generate({ type: "nodebuffer", compression: "DEFLATE" });
+    }).catch((error) => {
       templateCache.delete(kind);
       throw new DocumentTemplateUnavailableError(kind, error);
     });

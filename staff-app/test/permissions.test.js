@@ -113,3 +113,11 @@ test("admin has all-submission read access and the intended review capabilities"
   assert.equal(canReviewType(admin, "news"), true);
   assert.equal(canReviewType(admin, "invoice"), false);
 });
+
+test("legacy invoice policy permits the current address without granting reverse alias access", () => {
+  const current = { ...member, email: 'egor.stepanov@noortetugi.ee' };
+  const old = { ...member, email: 'egor@noortetugi.ee' };
+  assert.equal(canCreateType(current, 'invoice', { invoiceCreatorEmail: old.email }), true);
+  assert.equal(canCreateType(old, 'invoice', { invoiceCreatorEmail: current.email }), false);
+  assert.equal(canCreateType(old, 'invoice', { invoiceCreatorEmail: old.email }), true);
+});

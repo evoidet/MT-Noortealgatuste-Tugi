@@ -181,6 +181,7 @@ function configureAuthenticatedShell() {
     element.hidden = !canCreate(element.dataset.feature);
   });
 
+  document.querySelectorAll('[data-financial-access]').forEach(element => { element.hidden = !state.session?.financialAccess; });
   void refreshReviewBadge();
 }
 
@@ -693,6 +694,13 @@ async function navigate(view, options = {}) {
 
   if (view === "home") {
     renderHome();
+  } else if (view === "resignation") {
+    elements.viewRoot.innerHTML = '<section class="staff-home"><h1>Lahkumisavaldus</h1><p>Lahkumisavalduse vorm on koostamisel.</p></section>';
+  } else if (view === "financial") {
+    if (!state.session?.financialAccess) return;
+    const { mountFinancial } = await import('./financial.js');
+    if (state.view !== "financial") return;
+    await mountFinancial(elements.viewRoot);
   } else if (view === "mine") {
     await renderList("mine", options.type || "");
   } else if (view === "review") {
@@ -748,6 +756,8 @@ function renderHome() {
           </div>
         </div>
         <div class="staff-action-grid">
+          <button class="staff-action-card" type="button" data-action="navigate" data-view="resignation"><span class="staff-action-copy"><strong>Lahkumisavaldus</strong><small>Liikmesusest lahkumise avaldus</small></span></button>
+          ${state.session?.financialAccess ? '<button class="staff-action-card" type="button" data-action="navigate" data-view="financial"><span class="staff-action-copy"><strong>DOKUMENDID</strong><small>Arved ja hinnapakkumised</small></span></button>' : ''}
           ${homeCard({
             type: "expense",
             icon: "€",
@@ -768,12 +778,7 @@ function renderHome() {
             title: "staff.home.addNews",
             text: "staff.home.addNewsText"
           })}
-          ${homeCard({
-            type: "invoice",
-            icon: "↗",
-            title: "staff.home.addInvoice",
-            text: "staff.home.addInvoiceText"
-          })}
+          ${canCreate("invoice") ? '<button class="staff-action-card" type="button" data-action="navigate" data-view="mine" data-type="invoice"><span class="staff-action-copy"><strong>Varasemad arved</strong><small>Varem koostatud arvete arhiiv</small></span></button>' : ''}
         </div>
         ${availableTypes("mine").some((type) => ["expense", "invoice"].includes(type) && !templateAvailable(type)) ? `
           <aside class="staff-template-warning" role="status">

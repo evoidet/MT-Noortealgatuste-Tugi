@@ -2783,3 +2783,21 @@ body.staff-page .staff-news-preview .news-article-heading h1 {
     transition: none;
   }
 }
+
+/* Financial forms reuse the staff palette and remain usable on narrow screens. */
+.financial { max-width:1100px; margin:auto; }
+.financial label { display:grid; gap:6px; margin:12px 0; }
+.financial input:not([type=checkbox]),.financial textarea,.financial select { width:100%; padding:12px; border:1px solid #cbd7c3; border-radius:10px; background:white; color:#1f2a1f; font:inherit; }
+.financial textarea { min-height:90px; resize:vertical; }
+.financial input[type=checkbox] { width:20px; height:20px; }
+.financial button,.financial a { padding:10px 14px; border:1px solid #cad8bd; border-radius:10px; background:#edf3e6; color:#254b10; cursor:pointer; font:inherit; }
+.financial button:disabled { opacity:.5; cursor:wait; }
+.financial-toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin:20px 0; }
+.financial-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 18px; }
+.financial-item { border:1px solid #cbd7c3; border-radius:12px; padding:16px; margin:12px 0; display:grid; grid-template-columns:3fr 1fr 1fr 1fr; gap:12px; }
+.financial-item label { min-width:0; }
+.financial-table { overflow-x:auto; }
+.financial table { border-collapse:collapse; width:100%; }
+.financial th,.financial td { text-align:left; padding:12px; border-bottom:1px solid #dce3d6; }
+.financial-error { color:#a01818; background:#fff1ef; padding:16px; }
+@media(max-width:700px) { .financial-fields,.financial-item { grid-template-columns:1fr; } }

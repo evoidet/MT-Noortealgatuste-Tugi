@@ -373,3 +373,25 @@ test("CSRF tokens are bound to the authenticated session", async () => {
   auth.verifyCsrf(req, replay, () => assert.fail("cross-session token must fail"));
   assert.equal(replay.statusCode, 403);
 });
+
+
+test("verified renamed and new members retain intended access without granting admin to namesakes", async () => {
+  for (const [email,expectedRole] of [['egor.stepanov@noortetugi.ee','admin'],['erik.kovaltsuk@noortetugi.ee','member'],['mihhail.komarov@noortetugi.ee','member']]) {
+    const db = database();
+    const auth = createAuth({config:config({allowedStaffEmails:new Set(['egor@noortetugi.ee']),adminEmails:new Set(['egor@noortetugi.ee'])}),database:db,googleClient:googleClient(validPayload({email}))});
+    const res=response();await auth.completeGoogleLogin(request({state:'test-state',code:'test-code'}),res);
+    assert.equal(res.redirectTarget,'/admin');assert.equal(db.calls.users[0].role,expectedRole);
+  }
+});
+
+test("current-only policies do not authorize a legacy address in reverse", async () => {
+  const db = database();
+  const auth = createAuth({ config: config({
+    allowedStaffEmails: new Set(['egor.stepanov@noortetugi.ee']),
+    adminEmails: new Set(['egor.stepanov@noortetugi.ee'])
+  }), database: db, googleClient: googleClient(validPayload({ email: 'egor@noortetugi.ee' })) });
+  const res = response();
+  await auth.completeGoogleLogin(request({ state: 'test-state', code: 'test-code' }), res);
+  assert.equal(res.redirectTarget, '/admin?auth=denied');
+  assert.equal(db.calls.users.length, 0);
+});

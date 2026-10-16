@@ -1,3 +1,4 @@
+import { currentEmail } from "./staff-identities.js";
 import { createHmac, randomBytes } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -5,11 +6,11 @@ import { fileURLToPath } from "node:url";
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 const defaultReimbursementRecipients = Object.freeze([
-  { email: "sofia@noortetugi.ee", name: "Sofia Germ" },
-  { email: "andrei@noortetugi.ee", name: "Andrei Ostretsov" },
-  { email: "jekaterina@noortetugi.ee", name: "Jekaterina Rogožina" },
-  { email: "mihhail@noortetugi.ee", name: "Mihhail Semiyanov" },
-  { email: "mario@noortetugi.ee", name: "Mario Polshin" }
+  { email: "sofia.germ@noortetugi.ee", name: "Sofia Germ" },
+  { email: "andrei.ostretsov@noortetugi.ee", name: "Andrei Ostretsov" },
+  { email: "jekaterina.rogozina@noortetugi.ee", name: "Jekaterina Rogožina" },
+  { email: "mihhail.semiyanov@noortetugi.ee", name: "Mihhail Semiyanov" },
+  { email: "mario.polshin@noortetugi.ee", name: "Mario Polshin" }
 ]);
 
 function integer(value, fallback, minimum = 0) {
@@ -112,7 +113,7 @@ function driveUserFolderMap(value, domain) {
   const result = new Map();
   const folderOwners = new Set();
   for (const [emailValue, folderValue] of Object.entries(parsed)) {
-    const email = workspaceEmail(emailValue, "GOOGLE_DRIVE_USER_FOLDER_MAP", domain);
+    const email = currentEmail(workspaceEmail(emailValue, "GOOGLE_DRIVE_USER_FOLDER_MAP", domain));
     if (result.has(email)) {
       throw new Error("GOOGLE_DRIVE_USER_FOLDER_MAP contains a duplicate staff email.");
     }
@@ -146,7 +147,7 @@ function reimbursementRecipientMap(value, domain) {
   }
   const result = new Map();
   for (const [emailValue, nameValue] of entries) {
-    const email = workspaceEmail(emailValue, "REIMBURSEMENT_RECIPIENTS", domain);
+    const email = currentEmail(workspaceEmail(emailValue, "REIMBURSEMENT_RECIPIENTS", domain));
     const name = String(nameValue ?? "")
       .normalize("NFC")
       .replace(/[\u0000-\u001f\u007f]/g, "")
@@ -309,11 +310,11 @@ export function loadConfig(overrides = {}) {
   }
 
   const configuredFinanceEmail = overrides.financeNotificationEmail ?? process.env.FINANCE_NOTIFICATION_EMAIL ?? "";
-  const financeNotificationEmail = workspaceEmail(
-    requiredInProduction("FINANCE_NOTIFICATION_EMAIL", configuredFinanceEmail, production) || "egor@noortetugi.ee",
+  const financeNotificationEmail = currentEmail(workspaceEmail(
+    requiredInProduction("FINANCE_NOTIFICATION_EMAIL", configuredFinanceEmail, production) || "egor.stepanov@noortetugi.ee",
     "FINANCE_NOTIFICATION_EMAIL",
     allowedGoogleDomain
-  );
+  ));
   const smtpHost = smtpHostname(overrides.smtpHost ?? process.env.STAFF_SMTP_HOST, production);
   const configuredMailFrom = overrides.mailFrom ?? process.env.STAFF_MAIL_FROM ?? "";
   const mailFromValue = requiredInProduction("STAFF_MAIL_FROM", configuredMailFrom, production) ||

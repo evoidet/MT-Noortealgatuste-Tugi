@@ -1,3 +1,4 @@
+import { policyHasEmail } from "./staff-identities.js";
 export const ROLES = Object.freeze(["member", "editor", "finance", "admin"]);
 
 const ownPermissions = (type) => [
@@ -50,7 +51,7 @@ function normalizeEmail(value) {
 
 export function isInvoiceOwner(user, context = {}) {
   const configuredEmail = normalizeEmail(context.invoiceCreatorEmail);
-  return Boolean(configuredEmail && normalizeEmail(user?.email) === configuredEmail);
+  return Boolean(configuredEmail && policyHasEmail(new Set([configuredEmail]), user?.email));
 }
 
 export function permissionsForRole(role) {

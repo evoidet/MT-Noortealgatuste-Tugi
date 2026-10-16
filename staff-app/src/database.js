@@ -1,3 +1,4 @@
+import { financialRepository } from "./financial-repository.js";
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -229,6 +230,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
   }
 
   const database = {
+    ...financialRepository(pool, transaction),
     raw: pool,
     rawLocks: lockPool,
 

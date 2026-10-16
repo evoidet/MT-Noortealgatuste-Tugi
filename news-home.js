@@ -113,6 +113,7 @@
             ? " news-image-contain"
             : ""}"
           src="${escapeHtml(item.image || "")}"
+          ${window.newsImageAttributes?.(item.image) || ""}
           alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
           width="1200"
           height="750"

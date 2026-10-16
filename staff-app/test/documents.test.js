@@ -85,6 +85,13 @@ function assertFinanceConfirmation(text, requestedTotal) {
   assert.ok(financeText.includes("Allkirjastamise kuupäev ja kellaaeg tulenevad digitaalallkirja ajatemplist."));
 }
 
+test("new expense documents use the verified current finance contact", async () => {
+  const result = await generateExpenseReportDocument(expenseData());
+  const text = decodeXmlText(documentParts(result.buffer).xml);
+  assert.ok(text.includes("egor.stepanov@noortetugi.ee"));
+  assert.ok(!text.includes("egor@noortetugi.ee"));
+});
+
 test("invoice output preserves the branded template and recalculates all totals", async () => {
   const result = await generateInvoiceDocument({
     invoiceNumber: "2026-099",
