@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { readFile, writeFile, readdir, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
+import { publishedImageSources } from "./published-image-sources.mjs";
 
 export async function optimizeImages(root, output, publicFiles) {
   const names = (await readdir(root)).filter(
@@ -24,13 +25,22 @@ export async function optimizeImages(root, output, publicFiles) {
   const cache = resolve(root, "node_modules/.cache/noortetugi-images");
   await mkdir(cache, { recursive: true });
   await mkdir(resolve(output, "assets/responsive"), { recursive: true });
+  async function* sources() {
+    for (const path of paths) yield { path, input: await readFile(resolve(root, path)).catch(() => null) };
+    const catalogue = names.indexOf("published-news.json");
+    if (catalogue !== -1) yield* publishedImageSources(JSON.parse(texts[catalogue]));
+  }
   // Sequential work bounds decoder memory even for the largest photographs.
-  for (const path of paths) {
-    const input = await readFile(resolve(root, path)).catch(() => null);
+  for await (const { path, input } of sources()) {
     if (!input) continue;
-    const metadata = await sharp(input, {
-      limitInputPixels: 80_000_000,
-    }).metadata();
+    let metadata;
+    try {
+      metadata = await sharp(input, { limitInputPixels: 80_000_000 }).metadata();
+    } catch (error) {
+      if (!path.startsWith("api/staff/public/news/")) throw error;
+      console.warn("Published image could not be decoded; public endpoint fallback retained.");
+      continue;
+    }
     if (!metadata.width || metadata.width < 480 || input.length < 30000)
       continue;
     const hash = createHash("sha256")

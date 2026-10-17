@@ -251,7 +251,11 @@
             ? " news-image-contain"
             : ""}"
           src="${escapeHtml(item.image || "")}"
-          ${window.newsImageAttributes?.(item.image) || ""}
+          ${window.newsImageAttributes?.(item.image, className === "news-card-media"
+            ? "(max-width: 760px) calc(100vw - 32px), (max-width: 1050px) calc((100vw - 70px) / 2), 392px"
+            : className === "news-featured-media"
+              ? "(max-width: 760px) calc(100vw - 32px), (max-width: 1050px) calc(100vw - 48px), 702px"
+              : "(max-width: 760px) calc(100vw - 48px), (max-width: 1268px) calc(100vw - 80px), 1188px") || ""}
           alt="${escapeHtml(item.imageAlt || item.title || t("news.ui.photo"))}"
           width="1200"
           height="750"

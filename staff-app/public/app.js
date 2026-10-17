@@ -17,6 +17,7 @@ const state = {
   view: "boot",
   listScope: "mine",
   listType: "",
+  financialKind: "",
   current: null,
   formType: null,
   editingId: null,
@@ -577,12 +578,12 @@ function renderLoading(key = "staff.common.loading") {
 
 function setActiveNavigation(view) {
   const navView = ["form", "preview", "detail"].includes(view) ? "mine" : view;
-  const navType = ["form", "preview"].includes(view) ? state.formType
+  const navType = view === "financial" ? state.financialKind : ["form", "preview"].includes(view) ? state.formType
     : view === "detail" ? state.current?.type : state.listType;
 
   document.querySelectorAll("[data-action='navigate'][data-view]").forEach((button) => {
     const active = button.dataset.view === navView &&
-      (button.dataset.type || "") === (navView === "mine" ? navType || "" : "");
+      (button.dataset.type || "") === (["mine", "financial"].includes(navView) ? navType || "" : "");
     button.classList.toggle("is-active", active);
 
     if (active) {
@@ -690,6 +691,7 @@ async function navigate(view, options = {}) {
   }
 
   state.view = view;
+  if (view === "financial") state.financialKind = options.type || "";
   setActiveNavigation(view);
 
   if (view === "home") {
@@ -700,7 +702,7 @@ async function navigate(view, options = {}) {
     if (!state.session?.financialAccess) return;
     const { mountFinancial } = await import('./financial.js');
     if (state.view !== "financial") return;
-    await mountFinancial(elements.viewRoot);
+    await mountFinancial(elements.viewRoot, { kind: state.financialKind });
   } else if (view === "mine") {
     await renderList("mine", options.type || "");
   } else if (view === "review") {
@@ -756,8 +758,8 @@ function renderHome() {
           </div>
         </div>
         <div class="staff-action-grid">
-          <button class="staff-action-card" type="button" data-action="navigate" data-view="resignation"><span class="staff-action-copy"><strong>Lahkumisavaldus</strong><small>Liikmesusest lahkumise avaldus</small></span></button>
-          ${state.session?.financialAccess ? '<button class="staff-action-card" type="button" data-action="navigate" data-view="financial"><span class="staff-action-copy"><strong>DOKUMENDID</strong><small>Arved ja hinnapakkumised</small></span></button>' : ''}
+          ${state.session?.financialAccess ? `<button class="staff-action-card staff-action-card--invoice" type="button" data-action="navigate" data-view="financial" data-type="invoice"><span class="staff-action-icon" aria-hidden="true">€</span><span class="staff-action-copy"><strong>Arved</strong><small>Koosta ja saada arveid.</small></span><span class="staff-action-arrow" aria-hidden="true">→</span></button>
+          <button class="staff-action-card" type="button" data-action="navigate" data-view="financial" data-type="quotation"><span class="staff-action-icon" aria-hidden="true">▤</span><span class="staff-action-copy"><strong>Hinnapakkumised</strong><small>Koosta ja saada hinnapakkumisi.</small></span><span class="staff-action-arrow" aria-hidden="true">→</span></button>` : ''}
           ${homeCard({
             type: "expense",
             icon: "€",
@@ -779,6 +781,7 @@ function renderHome() {
             text: "staff.home.addNewsText"
           })}
           ${canCreate("invoice") ? '<button class="staff-action-card" type="button" data-action="navigate" data-view="mine" data-type="invoice"><span class="staff-action-copy"><strong>Varasemad arved</strong><small>Varem koostatud arvete arhiiv</small></span></button>' : ''}
+          <button class="staff-action-card" type="button" data-action="navigate" data-view="resignation"><span class="staff-action-copy"><strong>Lahkumisavaldus</strong><small>Liikmesusest lahkumise avaldus</small></span></button>
         </div>
         ${availableTypes("mine").some((type) => ["expense", "invoice"].includes(type) && !templateAvailable(type)) ? `
           <aside class="staff-template-warning" role="status">

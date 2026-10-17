@@ -1,6 +1,6 @@
 // Read-only post-deployment check. Does not load or display environment files/credentials.
 import { openDatabase } from "../src/database.js";
-import { emailChanges, newMembers } from "../src/staff-identities.js";
+import { emailChanges, newMembers, financialMembers } from "../src/staff-identities.js";
 const db = openDatabase(process.env.STORAGE_DATABASE_URL);
 try {
   for (const [oldEmail, newEmail] of Object.entries(emailChanges)) {
@@ -12,10 +12,10 @@ try {
       `${oldEmail} -> ${newEmail}: ${oldUser && newUser ? "CONFLICT: verify both Google identities; no automatic merge" : newUser ? "current account exists" : oldUser ? "migration pending" : "account not yet provisioned"}`,
     );
   }
-  for (const email of newMembers) {
+  for (const email of new Set([...newMembers, ...financialMembers])) {
     const user = await db.getUserByEmail(email);
     console.log(
-      `${email}: ${user ? `account exists; financial access: ${await db.hasFinancialAccess(user.id)}` : "awaiting first verified Google login"}`,
+      `${email}: ${user ? `account exists; role: ${user.role}; financial access: ${await db.hasFinancialAccess(user.id)}` : "awaiting first verified Google login"}`,
     );
   }
 } catch {

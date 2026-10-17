@@ -197,6 +197,10 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
     id: incompleteId, kind: "quotation",
     data: { ...data, items: [{ description: "", quantity: "1", unit: "teenus", unitPrice: "" }] }
   }).expect(201);
+  assert.equal((await authorized("get", "?kind=quotation", mihhail)).body.documents.length, 1);
+  assert.equal((await authorized("get", "?kind=invoice", mihhail)).body.documents.length, 0);
+  await authorized("get", "?kind=unknown").expect(422);
+  await authorized("get", "?kind=invoice", other).expect(403);
   await authorized("post", `/${incompleteId}/finalize`, mihhail).send({ version: incomplete.body.document.version }).expect(422);
   assert.equal((await db.getFinancialDocument(incompleteId)).data.items[0].unitPrice, "");
   const ids = [randomUUID(), randomUUID()];

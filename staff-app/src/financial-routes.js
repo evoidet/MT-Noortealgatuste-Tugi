@@ -73,6 +73,7 @@ export function financialRoutes({
           search: String(req.query.search || ""),
           status: String(req.query.status || ""),
           offset: req.query.offset,
+          kind: z.enum(["", "invoice", "quotation"]).parse(req.query.kind || ""),
         }),
       ),
     ),

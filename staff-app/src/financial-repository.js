@@ -35,16 +35,17 @@ export function financialRepository(pool, transaction) {
         ).rows.length > 0
       );
     },
-    async listFinancialDocuments({ search = "", status = "", offset = 0 }) {
+    async listFinancialDocuments({ search = "", status = "", offset = 0, kind = "" }) {
       const result = await pool.query(
         `SELECT d.id,d.kind,d.number,d.status,d.data,d.creator_id,d.created_at,d.version,u.name AS creator_name
         FROM financial_documents d JOIN users u ON u.id=d.creator_id
         WHERE ($1='' OR d.number ILIKE '%' || $1 || '%' OR d.data->>'customer' ILIKE '%' || $1 || '%')
-        AND ($2='' OR d.status=$2) ORDER BY d.created_at DESC,d.id LIMIT 51 OFFSET $3`,
+        AND ($2='' OR d.status=$2) AND ($4='' OR d.kind=$4) ORDER BY d.created_at DESC,d.id LIMIT 51 OFFSET $3`,
         [
           search.slice(0, 150),
           status,
           Math.trunc(Math.max(0, Math.min(100000, Number(offset) || 0))),
+          kind,
         ],
       );
       return {

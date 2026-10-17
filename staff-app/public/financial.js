@@ -21,7 +21,7 @@ const today = () =>
   new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Tallinn" }).format(
     new Date(),
   );
-export async function mountFinancial(root) {
+export async function mountFinancial(root, { kind = "" } = {}) {
   const section = document.createElement("section");
   section.className = "staff-home financial";
   root.replaceChildren(section);
@@ -50,10 +50,10 @@ export async function mountFinancial(root) {
     `<label>${label}<input name="${name}" type="${type}" value="${esc(value)}" placeholder="${esc(placeholder)}" maxlength="1500"></label>`;
   async function list() {
     const result = await call(
-      `?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&offset=${offset}`,
+      `?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&offset=${offset}&kind=${encodeURIComponent(kind)}`,
     );
     current = null;
-    render(`<div class="financial-toolbar">${button("new-invoice", "Arved → Loo uus arve")}${button("new-quotation", "Hinnapakkumised → Loo uus hinnapakkumine")}</div>
+    render(`${kind ? `<h2>${kind === "invoice" ? "Arved" : "Hinnapakkumised"}</h2>` : ""}<div class="financial-toolbar">${kind !== "quotation" ? button("new-invoice", "Arved → Loo uus arve") : ""}${kind !== "invoice" ? button("new-quotation", "Hinnapakkumised → Loo uus hinnapakkumine") : ""}</div>
       ${!settings.issuer ? "<p>Käibemaksu staatus vajab administraatori kinnitust. Uute dokumentide loomine pole veel võimalik.</p>" : ""}
       <form data-finance-form="filter" class="financial-toolbar">${input("search", "Otsi numbri või tellija järgi", search)}
       <label>Staatus<select name="status"><option value="">Kõik</option>${Object.entries(

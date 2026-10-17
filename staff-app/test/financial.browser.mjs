@@ -11,6 +11,7 @@ const output = resolve("staff-app/private/generated/browser-review");
 await mkdir(output, { recursive: true });
 let doc,
   financeAccess = true,
+  actor = { name: "Egor Stepanov", email: "egor.stepanov@noortetugi.ee" },
   uncertainDelivery = false,
   sends = 0;
 const issuer = {
@@ -32,8 +33,8 @@ const server = createServer(async (req, res) => {
       csrfToken: "synthetic",
       user: {
         id: "test",
-        name: "Testkasutaja",
-        email: "test@noortetugi.ee",
+        name: actor.name,
+        email: actor.email,
         role: "member",
       },
       permissions: ["news:create", "expense:create"],
@@ -116,11 +117,27 @@ try {
   await page.route("**/*", (r) =>
     r.request().url().startsWith(origin) ? r.continue() : r.abort(),
   );
-  await page.goto(`${origin}/admin`);
+  for (const width of [1440, 390]) {
+   await page.setViewportSize({ width, height: 900 });
+   for (const identity of [{ name: "Egor Stepanov", email: "egor.stepanov@noortetugi.ee" }, { name: "Mihhail Komarov", email: "mihhail.komarov@noortetugi.ee" }]) {
+    actor = identity;
+    await page.goto(`${origin}/admin`);
+    for (const [kind, heading] of [["invoice", "Arved"], ["quotation", "Hinnapakkumised"]]) {
+      await page.locator(`.staff-action-card[data-view="financial"][data-type="${kind}"]`).click();
+      await page.getByRole("heading", { name: heading, exact: true }).waitFor();
+      assert.equal(await page.locator(`.staff-sidebar-nav [data-view="financial"][data-type="${kind}"]`).getAttribute("aria-current"), "page");
+      await page.locator(`[data-finance="new-${kind}"]`).click();
+      await page.getByLabel("Tellija nimi", { exact: true }).waitFor();
+      await page.locator("#brandHomeButton").click();
+    }
+   }
+   await page.screenshot({path:resolve(output,`financial-actions-${width}.png`),fullPage:true});
+  }
+  await page.screenshot({path:resolve(output,"financial-actions-mobile.png"),fullPage:true});
   await page.locator('.staff-action-card[data-view="resignation"]').click();
   await page.getByText("Lahkumisavalduse vorm on koostamisel.").waitFor();
   await page.locator("#brandHomeButton").click();
-  await page.locator('.staff-action-card[data-view="financial"]').click();
+  await page.locator('.staff-action-card[data-view="financial"][data-type="quotation"]').click();
   await page
     .getByRole("button", { name: "Hinnapakkumised → Loo uus hinnapakkumine" })
     .click();
@@ -151,7 +168,7 @@ try {
     fullPage: true,
   });
   await page.reload();
-  await page.locator('.staff-action-card[data-view="financial"]').click();
+  await page.locator('.staff-action-card[data-view="financial"][data-type="quotation"]').click();
   await page
     .getByRole("button", { name: "TEST-HP-000001", exact: true })
     .click();
@@ -178,7 +195,7 @@ try {
   uncertainDelivery = false;
   doc.status = "READY";
   await page.reload();
-  await page.locator('.staff-action-card[data-view="financial"]').click();
+  await page.locator('.staff-action-card[data-view="financial"][data-type="quotation"]').click();
   await page.getByRole("button", { name: "TEST-HP-000001", exact: true }).click();
   await page.getByLabel("Saaja e-post").fill("customer@example.test");
   await page.getByRole("checkbox").check();
