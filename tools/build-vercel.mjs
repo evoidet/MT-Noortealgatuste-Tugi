@@ -64,7 +64,16 @@ for (const entry of await readdir(projectRoot, { withFileTypes: true })) {
   await cp(resolve(projectRoot, entry.name), resolve(outputDirectory, entry.name));
 }
 
-await cp(resolve(projectRoot, "assets"), resolve(outputDirectory, "assets"), { recursive: true });
+// Team JPGs are rebuild sources, never public downloads. Only their WebP variants ship.
+await cp(resolve(projectRoot, "assets"), resolve(outputDirectory, "assets"), {
+  recursive: true,
+  filter: (source) => {
+    const relative = source.slice(resolve(projectRoot, "assets").length).replaceAll("\\", "/");
+    return !relative.includes("Zone.Identifier") &&
+      !/^\/team\/[^/]+\.jpg$/i.test(relative) &&
+      relative !== "/team/optimized/report.json";
+  },
+});
 await cp(resolve(projectRoot, "staff-app/public"), resolve(outputDirectory, "admin"), { recursive: true });
 
 await optimizeImages(projectRoot, outputDirectory, publicFiles);

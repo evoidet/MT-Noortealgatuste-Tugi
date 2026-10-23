@@ -7,7 +7,7 @@ const conflict = () =>
   });
 const clean = (row) => {
   if (!row) return null;
-  const { pdf, ...rest } = row;
+  const { pdf, docx, ...rest } = row;
   return rest;
 };
 export function financialRepository(pool, transaction) {
@@ -56,7 +56,7 @@ export function financialRepository(pool, transaction) {
     async getFinancialDocument(id, withPdf = false) {
       const columns = withPdf
         ? "*"
-        : "id,kind,number,status,data,issuer,creator_id,created_at,updated_at,version,correction_of";
+        : "id,kind,number,status,data,issuer,creator_id,created_at,updated_at,version,correction_of,confirmed_at,confirmed_by,confirmation_delivery_status,(docx IS NOT NULL) AS has_docx";
       const row = (
         await pool.query(
           `SELECT ${columns} FROM financial_documents WHERE id=$1`,
@@ -145,17 +145,35 @@ export function financialRepository(pool, transaction) {
         return clean(row);
       });
     },
-    async finalizeFinancialDocument({ id, version, pdf, actor }) {
+    async finalizeFinancialDocument({ id, version, pdf = null, docx = null, actor, confirmation = null }) {
       return transaction(async (client) => {
         const row = (
           await client.query(
-            `UPDATE financial_documents SET pdf=$3,status='READY',version=version+1,updated_at=NOW()
+            `UPDATE financial_documents SET pdf=$3,docx=$4,status='READY',version=version+1,updated_at=NOW(),
+            confirmed_at=NOW(),confirmed_by=$5,confirmation_delivery_status=$6
           WHERE id=$1 AND version=$2 AND status='DRAFT' RETURNING *`,
-            [id, version, pdf],
+            [id, version, pdf, docx, actor, confirmation ? 'SENDING' : null],
           )
         ).rows[0];
         if (!row) throw conflict();
+        if (confirmation) {
+          await client.query(`INSERT INTO financial_deliveries(id,document_id,actor_id,recipient,subject,message,status,purpose)
+            VALUES($1,$2,$3,$4,$5,$6,'SENDING','confirmation')`,
+          [confirmation.deliveryId, id, actor, confirmation.recipient, confirmation.subject, confirmation.message]);
+        }
         await history(client, row, actor, "FINALIZED");
+        return clean(row);
+      });
+    },
+    async finishFinancialConfirmation({ id, deliveryId, actor, accepted }) {
+      return transaction(async (client) => {
+        const status = accepted ? 'SENT' : 'UNCERTAIN';
+        const result = await client.query(`UPDATE financial_deliveries SET status=$3,completed_at=NOW()
+          WHERE id=$1 AND document_id=$2 AND purpose='confirmation' AND status='SENDING' RETURNING id`, [deliveryId,id,status]);
+        if (!result.rows.length) throw conflict();
+        const row = (await client.query(`UPDATE financial_documents SET confirmation_delivery_status=$2,updated_at=NOW()
+          WHERE id=$1 RETURNING *`, [id,status])).rows[0];
+        await history(client,row,actor,`CONFIRMATION_${status}`);
         return clean(row);
       });
     },

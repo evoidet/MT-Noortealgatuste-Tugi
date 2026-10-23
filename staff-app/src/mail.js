@@ -89,7 +89,7 @@ export function createMailService(config, overrides = {}) {
   return Object.freeze({
     available: Boolean(transport && config.mailFrom && config.financeNotificationEmail),
 
-    async sendFinancialDocument({ recipient, subject, message, number, pdf, deliveryId }) {
+    async sendFinancialDocument({ recipient, subject, message, number = '', pdf = null, docx = null, filename = '', deliveryId }) {
       if (!transport || !config.mailFrom) throw mailUnavailableError();
       return transport.sendMail({
         from: config.mailFrom, to: recipient,
@@ -98,7 +98,9 @@ export function createMailService(config, overrides = {}) {
         messageId: `<finance-${deliveryId}@noortetugi.ee>`,
         subject: cleanHeader(subject), text: message,
         disableFileAccess: true, disableUrlAccess: true,
-        attachments: normalizedAttachments([{filename: `${number}.pdf`, content: pdf, contentType: 'application/pdf'}])
+        attachments: normalizedAttachments([docx
+          ? {filename, content: docx, contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+          : {filename: `${number}.pdf`, content: pdf, contentType: 'application/pdf'}])
       });
     },
 

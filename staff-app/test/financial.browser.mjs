@@ -57,7 +57,7 @@ const server = createServer(async (req, res) => {
     for await (const c of req) chunks.push(c);
     const body = JSON.parse(Buffer.concat(chunks));
     if (path.endsWith("/finalize"))
-      doc = { ...doc, status: "READY", version: doc.version + 1 };
+      doc = { ...doc, status: "READY", has_docx: true, confirmation_delivery_status: 'SENT', version: doc.version + 1 };
     else if (path.endsWith("/send")) {
       assert.equal(body.confirmed, true);
       sends++;
@@ -144,7 +144,7 @@ try {
   await page.getByRole("button", { name: "Salvesta mustand", exact: true }).click();
   await page.getByRole("heading", { name: "Hinnapakkumine TEST-HP-000001" }).waitFor();
   assert.equal(doc.data.items[0].unitPrice, "");
-  await page.getByRole("button", { name: "Kinnita ja loo PDF" }).click();
+  await page.getByRole("button", { name: "Kinnita ja saada Wordi fail" }).click();
   await page.getByRole("alert").filter({ hasText: "Enne kinnitamist täitke" }).waitFor();
   assert.equal(doc.status, "DRAFT");
   await page.getByLabel("Tellija nimi", { exact: true }).fill("Testklient");
@@ -177,7 +177,9 @@ try {
     "Testklient",
   );
   page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Kinnita ja loo PDF" }).click();
+  await page.getByRole("button", { name: "Kinnita ja saada Wordi fail" }).click();
+  await page.getByRole('link', { name: 'Laadi alla Wordi fail', exact: true }).waitFor();
+  await page.getByRole('status').filter({hasText:'Wordi fail saadetud'}).waitFor();
   await page.getByRole("heading", { name: "Saada e-postiga" }).waitFor();
   assert.equal(sends, 0);
   await page.getByLabel("Saaja e-post").fill("customer@example.test");

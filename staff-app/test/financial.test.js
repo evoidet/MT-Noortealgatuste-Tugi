@@ -1,3 +1,4 @@
+import PizZip from "pizzip";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -86,6 +87,14 @@ test("unfinished draft prices remain blank and cannot be finalized", () => {
   assert.throws(() => validateFinancialData(draft, issuer, true));
   assert.throws(() => validateFinancialData({ ...incomplete, items: [{ ...incomplete.items[0], quantity: "-2" }] }, issuer));
   assert.throws(() => validateFinancialData({ ...incomplete, items: [{ ...incomplete.items[0], quantity: "", unitPrice: "bad" }] }, issuer));
+});
+
+test("blank optional service dates save without copying the invoice issue date", () => {
+  const draft = validateFinancialData({ ...data, supplyDate: "" }, issuer);
+  assert.equal(draft.supplyDate, undefined);
+  assert.equal(draft.date, data.date);
+  assert.equal(validateFinancialData({ ...data, supplyDate: "2026-10-15" }, issuer).supplyDate, "2026-10-15");
+  assert.throws(() => validateFinancialData({ ...data, supplyDate: "2026-02-30" }, issuer));
 });
 
 test("financial lifecycle is private, numbered, durable, immutable and sends only through a mocked SMTP transport", async (t) => {
@@ -240,13 +249,20 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   await authorized("post", `/${id}/finalize`)
     .send({ version: doc.version })
     .expect(200);
-  const pdf = (await authorized("get", `/${id}/pdf`).expect(200)).body;
-  assert.equal(pdf.subarray(0, 5).toString(), "%PDF-");
+  const download = await authorized("get", `/${id}/docx`).buffer(true).parse((res, cb) => {
+    const chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => cb(null, Buffer.concat(chunks)));
+  }).expect(200);
+  const docx = download.body;
+  assert.equal(docx.subarray(0, 2).toString(), "PK");
+  assert.match(download.headers['content-disposition'], /Arve_.*\.docx/);
+  const xml = new PizZip(docx).file('word/document.xml').asText();
+  assert.match(xml, /Testklient \u00d5\u00c4\u00d6\u00dc/);
+  await authorized("get", `/${id}/pdf`).expect(409);
   await authorized("patch", `/${id}`)
     .send({ version: doc.version + 1, data })
     .expect(409);
   const message = {
-    recipient: "customer@example.test",
+    recipient: "egor.stepanov@noortetugi.ee",
     subject: "Test",
     message: "Sünteetiline test",
     confirmed: true,
@@ -254,47 +270,89 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   await authorized("post", `/${id}/send`)
     .send({ ...message, confirmed: false })
     .expect(422);
-  assert.equal(sent.length, 0);
-  await authorized("post", `/${id}/send`, mihhail).send(message).expect(200);
   assert.equal(sent.length, 1);
-  assert.equal(sent[0].cc, "egor.stepanov@noortetugi.ee");
-  assert.deepEqual(sent[0].attachments[0].content, pdf);
-  await authorized("post", `/${id}/send`).send(message).expect(409);
+  assert.equal(sent[0].to, "egor.stepanov@noortetugi.ee");
+  assert.equal(sent[0].cc, undefined);
+  assert.deepEqual(sent[0].attachments[0].content, docx);
+  assert.match(sent[0].attachments[0].contentType, /wordprocessingml/);
+  assert.match(sent[0].subject, /Kinnitatud arve/);
+  assert.match(sent[0].text, /Kinnitaja: Egor/);
+  await authorized("post", `/${id}/send`, mihhail).send(message).expect(409);
+  await authorized("post", `/${id}/finalize`).send({version: doc.version}).expect(409);
   assert.equal(sent.length, 1);
   const stored = (await authorized("get", `/${id}`)).body;
-  assert.equal(stored.document.status, "SENT");
-  assert.ok(
-    stored.history.some(
-      (h) => h.actor_name === "Mihhail" && h.action === "SENT",
-    ),
-  );
-  assert.deepEqual((await authorized("get", `/${id}/pdf`)).body, pdf);
+  assert.equal(stored.document.status, "READY");
+  assert.equal(stored.document.confirmation_delivery_status, "SENT");
+  assert.ok(stored.history.some(h => h.action === "CONFIRMATION_SENT"));
+  assert.ok(Buffer.from((await db.getFinancialDocument(id,true)).docx).equals(docx));
   const correction = await authorized("post", "")
     .send({ id: randomUUID(), kind: "invoice", data, correctionOf: id })
     .expect(201);
   assert.equal(correction.body.document.correction_of, id);
   await authorized("post", "").send({ id: randomUUID(), kind: "quotation", data, correctionOf: id }).expect(409);
   assert.equal(
-    (await authorized("get", "?status=SENT&search=Testklient")).body.documents
+    (await authorized("get", "?status=READY&search=Testklient")).body.documents
       .length,
     1,
   );
   const second = docs[1].body.document;
-  await authorized("post", `/${second.id}/finalize`)
-    .send({ version: second.version })
-    .expect(200);
   smtpFailure = true;
-  await authorized("post", `/${second.id}/send`).send(message).expect(409);
-  assert.equal((await db.getFinancialDocument(second.id)).status, "UNCERTAIN");
+  const failed = await authorized("post", `/${second.id}/finalize`, mihhail)
+    .send({ version: second.version }).expect(200);
+  assert.match(failed.body.warning, /kinnitatud/);
+  assert.equal((await db.getFinancialDocument(second.id)).status, "READY");
+  assert.equal((await db.getFinancialDocument(second.id)).confirmation_delivery_status, "UNCERTAIN");
   await authorized("post", `/${second.id}/send`).send(message).expect(409);
   assert.equal(sent.length, 2);
+  smtpFailure = false;
+  for (const user of [egor, mihhail]) {
+    const quote = (await authorized("post", "", user).send({id: randomUUID(), kind: "quotation", data}).expect(201)).body.document;
+    const before = sent.length;
+    const results = await Promise.all([1,2].map(() => authorized("post", `/${quote.id}/finalize`, user).send({version: quote.version})));
+    assert.deepEqual(results.map(r => r.status).sort(), [200,409]);
+    assert.equal(sent.length, before + 1);
+    assert.match(sent.at(-1).attachments[0].filename, /^Hinnapakkumine_/);
+    assert.match(sent.at(-1).subject, /Kinnitatud hinnapakkumine/);
+    assert.match(sent.at(-1).text, new RegExp(`Kinnitaja: ${user.name}`));
+    await authorized("post", `/${quote.id}/finalize`, other).send({version: 1}).expect(403);
+    await authorized("get", `/${quote.id}/docx`, other).expect(403);
+  }
+  // Legacy bytes are preserved and still downloadable; Word export is additive.
+  const legacy = await db.createFinancialDocument({id: randomUUID(), kind:'invoice',data:validateFinancialData(data,issuer,true),issuer,actor:egor.id});
+  const legacyPdf = Buffer.from('%PDF-legacy-fixture');
+  await db.finalizeFinancialDocument({id:legacy.id,version:legacy.version,pdf:legacyPdf,actor:egor.id});
+  assert.deepEqual((await authorized('get', `/${legacy.id}/pdf`)).body,legacyPdf);
+  await authorized('get', `/${legacy.id}/docx`).expect(200);
+  assert.ok(Buffer.from((await db.getFinancialDocument(legacy.id,true)).pdf).equals(legacyPdf));
+
+  // An explicitly requested customer delivery still uses the stored DOCX, once.
+  const beforeCustomerSend = sent.length;
+  await authorized('post', `/${id}/send`).send({ ...message, recipient: 'customer@example.test' }).expect(200);
+  assert.equal(sent.length, beforeCustomerSend + 1);
+  assert.ok(Buffer.from(sent.at(-1).attachments[0].content).equals(docx));
+  await authorized('post', `/${id}/send`).send({ ...message, recipient: 'customer@example.test' }).expect(409);
+  assert.equal(sent.length, beforeCustomerSend + 1);
+
+  // SMTP acceptance followed by a database failure must not undo confirmation or permit resend.
+  const pending = (await authorized('post', '').send({id:randomUUID(),kind:'invoice',data}).expect(201)).body.document;
+  const originalFinish = db.finishFinancialConfirmation;
+  db.finishFinancialConfirmation = async () => { throw new Error('simulated status write failure'); };
+  const beforePending = sent.length;
+  const pendingResult = await authorized('post', `/${pending.id}/finalize`).send({version:pending.version}).expect(200);
+  db.finishFinancialConfirmation = originalFinish;
+  assert.match(pendingResult.body.warning, /staatuse salvestamine/);
+  assert.equal((await db.getFinancialDocument(pending.id)).status, 'READY');
+  assert.equal((await db.getFinancialDocument(pending.id)).confirmation_delivery_status, 'SENDING');
+  await authorized('post', `/${pending.id}/finalize`).send({version:pending.version}).expect(409);
+  assert.equal(sent.length, beforePending + 1);
+
 });
 
 test("migration renames verified identities without creating users or merging conflicts", async (t) => {
   const engine = new PGlite();
   t.after(() => engine.close());
   const migrations = await loadMigrations();
-  for (const m of migrations.filter((m) => m.version !== "011"))
+  for (const m of migrations.filter((m) => m.version < "011"))
     await engine.exec(m.sql);
   await engine.query(`INSERT INTO users(id,email,name,role,created_at,updated_at,google_subject) VALUES
     ('old','egor@noortetugi.ee','Egor','admin',NOW(),NOW(),'stable'),

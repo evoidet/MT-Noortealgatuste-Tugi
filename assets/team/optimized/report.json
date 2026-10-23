@@ -1,0 +1,146 @@
+[
+  {
+    "source": "Mario.P.jpg",
+    "originalBytes": 2228354,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Mario.P-6d6c61f6db85-480.webp",
+        "width": 480,
+        "height": 685,
+        "bytes": 25484
+      },
+      {
+        "path": "assets/team/optimized/Mario.P-6d6c61f6db85-960.webp",
+        "width": 960,
+        "height": 1370,
+        "bytes": 91878
+      }
+    ]
+  },
+  {
+    "source": "Jekaterina.R.jpg",
+    "originalBytes": 2966141,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Jekaterina.R-61395ab3cea9-480.webp",
+        "width": 480,
+        "height": 654,
+        "bytes": 24672
+      },
+      {
+        "path": "assets/team/optimized/Jekaterina.R-61395ab3cea9-960.webp",
+        "width": 960,
+        "height": 1309,
+        "bytes": 103474
+      }
+    ]
+  },
+  {
+    "source": "Mihhail.K.jpg",
+    "originalBytes": 2640462,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Mihhail.K-d120ebee8fe7-480.webp",
+        "width": 480,
+        "height": 657,
+        "bytes": 29502
+      },
+      {
+        "path": "assets/team/optimized/Mihhail.K-d120ebee8fe7-960.webp",
+        "width": 960,
+        "height": 1314,
+        "bytes": 145268
+      }
+    ]
+  },
+  {
+    "source": "Mihhail.S.jpg",
+    "originalBytes": 3514005,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Mihhail.S-14901c616efc-480.webp",
+        "width": 480,
+        "height": 720,
+        "bytes": 32168
+      },
+      {
+        "path": "assets/team/optimized/Mihhail.S-14901c616efc-960.webp",
+        "width": 960,
+        "height": 1440,
+        "bytes": 147116
+      }
+    ]
+  },
+  {
+    "source": "Erik.K.jpg",
+    "originalBytes": 2589510,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Erik.K-2d5d79bfada9-480.webp",
+        "width": 480,
+        "height": 686,
+        "bytes": 23850
+      },
+      {
+        "path": "assets/team/optimized/Erik.K-2d5d79bfada9-960.webp",
+        "width": 960,
+        "height": 1371,
+        "bytes": 84892
+      }
+    ]
+  },
+  {
+    "source": "Sofia.G.jpg",
+    "originalBytes": 2744849,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Sofia.G-0cdc3af4d378-480.webp",
+        "width": 480,
+        "height": 661,
+        "bytes": 23370
+      },
+      {
+        "path": "assets/team/optimized/Sofia.G-0cdc3af4d378-960.webp",
+        "width": 960,
+        "height": 1321,
+        "bytes": 97372
+      }
+    ]
+  },
+  {
+    "source": "Andrei.O.jpg",
+    "originalBytes": 2973113,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Andrei.O-92f0c9ae5f0a-480.webp",
+        "width": 480,
+        "height": 656,
+        "bytes": 27856
+      },
+      {
+        "path": "assets/team/optimized/Andrei.O-92f0c9ae5f0a-960.webp",
+        "width": 960,
+        "height": 1313,
+        "bytes": 115254
+      }
+    ]
+  },
+  {
+    "source": "Egor.S.jpg",
+    "originalBytes": 2355438,
+    "variants": [
+      {
+        "path": "assets/team/optimized/Egor.S-6cb2d1a140e7-480.webp",
+        "width": 480,
+        "height": 672,
+        "bytes": 25028
+      },
+      {
+        "path": "assets/team/optimized/Egor.S-6cb2d1a140e7-960.webp",
+        "width": 960,
+        "height": 1344,
+        "bytes": 79842
+      }
+    ]
+  }
+]

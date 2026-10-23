@@ -13,7 +13,7 @@ import { renderSubmissionPreview } from "../public/previews.js";
 test("data repair is ordered between immutable migrations 002 and 003", async () => {
   const migrations = await loadMigrations();
   assert.deepEqual(migrations.map((migration) => migration.version),
-    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011"]);
+    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012"]);
 });
 
 async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011"]) {

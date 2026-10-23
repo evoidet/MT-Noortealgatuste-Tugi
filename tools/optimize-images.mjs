@@ -32,7 +32,8 @@ export async function optimizeImages(root, output, publicFiles) {
   }
   // Sequential work bounds decoder memory even for the largest photographs.
   for await (const { path, input } of sources()) {
-    if (!input) continue;
+    // Team portraits already have reviewed responsive WebP files and a lightbox size.
+    if (!input || path.startsWith("assets/team/optimized/")) continue;
     let metadata;
     try {
       metadata = await sharp(input, { limitInputPixels: 80_000_000 }).metadata();
@@ -91,6 +92,8 @@ export async function optimizeImages(root, output, publicFiles) {
   for (const name of names.filter((n) => n.endsWith(".html"))) {
     let html = await readFile(resolve(output, name), "utf8");
     html = html.replace(/<img\b[^>]*>/g, (tag) => {
+      // The shared lightbox changes src at runtime; static candidates would override it.
+      if (/\bid="photoModalImage"/.test(tag)) return tag;
       const src = /\bsrc="([^"]+)"/.exec(tag)?.[1];
       const item = manifest[`/${src?.replace(/^\//, "")}`];
       if (!item || /\bsrcset=/.test(tag)) return tag;

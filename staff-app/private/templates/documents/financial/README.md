@@ -1,4 +1,8 @@
-# Financial PDF templates
+# Financial templates
+
+New invoices and quotations use `invoice.docx` and `quotation.docx`.
+See [Word workflow and validation](../../../../FINANCIAL-DOCX.md).
+The PDF assets described below remain for legacy compatibility.
 
 `quotation-reference.docx` is the owner's supplied reference, retained unmodified.
 `logo.png` is extracted from its `word/media/image1.png`.

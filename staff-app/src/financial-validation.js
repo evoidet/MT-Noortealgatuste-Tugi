@@ -11,7 +11,7 @@ const date = z
 const schema = z.object({
   date,
   dueDate: date,
-  supplyDate: date.optional(),
+  supplyDate: z.preprocess((value) => value === "" ? undefined : value, date.optional()),
   currency: z.literal("EUR").default("EUR"),
   customer: text,
   registrationCode: text,

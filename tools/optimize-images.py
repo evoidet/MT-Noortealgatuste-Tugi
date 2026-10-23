@@ -1,6 +1,9 @@
 """Create web-sized image variants while preserving the original files."""
 
 from pathlib import Path
+from hashlib import sha256
+import json
+import sys
 
 from PIL import Image, ImageOps
 
@@ -34,16 +37,26 @@ def optimize_team() -> None:
     source_dir = ROOT / "assets" / "team"
     output_dir = source_dir / "optimized"
 
-    for name in ("mario", "mihhail", "egor", "sofia", "jekaterina", "andrei"):
-        source = source_dir / f"{name}.png"
-
+    # Exact uploaded filenames; content hashes prevent stale browser/CDN portraits.
+    filenames = (
+        "Mario.P.jpg", "Jekaterina.R.jpg", "Mihhail.K.jpg", "Mihhail.S.jpg",
+        "Erik.K.jpg", "Sofia.G.jpg", "Andrei.O.jpg", "Egor.S.jpg",
+    )
+    report = []
+    for filename in filenames:
+        source = source_dir / filename
+        digest = sha256(source.read_bytes()).hexdigest()[:12]
+        variants = []
         for width in (480, 960):
-            save_webp(
-                source,
-                output_dir / f"{name}-{width}.webp",
-                max_width=width,
-                quality=80,
-            )
+            destination = output_dir / f"{source.stem}-{digest}-{width}.webp"
+            save_webp(source, destination, max_width=width, quality=86)
+            with Image.open(destination) as image:
+                variants.append(dict(path=destination.relative_to(ROOT).as_posix(),
+                                     width=image.width, height=image.height,
+                                     bytes=destination.stat().st_size))
+        report.append(dict(source=filename, originalBytes=source.stat().st_size,
+                           variants=variants))
+    (output_dir / "report.json").write_text(json.dumps(report, indent=2) + "\n")
 
 
 def optimize_gala() -> None:
@@ -111,6 +124,8 @@ def optimize_icons() -> None:
 
 if __name__ == "__main__":
     optimize_team()
+    if "--team-only" in sys.argv:
+        sys.exit(0)
     optimize_gala()
     optimize_street_dance()
     optimize_news()

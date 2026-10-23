@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { isDeepStrictEqual } from "node:util";
+import { randomUUID } from "node:crypto";
+import { generateFinancialDocx, financialFilename, DOCX_MIME } from './financial-docx.js';
+import { money } from '../public/financial-values.js';
 import { z } from "zod";
 import { financialIssuer } from "./organization.js";
 import {
@@ -55,6 +58,10 @@ export function financialRoutes({
     if (doc.correction_of)
       doc.correction_number = (await get(doc.correction_of)).number;
     return generateFinancialPdf(doc);
+  }
+  async function word(doc) {
+    if (doc.correction_of) doc.correction_number = (await get(doc.correction_of)).number;
+    return generateFinancialDocx(doc);
   }
   router.get(
     "/settings",
@@ -141,14 +148,24 @@ export function financialRoutes({
         doc.status === "DRAFT"
           ? await pdf(doc)
           : (await database.getFinancialDocument(doc.id, true)).pdf;
+      if (!buffer) return res.status(409).json({ error: 'Dokument on Wordi vormingus. Laadige alla Wordi fail.' });
       res
         .set({
           "Content-Type": "application/pdf",
           "Content-Disposition": `${req.query.download === "1" ? "attachment" : "inline"}; filename="${doc.number}.pdf"`,
         })
-        .send(buffer);
+        .send(Buffer.from(buffer));
     }),
   );
+  router.get('/:id/docx', route(async (req,res) => {
+    const doc = await get(req.params.id);
+    validateFinancialData(doc.data, doc.issuer, true);
+    // Legacy records may be exported from their immutable snapshots; never overwrite their stored PDF.
+    const buffer = doc.status === 'DRAFT' ? await word(doc)
+      : (await database.getFinancialDocument(doc.id,true)).docx || await word(doc);
+    res.set({ 'Content-Type': DOCX_MIME,
+      'Content-Disposition': `attachment; filename="${financialFilename(doc)}"` }).send(Buffer.from(buffer));
+  }));
   router.post(
     "/:id/finalize",
     route(async (req, res) => {
@@ -165,16 +182,36 @@ export function financialRoutes({
       validateFinancialData(doc.data, doc.issuer, true);
       if (req.body.version !== doc.version)
         return res.status(409).json({ error: "Dokument on muutunud." });
-      // The stored PDF has no draft watermark and will never be regenerated after finalization.
-      const buffer = await pdf({ ...doc, status: "READY" });
-      res.json({
-        document: await database.finalizeFinancialDocument({
+      const buffer = await word(doc);
+      const recipient = 'egor.stepanov@noortetugi.ee';
+      const title = doc.kind === 'invoice' ? 'arve' : 'hinnapakkumine';
+      const confirmation = {
+        deliveryId: randomUUID(), recipient,
+        subject: `Kinnitatud ${title} – ${doc.number}`,
+        message: [`Kinnitatud ${title}: ${doc.number}`, `Tellija: ${doc.data.customer}`,
+          `Kogusumma: ${money(doc.data.totals.total)}`,
+          `Kinnitamise aeg: ${new Date().toLocaleString('et-EE', { timeZone: 'Europe/Tallinn' })}`,
+          `Kinnitaja: ${req.user.name}`, '', 'Kinnitatud dokument on lisatud Wordi failina (DOCX).'].join('\n'),
+      };
+      let document = await database.finalizeFinancialDocument({
           id: doc.id,
           version: doc.version,
-          pdf: buffer,
+          docx: buffer,
           actor: req.user.id,
-        }),
+          confirmation,
       });
+      let accepted = false;
+      try {
+        const result = await mailService.sendFinancialDocument({ ...confirmation, docx: buffer, filename: financialFilename(doc) });
+        accepted = (result.accepted || []).some(v => String(v).toLowerCase() === recipient);
+      } catch { /* The durable claim prevents retries after ambiguous SMTP outcomes. */ }
+      let warning = accepted ? '' : 'Dokument on kinnitatud, kuid e-kirja saatmine ebaõnnestus või vajab kontrolli. Ärge saatke uuesti enne postkasti kontrollimist.';
+      try {
+        document = await database.finishFinancialConfirmation({ id: doc.id, deliveryId: confirmation.deliveryId, actor: req.user.id, accepted });
+      } catch {
+        warning = 'Dokument on kinnitatud, kuid e-kirja saatmise staatuse salvestamine vajab administraatori kontrolli. Ärge saatke uuesti.';
+      }
+      res.json({ document, confirmationDelivery: accepted ? 'SENT' : 'UNCERTAIN', ...(warning ? { warning } : {}) });
     }),
   );
   router.post(
@@ -182,6 +219,8 @@ export function financialRoutes({
     route(async (req, res) => {
       const message = deliverySchema.parse(req.body);
       const doc = await get(req.params.id);
+      if (doc.confirmation_delivery_status && message.recipient.toLowerCase() === 'egor.stepanov@noortetugi.ee')
+        return res.status(409).json({ error: 'Kinnitamise e-kiri on juba töödeldud. Kordussaatmine pole lubatud.' });
       if (!mailService.available)
         return res
           .status(503)
@@ -197,6 +236,8 @@ export function financialRoutes({
           ...message,
           number: row.number,
           pdf: row.pdf,
+          docx: row.docx,
+          filename: financialFilename(row),
           deliveryId,
         });
         const recipients = [
