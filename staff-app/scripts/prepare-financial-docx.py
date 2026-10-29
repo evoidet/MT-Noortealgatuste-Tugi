@@ -1,5 +1,6 @@
 """Patch supplied DOCX packages without rebuilding their styles or relationships."""
 import argparse
+from copy import deepcopy
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 from lxml import etree as E
@@ -28,6 +29,30 @@ def tail(p, tag):
         for n in nodes[2:]: n.text = ''
     else:
         text(p, prefix + tag)
+
+def add_reference_fields(doc, kind):
+    """Extend the original information table using its existing cell styles."""
+    tables = find(doc, './w:body/w:tbl')
+    if not any(n.text == '{reference}' for n in find(tables[1], './/w:t')):
+        row = deepcopy(find(tables[1], './w:tr')[-1])
+        values = ['Viide', '{reference}', 'Viitenumber' if kind == 'invoice' else '',
+                  '{referenceNumber}' if kind == 'invoice' else '']
+        for cell, value in zip(find(row, './w:tc'), values):
+            text(cell, value)
+        tables[1].append(row)
+    if kind == 'invoice':
+        # Payment reference lives in the information table; instructions by the bank details.
+        paragraphs = find(tables[5], './/w:tc/w:p')
+        text(paragraphs[4], '{paymentInstruction}{invoiceTerms}')
+
+def upgrade_template(path, kind):
+    with ZipFile(path) as z:
+        parts = {n: z.read(n) for n in z.namelist()}
+    doc = E.fromstring(parts['word/document.xml'])
+    add_reference_fields(doc, kind)
+    parts['word/document.xml'] = E.tostring(doc, xml_declaration=True, encoding='UTF-8', standalone=True)
+    with ZipFile(path, 'w', ZIP_DEFLATED) as z:
+        for name, content in parts.items(): z.writestr(name, content)
 
 def prepare(source, destination, kind):
     with ZipFile(source) as z:
@@ -62,6 +87,7 @@ def prepare(source, destination, kind):
         for p,tag in zip(ps[1:],['delivery','costs','payment','confirmation','changes','annexes']): tail(p,'{'+tag+'}')
     for p in find(doc,'./w:body/w:p'):
         if 'TÄITMISE ABI' in ''.join(p.itertext()): p.getparent().remove(p)
+    add_reference_fields(doc, kind)
     parts['word/document.xml']=E.tostring(doc,xml_declaration=True,encoding='UTF-8',standalone=True)
     for name in parts:
         if name.startswith('word/footer') and name.endswith('.xml'):

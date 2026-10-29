@@ -128,6 +128,9 @@ try {
       assert.equal(await page.locator(`.staff-sidebar-nav [data-view="financial"][data-type="${kind}"]`).getAttribute("aria-current"), "page");
       await page.locator(`[data-finance="new-${kind}"]`).click();
       await page.getByLabel("Tellija nimi", { exact: true }).waitFor();
+      await page.getByLabel("Viide", { exact: true }).fill("Testviide");
+      assert.equal(await page.locator('[name="referenceNumber"]').count(), kind === "invoice" ? 1 : 0);
+      if (kind === "invoice") await page.getByLabel("Viitenumber (valikuline)", { exact: true }).fill("1234561");
       await page.locator("#brandHomeButton").click();
     }
    }
@@ -149,6 +152,7 @@ try {
   assert.equal(doc.status, "DRAFT");
   await page.getByLabel("Tellija nimi", { exact: true }).fill("Testklient");
   await page.getByLabel("Aadress", { exact: true }).fill("Testi 1, Tallinn");
+  await page.getByLabel("Viide", { exact: true }).fill("Kokkulepe 2026-10");
   await page.getByLabel("Kirjeldus", { exact: true }).fill("Testteenus");
   await page.getByLabel("Ühiku hind (€)", { exact: true }).fill("123,45");
   await page
@@ -177,6 +181,7 @@ try {
     "Testklient",
   );
   page.once("dialog", (d) => d.accept());
+  assert.equal(await page.getByLabel("Viide", { exact: true }).inputValue(), "Kokkulepe 2026-10");
   await page.getByRole("button", { name: "Kinnita ja saada Wordi fail" }).click();
   await page.getByRole('link', { name: 'Laadi alla Wordi fail', exact: true }).waitFor();
   await page.getByRole('status').filter({hasText:'Wordi fail saadetud'}).waitFor();

@@ -9,7 +9,8 @@ const issuer = { ...organization, vatRegistered: false, vatRate: 0, vatNumber: '
 for (const kind of ['invoice', 'quotation']) {
   for (const long of [false, true]) {
     const data = validateFinancialData({
-      date: '2026-10-22', dueDate: '2026-11-05', supplyDate: '2026-10-20', execution: '20.10.2026',
+      reference: 'Noorteüritus / kokkulepe 2026-10', referenceNumber: kind === 'invoice' ? '1234561' : '',
+      date: '2026-10-29', dueDate: '2026-11-05', supplyDate: '2026-10-20', execution: '20.10.2026',
       customer: long ? 'Sünteetiline Ida-Virumaa Noorte Haridus- ja Kultuurialgatuste Koostöökeskus ÕÄÖÜ' : 'Testklient ÕÄÖÜ',
       address: 'Testi tänav 1, Tallinn', contact: 'Testisik', email: 'test@example.test',
       items: Array.from({ length: long ? 12 : 3 }, (_, i) => ({

@@ -2793,7 +2793,8 @@
           "Laager sobib noortele, kes soovivad ellu viia sündmust, koolitust, kogukondlikku algatust või mõnda muud ideed, kuid vajavad selle kavandamisel teadmisi, tuge ja inspiratsiooni.",
           "Lisateavet laagri programmi, osalemise ja registreerimise kohta saab MTÜ Noortealgatuste Tugi projektikirjutamise laagri veebilehelt.",
           "Registreerimine on avatud:",
-          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform"
+          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform",
+          "Projekti elluviimist toetas Kohtla-Järve linn, Kohtla-Järve Linnavolikogu „Haridus-, kultuuri- ja noorteprojektide toetamise korra“ raames."
         ]
       },
       {
@@ -2810,7 +2811,8 @@
           "The camp is for young people who want to deliver an event, training course, community initiative or another idea but need knowledge, support and inspiration to plan it.",
           "Further information about the programme, participation and registration is available on the MTÜ Noortealgatuste Tugi project-writing camp page.",
           "Registration is open:",
-          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform"
+          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform",
+          "The implementation of the project was supported by the City of Kohtla-Järve under the Kohtla-Järve City Council’s “Procedure for Supporting Educational, Cultural and Youth Projects”."
         ]
       },
       {
@@ -2827,7 +2829,8 @@
           "Лагерь подойдёт молодым людям, которые хотят провести событие или обучение, запустить общественную инициативу или воплотить другую идею, но нуждаются в знаниях, поддержке и вдохновении для планирования.",
           "Дополнительная информация о программе, участии и регистрации доступна на странице лагеря по написанию проектов MTÜ Noortealgatuste Tugi.",
           "Регистрация открыта:",
-          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform"
+          "https://docs.google.com/forms/d/e/1FAIpQLSdFu0iZWHhuR6Q2mD_AncB-XQEKOaIjsLqQGYjZ_Chu1QADGw/viewform",
+          "Реализацию проекта поддержал город Кохтла-Ярве в рамках «Порядка поддержки образовательных, культурных и молодёжных проектов» Кохтла-Ярвеского городского собрания."
         ]
       }
     ],

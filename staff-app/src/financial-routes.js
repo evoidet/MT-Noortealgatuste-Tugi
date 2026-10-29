@@ -18,6 +18,7 @@ export function financialRoutes({
   issuer = financialIssuer,
 }) {
   const router = Router();
+  const financeEmail = mailService.financeEmail;
   // Authentication and CSRF reuse the existing middleware, authorization is checked for EVERY route.
   router.use(auth.requireSession, async (req, res, next) => {
     try {
@@ -68,7 +69,7 @@ export function financialRoutes({
     route(async (_req, res) =>
       res.json({
         issuer: issuer(),
-        financeEmail: "egor.stepanov@noortetugi.ee",
+        financeEmail,
       }),
     ),
   );
@@ -183,7 +184,7 @@ export function financialRoutes({
       if (req.body.version !== doc.version)
         return res.status(409).json({ error: "Dokument on muutunud." });
       const buffer = await word(doc);
-      const recipient = 'egor.stepanov@noortetugi.ee';
+      const recipient = financeEmail;
       const title = doc.kind === 'invoice' ? 'arve' : 'hinnapakkumine';
       const confirmation = {
         deliveryId: randomUUID(), recipient,
@@ -203,7 +204,7 @@ export function financialRoutes({
       let accepted = false;
       try {
         const result = await mailService.sendFinancialDocument({ ...confirmation, docx: buffer, filename: financialFilename(doc) });
-        accepted = (result.accepted || []).some(v => String(v).toLowerCase() === recipient);
+        accepted = (result.accepted || []).some(v => String(v).toLowerCase() === recipient?.toLowerCase());
       } catch { /* The durable claim prevents retries after ambiguous SMTP outcomes. */ }
       let warning = accepted ? '' : 'Dokument on kinnitatud, kuid e-kirja saatmine ebaõnnestus või vajab kontrolli. Ärge saatke uuesti enne postkasti kontrollimist.';
       try {
@@ -219,7 +220,7 @@ export function financialRoutes({
     route(async (req, res) => {
       const message = deliverySchema.parse(req.body);
       const doc = await get(req.params.id);
-      if (doc.confirmation_delivery_status && message.recipient.toLowerCase() === 'egor.stepanov@noortetugi.ee')
+      if (doc.confirmation_delivery_status && message.recipient.toLowerCase() === financeEmail?.toLowerCase())
         return res.status(409).json({ error: 'Kinnitamise e-kiri on juba töödeldud. Kordussaatmine pole lubatud.' });
       if (!mailService.available)
         return res
@@ -243,7 +244,7 @@ export function financialRoutes({
         const recipients = [
           ...new Set([
             message.recipient.toLowerCase(),
-            "egor.stepanov@noortetugi.ee",
+            financeEmail?.toLowerCase(),
           ]),
         ];
         accepted = recipients.every((email) =>

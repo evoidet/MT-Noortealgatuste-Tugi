@@ -87,14 +87,15 @@ export function createMailService(config, overrides = {}) {
     : null);
 
   return Object.freeze({
+    financeEmail: config.financeNotificationEmail,
     available: Boolean(transport && config.mailFrom && config.financeNotificationEmail),
 
     async sendFinancialDocument({ recipient, subject, message, number = '', pdf = null, docx = null, filename = '', deliveryId }) {
       if (!transport || !config.mailFrom) throw mailUnavailableError();
       return transport.sendMail({
         from: config.mailFrom, to: recipient,
-        cc: recipient.toLowerCase() === 'egor.stepanov@noortetugi.ee' ? undefined : 'egor.stepanov@noortetugi.ee',
-        replyTo: 'egor.stepanov@noortetugi.ee',
+        cc: recipient.toLowerCase() === config.financeNotificationEmail?.toLowerCase() ? undefined : config.financeNotificationEmail,
+        replyTo: config.financeNotificationEmail,
         messageId: `<finance-${deliveryId}@noortetugi.ee>`,
         subject: cleanHeader(subject), text: message,
         disableFileAccess: true, disableUrlAccess: true,

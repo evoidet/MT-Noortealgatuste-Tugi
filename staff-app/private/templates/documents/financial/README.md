@@ -1,6 +1,11 @@
 # Financial templates
 
 New invoices and quotations use `invoice.docx` and `quotation.docx`.
+Both information tables include `{reference}` (Viide); invoices additionally
+include `{referenceNumber}` (Viitenumber). Invoice payment instructions use
+`{paymentInstruction}` and adapt when no reference number is supplied.
+Keep these placeholders in the application templates. Generated examples are
+editable documents for manual use, not replacements for executable templates.
 See [Word workflow and validation](../../../../FINANCIAL-DOCX.md).
 The PDF assets described below remain for legacy compatibility.
 

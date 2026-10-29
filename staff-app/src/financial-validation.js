@@ -21,6 +21,7 @@ const schema = z.object({
   phone: text,
   execution: text,
   project: text,
+  reference: text,
   referenceNumber: z
     .string()
     .regex(/^\d{0,20}$/)

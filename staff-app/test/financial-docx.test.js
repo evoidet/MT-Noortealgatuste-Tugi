@@ -31,3 +31,32 @@ test('Word templates retain editable tables, image bytes, geometry, fonts and se
     if(kind==='quotation') { assert.ok(footer.includes('TEST-IBAN')); assert.ok(footer.includes('Testmüüja ÕÜ')); }
   }
 });
+
+test('reference fields stay in the information table and invoice instructions adapt', async () => {
+  const issuer = { ...organization, vatRegistered: false, vatRate: 0 };
+  for (const kind of ['invoice', 'quotation']) {
+    for (const referenceNumber of ['', '1234561']) {
+      const data = validateFinancialData({ date: '2026-10-29', dueDate: '2026-11-05',
+        customer: 'Testklient', address: 'Testi 1', reference: 'Leping & kokkulepe', referenceNumber,
+        explanation: 'Lisainfo', items: [{ description: 'Teenus', quantity: 1, unit: 'tk', unitPrice: 10 }],
+      }, issuer, true);
+      const xml = new PizZip(await generateFinancialDocx({ kind, number: 'TEST-042', issuer, data }))
+        .file('word/document.xml').asText();
+      const info = xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g)[1];
+      assert.match(info, /Viide/);
+      assert.match(info, /Leping &amp; kokkulepe/);
+      if (kind === 'invoice') {
+        assert.match(info, /Viitenumber/);
+        assert.match(xml, /Arve TEST-042 · Lisainfo/);
+        assert.match(xml, /Makse selgitusse palume märkida arve number/);
+        assert.equal(xml.includes('viitenumbri väljale'), Boolean(referenceNumber));
+        if (referenceNumber) assert.ok(info.includes(referenceNumber));
+      } else {
+        assert.ok(!xml.includes('Viitenumber'));
+        assert.ok(!xml.includes('1234561'));
+        assert.ok(!xml.includes('Makse selgitusse'));
+      }
+      assert.ok(!/\{(?:reference|referenceNumber|paymentInstruction)\}/.test(xml));
+    }
+  }
+});

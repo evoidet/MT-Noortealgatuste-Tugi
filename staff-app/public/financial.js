@@ -83,6 +83,7 @@ export async function mountFinancial(root, { kind = "" } = {}) {
       ${input("date", "Kuupäev", v.date, "date")}${input("dueDate", quote ? "Kehtib kuni" : "Maksetähtaeg", v.dueDate, "date")}
       ${quote ? input("execution", "Täitmise aeg", v.execution, "text", "Kuupäev või periood") : input("supplyDate", "Kauba / teenuse kuupäev", v.supplyDate || "", "date")}
       ${input("project", "Projekti / lepingu viide", v.project, "text", "GALA-2026")}
+      ${input("reference", "Viide", v.reference)}
       ${input("customer", "Tellija nimi", v.customer, "text", "Ettevõtte, asutuse või eraisiku nimi")}${input("registrationCode", "Registrikood", v.registrationCode)}
       ${input("address", "Aadress", v.address)}${input("contact", "Kontaktisik", v.contact)}${input("email", "E-post", v.email, "email")}${input("phone", "Telefon", v.phone, "tel")}
       ${!quote ? input("referenceNumber", "Viitenumber (valikuline)", v.referenceNumber) + input("explanation", "Selgitus", v.explanation) : ""}</div>
@@ -112,6 +113,7 @@ export async function mountFinancial(root, { kind = "" } = {}) {
         "phone",
         "execution",
         "project",
+        "reference",
         "referenceNumber",
         "explanation",
       ].map((k) => [k, read(k)]),
@@ -184,7 +186,7 @@ export async function mountFinancial(root, { kind = "" } = {}) {
           : ""
       }
       ${["SENDING", "UNCERTAIN"].includes(current.status) ? "<p>Saatmise tulemus vajab administraatori kontrolli. Ärge looge kordussaatmist enne postkasti kontrollimist.</p>" : ""}
-      ${current.confirmation_delivery_status ? `<p role="status">${current.confirmation_delivery_status === "SENT" ? "Dokument on kinnitatud ja Wordi fail saadetud aadressile egor.stepanov@noortetugi.ee." : "Dokument on kinnitatud. E-kirja saatmine on pooleli või vajab kontrolli; ärge saatke uuesti enne postkasti kontrollimist."}</p>` : ""}<h3>Ajalugu</h3><ul>${result.history.map((h) => `<li>${esc(new Date(h.created_at).toLocaleString("et-EE"))} · ${esc(h.actor_name)} · ${esc({ CREATED: "Loodud", UPDATED: "Muudetud", FINALIZED: "Kinnitatud", CONFIRMATION_SENT: "Kinnitamise e-kiri saadetud", CONFIRMATION_UNCERTAIN: "Kinnitatud; e-kirja saatmine vajab kontrolli", SEND_STARTED: "Saatmine alustatud", SENT: "Saadetud", UNCERTAIN: "Saatmine vajab kontrolli" }[h.action] || h.action)}</li>`).join("")}</ul>`);
+      ${current.confirmation_delivery_status ? `<p role="status">${current.confirmation_delivery_status === "SENT" ? `Dokument on kinnitatud ja Wordi fail saadetud aadressile ${esc(settings.financeEmail)}.` : "Dokument on kinnitatud. E-kirja saatmine on pooleli või vajab kontrolli; ärge saatke uuesti enne postkasti kontrollimist."}</p>` : ""}<h3>Ajalugu</h3><ul>${result.history.map((h) => `<li>${esc(new Date(h.created_at).toLocaleString("et-EE"))} · ${esc(h.actor_name)} · ${esc({ CREATED: "Loodud", UPDATED: "Muudetud", FINALIZED: "Kinnitatud", CONFIRMATION_SENT: "Kinnitamise e-kiri saadetud", CONFIRMATION_UNCERTAIN: "Kinnitatud; e-kirja saatmine vajab kontrolli", SEND_STARTED: "Saatmine alustatud", SENT: "Saadetud", UNCERTAIN: "Saatmine vajab kontrolli" }[h.action] || h.action)}</li>`).join("")}</ul>`);
   }
   section.addEventListener("input", recalculate);
   section.addEventListener("click", async (event) => {

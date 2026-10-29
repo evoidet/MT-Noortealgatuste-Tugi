@@ -4127,3 +4127,73 @@ body.home-page .home-news-small-media .home-news-photo-zoom {
     font-size: 36px;
   }
 }
+
+/* Minimal team gallery; retain the existing shared modal for news and logo. */
+html { scrollbar-gutter: stable; }
+body.home-page .home-person-card,
+body.home-page .home-person-card-lead,
+body.home-page .home-person-card:hover {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  transform: none;
+  border-radius: 12px;
+}
+body.home-page .home-person-info,
+body.home-page .home-person-card::after,
+body.home-page .home-person-photo-wrap::after,
+body.home-page .home-person-photo-wrap > span { display: none; }
+body.home-page .home-person-card .team-photo,
+body.home-page .home-person-card-lead .team-photo {
+  display: block;
+  width: min(100%, 300px);
+  height: auto;
+  margin: auto;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: none;
+  transform: none;
+}
+body.home-page .team-photo:focus-visible { outline: 3px solid #333; outline-offset: -3px; }
+body.home-page .photo-modal.is-person {
+  padding: 56px 16px 16px;
+  background: rgba(0, 0, 0, .8);
+  backdrop-filter: blur(5px);
+}
+body.home-page .photo-modal.is-person::before,
+body.home-page .photo-modal.is-person .photo-modal-card::before,
+body.home-page .photo-modal.is-person .photo-modal-visual::before,
+body.home-page .photo-modal.is-person .photo-modal-visual::after,
+body.home-page .photo-modal.is-person .photo-modal-kicker { display: none; }
+/* Keep the accessible dialog name while hiding visible profile descriptions. */
+body.home-page .photo-modal.is-person .photo-modal-info {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+body.home-page .photo-modal.is-person .photo-modal-card,
+body.home-page .photo-modal.is-person .photo-modal-visual {
+  width: auto; min-height: 0; max-height: none; padding: 0;
+  border: 0; border-radius: 0; background: none; box-shadow: none; overflow: visible;
+}
+body.home-page .photo-modal.is-person .photo-modal-card {
+  transform: scale(.96);
+  transition: opacity .25s ease, transform .25s ease;
+}
+body.home-page .photo-modal.is-person.open .photo-modal-card { transform: scale(1); }
+body.home-page .photo-modal.is-person .photo-modal-image {
+  display: block; width: auto; height: auto; min-width: 0;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100dvh - 88px);
+  object-fit: contain; border: 0; border-radius: 6px; box-shadow: none; transform: none;
+}
+body.home-page .photo-modal.is-person .photo-modal-close {
+  position: fixed; top: 12px; right: 16px;
+  width: 40px; height: 40px; background: #fff; color: #111;
+  border: 0; box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.home-page .photo-modal.is-person .photo-modal-card { transition: none; }
+}

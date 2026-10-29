@@ -24,6 +24,8 @@ const data = {
   dueDate: "2026-10-30",
   customer: "Testklient ÕÄÖÜ",
   address: "Testi 1, Tallinn",
+  reference: "Leping 2026-10",
+  referenceNumber: "1234561",
   items: [
     {
       description: "Sünteetiline testteenus",
@@ -257,6 +259,8 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.match(download.headers['content-disposition'], /Arve_.*\.docx/);
   const xml = new PizZip(docx).file('word/document.xml').asText();
   assert.match(xml, /Testklient \u00d5\u00c4\u00d6\u00dc/);
+  assert.match(xml, /Leping 2026-10/);
+  assert.match(xml, /1234561/);
   await authorized("get", `/${id}/pdf`).expect(409);
   await authorized("patch", `/${id}`)
     .send({ version: doc.version + 1, data })
@@ -302,6 +306,7 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.match(failed.body.warning, /kinnitatud/);
   assert.equal((await db.getFinancialDocument(second.id)).status, "READY");
   assert.equal((await db.getFinancialDocument(second.id)).confirmation_delivery_status, "UNCERTAIN");
+  await authorized("get", `/${second.id}/docx`).expect(200);
   await authorized("post", `/${second.id}/send`).send(message).expect(409);
   assert.equal(sent.length, 2);
   smtpFailure = false;

@@ -17,6 +17,10 @@ export async function generateFinancialDocx(record) {
   }));
   while (items.length < 3) items.push({ index: '', description: '', quantity: '', unit: '', unitPrice: '', lineTotal: '' });
   const fields = {
+    reference: value(d.reference),
+    paymentInstruction: d.referenceNumber
+      ? 'Makse selgitusse palume märkida arve number ning viitenumber sisestada makse viitenumbri väljale.'
+      : 'Makse selgitusse palume märkida arve number.',
     number: record.number, date: dateText(d.date), dueDate: dateText(d.dueDate), currency: d.currency,
     execution: value(record.kind === 'invoice' ? dateText(d.supplyDate) || d.execution : d.execution),
     project: value([d.project, record.correction_number ? `Parandus: ${record.correction_number}` : ''].filter(Boolean).join('\n')),
@@ -24,7 +28,9 @@ export async function generateFinancialDocx(record) {
     customer: d.customer, registrationCode: value(d.registrationCode), address: d.address, contact: value(d.contact),
     customerContact: value([d.email,d.phone].filter(Boolean).join(' / ')), invoiceContact: value([d.contact,d.email,d.phone].filter(Boolean).join(' / ')),
     items, subtotal: money(d.totals.subtotal), vat: o.vatRegistered ? `${o.vatRate}% · ${money(d.totals.vat)}` : 'Ei lisandu', total: money(d.totals.total),
-    iban: o.iban, bic: o.bic, bank: o.bank, explanation: d.explanation || `Arve ${record.number}`, referenceNumber: value(d.referenceNumber),
+    iban: o.iban, bic: o.bic, bank: o.bank,
+    explanation: [ `Arve ${record.number}`, d.explanation?.trim() ].filter((v, i, a) => v && a.indexOf(v) === i).join(' · '),
+    referenceNumber: value(d.referenceNumber),
     invoiceTerms: Object.entries(termLabels).filter(([k]) => d.terms?.[k]).map(([k,label]) => `\n${label}: ${d.terms[k]}`).join(''),
     footerVat: o.vatRegistered ? `Käibemaksukohustuslase number: ${o.vatNumber}. Täname õigeaegse tasumise eest!` : 'Käibemaksu ei lisandu, sest müüja ei ole käibemaksukohustuslane. Täname õigeaegse tasumise eest!',
     footerBank: `${o.name}  |  ${o.bank}  |  IBAN: ${o.iban}  |  BIC/SWIFT: ${o.bic}`,

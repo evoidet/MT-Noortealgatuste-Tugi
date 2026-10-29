@@ -3,6 +3,20 @@ import test from "node:test";
 
 import { createMailService } from "../src/mail.js";
 
+test("financial mail uses the configured finance recipient for copies and replies", async () => {
+  const messages = [];
+  const service = createMailService(mailConfig({ financeNotificationEmail: "finance@example.test" }), {
+    transport: { async sendMail(message) { messages.push(message); return { accepted: [message.to] }; } },
+  });
+  assert.equal(service.financeEmail, "finance@example.test");
+  const document = { subject: "Arve TEST-001", message: "Test", docx: Buffer.from("docx"), filename: "Arve_TEST-001.docx", deliveryId: "test" };
+  await service.sendFinancialDocument({ ...document, recipient: "customer@example.test" });
+  assert.equal(messages[0].cc, service.financeEmail);
+  assert.equal(messages[0].replyTo, service.financeEmail);
+  await service.sendFinancialDocument({ ...document, recipient: "FINANCE@example.test" });
+  assert.equal(messages[1].cc, undefined);
+});
+
 function mailConfig(overrides = {}) {
   return {
     smtpHost: "smtp.example.test",
