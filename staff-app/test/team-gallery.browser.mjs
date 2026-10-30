@@ -68,7 +68,7 @@ try {
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'false');
     }
-    assert.deepEqual(await page.locator('.home-leadership-grid h3').allTextContents(), ['Egor Stepanov', 'Mario Polshin', 'Sofia Germ', 'Jekaterina Rogožina', 'Mihhail Semiyanov', 'Andrei Ostretsov']);
+    assert.deepEqual(await page.locator('.home-leadership-grid h3').allTextContents(), ['Mario Polshin', 'Egor Stepanov', 'Sofia Germ', 'Jekaterina Rogožina', 'Mihhail Semiyanov', 'Andrei Ostretsov']);
     assert.equal(await page.locator('.team-photo-clickable').count(), 8);
     assert.deepEqual(await page.locator('.home-team-grid h3').allTextContents(), ['Erik Kovaltšuk', 'Mihhail Komarov']);
     assert.equal(await page.locator('.home-person-founder').count(), 4);

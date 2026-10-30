@@ -4227,7 +4227,9 @@ body.home-page .home-person-info .home-person-role {
   font-size: 13px; line-height: 1.5; font-weight: 500; letter-spacing: 0;
   text-transform: none; text-align: left; overflow-wrap: anywhere;
 }
-body.home-page .home-person-info .home-person-email,
+body.home-page .home-person-info .home-person-email {
+  display: block; grid-column: 1; grid-row: 4; margin: 0; font-weight: 500;
+}
 body.home-page .home-person-info > p:last-child { display: none; }
 @media (max-width: 1000px) {
   body.home-page .home-leadership-grid, body.home-page .home-team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
