@@ -33,6 +33,19 @@ const LEAF_MARKUP = Object.freeze([
 
 const PUMPKIN_MARKUP = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 7.1c-.1-2 1-3.4 2.8-4.1" fill="none" stroke="#395723" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="12" cy="14" rx="8.5" ry="6.4" fill="currentColor"/><ellipse cx="12" cy="14" rx="4.5" ry="6.1" fill="none" stroke="rgba(91,48,22,.38)" stroke-width="1"/><path d="M8.1 9.5c-1.1 2.8-1.1 6.3 0 9M15.9 9.5c1.1 2.8 1.1 6.3 0 9" fill="none" stroke="rgba(91,48,22,.26)" stroke-width=".8" stroke-linecap="round"/></svg>`;
 const ACTIVE_CONTROLLERS = new WeakMap();
+const INTRO_KEY = "noortetugi-halloween-intro-2026";
+// Inline vector artwork: no image download, animation library or per-frame JavaScript.
+const JACK_O_LANTERN = `<svg viewBox="0 0 160 150" aria-hidden="true" focusable="false">
+  <defs><radialGradient id="halloween-shell"><stop stop-color="#ffb04b"/><stop offset=".65" stop-color="#ed7924"/><stop offset="1" stop-color="#a83d19"/></radialGradient></defs>
+  <path d="M78 38Q72 16 91 12L99 22Q83 22 87 39" fill="#526536"/>
+  <path d="M88 29Q112 14 122 33Q107 41 88 29" fill="#71864b"/>
+  <ellipse cx="80" cy="88" rx="67" ry="52" fill="url(#halloween-shell)"/>
+  <ellipse cx="80" cy="88" rx="42" ry="52" fill="none" stroke="#be4c1d" stroke-width="3" opacity=".55"/>
+  <ellipse cx="80" cy="88" rx="19" ry="52" fill="none" stroke="#ffbc5a" stroke-width="2" opacity=".5"/>
+  <path d="m43 76 23-13 4 22Zm47 9 4-22 23 13ZM41 99l16 4 3-8 13 10 13-1 9-10 5 8 19-5q-10 29-39 28T41 99" fill="#51281c"/>
+  <path d="m48 76 16-8 2 12Zm46 4 2-12 16 8ZM48 104l12 4 4-6 9 9 15-1 8-8 3 6 13-5q-12 17-32 17t-32-16" fill="#ffe29b"/>
+  <path d="m75 92 5-9 6 9Z" fill="#ffe29b"/>
+</svg>`;
 
 function getLocalDateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -143,6 +156,36 @@ export function createSeasonalEffects({
   let layer = null;
   let activeMode = "";
   let midnightTimer = 0;
+  let pumpkin = null;
+  let introSeen = false;
+
+  function syncHalloween(state) {
+    // The extra atmosphere belongs to the homepage only; other pages retain their existing effects.
+    const hero = documentRef.querySelector?.(".home-hero");
+    if (!hero) return;
+    hero.classList.toggle("is-halloween", state.halloween);
+    if (!state.halloween) {
+      pumpkin?.remove();
+      pumpkin = null;
+      return;
+    }
+    if (!pumpkin) {
+      pumpkin = documentRef.createElement("div");
+      pumpkin.className = "halloween-pumpkin";
+      pumpkin.setAttribute("aria-hidden", "true");
+      pumpkin.innerHTML = JACK_O_LANTERN;
+      hero.append(pumpkin);
+      try { introSeen ||= windowRef.sessionStorage.getItem(INTRO_KEY) === "seen"; } catch { /* Storage may be disabled. */ }
+      if (!introSeen && !reducedMotion.matches) {
+        pumpkin.classList.add("halloween-pumpkin--intro");
+        pumpkin.addEventListener("animationend", () => pumpkin?.classList.remove("halloween-pumpkin--intro"), { once: true });
+      }
+      introSeen = true;
+      try { windowRef.sessionStorage.setItem(INTRO_KEY, "seen"); } catch { /* In-memory guard still prevents restarts on this page. */ }
+    }
+    if (reducedMotion.matches) pumpkin.classList.remove("halloween-pumpkin--intro");
+    pumpkin.style.animationPlayState = documentRef.visibilityState === "visible" ? "running" : "paused";
+  }
 
   function removeLayer() {
     layer?.remove();
@@ -161,11 +204,13 @@ export function createSeasonalEffects({
       refresh();
     } else {
       syncVisibility();
+      if (pumpkin) pumpkin.style.animationPlayState = "paused";
     }
   }
 
   function refresh() {
     const state = getSeasonalEffectsState(now());
+    syncHalloween(state);
     const nextMode = state.autumn
       ? state.halloween ? "autumn-halloween" : "autumn"
       : "";
@@ -178,7 +223,7 @@ export function createSeasonalEffects({
     if (!layer || activeMode !== nextMode) {
       removeLayer();
       layer = createEffectsLayer(documentRef, state);
-      documentRef.body.append(layer);
+      (documentRef.querySelector?.(".home-hero") || documentRef.body).append(layer);
       activeMode = nextMode;
     }
 
@@ -223,6 +268,9 @@ export function createSeasonalEffects({
       }
 
       removeLayer();
+      pumpkin?.remove();
+      pumpkin = null;
+      documentRef.querySelector?.(".home-hero")?.classList.remove("is-halloween");
       ACTIVE_CONTROLLERS.delete(documentRef);
     }
   };

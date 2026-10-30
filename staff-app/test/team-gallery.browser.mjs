@@ -22,13 +22,45 @@ await mkdir(output, { recursive: true });
 try {
   for (const width of [1440, 768, 390]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
+    await page.addInitScript(() => {
+      const NativeDate = Date;
+      window.Date = class extends NativeDate {
+        constructor(...args) { super(...(args.length ? args : ['2026-10-30T12:00:00+02:00'])); }
+        static now() { return new NativeDate('2026-10-30T12:00:00+02:00').getTime(); }
+      };
+    });
     await page.route('**/*', route => route.request().url().startsWith(origin) ? route.continue() : route.abort());
     await page.goto(origin);
+    await page.locator('.halloween-pumpkin--intro').waitFor();
+    assert.equal(await page.locator('.halloween-pumpkin').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
+    // Real controls remain available during the introduction.
+    await page.locator('.language-switcher [data-lang="en"]').click();
+    await page.waitForFunction(() => document.documentElement.lang === 'en');
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: resolve(output, `halloween-${width}.png`) });
+    await page.waitForTimeout(3500);
+    assert.equal(await page.locator('.halloween-pumpkin--intro').count(), 0);
+    await page.reload();
+    await page.locator('.halloween-pumpkin').waitFor();
+    assert.equal(await page.locator('.halloween-pumpkin--intro').count(), 0, 'no repeated session entrance');
+    assert.deepEqual(await page.locator('.home-leadership-grid h3').allTextContents(), ['Jekaterina Rogožina', 'Egor Stepanov', 'Sofia Germ', 'Mario Polshin']);
+    assert.equal(await page.locator('.team-photo-clickable').count(), 8);
+    assert.equal(await page.locator('.home-leadership-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), width > 1000 ? 4 : width > 540 ? 2 : 1);
+    for (const lang of ['ru', 'en', 'et']) {
+      await page.evaluate(lang => window.I18N.setLanguage(lang), lang);
+      for (const caption of await page.locator('.home-person-role').all()) {
+        assert.equal(await caption.isVisible(), true);
+        assert.ok((await caption.innerText()).trim());
+      }
+      assert.ok(await page.locator('.home-person-info h3').evaluateAll(nodes => nodes.every(n => n.getBoundingClientRect().right <= innerWidth)));
+    }
+    assert.equal(await page.locator('[data-i18n="home.team.executiveDirector"]').innerText(), 'Tegevjuht / CEO');
     const photo = page.locator('.team-photo-clickable').first();
     await photo.scrollIntoViewIfNeeded();
     await photo.focus();
     await page.waitForTimeout(700);
-    assert.equal(await page.locator('.home-person-info').first().isVisible(), false);
+    assert.equal(await page.locator('.home-person-info').first().isVisible(), true);
     assert.equal(await photo.evaluate(el => getComputedStyle(el).borderWidth), '0px');
     const before = await photo.boundingBox();
     await page.keyboard.press('Enter');
@@ -60,6 +92,17 @@ try {
       assert.equal(await modal.isVisible(), false);
     }
     await page.screenshot({ path: resolve(output, `gallery-${width}.png`) });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('.seasonal-effects').count(), 0);
+    assert.equal(await page.locator('.halloween-pumpkin').evaluate(el => getComputedStyle(el).animationName), 'none');
+    await page.evaluate(async () => {
+      const source = document.querySelector('script[src*="seasonal-effects.js"]').src;
+      const {createSeasonalEffects} = await import(source);
+      createSeasonalEffects().destroy();
+      createSeasonalEffects({now: () => new Date('2026-11-02T12:00:00+02:00')});
+    });
+    assert.equal(await page.locator('.halloween-pumpkin').count(), 0);
     await page.close();
     console.log(`Team gallery passed at ${width}px`);
   }

@@ -103,3 +103,35 @@
     display: none !important;
   }
 }
+
+/* A brief entrance, then a still ornament. Keep the centre of the page clear. */
+body.home-page .home-hero.is-halloween {
+  background:
+    radial-gradient(ellipse at 97% 8%, #ed792434, transparent 39%),
+    radial-gradient(ellipse at 80% 80%, #76529320, transparent 45%),
+    linear-gradient(135deg, #edf1d5, #fffaf3 55%, #fff);
+}
+body.home-page .home-hero.is-halloween .home-orbit-ring { border-color: #d6844870; }
+body.home-page .home-hero.is-halloween .home-orbit-art::after { box-shadow: inset 0 0 70px #d6844814, 0 0 70px #76529312; }
+body.home-page .home-hero.is-halloween .home-button-primary:hover { box-shadow: 0 12px 28px #b8662833; }
+.halloween-pumpkin {
+  position: absolute; top: 8px; right: max(24px, calc((100vw - 1220px) / 2));
+  width: 140px; height: 132px; z-index: 3;
+  pointer-events: none; user-select: none;
+  filter: drop-shadow(0 7px 16px #f29a405c);
+}
+.halloween-pumpkin svg { width: 100%; height: 100%; display: block; }
+body.home-page .home-hero .seasonal-effects { position: absolute; z-index: 0; }
+.halloween-pumpkin--intro { animation: halloween-welcome 3.4s ease-out both; }
+@keyframes halloween-welcome {
+  0% { opacity: 0; transform: translateY(-16px) scale(.65) rotate(-9deg); }
+  25% { opacity: 1; transform: translateY(5px) scale(1.12) rotate(4deg); }
+  60% { opacity: 1; transform: translateY(-4px) scale(1.05) rotate(-2deg); }
+  100% { opacity: 1; transform: none; }
+}
+@media (max-width: 880px) {
+  .halloween-pumpkin { width: 76px; height: 72px; top: 3px; right: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .halloween-pumpkin--intro { animation: none; }
+}

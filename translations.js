@@ -469,9 +469,9 @@
     ],
     "home.team.label": ["MEESKOND", "TEAM", "КОМАНДА"],
     "home.team.title": [
-      "Inimesed, kes aitavad ideedel kasvada",
-      "The people who help ideas grow",
-      "Люди, которые помогают идеям расти"
+      "Meie meeskond",
+      "Our team",
+      "Наша команда"
     ],
     "home.team.description": [
       "Meie meeskond ühendab projektijuhtimise, kommunikatsiooni, turunduse, finantsid ja noorsootöö kogemuse.",
@@ -491,9 +491,9 @@
       "Наши специалисты"
     ],
     "home.team.executiveDirector": [
-      "Tegevjuht",
-      "Executive Director",
-      "Исполнительный директор"
+      "Tegevjuht / CEO",
+      "Executive Director / CEO",
+      "Исполнительный директор / CEO"
     ],
     "home.team.executiveDirectorText": [
       "Kujundab organisatsiooni kuvandit kogukonnas ning vastutab arendustegevuste eest.",

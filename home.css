@@ -4142,7 +4142,6 @@ body.home-page .home-person-card:hover {
   transform: none;
   border-radius: 12px;
 }
-body.home-page .home-person-info,
 body.home-page .home-person-card::after,
 body.home-page .home-person-photo-wrap::after,
 body.home-page .home-person-photo-wrap > span { display: none; }
@@ -4196,4 +4195,46 @@ body.home-page .photo-modal.is-person .photo-modal-close {
 }
 @media (prefers-reduced-motion: reduce) {
   body.home-page .photo-modal.is-person .photo-modal-card { transition: none; }
+}
+
+/* Team portraits: four equal columns, with persistent name and role captions. */
+body.home-page .home-team-section { background: #fff; }
+body.home-page .home-team-section .home-section-heading h2 { font-weight: 500; }
+body.home-page .home-team-group-heading::after { display: none; }
+body.home-page .home-team-group-heading h3 { font-size: 15px; letter-spacing: .12em; font-weight: 650; }
+body.home-page .home-leadership-grid,
+body.home-page .home-team-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 36px 22px; }
+body.home-page .home-team-grid > .home-person-card:last-child:nth-child(odd) { width: auto; grid-column: auto; }
+body.home-page .home-person-card { overflow: visible; border-radius: 0; }
+body.home-page .home-person-photo-wrap { overflow: hidden; border-radius: 3px; background: #f2f3ee; }
+body.home-page .home-person-card .team-photo {
+  width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: center 28%;
+  border-radius: 3px; transition: transform .3s ease, opacity .3s ease;
+}
+@media (hover: hover) {
+  body.home-page .home-person-card .team-photo:hover { transform: scale(1.025); }
+}
+body.home-page .home-person-info {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: 12px;
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid #a7afa3; align-items: start;
+}
+body.home-page .home-person-info h3 {
+  grid-column: 1; grid-row: 1; margin: 0; color: #182516;
+  font-size: 17px; line-height: 1.45; font-weight: 500; overflow-wrap: anywhere;
+}
+body.home-page .home-person-info .home-person-role {
+  grid-column: 2; grid-row: 1; margin: 2px 0 0; color: #4b713b;
+  font-size: 13px; line-height: 1.5; font-weight: 500; letter-spacing: 0;
+  text-transform: none; text-align: right; overflow-wrap: anywhere;
+}
+body.home-page .home-person-info .home-person-email,
+body.home-page .home-person-info > p:last-child { display: none; }
+@media (max-width: 1000px) {
+  body.home-page .home-leadership-grid, body.home-page .home-team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 540px) {
+  body.home-page .home-leadership-grid, body.home-page .home-team-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.home-page .home-person-card .team-photo { transition: none; transform: none; }
 }
