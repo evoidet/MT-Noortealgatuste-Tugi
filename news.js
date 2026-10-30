@@ -779,7 +779,9 @@
       progress.setAttribute("aria-hidden", "true");
       document.body.appendChild(progress);
 
+      let progressFrame = 0;
       const updateProgress = () => {
+        progressFrame = 0;
         const max = document.documentElement.scrollHeight - window.innerHeight;
         const value = max > 0 ? (window.scrollY / max) * 100 : 0;
 
@@ -790,8 +792,16 @@
       };
 
       updateProgress();
-      window.addEventListener("scroll", updateProgress, { passive: true });
-      window.addEventListener("resize", updateProgress);
+      const scheduleProgress = () => {
+        if (!progressFrame) progressFrame = requestAnimationFrame(updateProgress);
+      };
+      window.addEventListener("scroll", scheduleProgress, { passive: true });
+      window.addEventListener("resize", scheduleProgress);
+      window.addEventListener("pagehide", () => {
+        cancelAnimationFrame(progressFrame);
+        progressFrame = 0;
+      });
+      window.addEventListener("pageshow", scheduleProgress);
     }
   };
 

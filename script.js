@@ -5,6 +5,30 @@ document.addEventListener("DOMContentLoaded", function () {
      ÜLDISED ABIFUNKTSIOONID
      ========================================================= */
 
+  // Preserve animation timelines while avoiding work in invisible sections.
+  (function initAnimationVisibility() {
+    if (!("IntersectionObserver" in window)) return;
+    const sections = [...document.querySelectorAll("main section")].filter(
+      section => !section.parentElement.closest("section")
+    );
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        entry.target.classList.toggle("animations-offscreen", !entry.isIntersecting);
+      }
+    }, { rootMargin: "120px" });
+    sections.forEach(section => observer.observe(section));
+    const syncVisibility = () => document.documentElement.classList.toggle(
+      "animations-hidden", document.visibilityState === "hidden"
+    );
+    document.addEventListener("visibilitychange", syncVisibility);
+    syncVisibility();
+    window.addEventListener("pagehide", () => observer.disconnect());
+    window.addEventListener("pageshow", () => {
+      sections.forEach(section => observer.observe(section));
+      syncVisibility();
+    });
+  })();
+
   const siteConfig = window.SITE_CONFIG || {};
   const t = function (key, variables) {
     return window.I18N?.t(key, variables) || "";
@@ -491,7 +515,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(button);
 
     function updateVisibility() {
-      button.classList.toggle("is-visible", window.scrollY > 560);
+      const visible = window.scrollY > 560;
+      if (button.classList.contains("is-visible") !== visible) {
+        button.classList.toggle("is-visible", visible);
+      }
     }
 
     button.addEventListener("click", function () {
@@ -654,7 +681,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     updateGalaCountdown();
-    intervalId = window.setInterval(updateGalaCountdown, 1000);
+    if (targetDate > Date.now()) {
+      intervalId = window.setInterval(updateGalaCountdown, 1000);
+    }
   })();
 
   /* =========================================================
@@ -730,7 +759,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     updateCampCountdown();
-    intervalId = window.setInterval(updateCampCountdown, 1000);
+    if (targetDate > Date.now()) {
+      intervalId = window.setInterval(updateCampCountdown, 1000);
+    }
   })();
 
   /* =========================================================

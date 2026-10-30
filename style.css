@@ -2539,3 +2539,17 @@ body.newsletter-popup-open {
     transition: none;
   }
 }
+
+/* Pausing preserves the exact frame; resume before a section reaches the viewport.
+   Include pseudo-elements, which carry many decorative grid/glow animations. */
+.animations-offscreen,
+.animations-offscreen *,
+.animations-offscreen::before,
+.animations-offscreen::after,
+.animations-offscreen *::before,
+.animations-offscreen *::after,
+html.animations-hidden *,
+html.animations-hidden *::before,
+html.animations-hidden *::after {
+  animation-play-state: paused !important;
+}

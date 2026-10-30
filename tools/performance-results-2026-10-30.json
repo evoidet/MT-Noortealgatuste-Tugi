@@ -1,0 +1,834 @@
+{
+  "allPages": [
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 192,
+        "fcpMs": 192,
+        "cls": 0.0009514497281298224,
+        "bytes": 1070277
+      },
+      "totalBytes": 1183653,
+      "jsBytes": 299698,
+      "runningAnimations": 28,
+      "idle": {
+        "taskMs": 129.92000000000002,
+        "layoutMs": 0.35300000000000004,
+        "styleMs": 42.196999999999996
+      },
+      "heapBytes": 2097432,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "uudised.html",
+      "initial": {
+        "lcpMs": 260,
+        "fcpMs": 260,
+        "cls": 0.0009658510862750771,
+        "bytes": 682151
+      },
+      "totalBytes": 682151,
+      "jsBytes": 325329,
+      "runningAnimations": 23,
+      "idle": {
+        "taskMs": 123.60099999999998,
+        "layoutMs": 0,
+        "styleMs": 37.64
+      },
+      "heapBytes": 2020732,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "laager.html",
+      "initial": {
+        "lcpMs": 212,
+        "fcpMs": 212,
+        "cls": 0.0009658510862750771,
+        "bytes": 419981
+      },
+      "totalBytes": 1031113,
+      "jsBytes": 255167,
+      "runningAnimations": 34,
+      "idle": {
+        "taskMs": 182.444,
+        "layoutMs": 0,
+        "styleMs": 51.882
+      },
+      "heapBytes": 1835792,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "tunnustusgala.html",
+      "initial": {
+        "lcpMs": 224,
+        "fcpMs": 224,
+        "cls": 0.0009658510862750771,
+        "bytes": 468226
+      },
+      "totalBytes": 1139921,
+      "jsBytes": 255167,
+      "runningAnimations": 90,
+      "idle": {
+        "taskMs": 227.318,
+        "layoutMs": 0.616,
+        "styleMs": 76.382
+      },
+      "heapBytes": 1861772,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "street.html",
+      "initial": {
+        "lcpMs": 220,
+        "fcpMs": 220,
+        "cls": 0.0009658510862750771,
+        "bytes": 523272
+      },
+      "totalBytes": 712605,
+      "jsBytes": 252195,
+      "runningAnimations": 75,
+      "idle": {
+        "taskMs": 296.834,
+        "layoutMs": 28.422,
+        "styleMs": 86.088
+      },
+      "heapBytes": 1857108,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "vorgustik.html",
+      "initial": {
+        "lcpMs": 216,
+        "fcpMs": 216,
+        "cls": 0.0009658510862750771,
+        "bytes": 591728
+      },
+      "totalBytes": 591728,
+      "jsBytes": 252195,
+      "runningAnimations": 35,
+      "idle": {
+        "taskMs": 231.48200000000003,
+        "layoutMs": 0,
+        "styleMs": 74.13799999999999
+      },
+      "heapBytes": 1862444,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "dokumendid.html",
+      "initial": {
+        "lcpMs": 220,
+        "fcpMs": 220,
+        "cls": 0.0009658510862750771,
+        "bytes": 392807
+      },
+      "totalBytes": 392807,
+      "jsBytes": 255167,
+      "runningAnimations": 17,
+      "idle": {
+        "taskMs": 255.93500000000003,
+        "layoutMs": 0,
+        "styleMs": 49.68
+      },
+      "heapBytes": 1810860,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "privaatsuspoliitika.html",
+      "initial": {
+        "lcpMs": 180,
+        "fcpMs": 180,
+        "cls": 0.0009658510862750771,
+        "bytes": 383613
+      },
+      "totalBytes": 383613,
+      "jsBytes": 255167,
+      "runningAnimations": 17,
+      "idle": {
+        "taskMs": 107.82499999999999,
+        "layoutMs": 0,
+        "styleMs": 32.010999999999996
+      },
+      "heapBytes": 1819712,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 120,
+        "fcpMs": 120,
+        "cls": 0,
+        "bytes": 772348
+      },
+      "totalBytes": 984278,
+      "jsBytes": 299698,
+      "runningAnimations": 19,
+      "idle": {
+        "taskMs": 129.08800000000002,
+        "layoutMs": 0,
+        "styleMs": 38.934000000000005
+      },
+      "heapBytes": 2098296,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "uudised.html",
+      "initial": {
+        "lcpMs": 120,
+        "fcpMs": 120,
+        "cls": 0,
+        "bytes": 596704
+      },
+      "totalBytes": 639880,
+      "jsBytes": 325329,
+      "runningAnimations": 18,
+      "idle": {
+        "taskMs": 117.653,
+        "layoutMs": 0,
+        "styleMs": 32.382
+      },
+      "heapBytes": 2046340,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "laager.html",
+      "initial": {
+        "lcpMs": 168,
+        "fcpMs": 168,
+        "cls": 0,
+        "bytes": 394910
+      },
+      "totalBytes": 574496,
+      "jsBytes": 255167,
+      "runningAnimations": 28,
+      "idle": {
+        "taskMs": 166.121,
+        "layoutMs": 0,
+        "styleMs": 47.900000000000006
+      },
+      "heapBytes": 1834248,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "tunnustusgala.html",
+      "initial": {
+        "lcpMs": 156,
+        "fcpMs": 156,
+        "cls": 0,
+        "bytes": 415012
+      },
+      "totalBytes": 680387,
+      "jsBytes": 255167,
+      "runningAnimations": 85,
+      "idle": {
+        "taskMs": 198.62099999999998,
+        "layoutMs": 0.442,
+        "styleMs": 65.183
+      },
+      "heapBytes": 1864124,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "street.html",
+      "initial": {
+        "lcpMs": 140,
+        "fcpMs": 140,
+        "cls": 0,
+        "bytes": 444891
+      },
+      "totalBytes": 524503,
+      "jsBytes": 252195,
+      "runningAnimations": 60,
+      "idle": {
+        "taskMs": 209.901,
+        "layoutMs": 22.788,
+        "styleMs": 65.88199999999999
+      },
+      "heapBytes": 1830492,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "vorgustik.html",
+      "initial": {
+        "lcpMs": 140,
+        "fcpMs": 140,
+        "cls": 0,
+        "bytes": 406543
+      },
+      "totalBytes": 549545,
+      "jsBytes": 252195,
+      "runningAnimations": 27,
+      "idle": {
+        "taskMs": 156.142,
+        "layoutMs": 0,
+        "styleMs": 47.741
+      },
+      "heapBytes": 1844356,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "dokumendid.html",
+      "initial": {
+        "lcpMs": 100,
+        "fcpMs": 100,
+        "cls": 0,
+        "bytes": 367736
+      },
+      "totalBytes": 367736,
+      "jsBytes": 255167,
+      "runningAnimations": 12,
+      "idle": {
+        "taskMs": 93.484,
+        "layoutMs": 0,
+        "styleMs": 25.679000000000002
+      },
+      "heapBytes": 1824128,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "privaatsuspoliitika.html",
+      "initial": {
+        "lcpMs": 116,
+        "fcpMs": 116,
+        "cls": 0,
+        "bytes": 358542
+      },
+      "totalBytes": 358542,
+      "jsBytes": 255167,
+      "runningAnimations": 12,
+      "idle": {
+        "taskMs": 108.502,
+        "layoutMs": 0,
+        "styleMs": 26.727999999999998
+      },
+      "heapBytes": 1819568,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 120,
+        "fcpMs": 120,
+        "cls": 0.0009514497281298224,
+        "bytes": 1071958
+      },
+      "totalBytes": 1185334,
+      "jsBytes": 300900,
+      "runningAnimations": 1,
+      "idle": {
+        "taskMs": 3.4810000000000003,
+        "layoutMs": 0.33399999999999996,
+        "styleMs": 0.35300000000000004
+      },
+      "heapBytes": 2080436,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "uudised.html",
+      "initial": {
+        "lcpMs": 168,
+        "fcpMs": 168,
+        "cls": 0.0009658510862750771,
+        "bytes": 684216
+      },
+      "totalBytes": 684216,
+      "jsBytes": 326915,
+      "runningAnimations": 10,
+      "idle": {
+        "taskMs": 9.707,
+        "layoutMs": 0,
+        "styleMs": 2.827
+      },
+      "heapBytes": 2045264,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "laager.html",
+      "initial": {
+        "lcpMs": 232,
+        "fcpMs": 232,
+        "cls": 0.0009658510862750771,
+        "bytes": 421662
+      },
+      "totalBytes": 1032794,
+      "jsBytes": 256369,
+      "runningAnimations": 12,
+      "idle": {
+        "taskMs": 115.835,
+        "layoutMs": 0,
+        "styleMs": 29.537999999999997
+      },
+      "heapBytes": 1866224,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "tunnustusgala.html",
+      "initial": {
+        "lcpMs": 172,
+        "fcpMs": 172,
+        "cls": 0.0009658510862750771,
+        "bytes": 469907
+      },
+      "totalBytes": 1141602,
+      "jsBytes": 256369,
+      "runningAnimations": 11,
+      "idle": {
+        "taskMs": 242.97199999999998,
+        "layoutMs": 0.657,
+        "styleMs": 36.49
+      },
+      "heapBytes": 1869604,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "street.html",
+      "initial": {
+        "lcpMs": 192,
+        "fcpMs": 192,
+        "cls": 0.0009658510862750771,
+        "bytes": 524953
+      },
+      "totalBytes": 714286,
+      "jsBytes": 253397,
+      "runningAnimations": 13,
+      "idle": {
+        "taskMs": 191.69199999999998,
+        "layoutMs": 22.796,
+        "styleMs": 50.948
+      },
+      "heapBytes": 1851840,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "vorgustik.html",
+      "initial": {
+        "lcpMs": 280,
+        "fcpMs": 280,
+        "cls": 0.0009658510862750771,
+        "bytes": 593409
+      },
+      "totalBytes": 593409,
+      "jsBytes": 253397,
+      "runningAnimations": 12,
+      "idle": {
+        "taskMs": 127.44500000000001,
+        "layoutMs": 0,
+        "styleMs": 36.432
+      },
+      "heapBytes": 1867672,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "dokumendid.html",
+      "initial": {
+        "lcpMs": 288,
+        "fcpMs": 288,
+        "cls": 0.0009658510862750771,
+        "bytes": 394488
+      },
+      "totalBytes": 394488,
+      "jsBytes": 256369,
+      "runningAnimations": 15,
+      "idle": {
+        "taskMs": 196.606,
+        "layoutMs": 0,
+        "styleMs": 40.465
+      },
+      "heapBytes": 1818020,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "privaatsuspoliitika.html",
+      "initial": {
+        "lcpMs": 176,
+        "fcpMs": 176,
+        "cls": 0.0009658510862750771,
+        "bytes": 385294
+      },
+      "totalBytes": 385294,
+      "jsBytes": 256369,
+      "runningAnimations": 15,
+      "idle": {
+        "taskMs": 130.434,
+        "layoutMs": 0,
+        "styleMs": 39.982
+      },
+      "heapBytes": 1812192,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 116,
+        "fcpMs": 116,
+        "cls": 0,
+        "bytes": 774029
+      },
+      "totalBytes": 985959,
+      "jsBytes": 300900,
+      "runningAnimations": 1,
+      "idle": {
+        "taskMs": 15.951999999999998,
+        "layoutMs": 0,
+        "styleMs": 3.1580000000000004
+      },
+      "heapBytes": 2101760,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "uudised.html",
+      "initial": {
+        "lcpMs": 120,
+        "fcpMs": 120,
+        "cls": 0,
+        "bytes": 598769
+      },
+      "totalBytes": 641945,
+      "jsBytes": 326915,
+      "runningAnimations": 5,
+      "idle": {
+        "taskMs": 9.815,
+        "layoutMs": 0,
+        "styleMs": 2.242
+      },
+      "heapBytes": 2044680,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "laager.html",
+      "initial": {
+        "lcpMs": 124,
+        "fcpMs": 124,
+        "cls": 0,
+        "bytes": 396591
+      },
+      "totalBytes": 576177,
+      "jsBytes": 256369,
+      "runningAnimations": 6,
+      "idle": {
+        "taskMs": 85.347,
+        "layoutMs": 0,
+        "styleMs": 19.085
+      },
+      "heapBytes": 1838972,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "tunnustusgala.html",
+      "initial": {
+        "lcpMs": 128,
+        "fcpMs": 128,
+        "cls": 0,
+        "bytes": 416693
+      },
+      "totalBytes": 682068,
+      "jsBytes": 256369,
+      "runningAnimations": 5,
+      "idle": {
+        "taskMs": 4.986,
+        "layoutMs": 0.32899999999999996,
+        "styleMs": 0.502
+      },
+      "heapBytes": 1857848,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "street.html",
+      "initial": {
+        "lcpMs": 124,
+        "fcpMs": 124,
+        "cls": 0,
+        "bytes": 446572
+      },
+      "totalBytes": 526184,
+      "jsBytes": 253397,
+      "runningAnimations": 5,
+      "idle": {
+        "taskMs": 10.748000000000001,
+        "layoutMs": 0,
+        "styleMs": 3.1809999999999996
+      },
+      "heapBytes": 1832680,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "vorgustik.html",
+      "initial": {
+        "lcpMs": 120,
+        "fcpMs": 120,
+        "cls": 0,
+        "bytes": 408224
+      },
+      "totalBytes": 551226,
+      "jsBytes": 253397,
+      "runningAnimations": 5,
+      "idle": {
+        "taskMs": 12.517999999999999,
+        "layoutMs": 0,
+        "styleMs": 2.933
+      },
+      "heapBytes": 1845764,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "dokumendid.html",
+      "initial": {
+        "lcpMs": 120,
+        "fcpMs": 120,
+        "cls": 0,
+        "bytes": 369417
+      },
+      "totalBytes": 369417,
+      "jsBytes": 256369,
+      "runningAnimations": 10,
+      "idle": {
+        "taskMs": 88.49,
+        "layoutMs": 0,
+        "styleMs": 22.81
+      },
+      "heapBytes": 1811840,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "privaatsuspoliitika.html",
+      "initial": {
+        "lcpMs": 92,
+        "fcpMs": 92,
+        "cls": 0,
+        "bytes": 360223
+      },
+      "totalBytes": 360223,
+      "jsBytes": 256369,
+      "runningAnimations": 10,
+      "idle": {
+        "taskMs": 97.88900000000001,
+        "layoutMs": 0,
+        "styleMs": 22.387
+      },
+      "heapBytes": 1838912,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    }
+  ],
+  "homepageRepeatFinalBuild": [
+    {
+      "phase": "before",
+      "mobile": false,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 176,
+        "fcpMs": 176,
+        "cls": 0.0009514497281298224,
+        "bytes": 1070277
+      },
+      "totalBytes": 1183653,
+      "jsBytes": 299698,
+      "runningAnimations": 28,
+      "idle": {
+        "taskMs": 118.146,
+        "layoutMs": 0.399,
+        "styleMs": 38.121
+      },
+      "heapBytes": 2097412,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "mobile": true,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 120,
+        "fcpMs": 120,
+        "cls": 0,
+        "bytes": 772348
+      },
+      "totalBytes": 984278,
+      "jsBytes": 299698,
+      "runningAnimations": 19,
+      "idle": {
+        "taskMs": 109.17099999999999,
+        "layoutMs": 0,
+        "styleMs": 32.342000000000006
+      },
+      "heapBytes": 2087444,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": false,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 164,
+        "fcpMs": 164,
+        "cls": 0.0009514497281298224,
+        "bytes": 1072001
+      },
+      "totalBytes": 1185377,
+      "jsBytes": 300943,
+      "runningAnimations": 1,
+      "idle": {
+        "taskMs": 3.661,
+        "layoutMs": 0.615,
+        "styleMs": 0.306
+      },
+      "heapBytes": 2097516,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "mobile": true,
+      "path": "index.html",
+      "initial": {
+        "lcpMs": 164,
+        "fcpMs": 164,
+        "cls": 0,
+        "bytes": 774072
+      },
+      "totalBytes": 986002,
+      "jsBytes": 300943,
+      "runningAnimations": 1,
+      "idle": {
+        "taskMs": 33.87,
+        "layoutMs": 7.602,
+        "styleMs": 4.6499999999999995
+      },
+      "heapBytes": 2076008,
+      "brokenImages": [],
+      "overflow": false,
+      "errors": []
+    }
+  ]
+}

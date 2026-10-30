@@ -5,8 +5,8 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright');
-const root = resolve('.');
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml' };
+const root = resolve(process.argv[2] || '.');
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.avif': 'image/avif', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml' };
 const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const file = resolve(root, '.' + (path === '/' ? '/index.html' : path));
@@ -44,18 +44,48 @@ try {
     await page.reload();
     await page.locator('.halloween-pumpkin').waitFor();
     assert.equal(await page.locator('.halloween-pumpkin--intro').count(), 0, 'no repeated session entrance');
-    assert.deepEqual(await page.locator('.home-leadership-grid h3').allTextContents(), ['Jekaterina Rogožina', 'Egor Stepanov', 'Sofia Germ', 'Mario Polshin']);
+    const hero = page.locator('.home-hero');
+    const leaf = page.locator('.seasonal-effect-item').first();
+    await page.locator('.site-footer').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector('.home-hero').classList.contains('animations-offscreen'));
+    assert.equal(await leaf.evaluate(el => getComputedStyle(el).animationPlayState), 'paused');
+    await hero.scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => !document.querySelector('.home-hero').classList.contains('animations-offscreen'));
+    assert.equal(await leaf.evaluate(el => getComputedStyle(el).animationPlayState), 'running');
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'visibilityState', {configurable: true, value: 'hidden'});
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    assert.equal(await leaf.evaluate(el => getComputedStyle(el).animationPlayState), 'paused');
+    await page.evaluate(() => {
+      delete document.visibilityState;
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    assert.equal(await leaf.evaluate(el => getComputedStyle(el).animationPlayState), 'running');
+    if (width <= 1200) {
+      await page.locator('.menu-toggle').click();
+      assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'true');
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'false');
+    }
+    assert.deepEqual(await page.locator('.home-leadership-grid h3').allTextContents(), ['Egor Stepanov', 'Mario Polshin', 'Sofia Germ', 'Jekaterina Rogožina', 'Mihhail Semiyanov', 'Andrei Ostretsov']);
     assert.equal(await page.locator('.team-photo-clickable').count(), 8);
+    assert.deepEqual(await page.locator('.home-team-grid h3').allTextContents(), ['Erik Kovaltšuk', 'Mihhail Komarov']);
+    assert.equal(await page.locator('.home-person-founder').count(), 4);
+    assert.equal(await page.locator('.home-team-grid .home-person-founder').count(), 0);
     assert.equal(await page.locator('.home-leadership-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), width > 1000 ? 4 : width > 540 ? 2 : 1);
     for (const lang of ['ru', 'en', 'et']) {
       await page.evaluate(lang => window.I18N.setLanguage(lang), lang);
+      assert.equal(await page.locator('[data-i18n="home.team.projectWriter"]').innerText(), {et:'Projektikirjutaja', en:'Project Proposal Writer', ru:'Автор проектных заявок'}[lang]);
+      assert.equal(await page.locator('[data-i18n="home.team.accountant"]').innerText(), {et:'Raamatupidaja', en:'Accountant', ru:'Бухгалтер'}[lang]);
+      assert.ok(!(await page.locator('.home-team-section').innerText()).includes('CEO'));
       for (const caption of await page.locator('.home-person-role').all()) {
         assert.equal(await caption.isVisible(), true);
         assert.ok((await caption.innerText()).trim());
       }
       assert.ok(await page.locator('.home-person-info h3').evaluateAll(nodes => nodes.every(n => n.getBoundingClientRect().right <= innerWidth)));
     }
-    assert.equal(await page.locator('[data-i18n="home.team.executiveDirector"]').innerText(), 'Tegevjuht / CEO');
+    assert.equal(await page.locator('[data-i18n="home.team.executiveDirector"]').innerText(), 'Tegevjuht');
     const photo = page.locator('.team-photo-clickable').first();
     await photo.scrollIntoViewIfNeeded();
     await photo.focus();
@@ -92,6 +122,13 @@ try {
       assert.equal(await modal.isVisible(), false);
     }
     await page.screenshot({ path: resolve(output, `gallery-${width}.png`) });
+    const widths = await page.locator('.home-person-photo-wrap').evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().width));
+    assert.ok(widths.every(w => Math.abs(w - widths[0]) < 1), 'all team portraits have equal widths');
+    for (const card of await page.locator('.home-person-card').all()) {
+      await card.scrollIntoViewIfNeeded();
+    }
+    await page.waitForTimeout(900);
+    await page.locator('.home-team-section').screenshot({path: resolve(output, `team-section-${width}.png`)});
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.waitForTimeout(100);
     assert.equal(await page.locator('.seasonal-effects').count(), 0);

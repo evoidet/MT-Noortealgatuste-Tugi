@@ -484,16 +484,16 @@
       "Organisation leaders",
       "Руководители организации"
     ],
-    "home.team.teamLabel": ["TIIM", "TEAM", "КОМАНДА"],
+    "home.team.teamLabel": ["MEESKOND", "TEAM", "КОМАНДА"],
     "home.team.specialistsTitle": [
       "Meie spetsialistid",
       "Our specialists",
       "Наши специалисты"
     ],
     "home.team.executiveDirector": [
-      "Tegevjuht / CEO",
-      "Executive Director / CEO",
-      "Исполнительный директор / CEO"
+      "Tegevjuht",
+      "Executive Director",
+      "Исполнительный директор"
     ],
     "home.team.executiveDirectorText": [
       "Kujundab organisatsiooni kuvandit kogukonnas ning vastutab arendustegevuste eest.",
@@ -502,6 +502,18 @@
     ],
     "home.team.founder": ["Asutaja", "Founder", "Основатель"],
     "home.team.founderFemale": ["Asutaja", "Founder", "Основательница"],
+    "home.team.projectWriter": ["Projektikirjutaja", "Project Proposal Writer", "Автор проектных заявок"],
+    "home.team.projectWriterText": [
+      "Tegeleb projektitaotluste kirjutamise ja ettevalmistamisega.",
+      "Writes and prepares project proposals.",
+      "Занимается написанием и подготовкой проектных заявок."
+    ],
+    "home.team.accountant": ["Raamatupidaja", "Accountant", "Бухгалтер"],
+    "home.team.accountantText": [
+      "Tegeleb organisatsiooni raamatupidamise ja finantsaruandlusega.",
+      "Handles the organisation’s accounting and financial reporting.",
+      "Занимается бухгалтерским учётом и финансовой отчётностью организации."
+    ],
     "home.team.projectManager": [
       "Projektijuht",
       "Project Manager",

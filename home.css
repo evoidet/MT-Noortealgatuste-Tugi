@@ -4203,7 +4203,7 @@ body.home-page .home-team-section .home-section-heading h2 { font-weight: 500; }
 body.home-page .home-team-group-heading::after { display: none; }
 body.home-page .home-team-group-heading h3 { font-size: 15px; letter-spacing: .12em; font-weight: 650; }
 body.home-page .home-leadership-grid,
-body.home-page .home-team-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 36px 22px; }
+body.home-page .home-team-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 44px 28px; }
 body.home-page .home-team-grid > .home-person-card:last-child:nth-child(odd) { width: auto; grid-column: auto; }
 body.home-page .home-person-card { overflow: visible; border-radius: 0; }
 body.home-page .home-person-photo-wrap { overflow: hidden; border-radius: 3px; background: #f2f3ee; }
@@ -4215,17 +4215,17 @@ body.home-page .home-person-card .team-photo {
   body.home-page .home-person-card .team-photo:hover { transform: scale(1.025); }
 }
 body.home-page .home-person-info {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: 12px;
-  margin-top: 16px; padding-top: 14px; border-top: 1px solid #a7afa3; align-items: start;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid #dce3d7; align-items: start;
 }
 body.home-page .home-person-info h3 {
   grid-column: 1; grid-row: 1; margin: 0; color: #182516;
-  font-size: 17px; line-height: 1.45; font-weight: 500; overflow-wrap: anywhere;
+  font-size: 18px; line-height: 1.4; font-weight: 600; overflow-wrap: anywhere;
 }
 body.home-page .home-person-info .home-person-role {
-  grid-column: 2; grid-row: 1; margin: 2px 0 0; color: #4b713b;
+  grid-column: 1; grid-row: 2; margin: 0; color: #4b713b;
   font-size: 13px; line-height: 1.5; font-weight: 500; letter-spacing: 0;
-  text-transform: none; text-align: right; overflow-wrap: anywhere;
+  text-transform: none; text-align: left; overflow-wrap: anywhere;
 }
 body.home-page .home-person-info .home-person-email,
 body.home-page .home-person-info > p:last-child { display: none; }
@@ -4238,3 +4238,13 @@ body.home-page .home-person-info > p:last-child { display: none; }
 @media (prefers-reduced-motion: reduce) {
   body.home-page .home-person-card .team-photo { transition: none; transform: none; }
 }
+
+body.home-page .home-person-founder {
+  grid-column: 1; grid-row: 3; justify-self: start;
+  margin-top: 3px; padding: 3px 9px;
+  border: 1px solid #dce8d0; border-radius: 4px;
+  background: #f3f8ed; color: #426330;
+  font-size: 11px; font-weight: 600; line-height: 1.5; letter-spacing: .04em;
+}
+body.home-page .home-team-group + .home-team-group { margin-top: 56px; }
+body.home-page .home-team-group-heading { margin-bottom: 24px; }
