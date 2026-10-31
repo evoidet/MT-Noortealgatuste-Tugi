@@ -68,16 +68,17 @@ try {
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'false');
     }
-    assert.deepEqual(await page.locator('.home-leadership-grid h3').allTextContents(), ['Mario Polshin', 'Egor Stepanov', 'Sofia Germ', 'Jekaterina Rogožina', 'Mihhail Semiyanov', 'Andrei Ostretsov']);
+    assert.deepEqual(await page.locator('.home-executive-grid h3').allTextContents(), ['Mihhail Semiyanov']);
+    assert.deepEqual(await page.locator('.home-leadership-grid:not(.home-executive-grid) h3').allTextContents(), ['Mario Polshin', 'Egor Stepanov', 'Sofia Germ', 'Jekaterina Rogožina', 'Andrei Ostretsov']);
     assert.equal(await page.locator('.team-photo-clickable').count(), 8);
     assert.deepEqual(await page.locator('.home-team-grid h3').allTextContents(), ['Erik Kovaltšuk', 'Mihhail Komarov']);
     assert.equal(await page.locator('.home-person-founder').count(), 4);
     assert.equal(await page.locator('.home-team-grid .home-person-founder').count(), 0);
-    assert.equal(await page.locator('.home-leadership-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), width > 1000 ? 4 : width > 540 ? 2 : 1);
+    assert.equal(await page.locator('.home-executive-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), width > 1000 ? 4 : width > 540 ? 2 : 1);
     for (const lang of ['ru', 'en', 'et']) {
       await page.evaluate(lang => window.I18N.setLanguage(lang), lang);
-      assert.equal(await page.locator('[data-i18n="home.team.projectWriter"]').innerText(), {et:'Projektikirjutaja', en:'Project Proposal Writer', ru:'Автор проектных заявок'}[lang]);
-      assert.equal(await page.locator('[data-i18n="home.team.accountant"]').innerText(), {et:'Raamatupidaja', en:'Accountant', ru:'Бухгалтер'}[lang]);
+      assert.equal(await page.locator('.home-person-card').filter({hasText: 'Erik Kovaltšuk'}).locator('.home-person-role').innerText(), {et:'Projektijuht', en:'Project Manager', ru:'Руководитель проектов'}[lang]);
+      assert.equal(await page.locator('.home-person-card').filter({hasText: 'Mihhail Komarov'}).locator('.home-person-role').innerText(), {et:'Finantsjuht', en:'Finance Manager', ru:'Финансовый руководитель'}[lang]);
       assert.ok(!(await page.locator('.home-team-section').innerText()).includes('CEO'));
       for (const caption of await page.locator('.home-person-role').all()) {
         assert.equal(await caption.isVisible(), true);
@@ -85,7 +86,7 @@ try {
       }
       assert.ok(await page.locator('.home-person-info h3').evaluateAll(nodes => nodes.every(n => n.getBoundingClientRect().right <= innerWidth)));
     }
-    assert.equal(await page.locator('[data-i18n="home.team.executiveDirector"]').innerText(), 'Tegevjuht');
+    assert.equal(await page.locator('.home-person-role [data-i18n="home.team.executiveDirector"]').innerText(), 'Tegevjuht');
     const photo = page.locator('.team-photo-clickable').first();
     await photo.scrollIntoViewIfNeeded();
     await photo.focus();

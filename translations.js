@@ -478,6 +478,8 @@
       "Our team brings together experience in project management, communications, marketing, finance and youth work.",
       "Наша команда объединяет опыт в управлении проектами, коммуникации, маркетинге, финансах и работе с молодёжью."
     ],
+    "home.team.boardLabel": ["JUHATUS", "MANAGEMENT BOARD", "ПРАВЛЕНИЕ"],
+    "home.team.boardMember": ["Juhatuse liige", "Management Board Member", "Член правления"],
     "home.team.leadershipLabel": ["JUHTKOND", "LEADERSHIP", "РУКОВОДСТВО"],
     "home.team.leadershipTitle": [
       "Organisatsiooni eestvedajad",
