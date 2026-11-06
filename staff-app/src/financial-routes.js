@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { isDeepStrictEqual } from "node:util";
 import { randomUUID } from "node:crypto";
+import { createInvoiceNotifier, invoiceSnapshotKey as snapshotKey } from './invoice-notifications.js';
+import { waitUntil } from '@vercel/functions';
+import { INVOICE_COPY_EMAIL } from './mail.js';
+import { safeOperationalError } from './safe-errors.js';
 import { generateFinancialDocx, financialFilename, DOCX_MIME } from './financial-docx.js';
 import { money } from '../public/financial-values.js';
 import { z } from "zod";
@@ -16,6 +20,8 @@ export function financialRoutes({
   mailService,
   limiter,
   issuer = financialIssuer,
+  background = waitUntil,
+  logger = console,
 }) {
   const router = Router();
   const financeEmail = mailService.financeEmail;
@@ -64,12 +70,18 @@ export function financialRoutes({
     if (doc.correction_of) doc.correction_number = (await get(doc.correction_of)).number;
     return generateFinancialDocx(doc);
   }
+  const acceptedBy = (result, recipient) => (result.accepted || []).some(v => String(v).toLowerCase() === recipient.toLowerCase());
+  function logFailure(event, error) {
+    logger.error(event, safeOperationalError(error, 'INVOICE_EMAIL_UNCERTAIN'));
+  }
+  const notifyDownload = createInvoiceNotifier({ database, mailService, logger });
   router.get(
     "/settings",
     route(async (_req, res) =>
       res.json({
         issuer: issuer(),
         financeEmail,
+        invoiceCopyEmail: INVOICE_COPY_EMAIL,
       }),
     ),
   );
@@ -148,7 +160,7 @@ export function financialRoutes({
       const buffer =
         doc.status === "DRAFT"
           ? await pdf(doc)
-          : (await database.getFinancialDocument(doc.id, true)).pdf;
+          : (await database.getFinancialDocument(doc.id, true)).pdf || (doc.kind === 'invoice' ? await pdf(doc) : null);
       if (!buffer) return res.status(409).json({ error: 'Dokument on Wordi vormingus. Laadige alla Wordi fail.' });
       res
         .set({
@@ -156,6 +168,8 @@ export function financialRoutes({
           "Content-Disposition": `${req.query.download === "1" ? "attachment" : "inline"}; filename="${doc.number}.pdf"`,
         })
         .send(Buffer.from(buffer));
+      if (doc.kind === 'invoice' && req.method === 'GET' && req.query.download === '1')
+        background(notifyDownload(doc, Buffer.from(buffer), req.user.id));
     }),
   );
   router.get('/:id/docx', route(async (req,res) => {
@@ -166,6 +180,15 @@ export function financialRoutes({
       : (await database.getFinancialDocument(doc.id,true)).docx || await word(doc);
     res.set({ 'Content-Type': DOCX_MIME,
       'Content-Disposition': `attachment; filename="${financialFilename(doc)}"` }).send(Buffer.from(buffer));
+    if (doc.kind === 'invoice' && req.method === 'GET') {
+      // Word remains available; its automatic finance copy is the equivalent invoice PDF.
+      background((async () => {
+        try {
+          const stored = doc.status === 'DRAFT' ? null : await database.getFinancialDocument(doc.id, true);
+          await notifyDownload(doc, Buffer.from(stored?.pdf || await pdf(doc)), req.user.id);
+        } catch (error) { logFailure('invoice_download_pdf_failed', error); }
+      })());
+    }
   }));
   router.post(
     "/:id/finalize",
@@ -184,32 +207,40 @@ export function financialRoutes({
       if (req.body.version !== doc.version)
         return res.status(409).json({ error: "Dokument on muutunud." });
       const buffer = await word(doc);
-      const recipient = financeEmail;
+      const invoicePdf = doc.kind === 'invoice' ? await pdf(doc) : null;
+      const recipient = doc.kind === 'invoice' ? INVOICE_COPY_EMAIL : financeEmail;
       const title = doc.kind === 'invoice' ? 'arve' : 'hinnapakkumine';
       const confirmation = {
         deliveryId: randomUUID(), recipient,
+        ...(invoicePdf ? { snapshotKey: snapshotKey(doc) } : {}),
         subject: `Kinnitatud ${title} – ${doc.number}`,
         message: [`Kinnitatud ${title}: ${doc.number}`, `Tellija: ${doc.data.customer}`,
           `Kogusumma: ${money(doc.data.totals.total)}`,
           `Kinnitamise aeg: ${new Date().toLocaleString('et-EE', { timeZone: 'Europe/Tallinn' })}`,
-          `Kinnitaja: ${req.user.name}`, '', 'Kinnitatud dokument on lisatud Wordi failina (DOCX).'].join('\n'),
+          `Kinnitaja: ${req.user.name}`, '', invoicePdf ? 'Kinnitatud arve PDF on manuses.' : 'Kinnitatud dokument on lisatud Wordi failina (DOCX).'].join('\n'),
       };
       let document = await database.finalizeFinancialDocument({
           id: doc.id,
           version: doc.version,
           docx: buffer,
+          pdf: invoicePdf,
           actor: req.user.id,
           confirmation,
       });
+      const claimed = document.confirmationClaimed;
+      delete document.confirmationClaimed;
+      if (!claimed) return res.json({ document, confirmationDelivery: document.confirmation_delivery_status });
       let accepted = false;
       try {
-        const result = await mailService.sendFinancialDocument({ ...confirmation, docx: buffer, filename: financialFilename(doc) });
-        accepted = (result.accepted || []).some(v => String(v).toLowerCase() === recipient?.toLowerCase());
-      } catch { /* The durable claim prevents retries after ambiguous SMTP outcomes. */ }
+        const result = await mailService.sendFinancialDocument({ ...confirmation, number: doc.number, pdf: invoicePdf, docx: invoicePdf ? null : buffer, filename: financialFilename(doc), invoiceCopy: Boolean(invoicePdf) });
+        accepted = acceptedBy(result, recipient);
+        if (!accepted) logFailure('financial_confirmation_email_unaccepted', null);
+      } catch (error) { logFailure('financial_confirmation_email_failed', error); }
       let warning = accepted ? '' : 'Dokument on kinnitatud, kuid e-kirja saatmine ebaõnnestus või vajab kontrolli. Ärge saatke uuesti enne postkasti kontrollimist.';
       try {
         document = await database.finishFinancialConfirmation({ id: doc.id, deliveryId: confirmation.deliveryId, actor: req.user.id, accepted });
-      } catch {
+      } catch (error) {
+        logFailure('financial_confirmation_status_failed', error);
         warning = 'Dokument on kinnitatud, kuid e-kirja saatmise staatuse salvestamine vajab administraatori kontrolli. Ärge saatke uuesti.';
       }
       res.json({ document, confirmationDelivery: accepted ? 'SENT' : 'UNCERTAIN', ...(warning ? { warning } : {}) });
@@ -220,7 +251,7 @@ export function financialRoutes({
     route(async (req, res) => {
       const message = deliverySchema.parse(req.body);
       const doc = await get(req.params.id);
-      if (doc.confirmation_delivery_status && message.recipient.toLowerCase() === financeEmail?.toLowerCase())
+      if (doc.confirmation_delivery_status && message.recipient.toLowerCase() === (doc.kind === 'invoice' ? INVOICE_COPY_EMAIL : financeEmail)?.toLowerCase())
         return res.status(409).json({ error: 'Kinnitamise e-kiri on juba töödeldud. Kordussaatmine pole lubatud.' });
       if (!mailService.available)
         return res

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import Docxtemplater from "docxtemplater";
 import PizZip from "pizzip";
 import { emailChanges } from "./staff-identities.js";
+import { organization } from './organization.js';
 
 import {
   DocumentValidationError, cleanText, firstDefined, formatDate, formatMoney,
@@ -201,7 +202,26 @@ function normalizeInvoice(data = {}) {
       referenceNumber: cleanText(data.referenceNumber, { maxLength: 100 }),
     },
     invoiceNumber,
+    pdfTotals: { lines: items.map(item => item.lineTotalCents), subtotal: subtotalCents, vat: vatCents, total: totalCents },
+    vatRate,
   };
+}
+
+// Reuse legacy normalization and rounding; existing Word output is unchanged.
+export async function generateLegacyInvoicePdf(submission) {
+  const normalized = normalizeInvoice(submission.data);
+  const v = normalized.values;
+  const record = {
+    id: submission.id, kind: 'invoice', number: normalized.invoiceNumber,
+    issuer: { ...organization, vatRegistered: normalized.vatRate > 0, vatRate: normalized.vatRate, vatNumber: '' },
+    data: { date: submission.data.invoiceDate, dueDate: submission.data.dueDate || submission.data.paymentDueDate,
+      customer: v.buyerName, registrationCode: v.buyerRegistryCode, address: v.buyerAddress, contact: v.buyerContact,
+      project: v.projectReference, referenceNumber: v.referenceNumber, explanation: v.paymentDescription,
+      items: v.items.map(item => ({ ...item, unitPrice: item.unitPrice.replace(/\s|€/g, '').replace(',', '.') })),
+      totals: normalized.pdfTotals, terms: {}, currency: 'EUR' },
+  };
+  const { generateFinancialPdf } = await import('./financial-pdf.js');
+  return { record, buffer: await generateFinancialPdf(record) };
 }
 
 export async function generateInvoiceDocument(data, meta = {}) {

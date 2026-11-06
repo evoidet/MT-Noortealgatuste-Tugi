@@ -149,6 +149,8 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.equal(await db.hasFinancialAccess(changed.id), true);
   let sent = [];
   let smtpFailure = false;
+  let smtpGate = null;
+  let smtpReject = false;
   const mail = createMailService(
     {
       smtpHost: "smtp.invalid",
@@ -159,13 +161,16 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
       transport: {
         async sendMail(message) {
           sent.push(message);
+          if (smtpGate) await smtpGate;
           if (smtpFailure) throw new Error("test");
+          if (smtpReject) return { accepted: [] };
           return { accepted: [message.to, "egor.stepanov@noortetugi.ee"] };
         },
       },
     },
   );
   const app = express();
+  const pendingNotifications = [];
   let configuredIssuer = issuer;
   app.use(express.json());
   const auth = {
@@ -189,6 +194,8 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
       mailService: mail,
       issuer: () => configuredIssuer,
       limiter: (_r, _s, n) => n(),
+      background: promise => pendingNotifications.push(promise),
+      logger: { error() {} },
     }),
   );
   const authorized = (method, path, user = egor) =>
@@ -261,7 +268,10 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.match(xml, /Testklient \u00d5\u00c4\u00d6\u00dc/);
   assert.match(xml, /Leping 2026-10/);
   assert.match(xml, /1234561/);
-  await authorized("get", `/${id}/pdf`).expect(409);
+  const pdfDownload = await authorized("get", `/${id}/pdf?download=1`).expect(200);
+  await Promise.all(pendingNotifications.splice(0));
+  assert.equal(pdfDownload.body.subarray(0, 5).toString(), '%PDF-');
+  assert.match(pdfDownload.body.toString('latin1'), /%%EOF/);
   await authorized("patch", `/${id}`)
     .send({ version: doc.version + 1, data })
     .expect(409);
@@ -277,8 +287,8 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.equal(sent.length, 1);
   assert.equal(sent[0].to, "egor.stepanov@noortetugi.ee");
   assert.equal(sent[0].cc, undefined);
-  assert.deepEqual(sent[0].attachments[0].content, docx);
-  assert.match(sent[0].attachments[0].contentType, /wordprocessingml/);
+  assert.deepEqual(sent[0].attachments[0].content, pdfDownload.body);
+  assert.equal(sent[0].attachments[0].contentType, 'application/pdf');
   assert.match(sent[0].subject, /Kinnitatud arve/);
   assert.match(sent[0].text, /Kinnitaja: Egor/);
   await authorized("post", `/${id}/send`, mihhail).send(message).expect(409);
@@ -307,6 +317,7 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.equal((await db.getFinancialDocument(second.id)).status, "READY");
   assert.equal((await db.getFinancialDocument(second.id)).confirmation_delivery_status, "UNCERTAIN");
   await authorized("get", `/${second.id}/docx`).expect(200);
+  await Promise.all(pendingNotifications.splice(0));
   await authorized("post", `/${second.id}/send`).send(message).expect(409);
   assert.equal(sent.length, 2);
   smtpFailure = false;
@@ -328,6 +339,7 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   await db.finalizeFinancialDocument({id:legacy.id,version:legacy.version,pdf:legacyPdf,actor:egor.id});
   assert.deepEqual((await authorized('get', `/${legacy.id}/pdf`)).body,legacyPdf);
   await authorized('get', `/${legacy.id}/docx`).expect(200);
+  await Promise.all(pendingNotifications.splice(0));
   assert.ok(Buffer.from((await db.getFinancialDocument(legacy.id,true)).pdf).equals(legacyPdf));
 
   // An explicitly requested customer delivery still uses the stored DOCX, once.
@@ -350,6 +362,66 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.equal((await db.getFinancialDocument(pending.id)).confirmation_delivery_status, 'SENDING');
   await authorized('post', `/${pending.id}/finalize`).send({version:pending.version}).expect(409);
   assert.equal(sent.length, beforePending + 1);
+
+  // Explicit authorization, rather than identity, controls automatic copies.
+  await pool.query('INSERT INTO financial_access(user_id) VALUES($1)', [other.id]);
+  for (const user of [egor, mihhail, other]) {
+    const invoice = (await authorized('post', '', user).send({ id: randomUUID(), kind: 'invoice', data }).expect(201)).body.document;
+    let before = sent.length;
+    await authorized('post', `/${invoice.id}/finalize`, user).send({ version: invoice.version }).expect(200);
+    assert.equal(sent.length, before + 1);
+    assert.equal(sent.at(-1).to, 'egor.stepanov@noortetugi.ee');
+    const attachment = Buffer.from(sent.at(-1).attachments[0].content);
+    assert.equal(attachment.subarray(0, 5).toString(), '%PDF-');
+    assert.match(sent.at(-1).subject, new RegExp(invoice.number));
+    const immediate = await authorized('get', `/${invoice.id}/pdf?download=1`, user).expect(200);
+    await Promise.all(pendingNotifications.splice(0));
+    assert.deepEqual(immediate.body, attachment);
+    assert.equal(sent.length, before + 1);
+
+    // A later deliberate download sends once; concurrent clicks and other users share its claim.
+    await pool.query("UPDATE financial_deliveries SET created_at=NOW()-INTERVAL '2 minutes' WHERE document_id=$1", [invoice.id]);
+    before = sent.length;
+    const downloads = await Promise.all([user, mihhail, other].map(actor => authorized('get', `/${invoice.id}/pdf?download=1`, actor).expect(200)));
+    await Promise.all(pendingNotifications.splice(0));
+    assert.equal(sent.length, before + 1);
+    for (const result of downloads) assert.deepEqual(result.body, sent.at(-1).attachments[0].content);
+    // Inline previews and HEAD requests must not send emails.
+    await authorized('get', `/${invoice.id}/pdf`, user).expect(200);
+    await authorized('head', `/${invoice.id}/pdf?download=1`, user).expect(200);
+    assert.equal(sent.length, before + 1);
+  }
+
+  for (const failure of ['throw', 'unaccepted', 'slow']) {
+    const invoice = (await authorized('post', '', mihhail).send({ id: randomUUID(), kind: 'invoice', data }).expect(201)).body.document;
+    smtpFailure = failure === 'throw';
+    smtpReject = failure === 'unaccepted';
+    let release;
+    if (failure === 'slow') smtpGate = new Promise(resolve => { release = resolve; });
+    const before = sent.length;
+    // The response completes even while SMTP is still waiting on the gate.
+    const result = await authorized('get', `/${invoice.id}/pdf?download=1`, mihhail).expect(200);
+    assert.equal(result.body.subarray(0, 5).toString(), '%PDF-');
+    release?.();
+    await Promise.all(pendingNotifications.splice(0));
+    smtpGate = null;
+    smtpFailure = smtpReject = false;
+    assert.equal(sent.length, before + 1);
+    assert.equal((await pool.query("SELECT status FROM financial_deliveries WHERE document_id=$1", [invoice.id])).rows[0].status,
+      failure === 'slow' ? 'SENT' : 'UNCERTAIN');
+    await authorized('get', `/${invoice.id}/pdf?download=1`, other).expect(200);
+    await Promise.all(pendingNotifications.splice(0));
+    assert.equal(sent.length, before + 1);
+  }
+
+  // Downloading the current draft and then confirming it also shares one copy.
+  const draft = (await authorized('post', '').send({ id: randomUUID(), kind: 'invoice', data }).expect(201)).body.document;
+  const beforeDraft = sent.length;
+  await authorized('get', `/${draft.id}/pdf?download=1`).expect(200);
+  await Promise.all(pendingNotifications.splice(0));
+  await authorized('post', `/${draft.id}/finalize`).send({ version: draft.version }).expect(200);
+  assert.equal(sent.length, beforeDraft + 1);
+  await Promise.all(pendingNotifications.splice(0));
 
 });
 

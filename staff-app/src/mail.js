@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+export const INVOICE_COPY_EMAIL = 'egor.stepanov@noortetugi.ee';
 
 function cleanHeader(value, fallback = "") {
   return String(value ?? fallback)
@@ -90,11 +91,12 @@ export function createMailService(config, overrides = {}) {
     financeEmail: config.financeNotificationEmail,
     available: Boolean(transport && config.mailFrom && config.financeNotificationEmail),
 
-    async sendFinancialDocument({ recipient, subject, message, number = '', pdf = null, docx = null, filename = '', deliveryId }) {
+    async sendFinancialDocument({ recipient, subject, message, number = '', pdf = null, docx = null, filename = '', deliveryId, invoiceCopy = false }) {
       if (!transport || !config.mailFrom) throw mailUnavailableError();
+      if (invoiceCopy) recipient = INVOICE_COPY_EMAIL;
       return transport.sendMail({
         from: config.mailFrom, to: recipient,
-        cc: recipient.toLowerCase() === config.financeNotificationEmail?.toLowerCase() ? undefined : config.financeNotificationEmail,
+        cc: invoiceCopy || recipient.toLowerCase() === config.financeNotificationEmail?.toLowerCase() ? undefined : config.financeNotificationEmail,
         replyTo: config.financeNotificationEmail,
         messageId: `<finance-${deliveryId}@noortetugi.ee>`,
         subject: cleanHeader(subject), text: message,

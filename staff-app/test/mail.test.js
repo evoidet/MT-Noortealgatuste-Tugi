@@ -2,6 +2,42 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createMailService } from "../src/mail.js";
+import { createInvoiceNotifier } from '../src/invoice-notifications.js';
+
+test('invoice notification errors record uncertainty and log no raw SMTP details', async () => {
+  const logs = [];
+  let finished;
+  const notify = createInvoiceNotifier({
+    database: {
+      async claimInvoiceDownload() { return 'claim'; },
+      async finishInvoiceDownload(result) { finished = result; },
+    },
+    mailService: { async sendFinancialDocument() { throw Object.assign(new Error('private SMTP response'), {
+      code: 'EAUTH', response: 'private provider credentials', responseCode: 535,
+    }); } },
+    logger: { error(...args) { logs.push(args); } },
+  });
+  await notify({ id: 'invoice', number: 'NT-TEST', data: { customer: 'Synthetic', totals: { total: 100 } } }, Buffer.from('%PDF-test'), 'actor');
+  assert.deepEqual(finished, { deliveryId: 'claim', accepted: false });
+  assert.equal(logs[0][1].code, 'EAUTH');
+  assert.equal(logs[0][1].responseCode, 535);
+  assert.doesNotMatch(JSON.stringify(logs), /private|credentials/);
+});
+
+test('automatic invoice PDFs always target Egor independently of finance configuration and caller', async () => {
+  let captured;
+  const service = createMailService(mailConfig({ financeNotificationEmail: 'another@example.test' }), {
+    transport: { async sendMail(message) { captured = message; return { accepted: [message.to] }; } },
+  });
+  const pdf = Buffer.from('%PDF-test');
+  await service.sendFinancialDocument({ recipient: 'wrong@example.test', invoiceCopy: true, number: 'NT-AR-TEST',
+    pdf, deliveryId: 'test', subject: 'Invoice', message: 'Details' });
+  assert.equal(captured.to, 'egor.stepanov@noortetugi.ee');
+  assert.equal(captured.cc, undefined);
+  assert.equal(captured.attachments[0].filename, 'NT-AR-TEST.pdf');
+  assert.equal(captured.attachments[0].contentType, 'application/pdf');
+  assert.deepEqual(captured.attachments[0].content, pdf);
+});
 
 test("financial mail uses the configured finance recipient for copies and replies", async () => {
   const messages = [];

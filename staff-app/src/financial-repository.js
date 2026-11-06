@@ -156,13 +156,25 @@ export function financialRepository(pool, transaction) {
           )
         ).rows[0];
         if (!row) throw conflict();
-        if (confirmation) {
-          await client.query(`INSERT INTO financial_deliveries(id,document_id,actor_id,recipient,subject,message,status,purpose)
-            VALUES($1,$2,$3,$4,$5,$6,'SENDING','confirmation')`,
-          [confirmation.deliveryId, id, actor, confirmation.recipient, confirmation.subject, confirmation.message]);
+        let confirmationClaimed = Boolean(confirmation);
+        if (confirmation?.snapshotKey) {
+          const previous = (await client.query(`SELECT status FROM financial_deliveries
+            WHERE document_id=$1 AND snapshot_key=$2
+            AND (status <> 'SENT' OR created_at > NOW() - INTERVAL '60 seconds')
+            ORDER BY created_at DESC LIMIT 1`, [id, confirmation.snapshotKey])).rows[0];
+          if (previous) {
+            confirmationClaimed = false;
+            row.confirmation_delivery_status = previous.status;
+            await client.query('UPDATE financial_documents SET confirmation_delivery_status=$2 WHERE id=$1', [id,previous.status]);
+          }
+        }
+        if (confirmationClaimed) {
+          await client.query(`INSERT INTO financial_deliveries(id,document_id,actor_id,recipient,subject,message,status,purpose,snapshot_key)
+            VALUES($1,$2,$3,$4,$5,$6,'SENDING','confirmation',$7)`,
+          [confirmation.deliveryId, id, actor, confirmation.recipient, confirmation.subject, confirmation.message, confirmation.snapshotKey || null]);
         }
         await history(client, row, actor, "FINALIZED");
-        return clean(row);
+        return { ...clean(row), confirmationClaimed };
       });
     },
     async finishFinancialConfirmation({ id, deliveryId, actor, accepted }) {
@@ -175,6 +187,36 @@ export function financialRepository(pool, transaction) {
           WHERE id=$1 RETURNING *`, [id,status])).rows[0];
         await history(client,row,actor,`CONFIRMATION_${status}`);
         return clean(row);
+      });
+    },
+    async claimInvoiceDownload({ id, actor, recipient, subject, message, snapshotKey, legacy = false }) {
+      return transaction(async (client) => {
+        // Serialize claims across users, browser tabs and application instances.
+        const table = legacy ? 'submissions' : 'financial_documents';
+        const column = legacy ? 'legacy_submission_id' : 'document_id';
+        await client.query(`SELECT id FROM ${table} WHERE id=$1 FOR UPDATE`, [id]);
+        const previous = await client.query(`SELECT id FROM financial_deliveries
+          WHERE ${column}=$1 AND snapshot_key=$2
+          AND (status <> 'SENT' OR created_at > NOW() - INTERVAL '60 seconds') LIMIT 1`, [id, snapshotKey]);
+        if (previous.rows.length) return null;
+        const deliveryId = randomUUID();
+        await client.query(`INSERT INTO financial_deliveries(id,${column},actor_id,recipient,subject,message,status,purpose,snapshot_key)
+          VALUES($1,$2,$3,$4,$5,$6,'SENDING','download',$7)`, [deliveryId,id,actor,recipient,subject,message,snapshotKey]);
+        return deliveryId;
+      });
+    },
+    async finishInvoiceDownload({ deliveryId, accepted }) {
+      return transaction(async (client) => {
+        const status = accepted ? 'SENT' : 'UNCERTAIN';
+        const delivery = (await client.query(`UPDATE financial_deliveries SET status=$2,completed_at=NOW()
+          WHERE id=$1 AND purpose='download' AND status='SENDING' RETURNING *`, [deliveryId, status])).rows[0];
+        if (delivery?.document_id) {
+          await client.query(`UPDATE financial_documents SET confirmation_delivery_status=$2
+            WHERE id=$1 AND confirmation_delivery_status='SENDING'
+            AND confirmed_at >= $3 AND NOT EXISTS
+            (SELECT 1 FROM financial_deliveries WHERE document_id=$1 AND purpose='confirmation')`,
+          [delivery.document_id, status, delivery.created_at]);
+        }
       });
     },
     async claimFinancialDelivery({ id, actor, recipient, subject, message }) {

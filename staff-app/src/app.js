@@ -1,5 +1,8 @@
 import { currentEmail } from "./staff-identities.js";
 import { financialRoutes } from "./financial-routes.js";
+import { waitUntil } from '@vercel/functions';
+import { createInvoiceNotifier } from './invoice-notifications.js';
+import { generateLegacyInvoicePdf } from './documents.js';
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { Readable } from "node:stream";
@@ -465,6 +468,7 @@ async function reconcileBlobStorage({ config, database, limit = 25 }) {
 export function createStaffApp({
   config,
   database,
+  background = waitUntil,
   mailService = createMailService(config),
   aiAssistant = createAiAssistant(config),
   driveArchiveService = createDriveArchiveService(config),
@@ -480,6 +484,15 @@ export function createStaffApp({
     })
 }) {
   const app = express();
+  const notifyInvoice = createInvoiceNotifier({ database, mailService });
+  async function notifyLegacyInvoice(submission, actor) {
+    try {
+      const { record, buffer } = await generateLegacyInvoicePdf(submission);
+      await notifyInvoice(record, buffer, actor, true);
+    } catch (error) {
+      console.error('legacy_invoice_copy_failed', safeOperationalError(error, 'INVOICE_COPY_FAILED'));
+    }
+  }
   const auth = createAuth({ config, database });
   const ai = aiAssistant;
   const upload = createUploadMiddleware(config);
@@ -1027,7 +1040,7 @@ export function createStaffApp({
 
   app.use("/api/staff", auth.requireSession);
 
-  app.use("/api/staff/financial", financialRoutes({ database, auth, mailService, limiter: mutationLimiter }));
+  app.use("/api/staff/financial", financialRoutes({ database, auth, mailService, background, limiter: mutationLimiter }));
 
   app.get("/api/staff/submissions", asyncRoute(async (request, response) => {
     const scope = request.query.scope === "review" ? "review" : "mine";
@@ -1506,6 +1519,7 @@ export function createStaffApp({
         return finalized;
       });
       if (!updated) return response.status(404).json({ error: "NOT_FOUND" });
+      if (updated.type === 'invoice' && initial.status !== 'APPROVED') background(notifyLegacyInvoice(updated, request.user.id));
       response.json({ item: await summarizeSubmission(updated, database, true, newsRelations) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
@@ -1886,6 +1900,8 @@ export function createStaffApp({
         "Cache-Control": "private, no-store"
       });
       response.send(document.buffer);
+      if (submission.type === 'invoice' && request.method === 'GET')
+        background(notifyLegacyInvoice(submission, request.user.id));
     } catch (error) {
       console.error("Staff document generation failed:", {
         submissionId: submission.id,

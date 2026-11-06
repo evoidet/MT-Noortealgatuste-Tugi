@@ -13,7 +13,7 @@ import { renderSubmissionPreview } from "../public/previews.js";
 test("data repair is ordered between immutable migrations 002 and 003", async () => {
   const migrations = await loadMigrations();
   assert.deepEqual(migrations.map((migration) => migration.version),
-    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012"]);
+    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013"]);
 });
 
 async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011"]) {
@@ -540,7 +540,9 @@ test("Workspace member news draft, preview, submit and admin publication use the
 });
 
 test("only the configured finance account can issue an invoice and re-issue is idempotent", async (t) => {
-  const { database } = await fixture(t);
+  const { database } = await fixture(t, (await loadMigrations()).map(m => m.version));
+  const notifications = [];
+  const sent = [];
   database.withSubmissionLock = async (_id, work) => work();
   const finance = await database.upsertUser({ googleSubject: "invoice-finance",
     email: "finance@noortetugi.ee", name: "Finance" });
@@ -570,6 +572,7 @@ test("only the configured finance account can issue an invoice and re-issue is i
   const { app } = createStaffApp({
     config,
     database,
+    background: promise => notifications.push(promise),
     documentGenerator: async (...args) => {
       if (args[0] === "invoice") invoiceDocumentGenerations += 1;
       return generateSubmissionDocument(...args);
@@ -596,6 +599,7 @@ test("only the configured finance account can issue an invoice and re-issue is i
       }
     },
     mailService: {
+      async sendFinancialDocument(message) { sent.push(message); return { accepted: [message.recipient] }; },
       async sendExpenseSubmitted() { assert.fail("Invoice must not send expense finance mail"); }
     }
   });
@@ -642,6 +646,10 @@ test("only the configured finance account can issue an invoice and re-issue is i
   assert.equal(preview.status, 200);
   assert.match(preview.headers["content-type"], /application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/);
   assert.equal(preview.body.subarray(0, 2).toString(), "PK");
+  await Promise.all(notifications.splice(0));
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].recipient, 'egor.stepanov@noortetugi.ee');
+  assert.equal(sent[0].pdf.subarray(0, 5).toString(), '%PDF-');
   const failedIssue = await issuer.write("post", `${path}/submit`, {});
   assert.equal(failedIssue.status, 503);
   assert.equal(failedIssue.body.error, "INVOICE_ARCHIVE_FAILED");
@@ -660,6 +668,9 @@ test("only the configured finance account can issue an invoice and re-issue is i
   const recoveredIssue = await issuer.write("post", `${path}/submit`, {});
   assert.equal(recoveredIssue.status, 200);
   assert.equal(recoveredIssue.body.item.status, "APPROVED");
+  await Promise.all(notifications.splice(0));
+  assert.equal(sent.length, 2);
+  assert.match(sent[1].message, /Corrected Client/);
   assert.ok(recoveredIssue.body.item.submittedAt);
   assert.equal(recoveredIssue.body.item.publishedAt, null);
   assert.equal(invoiceDocumentGenerations, 4);
@@ -669,6 +680,9 @@ test("only the configured finance account can issue an invoice and re-issue is i
   assert.equal(invoiceDocumentGenerations, 4);
   assert.equal(invoiceDriveArchives, 3);
   assert.equal((await issuer.write("patch", path, { data })).status, 403);
+  await administrator.get(`${path}/document`).expect(200);
+  await Promise.all(notifications.splice(0));
+  assert.equal(sent.length, 2);
 });
 
 test("Drive archive migration stores retry state without changing submissions or attachments", async (t) => {
