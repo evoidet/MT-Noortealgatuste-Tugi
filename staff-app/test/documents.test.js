@@ -122,9 +122,9 @@ test("invoice output preserves the branded template and recalculates all totals"
 
   assert.match(text, /OÜ Näide <turvaline>/);
   assert.match(text, /PROJEKT & LEPING/);
-  assert.match(text, /25,00 €/);
-  assert.match(text, /5,25 €/);
-  assert.match(text, /30,25 €/);
+  assert.match(text, /25,00/);
+  assert.match(text, /5,25/);
+  assert.match(text, /30,25\s€/);
   assert.equal(text.includes("999 999"), false, "client-computed totals leaked into the invoice");
   assertForbiddenAbsent(text, FORBIDDEN_INVOICE_TEXT);
   assert.equal((documentXml.match(/<w:sectPr\b/g) || []).length, 1, "sample cover section was not removed");
@@ -542,7 +542,7 @@ test("all supported invoice field lengths survive final validation and document 
   const text = decodeXmlText(documentParts(result.buffer).xml);
   assert.equal(normalized.items[0].unitPrice, 12.35);
   assert.equal(normalized.amount, 37.05);
-  assert.match(text, /37,05 €/);
+  assert.match(text, /37,05\s€/);
   for (const expected of [
     normalized.invoiceNumber, normalized.registryCode, normalized.address,
     normalized.project, normalized.referenceNumber, normalized.transactionPeriod,

@@ -1,4 +1,8 @@
+import PizZip from 'pizzip';
 import nodemailer from "nodemailer";
+import { DOCX_MIME, financialFileStem } from "./financial-docx.js";
+import { organization } from './organization.js';
+import { documentParagraphs, terminationLabels } from '../public/resignation-values.js';
 export const INVOICE_COPY_EMAIL = 'egor.stepanov@noortetugi.ee';
 
 function cleanHeader(value, fallback = "") {
@@ -37,6 +41,20 @@ function mailAttachmentError() {
   const error = new Error("Expense notification attachments are invalid.");
   error.code = "MAIL_ATTACHMENT_INVALID";
   return error;
+}
+
+export function assertInvoiceAttachments(pdf, docx) {
+  try {
+    if (!pdf || !docx) throw mailAttachmentError();
+    const buffer = Buffer.from(pdf);
+    if (buffer.subarray(0, 5).toString() !== '%PDF-' || !/%%EOF\s*$/.test(buffer.subarray(-32).toString()))
+      throw mailAttachmentError();
+    const zip = new PizZip(docx);
+    if (!zip.file('[Content_Types].xml') || !zip.file('word/document.xml')?.asText().includes('<w:body'))
+      throw mailAttachmentError();
+  } catch {
+    throw Object.assign(mailAttachmentError(), { status: 503, message: 'Arve PDF- või Wordi fail on puudu või vigane.' });
+  }
 }
 
 function normalizedAttachments(value) {
@@ -91,9 +109,28 @@ export function createMailService(config, overrides = {}) {
     financeEmail: config.financeNotificationEmail,
     available: Boolean(transport && config.mailFrom && config.financeNotificationEmail),
 
-    async sendFinancialDocument({ recipient, subject, message, number = '', pdf = null, docx = null, filename = '', deliveryId, invoiceCopy = false }) {
+    async sendResignation({ document, pdf, filename, verifiedEmail }) {
+      if (!transport || !config.mailFrom || !organization.email) throw mailUnavailableError();
+      return transport.sendMail({
+        from: config.mailFrom, to: organization.email, replyTo: verifiedEmail,
+        messageId: `<resignation-${document.id}@noortetugi.ee>`,
+        subject: `Töölepingu ülesütlemise avaldus – ${cleanHeader(document.data.employeeName)}`,
+        text: ['Tere!', '', ...documentParagraphs(document.data, organization).filter(p => !p.startsWith('Allkiri:')),
+          '', `Ülesütlemise liik: ${terminationLabels[document.data.terminationType]}`,
+          'Avaldus on lisatud kirjale PDF-failina.', '', 'Lugupidamisega', document.data.employeeName].join('\n\n'),
+        attachments: normalizedAttachments([{ filename, content: pdf, contentType: 'application/pdf' }]),
+        disableFileAccess: true, disableUrlAccess: true
+      });
+    },
+
+    async sendFinancialDocument({ recipient, subject, message, number = '', pdf = null, docx = null, filename = '', deliveryId, invoiceCopy = false, invoice = invoiceCopy }) {
       if (!transport || !config.mailFrom) throw mailUnavailableError();
       if (invoiceCopy) recipient = INVOICE_COPY_EMAIL;
+      if (invoice) assertInvoiceAttachments(pdf, docx);
+      const stem = financialFileStem(number);
+      const attachments = [];
+      if (pdf && (invoice || !docx)) attachments.push({ filename: `${stem}.pdf`, content: pdf, contentType: 'application/pdf' });
+      if (docx) attachments.push({ filename: invoice ? `${stem}.docx` : filename, content: docx, contentType: DOCX_MIME });
       return transport.sendMail({
         from: config.mailFrom, to: recipient,
         cc: invoiceCopy || recipient.toLowerCase() === config.financeNotificationEmail?.toLowerCase() ? undefined : config.financeNotificationEmail,
@@ -101,9 +138,7 @@ export function createMailService(config, overrides = {}) {
         messageId: `<finance-${deliveryId}@noortetugi.ee>`,
         subject: cleanHeader(subject), text: message,
         disableFileAccess: true, disableUrlAccess: true,
-        attachments: normalizedAttachments([docx
-          ? {filename, content: docx, contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
-          : {filename: `${number}.pdf`, content: pdf, contentType: 'application/pdf'}])
+        attachments: normalizedAttachments(attachments)
       });
     },
 

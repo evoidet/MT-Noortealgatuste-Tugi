@@ -81,14 +81,14 @@ export async function mountFinancial(root, { kind = "" } = {}) {
       <p>Organisatsiooni andmed lisatakse automaatselt. Valuuta: EUR. ${doc.issuer?.vatRegistered ? `Käibemaks: ${doc.issuer.vatRate}%` : "Käibemaks ei lisandu."}</p>
       <form data-finance-form="save"><div class="financial-fields">
       ${input("date", "Kuupäev", v.date, "date")}${input("dueDate", quote ? "Kehtib kuni" : "Maksetähtaeg", v.dueDate, "date")}
-      ${quote ? input("execution", "Täitmise aeg", v.execution, "text", "Kuupäev või periood") : input("supplyDate", "Kauba / teenuse kuupäev", v.supplyDate || "", "date")}
+      ${quote ? input("execution", "Täitmise aeg", v.execution, "text", "Kuupäev või periood") : input("supplyDate", "Kauba / teenuse kuupäev", v.supplyDate || "", "date") + input("execution", "Teenuse periood", v.execution, "text", "Kuupäev või periood")}
       ${input("project", "Projekti / lepingu viide", v.project, "text", "GALA-2026")}
       ${input("reference", "Viide", v.reference)}
       ${input("customer", "Tellija nimi", v.customer, "text", "Ettevõtte, asutuse või eraisiku nimi")}${input("registrationCode", "Registrikood", v.registrationCode)}
       ${input("address", "Aadress", v.address)}${input("contact", "Kontaktisik", v.contact)}${input("email", "E-post", v.email, "email")}${input("phone", "Telefon", v.phone, "tel")}
       ${!quote ? input("referenceNumber", "Viitenumber (valikuline)", v.referenceNumber) + input("explanation", "Selgitus", v.explanation) : ""}</div>
       <h3>Kaubad ja teenused</h3><div class="financial-items">${v.items.map(row).join("")}</div>${button("add-line", "Lisa kauba / teenuse rida")}<p class="financial-total" aria-live="polite"></p>
-      <h3>Tingimused</h3><p>Tingimused lisatakse Wordi faili. Täitmata väljad märgitakse kriipsuga.</p>
+      <h3>Tingimused</h3><p>${quote ? "Tingimused lisatakse Wordi faili. Täitmata väljad märgitakse kriipsuga." : "Sisestatud tingimused lisatakse mõlemasse faili."}</p>
       ${Object.entries(termLabels)
         .map(
           ([key, label]) =>
@@ -182,11 +182,11 @@ export async function mountFinancial(root, { kind = "" } = {}) {
           ? `<h3>Saada e-postiga</h3><form data-finance-form="send">${input("recipient", "Saaja e-post", current.data.email || (current.confirmation_delivery_status ? "" : settings.financeEmail), "email")}
       <p>${current.confirmation_delivery_status ? "See vorm on dokumendi saatmiseks kliendile. Kinnitamise e-kirja kordussaatmine ei ole lubatud." : "Ainult asutusesiseseks saatmiseks sisestage finantsjuhi aadress."} Koopia: ${esc(settings.financeEmail)}.</p>
       ${input("subject", "Teema", `${typeNames[current.kind]} ${current.number}`)}<label>Sõnum<textarea name="message" maxlength="10000">Tere!\n\nManuses on ${current.kind === "invoice" ? "arve" : "hinnapakkumine"} ${esc(current.number)}.\n\nLugupidamisega\nMTÜ Noortealgatuste Tugi</textarea></label>
-      <p>Manus: ${current.has_docx ? esc(`${current.kind === "invoice" ? "Arve" : "Hinnapakkumine"}_${current.number}.docx`) : `${esc(current.number)}.pdf`}</p><label><input type="checkbox" name="confirmed" required> Kinnitan saaja, sõnumi ja manuse ning soovin dokumendi saata.</label><button>Saada dokument</button></form>`
+      <p>Manused: ${current.kind === 'invoice' ? `${esc(current.number)}.pdf, ${esc(current.number)}.docx` : current.has_docx ? esc(`Hinnapakkumine_${current.number}.docx`) : `${esc(current.number)}.pdf`}</p><label><input type="checkbox" name="confirmed" required> Kinnitan saaja, sõnumi ja ${current.kind === 'invoice' ? 'manused' : 'manuse'} ning soovin dokumendi saata.</label><button>Saada dokument</button></form>`
           : ""
       }
       ${["SENDING", "UNCERTAIN"].includes(current.status) ? "<p>Saatmise tulemus vajab administraatori kontrolli. Ärge looge kordussaatmist enne postkasti kontrollimist.</p>" : ""}
-      ${current.confirmation_delivery_status ? `<p role="status">${current.confirmation_delivery_status === "SENT" ? `Dokument on kinnitatud. E-posti teenus võttis ${current.kind === 'invoice' ? 'PDF-i' : 'Wordi faili'} saatmiseks vastu aadressile ${esc(current.kind === 'invoice' ? settings.invoiceCopyEmail : settings.financeEmail)}.` : "Dokument on kinnitatud. E-kirja saatmine on pooleli või vajab kontrolli; ärge saatke uuesti enne postkasti kontrollimist."}</p>` : ""}<h3>Ajalugu</h3><ul>${result.history.map((h) => `<li>${esc(new Date(h.created_at).toLocaleString("et-EE"))} · ${esc(h.actor_name)} · ${esc({ CREATED: "Loodud", UPDATED: "Muudetud", FINALIZED: "Kinnitatud", CONFIRMATION_SENT: "Kinnitamise e-kiri saadetud", CONFIRMATION_UNCERTAIN: "Kinnitatud; e-kirja saatmine vajab kontrolli", SEND_STARTED: "Saatmine alustatud", SENT: "Saadetud", UNCERTAIN: "Saatmine vajab kontrolli" }[h.action] || h.action)}</li>`).join("")}</ul>`);
+      ${current.confirmation_delivery_status ? `<p role="status">${current.confirmation_delivery_status === "SENT" ? `Dokument on kinnitatud. E-posti teenus võttis ${current.kind === 'invoice' ? 'PDF- ja Wordi failid' : 'Wordi faili'} saatmiseks vastu aadressile ${esc(current.kind === 'invoice' ? settings.invoiceCopyEmail : settings.financeEmail)}.` : "Dokument on kinnitatud. E-kirja saatmine on pooleli või vajab kontrolli; ärge saatke uuesti enne postkasti kontrollimist."}</p>` : ""}<h3>Ajalugu</h3><ul>${result.history.map((h) => `<li>${esc(new Date(h.created_at).toLocaleString("et-EE"))} · ${esc(h.actor_name)} · ${esc({ CREATED: "Loodud", UPDATED: "Muudetud", FINALIZED: "Kinnitatud", CONFIRMATION_SENT: "Kinnitamise e-kiri saadetud", CONFIRMATION_UNCERTAIN: "Kinnitatud; e-kirja saatmine vajab kontrolli", SEND_STARTED: "Saatmine alustatud", SENT: "Saadetud", UNCERTAIN: "Saatmine vajab kontrolli" }[h.action] || h.action)}</li>`).join("")}</ul>`);
   }
   section.addEventListener("input", recalculate);
   section.addEventListener("click", async (event) => {
@@ -233,7 +233,7 @@ export async function mountFinancial(root, { kind = "" } = {}) {
           await save();
           editor(current);
           const url = `/api/staff/financial/${current.id}/${current.kind === 'invoice' ? 'pdf?download=1' : 'docx'}`;
-          section.insertAdjacentHTML("beforeend", `<p><a href="${url}" target="_blank" rel="noopener">${current.kind === 'invoice' ? 'Laadi alla PDF' : 'Laadi alla Wordi fail'}</a></p>`);
+          section.insertAdjacentHTML("beforeend", `<p><a href="${url}" target="_blank" rel="noopener">${current.kind === 'invoice' ? 'Laadi alla PDF' : 'Laadi alla Wordi fail'}</a> ${current.kind === 'invoice' ? `<a href="/api/staff/financial/${current.id}/docx">Laadi alla Wordi fail</a>` : ''}</p>`);
           if (preview) preview.location.replace(url);
         } catch (e) {
           preview?.close();
@@ -245,7 +245,7 @@ export async function mountFinancial(root, { kind = "" } = {}) {
           throw new Error("Enne kinnitamist täitke kõigi ridade kogus ja ühiku hind.");
         if (
           !window.confirm(
-            `Kinnitada dokument summas ${money(current.data.totals.total)}? ${current.kind === 'invoice' ? 'PDF' : 'Wordi fail'} saadetakse aadressile ${current.kind === 'invoice' ? settings.invoiceCopyEmail : settings.financeEmail}. Pärast kinnitamist ei saa selle sisu muuta.`,
+            `Kinnitada dokument summas ${money(current.data.totals.total)}? ${current.kind === 'invoice' ? 'PDF- ja Wordi failid' : 'Wordi fail'} saadetakse aadressile ${current.kind === 'invoice' ? settings.invoiceCopyEmail : settings.financeEmail}. Pärast kinnitamist ei saa selle sisu muuta.`,
           )
         ) {
           editor(current);

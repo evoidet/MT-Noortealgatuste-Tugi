@@ -13,7 +13,7 @@ import { renderSubmissionPreview } from "../public/previews.js";
 test("data repair is ordered between immutable migrations 002 and 003", async () => {
   const migrations = await loadMigrations();
   assert.deepEqual(migrations.map((migration) => migration.version),
-    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013"]);
+    ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014"]);
 });
 
 async function fixture(t, versions = ["001", "002", "002a", "003", "004", "005", "006", "007", "008", "009", "010", "011"]) {
@@ -650,6 +650,7 @@ test("only the configured finance account can issue an invoice and re-issue is i
   assert.equal(sent.length, 1);
   assert.equal(sent[0].recipient, 'egor.stepanov@noortetugi.ee');
   assert.equal(sent[0].pdf.subarray(0, 5).toString(), '%PDF-');
+  assert.deepEqual(sent[0].docx, preview.body);
   const failedIssue = await issuer.write("post", `${path}/submit`, {});
   assert.equal(failedIssue.status, 503);
   assert.equal(failedIssue.body.error, "INVOICE_ARCHIVE_FAILED");
@@ -681,6 +682,11 @@ test("only the configured finance account can issue an invoice and re-issue is i
   assert.equal(invoiceDriveArchives, 3);
   assert.equal((await issuer.write("patch", path, { data })).status, 403);
   await administrator.get(`${path}/document`).expect(200);
+  const pdf = await issuer.get(`${path}/document?format=pdf`);
+  assert.equal(pdf.status, 200);
+  assert.equal(pdf.body.subarray(0, 5).toString(), '%PDF-');
+  await Promise.all(notifications.splice(0));
+  assert.equal(sent.length, 2);
   await Promise.all(notifications.splice(0));
   assert.equal(sent.length, 2);
 });

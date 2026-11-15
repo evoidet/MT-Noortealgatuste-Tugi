@@ -13,14 +13,17 @@ import {
   normalizeExpense, parseDecimal, toCents,
 } from "../public/document-values.js";
 
+import { DOCX_MIME, generateFinancialDocx } from './financial-docx.js';
+
 export { DocumentValidationError } from "../public/document-values.js";
 
-export const DOCX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+export const DOCX_CONTENT_TYPE = DOCX_MIME;
 
 const MODULE_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
+
 const TEMPLATE_ROOT = path.resolve(MODULE_DIRECTORY, "../private/templates/documents");
 const TEMPLATE_PATHS = Object.freeze({
-  invoice: path.join(TEMPLATE_ROOT, "arve", "arve.docx"),
+  invoice: path.join(TEMPLATE_ROOT, "financial", "invoice.docx"),
   expense: path.join(TEMPLATE_ROOT, "kuluaruanne", "kuluaruanne.docx"),
 });
 
@@ -189,6 +192,8 @@ function normalizeInvoice(data = {}) {
       ), { maxLength: 100 }),
       buyerAddress: cleanText(firstDefined(buyer.address, data.buyerAddress, data.address), { maxLength: 500 }),
       buyerContact: cleanText(firstDefined(buyer.contact, buyer.contactPerson, data.buyerContact), { maxLength: 250 }),
+      buyerEmail: cleanText(firstDefined(buyer.email, data.buyerEmail), { maxLength: 254 }),
+      buyerPhone: cleanText(firstDefined(buyer.phone, data.buyerPhone), { maxLength: 60 }),
       items: items.map(({ lineTotalCents: _lineTotalCents, ...item }) => item),
       subtotal: formatMoney(subtotalCents),
       vatText: vatRate === 0 ? "Ei lisandu" : `${String(vatRate).replace(".", ",")}% (${formatMoney(vatCents)})`,
@@ -207,29 +212,37 @@ function normalizeInvoice(data = {}) {
   };
 }
 
-// Reuse legacy normalization and rounding; existing Word output is unchanged.
-export async function generateLegacyInvoicePdf(submission) {
-  const normalized = normalizeInvoice(submission.data);
+// Legacy submissions keep their saved numbering and rounding, using the same
+// invoice layout as financial records.
+function legacyInvoiceRecord(data) {
+  const normalized = normalizeInvoice(data);
   const v = normalized.values;
-  const record = {
-    id: submission.id, kind: 'invoice', number: normalized.invoiceNumber,
+  return {
+    kind: 'invoice', number: normalized.invoiceNumber,
     issuer: { ...organization, vatRegistered: normalized.vatRate > 0, vatRate: normalized.vatRate, vatNumber: '' },
-    data: { date: submission.data.invoiceDate, dueDate: submission.data.dueDate || submission.data.paymentDueDate,
+    data: {
+      date: v.invoiceDate, dueDate: v.dueDate, execution: v.transactionTime,
       customer: v.buyerName, registrationCode: v.buyerRegistryCode, address: v.buyerAddress, contact: v.buyerContact,
-      project: v.projectReference, referenceNumber: v.referenceNumber, explanation: v.paymentDescription,
-      items: v.items.map(item => ({ ...item, unitPrice: item.unitPrice.replace(/\s|€/g, '').replace(',', '.') })),
-      totals: normalized.pdfTotals, terms: {}, currency: 'EUR' },
+      email: v.buyerEmail, phone: v.buyerPhone, project: v.projectReference, reference: data.reference,
+      referenceNumber: v.referenceNumber, explanation: v.paymentDescription, additionalInfo: v.additionalInfo,
+      items: v.items.map(item => ({ ...item, unitPrice: item.unitPrice.replace(/\s|€/g, '') })),
+      totals: normalized.pdfTotals, terms: {}, currency: v.currency,
+    },
   };
-  const { generateFinancialPdf } = await import('./financial-pdf.js');
-  return { record, buffer: await generateFinancialPdf(record) };
+}
+
+export async function generateLegacyInvoicePdf(submission) {
+  const record = { ...legacyInvoiceRecord(submission.data), id: submission.id };
+  const { generateInvoicePdf } = await import('./invoice-pdf.js');
+  return { record, buffer: await generateInvoicePdf(record) };
 }
 
 export async function generateInvoiceDocument(data, meta = {}) {
   void meta;
-  const normalized = normalizeInvoice(data);
+  const record = legacyInvoiceRecord(data);
   return {
-    buffer: await renderTemplate("invoice", normalized.values),
-    filename: `arve-${safeFilenamePart(normalized.invoiceNumber, "dokument")}.docx`,
+    buffer: await generateFinancialDocx(record),
+    filename: `arve-${safeFilenamePart(record.number, "dokument")}.docx`,
     contentType: DOCX_CONTENT_TYPE,
   };
 }

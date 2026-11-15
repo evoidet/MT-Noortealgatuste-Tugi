@@ -1,8 +1,10 @@
 import { currentEmail } from "./staff-identities.js";
 import { financialRoutes } from "./financial-routes.js";
+import { resignationRoutes } from './resignation-routes.js';
 import { waitUntil } from '@vercel/functions';
 import { createInvoiceNotifier } from './invoice-notifications.js';
 import { generateLegacyInvoicePdf } from './documents.js';
+import { financialFileStem } from './financial-docx.js';
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { Readable } from "node:stream";
@@ -18,7 +20,7 @@ import {
   getDocumentTemplateAvailability
 } from "./documents.js";
 import { archiveFingerprint, createDriveArchiveService } from "./drive-archive.js";
-import { createMailService } from "./mail.js";
+import { assertInvoiceAttachments, createMailService } from "./mail.js";
 import { createGitHubNewsPublisher } from "./github-news.js";
 import { publishedArticlesForReconciliation } from "./news-reconciliation.js";
 import { safeOperationalError } from "./safe-errors.js";
@@ -471,6 +473,7 @@ export function createStaffApp({
   background = waitUntil,
   mailService = createMailService(config),
   aiAssistant = createAiAssistant(config),
+  resignationEmployeeVerifier = null,
   driveArchiveService = createDriveArchiveService(config),
   documentGenerator = generateSubmissionDocument,
   clientUploadGrantCreator = createClientUploadGrant,
@@ -485,10 +488,11 @@ export function createStaffApp({
 }) {
   const app = express();
   const notifyInvoice = createInvoiceNotifier({ database, mailService });
-  async function notifyLegacyInvoice(submission, actor) {
+  async function notifyLegacyInvoice(submission, actor, { docx: downloadedDocx = undefined, generatedPdf = undefined } = {}) {
     try {
-      const { record, buffer } = await generateLegacyInvoicePdf(submission);
-      await notifyInvoice(record, buffer, actor, true);
+      const { record, buffer } = generatedPdf || await generateLegacyInvoicePdf(submission);
+      const docx = downloadedDocx || (await documentGenerator('invoice', submission.data)).buffer;
+      await notifyInvoice(record, { pdf: buffer, docx }, actor, true);
     } catch (error) {
       console.error('legacy_invoice_copy_failed', safeOperationalError(error, 'INVOICE_COPY_FAILED'));
     }
@@ -1041,6 +1045,7 @@ export function createStaffApp({
   app.use("/api/staff", auth.requireSession);
 
   app.use("/api/staff/financial", financialRoutes({ database, auth, mailService, background, limiter: mutationLimiter }));
+  app.use('/api/staff/resignations', resignationRoutes({ database, auth, mailService, limiter: mutationLimiter, verifyEmployee: resignationEmployeeVerifier }));
 
   app.get("/api/staff/submissions", asyncRoute(async (request, response) => {
     const scope = request.query.scope === "review" ? "review" : "mine";
@@ -1053,7 +1058,7 @@ export function createStaffApp({
         )
       : await database.listSubmissionsByCreator(request.user.id, { type });
     response.json({ items: await Promise.all(
-      submissions.map((submission) => summarizeSubmission(submission, database))
+      submissions.filter(submission => submission.type !== 'resignation').map((submission) => summarizeSubmission(submission, database))
     ) });
   }));
 
@@ -1157,6 +1162,7 @@ export function createStaffApp({
     try {
       let newsRelations;
       newsStage(response, "database");
+      let invoiceArtifacts;
       const updated = await database.withSubmissionLock(initial.id, async () => {
         const submission = await database.getSubmission(initial.id);
         if (!submission) return null;
@@ -1308,6 +1314,9 @@ export function createStaffApp({
               attachments,
               creator: { name: prepared.creatorName, email: prepared.creatorEmail }
             });
+            const generatedPdf = await generateLegacyInvoicePdf(prepared);
+            assertInvoiceAttachments(generatedPdf.buffer, invoiceDocument.buffer);
+            invoiceArtifacts = { docx: invoiceDocument.buffer, generatedPdf };
           } catch (error) {
             const validationIssues = safeDocumentValidationIssues(error);
             console.error("Invoice final document generation failed:", {
@@ -1519,7 +1528,7 @@ export function createStaffApp({
         return finalized;
       });
       if (!updated) return response.status(404).json({ error: "NOT_FOUND" });
-      if (updated.type === 'invoice' && initial.status !== 'APPROVED') background(notifyLegacyInvoice(updated, request.user.id));
+      if (invoiceArtifacts) background(notifyLegacyInvoice(updated, request.user.id, invoiceArtifacts));
       response.json({ item: await summarizeSubmission(updated, database, true, newsRelations) });
     } catch (error) {
       if (!validationResponse(response, error)) throw error;
@@ -1886,6 +1895,17 @@ export function createStaffApp({
       mimeType: entry.mimeType
     }));
     try {
+      if (submission.type === 'invoice' && request.query.format === 'pdf') {
+        const generatedPdf = await generateLegacyInvoicePdf(submission);
+        response.set({
+          "Content-Type": "application/pdf",
+          "Content-Disposition": downloadFilenameHeader(financialFileStem(generatedPdf.record.number) + ".pdf"),
+          "Cache-Control": "private, no-store",
+        }).send(generatedPdf.buffer);
+        if (request.method === 'GET')
+          background(notifyLegacyInvoice(submission, request.user.id, { generatedPdf }));
+        return;
+      }
       const document = await documentGenerator(submission.type, submission.data, {
         submission,
         attachments,
@@ -1901,7 +1921,7 @@ export function createStaffApp({
       });
       response.send(document.buffer);
       if (submission.type === 'invoice' && request.method === 'GET')
-        background(notifyLegacyInvoice(submission, request.user.id));
+        background(notifyLegacyInvoice(submission, request.user.id, { docx: document.buffer }));
     } catch (error) {
       console.error("Staff document generation failed:", {
         submissionId: submission.id,
@@ -1918,6 +1938,9 @@ export function createStaffApp({
       return response.status(400).json({ error: "VALIDATION_ERROR" });
     }
     const submissionType = parsed.data.field.split(".")[0];
+    if (submissionType === 'resignation' && (parsed.data.language !== 'et' || parsed.data.mode !== 'fix_language' || /\b\d{11}\b/.test(parsed.data.text))) {
+      return response.status(422).json({ error: 'Keeleparandus toetab ainult eestikeelse põhjenduse parandamist. Eemaldage tekstist isikukoodid.' });
+    }
     if (!canCreateType(request.user, submissionType, permissionContext)) {
       return response.status(403).json({ error: "FORBIDDEN" });
     }

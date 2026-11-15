@@ -289,6 +289,8 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   assert.equal(sent[0].cc, undefined);
   assert.deepEqual(sent[0].attachments[0].content, pdfDownload.body);
   assert.equal(sent[0].attachments[0].contentType, 'application/pdf');
+  assert.deepEqual(sent[0].attachments.map(file => file.filename), [`${doc.number}.pdf`, `${doc.number}.docx`]);
+  assert.deepEqual(sent[0].attachments[1].content, docx);
   assert.match(sent[0].subject, /Kinnitatud arve/);
   assert.match(sent[0].text, /Kinnitaja: Egor/);
   await authorized("post", `/${id}/send`, mihhail).send(message).expect(409);
@@ -335,18 +337,18 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
   }
   // Legacy bytes are preserved and still downloadable; Word export is additive.
   const legacy = await db.createFinancialDocument({id: randomUUID(), kind:'invoice',data:validateFinancialData(data,issuer,true),issuer,actor:egor.id});
-  const legacyPdf = Buffer.from('%PDF-legacy-fixture');
+  const legacyPdf = Buffer.from('%PDF-legacy-fixture\n%%EOF\n');
   await db.finalizeFinancialDocument({id:legacy.id,version:legacy.version,pdf:legacyPdf,actor:egor.id});
   assert.deepEqual((await authorized('get', `/${legacy.id}/pdf`)).body,legacyPdf);
   await authorized('get', `/${legacy.id}/docx`).expect(200);
   await Promise.all(pendingNotifications.splice(0));
   assert.ok(Buffer.from((await db.getFinancialDocument(legacy.id,true)).pdf).equals(legacyPdf));
 
-  // An explicitly requested customer delivery still uses the stored DOCX, once.
+  // Customer delivery uses the two stored files in a single message.
   const beforeCustomerSend = sent.length;
   await authorized('post', `/${id}/send`).send({ ...message, recipient: 'customer@example.test' }).expect(200);
   assert.equal(sent.length, beforeCustomerSend + 1);
-  assert.ok(Buffer.from(sent.at(-1).attachments[0].content).equals(docx));
+  assert.deepEqual(sent.at(-1).attachments.map(file => file.content), [pdfDownload.body, docx]);
   await authorized('post', `/${id}/send`).send({ ...message, recipient: 'customer@example.test' }).expect(409);
   assert.equal(sent.length, beforeCustomerSend + 1);
 
@@ -386,6 +388,7 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
     await Promise.all(pendingNotifications.splice(0));
     assert.equal(sent.length, before + 1);
     for (const result of downloads) assert.deepEqual(result.body, sent.at(-1).attachments[0].content);
+    assert.equal(sent.at(-1).attachments[1].filename, `${invoice.number}.docx`);
     // Inline previews and HEAD requests must not send emails.
     await authorized('get', `/${invoice.id}/pdf`, user).expect(200);
     await authorized('head', `/${invoice.id}/pdf?download=1`, user).expect(200);

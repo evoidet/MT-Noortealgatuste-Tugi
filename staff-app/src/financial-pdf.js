@@ -1,10 +1,11 @@
 import PDFDocument from "pdfkit";
 import { fileURLToPath } from "node:url";
 import { money, dateText, termLabels } from "../public/financial-values.js";
+import { generateInvoicePdf } from './invoice-pdf.js';
+
 const assets = fileURLToPath(
   new URL("../private/templates/documents/financial/", import.meta.url),
 );
-// Separate document structures, sharing only the reference's typography/colors/table helpers.
 export const templates = Object.freeze({
   quotation: {
     title: "HINNAPAKKUMINE",
@@ -14,16 +15,9 @@ export const templates = Object.freeze({
     customer: "TELLIJA",
     total: "PAKKUMISE KOGUMAKSUMUS",
   },
-  invoice: {
-    title: "ARVE",
-    number: "Arve nr",
-    due: "Maksetähtaeg",
-    supplier: "MÜÜJA",
-    customer: "OSTJA",
-    total: "KOKKU TASUDA",
-  },
 });
 export function generateFinancialPdf(record) {
+  if (record.kind === 'invoice') return generateInvoicePdf(record);
   return new Promise((resolve, reject) => {
     const d = new PDFDocument({
       size: "A4",
@@ -91,10 +85,6 @@ export function generateFinancialPdf(record) {
       `Valuuta: EUR${data.execution ? `     Täitmise aeg: ${data.execution}` : ""}`,
     );
     if (data.project) paragraph(`Projekti / lepingu viide: ${data.project}`);
-    if (record.kind === "invoice")
-      paragraph(
-        `Kauba / teenuse kuupäev: ${dateText(data.supplyDate || data.date)}`,
-      );
     if (record.correction_of)
       paragraph(
         `Parandus dokumendile: ${record.correction_number || record.correction_of}`,
@@ -229,22 +219,12 @@ export function generateFinancialPdf(record) {
         : "Käibemaks: ei lisandu. Pakkuja ei ole käibemaksukohustuslane.",
     );
     band(`${t.total}: ${money(data.totals.total)}`);
-    if (record.kind === "invoice") {
-      paragraph(`IBAN: ${org.iban}     ${org.bank}`, true);
-      if (data.referenceNumber)
-        paragraph(`Viitenumber: ${data.referenceNumber}`);
-      paragraph(`Selgitus: ${data.explanation || record.number}`);
-    }
     const terms = Object.entries(data.terms || {}).filter(([, value]) => value);
     if (terms.length) {
       font();
       const firstTerm = `${termLabels[terms[0][0]]}: ${terms[0][1]}`;
       room(31 + Math.min(100, d.heightOfString(firstTerm, { width, lineGap: 2 }) + 7));
-      band(
-        record.kind === "quotation"
-          ? "PAKKUMISE TINGIMUSED"
-          : "MAKSETINGIMUSED",
-      );
+      band("PAKKUMISE TINGIMUSED");
       for (const [key, value] of terms)
         paragraph(`${termLabels[key]}: ${value}`);
     }

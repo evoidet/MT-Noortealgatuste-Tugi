@@ -6,7 +6,7 @@ import { resolve, extname } from "node:path";
 import { createRequire } from "node:module";
 import { organization } from "../src/organization.js";
 import { totals } from "../public/financial-values.js";
-const { chromium } = createRequire(import.meta.url)("playwright");
+const { chromium } = createRequire(import.meta.url)(process.argv[2] || "playwright");
 const output = resolve("staff-app/private/generated/browser-review");
 await mkdir(output, { recursive: true });
 let doc,
@@ -43,6 +43,8 @@ const server = createServer(async (req, res) => {
       reimbursementRecipients: [],
     });
   if (path === "/api/staff/submissions") return json({ submissions: [] });
+  if (path === '/api/staff/resignations/settings') return json({ employer: organization, recipient: organization.email, submissionSupported: false, submissionExplanation: 'Elektrooniline esitamine ei ole veel toetatud.' });
+  if (path === '/api/staff/resignations') return json({ items: [] });
   if (path === "/api/staff/financial/settings")
     return json({ issuer, financeEmail: "egor.stepanov@noortetugi.ee" });
   if (path.startsWith("/api/staff/financial")) {
@@ -138,7 +140,7 @@ try {
   }
   await page.screenshot({path:resolve(output,"financial-actions-mobile.png"),fullPage:true});
   await page.locator('.staff-action-card[data-view="resignation"]').click();
-  await page.getByText("Lahkumisavalduse vorm on koostamisel.").waitFor();
+  await page.getByRole('button', { name: 'Loo uus avaldus', exact: true }).waitFor();
   await page.locator("#brandHomeButton").click();
   await page.locator('.staff-action-card[data-view="financial"][data-type="quotation"]').click();
   await page
@@ -184,7 +186,7 @@ try {
   assert.equal(await page.getByLabel("Viide", { exact: true }).inputValue(), "Kokkulepe 2026-10");
   await page.getByRole("button", { name: "Kinnita ja saada Wordi fail" }).click();
   await page.getByRole('link', { name: 'Laadi alla Wordi fail', exact: true }).waitFor();
-  await page.getByRole('status').filter({hasText:'Wordi fail saadetud'}).waitFor();
+  await page.getByRole('status').filter({hasText:'E-posti teenus võttis Wordi faili saatmiseks vastu'}).waitFor();
   await page.getByRole("heading", { name: "Saada e-postiga" }).waitFor();
   assert.equal(sends, 0);
   await page.getByLabel("Saaja e-post").fill("customer@example.test");
@@ -229,7 +231,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: financial mobile forms, persistence UI, confirmation, access visibility and resignation placeholder. No real emails.",
+    "PASS: financial mobile forms, persistence UI, confirmation, access visibility and resignation entry. No real emails.",
   );
 } finally {
   await browser.close();

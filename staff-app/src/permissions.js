@@ -73,6 +73,7 @@ export function hasPermission(user, permission, context = {}) {
 }
 
 export function canCreateType(user, type, context = {}) {
+  if (type === 'resignation') return Boolean(user && ROLES.includes(user.role));
   return hasPermission(user, `${type}:create`, context);
 }
 
@@ -82,6 +83,7 @@ export function canReviewType(user, type) {
 
 export function canReadSubmission(user, submission, context = {}) {
   if (!user || !submission) return false;
+  if (submission.type === 'resignation') return submission.creatorId === user.id;
   if (
     submission.creatorId === user.id &&
     hasPermission(user, `${submission.type}:read:own`, context)
@@ -91,6 +93,8 @@ export function canReadSubmission(user, submission, context = {}) {
 }
 
 export function canEditSubmission(user, submission, context = {}) {
+  // Resignation writes require the dedicated revision/confirmation workflow.
+  if (submission?.type === 'resignation') return false;
   if (!canReadSubmission(user, submission, context)) return false;
   if (submission.type === "invoice" && !isInvoiceOwner(user, context)) return false;
   if (

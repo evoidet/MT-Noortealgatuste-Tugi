@@ -41,9 +41,40 @@ def add_reference_fields(doc, kind):
             text(cell, value)
         tables[1].append(row)
     if kind == 'invoice':
-        # Payment reference lives in the information table; instructions by the bank details.
-        paragraphs = find(tables[5], './/w:tc/w:p')
-        text(paragraphs[4], '{paymentInstruction}{invoiceTerms}')
+        prepare_invoice_layout(tables)
+
+def prepare_invoice_layout(tables):
+    # Render the same labels and formatted fields in Word and PDF.
+    for row, keys in zip(find(tables[1], './w:tr'), [
+        ('number', 'date'), ('dueDate', 'currency'), ('execution', 'project'), ('reference', 'referenceNumber'),
+    ]):
+        for cell, key in zip(find(row, './w:tc')[::2], keys):
+            text(cell, '{' + key + 'Label}')
+            if key == 'project':
+                for linebreak in find(cell, './/w:br'):
+                    linebreak.getparent().remove(linebreak)
+    for cell, tag in zip(find(tables[2], './w:tr/w:tc'), ['sellerDetails', 'buyerDetails']):
+        paragraphs = find(cell, './w:p')
+        text(paragraphs[2], '{' + tag + '}')
+        for paragraph in paragraphs[3:]:
+            cell.remove(paragraph)
+    for cell, key in zip(find(tables[3], './w:tr')[0].findall('w:tc', NS),
+                         ['index', 'description', 'quantity', 'unit', 'unitPrice', 'lineTotal']):
+        text(cell, '{' + key + 'Label}')
+        for linebreak in find(cell, './/w:br'):
+            linebreak.getparent().remove(linebreak)
+    for cell, align in zip(find(tables[3], './w:tr')[1].findall('w:tc', NS),
+                           ['center', 'left', 'right', 'left', 'right', 'right']):
+        properties = cell.find('w:p/w:pPr', NS)
+        jc = properties.find('w:jc', NS)
+        if jc is None:
+            jc = E.SubElement(properties, '{%s}jc' % NS['w'])
+        jc.set('{%s}val' % NS['w'], align)
+    for row, key in zip(find(tables[4], './w:tr'), ['subtotal', 'vat', 'total']):
+        text(row.find('w:tc', NS), '{' + key + 'Label}')
+    paragraphs = find(tables[5], './/w:tc/w:p')
+    for paragraph, key in zip(paragraphs[1:], ['recipientLine', 'bankLine', 'explanationLine', 'paymentDetails']):
+        text(paragraph, '{' + key + '}')
 
 def upgrade_template(path, kind):
     with ZipFile(path) as z:

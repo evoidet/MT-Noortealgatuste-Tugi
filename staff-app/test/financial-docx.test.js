@@ -42,10 +42,12 @@ test('reference fields stay in the information table and invoice instructions ad
       }, issuer, true);
       const xml = new PizZip(await generateFinancialDocx({ kind, number: 'TEST-042', issuer, data }))
         .file('word/document.xml').asText();
-      const info = xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g)[1];
+      const tables = xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g);
+      const info = tables[1];
       assert.match(info, /Viide/);
       assert.match(info, /Leping &amp; kokkulepe/);
       if (kind === 'invoice') {
+        assert.equal((tables[3].match(/<w:tr>/g) || []).length, 2, 'one header and one item row');
         assert.match(info, /Viitenumber/);
         assert.match(xml, /Arve TEST-042 · Lisainfo/);
         assert.match(xml, /Makse selgitusse palume märkida arve number/);

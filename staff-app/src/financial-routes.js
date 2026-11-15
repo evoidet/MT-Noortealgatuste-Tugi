@@ -3,9 +3,9 @@ import { isDeepStrictEqual } from "node:util";
 import { randomUUID } from "node:crypto";
 import { createInvoiceNotifier, invoiceSnapshotKey as snapshotKey } from './invoice-notifications.js';
 import { waitUntil } from '@vercel/functions';
-import { INVOICE_COPY_EMAIL } from './mail.js';
+import { assertInvoiceAttachments, INVOICE_COPY_EMAIL } from './mail.js';
 import { safeOperationalError } from './safe-errors.js';
-import { generateFinancialDocx, financialFilename, DOCX_MIME } from './financial-docx.js';
+import { generateFinancialDocx, financialFilename, financialFileStem, DOCX_MIME } from './financial-docx.js';
 import { money } from '../public/financial-values.js';
 import { z } from "zod";
 import { financialIssuer } from "./organization.js";
@@ -60,21 +60,42 @@ export function financialRoutes({
       throw Object.assign(new Error("Dokumenti ei leitud."), { status: 422 });
     return doc;
   }
-  async function pdf(doc) {
-    const { generateFinancialPdf } = await import("./financial-pdf.js");
-    if (doc.correction_of)
-      doc.correction_number = (await get(doc.correction_of)).number;
-    return generateFinancialPdf(doc);
+  async function generate(doc, format) {
+    const correction_number = doc.correction_of ? (await get(doc.correction_of)).number : undefined;
+    const record = { ...doc, correction_number };
+    try {
+      if (format === 'docx') return await generateFinancialDocx(record);
+      const { generateFinancialPdf } = await import('./financial-pdf.js');
+      return await generateFinancialPdf(record);
+    } catch (error) {
+      logger.error('financial_document_generation_failed', safeOperationalError(error, 'DOCUMENT_GENERATION_FAILED'));
+      throw Object.assign(new Error(`Dokumendi ${format.toUpperCase()}-faili loomine ebaõnnestus.`), { status: 503 });
+    }
   }
-  async function word(doc) {
-    if (doc.correction_of) doc.correction_number = (await get(doc.correction_of)).number;
-    return generateFinancialDocx(doc);
+  async function artifact(doc, stored, format) {
+    return Buffer.from(stored?.[format] || await generate(doc, format));
+  }
+  async function invoiceFormats(doc, stored) {
+    const { totals } = validateFinancialData(doc.data, doc.issuer, true);
+    if (!isDeepStrictEqual(totals, doc.data.totals))
+      throw Object.assign(new Error('Arve summad ei vasta salvestatud arveridadele.'), { status: 422 });
+    const [pdf, docx] = await Promise.all([artifact(doc, stored, 'pdf'), artifact(doc, stored, 'docx')]);
+    assertInvoiceAttachments(pdf, docx);
+    return { pdf, docx };
+  }
+  async function storedArtifacts(doc) {
+    return doc.status === 'DRAFT' ? null : database.getFinancialDocument(doc.id, true);
   }
   const acceptedBy = (result, recipient) => (result.accepted || []).some(v => String(v).toLowerCase() === recipient.toLowerCase());
   function logFailure(event, error) {
     logger.error(event, safeOperationalError(error, 'INVOICE_EMAIL_UNCERTAIN'));
   }
   const notifyDownload = createInvoiceNotifier({ database, mailService, logger });
+  async function copyDownload(doc, stored, actor) {
+    try {
+      await notifyDownload(doc, await invoiceFormats(doc, stored), actor);
+    } catch (error) { logFailure('invoice_download_artifact_failed', error); }
+  }
   router.get(
     "/settings",
     route(async (_req, res) =>
@@ -157,38 +178,29 @@ export function financialRoutes({
     route(async (req, res) => {
       const doc = await get(req.params.id);
       validateFinancialData(doc.data, doc.issuer, true);
-      const buffer =
-        doc.status === "DRAFT"
-          ? await pdf(doc)
-          : (await database.getFinancialDocument(doc.id, true)).pdf || (doc.kind === 'invoice' ? await pdf(doc) : null);
-      if (!buffer) return res.status(409).json({ error: 'Dokument on Wordi vormingus. Laadige alla Wordi fail.' });
+      const stored = await storedArtifacts(doc);
+      if (stored && !stored.pdf && doc.kind === 'quotation')
+        return res.status(409).json({ error: 'Dokument on Wordi vormingus. Laadige alla Wordi fail.' });
+      const buffer = await artifact(doc, stored, 'pdf');
       res
         .set({
           "Content-Type": "application/pdf",
-          "Content-Disposition": `${req.query.download === "1" ? "attachment" : "inline"}; filename="${doc.number}.pdf"`,
+          "Content-Disposition": `${req.query.download === "1" ? "attachment" : "inline"}; filename="${financialFileStem(doc.number)}.pdf"`,
         })
-        .send(Buffer.from(buffer));
+        .send(buffer);
       if (doc.kind === 'invoice' && req.method === 'GET' && req.query.download === '1')
-        background(notifyDownload(doc, Buffer.from(buffer), req.user.id));
+        background(copyDownload(doc, { ...stored, pdf: buffer }, req.user.id));
     }),
   );
   router.get('/:id/docx', route(async (req,res) => {
     const doc = await get(req.params.id);
     validateFinancialData(doc.data, doc.issuer, true);
-    // Legacy records may be exported from their immutable snapshots; never overwrite their stored PDF.
-    const buffer = doc.status === 'DRAFT' ? await word(doc)
-      : (await database.getFinancialDocument(doc.id,true)).docx || await word(doc);
+    const stored = await storedArtifacts(doc);
+    const buffer = await artifact(doc, stored, 'docx');
     res.set({ 'Content-Type': DOCX_MIME,
-      'Content-Disposition': `attachment; filename="${financialFilename(doc)}"` }).send(Buffer.from(buffer));
-    if (doc.kind === 'invoice' && req.method === 'GET') {
-      // Word remains available; its automatic finance copy is the equivalent invoice PDF.
-      background((async () => {
-        try {
-          const stored = doc.status === 'DRAFT' ? null : await database.getFinancialDocument(doc.id, true);
-          await notifyDownload(doc, Buffer.from(stored?.pdf || await pdf(doc)), req.user.id);
-        } catch (error) { logFailure('invoice_download_pdf_failed', error); }
-      })());
-    }
+      'Content-Disposition': `attachment; filename="${financialFilename(doc)}"` }).send(buffer);
+    if (doc.kind === 'invoice' && req.method === 'GET')
+      background(copyDownload(doc, { ...stored, docx: buffer }, req.user.id));
   }));
   router.post(
     "/:id/finalize",
@@ -203,27 +215,28 @@ export function financialRoutes({
             error:
               "Organisatsiooni andmed on muutunud. Salvestage mustand uuesti ja kontrollige summat.",
           });
-      validateFinancialData(doc.data, doc.issuer, true);
+      if (doc.kind === 'quotation') validateFinancialData(doc.data, doc.issuer, true);
       if (req.body.version !== doc.version)
         return res.status(409).json({ error: "Dokument on muutunud." });
-      const buffer = await word(doc);
-      const invoicePdf = doc.kind === 'invoice' ? await pdf(doc) : null;
+      const { docx, pdf } = doc.kind === 'invoice'
+        ? await invoiceFormats(doc, null)
+        : { docx: await generate(doc, 'docx'), pdf: null };
       const recipient = doc.kind === 'invoice' ? INVOICE_COPY_EMAIL : financeEmail;
       const title = doc.kind === 'invoice' ? 'arve' : 'hinnapakkumine';
       const confirmation = {
         deliveryId: randomUUID(), recipient,
-        ...(invoicePdf ? { snapshotKey: snapshotKey(doc) } : {}),
+        ...(pdf ? { snapshotKey: snapshotKey(doc) } : {}),
         subject: `Kinnitatud ${title} – ${doc.number}`,
         message: [`Kinnitatud ${title}: ${doc.number}`, `Tellija: ${doc.data.customer}`,
           `Kogusumma: ${money(doc.data.totals.total)}`,
           `Kinnitamise aeg: ${new Date().toLocaleString('et-EE', { timeZone: 'Europe/Tallinn' })}`,
-          `Kinnitaja: ${req.user.name}`, '', invoicePdf ? 'Kinnitatud arve PDF on manuses.' : 'Kinnitatud dokument on lisatud Wordi failina (DOCX).'].join('\n'),
+          `Kinnitaja: ${req.user.name}`, '', pdf ? 'Kinnitatud arve PDF- ja Wordi failid on manuses.' : 'Kinnitatud dokument on lisatud Wordi failina (DOCX).'].join('\n'),
       };
       let document = await database.finalizeFinancialDocument({
           id: doc.id,
           version: doc.version,
-          docx: buffer,
-          pdf: invoicePdf,
+          docx,
+          pdf,
           actor: req.user.id,
           confirmation,
       });
@@ -232,7 +245,7 @@ export function financialRoutes({
       if (!claimed) return res.json({ document, confirmationDelivery: document.confirmation_delivery_status });
       let accepted = false;
       try {
-        const result = await mailService.sendFinancialDocument({ ...confirmation, number: doc.number, pdf: invoicePdf, docx: invoicePdf ? null : buffer, filename: financialFilename(doc), invoiceCopy: Boolean(invoicePdf) });
+        const result = await mailService.sendFinancialDocument({ ...confirmation, number: doc.number, pdf, docx, filename: financialFilename(doc), invoiceCopy: doc.kind === 'invoice' });
         accepted = acceptedBy(result, recipient);
         if (!accepted) logFailure('financial_confirmation_email_unaccepted', null);
       } catch (error) { logFailure('financial_confirmation_email_failed', error); }
@@ -257,6 +270,11 @@ export function financialRoutes({
         return res
           .status(503)
           .json({ error: "E-posti saatmine ei ole seadistatud." });
+      if (doc.status !== 'READY')
+        return res.status(409).json({ error: 'Dokument ei ole saatmiseks valmis.' });
+      // Prepare any missing historical invoice format before creating a delivery claim.
+      const invoice = doc.kind === 'invoice';
+      const attachments = invoice ? await invoiceFormats(doc, await storedArtifacts(doc)) : null;
       const { row, deliveryId } = await database.claimFinancialDelivery({
         id: doc.id,
         actor: req.user.id,
@@ -267,8 +285,9 @@ export function financialRoutes({
         const result = await mailService.sendFinancialDocument({
           ...message,
           number: row.number,
-          pdf: row.pdf,
-          docx: row.docx,
+          pdf: attachments?.pdf ?? row.pdf,
+          docx: attachments?.docx ?? row.docx,
+          invoice,
           filename: financialFilename(row),
           deliveryId,
         });

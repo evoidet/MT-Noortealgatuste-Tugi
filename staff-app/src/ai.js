@@ -178,6 +178,9 @@ export function createAiAssistant(config, {
         "Preserve meaning, names, dates, identifiers, monetary values, numbers, and other factual details exactly.",
         "If a safe language correction would require changing a fact, return the original text verbatim.",
         "Never make workflow, approval, payment, or publication decisions. Never invent facts.",
+        ...(field === 'resignation.reason' ? [
+          'Only correct Estonian grammar in the employee’s explanation. Preserve all allegations, negations, names and circumstances exactly in meaning. Never add a legal ground, claim, conclusion or legal advice. Never decide that extraordinary termination is justified.'
+        ] : []),
         `Write in ${languageNames[language]}.`,
         modeDirections[mode]
       ].join(" "),

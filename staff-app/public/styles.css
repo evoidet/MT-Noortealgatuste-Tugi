@@ -2801,3 +2801,14 @@ body.staff-page .staff-news-preview .news-article-heading h1 {
 .financial th,.financial td { text-align:left; padding:12px; border-bottom:1px solid #dce3d6; }
 .financial-error { color:#a01818; background:#fff1ef; padding:16px; }
 @media(max-width:700px) { .financial-fields,.financial-item { grid-template-columns:1fr; } }
+.resignation fieldset { margin: 1.5rem 0; padding: 1rem; border: 1px solid #cbd5cb; border-radius: 10px; min-width: 0; }
+.resignation textarea { width: 100%; box-sizing: border-box; font: inherit; padding: .75rem; }
+.resignation .resignation-check { display: flex; gap: .6rem; align-items: flex-start; margin: 1rem 0; }
+.resignation-check input { width: auto; flex: none; }
+.resignation-pdf { width: 100%; height: 75vh; min-height: 400px; border: 1px solid #ccc; background: white; }
+.resignation-example { margin: 1.5rem 0; padding: 2rem; background: white; color: black; border: 1px solid #ccc; }
+.resignation-prose { white-space: pre-wrap; overflow-wrap: anywhere; }
+.resignation-field-error { display: block; color: #9b2424; }
+.resignation [aria-invalid="true"] { outline: 2px solid #9b2424; }
+.resignation-paper { max-width: 21cm; box-sizing: border-box; margin: 1rem 0; padding: clamp(1rem, 5vw, 3.5rem); background: #fff; color: #000; border: 1px solid #ccc; font-family: Arial, sans-serif; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.resignation-paper h3 { margin: 2rem 0; font-size: 1rem; color: #000; }

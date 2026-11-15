@@ -1,33 +1,26 @@
 # Financial templates
 
-New invoices and quotations use `invoice.docx` and `quotation.docx`.
-Both information tables include `{reference}` (Viide); invoices additionally
-include `{referenceNumber}` (Viitenumber). Invoice payment instructions use
-`{paymentInstruction}` and adapt when no reference number is supplied.
-Keep these placeholders in the application templates. Generated examples are
-editable documents for manual use, not replacements for executable templates.
-See [Word workflow and validation](../../../../FINANCIAL-DOCX.md).
-The PDF assets described below remain for legacy compatibility.
+`invoice.docx` is the editable invoice template, adapted from the retained Word
+design. Both invoice formats use the labels and formatted data in
+`staff-app/src/invoice-layout.js`, including project and payment references,
+party details, totals and payment conditions. The invoice PDF renderer follows
+the Word tables, palette and A4 layout using PDFKit and bundled DejaVu Sans.
+Production runs on Vercel and generates both formats in memory.
 
-`quotation-reference.docx` is the owner's supplied reference, retained unmodified.
-`logo.png` is extracted from its `word/media/image1.png`.
+The invoice template and `logo.png` contain the same official logo bytes.
+`quotation.docx` keeps its existing layout, and `quotation-reference.docx`
+is the retained quotation source. The fonts are covered by `FONT-LICENSE.txt`.
 
-The executable templates are in `staff-app/src/financial-pdf.js`: quotation and
-invoice use different headings, metadata and payment sections. Shared drawing
-helpers reproduce the reference's A4 format, green table header (`#0e3b03`), pale
-green totals (`#e9f1cb`), supplier/customer columns and banking footer. Embedded
-DejaVu Sans replaces Aptos to support Estonian without relying on installed fonts.
-See `FONT-LICENSE.txt`. No sample rows or filling instructions enter customer PDFs.
+Newly finalized invoices store both exact files in PostgreSQL. Downloads and
+outgoing mail reuse stored files where available. Historical financial invoices
+can be exported in a missing format from their saved data. The original stored
+files are retained. Legacy submission exports also use the invoice layout.
 
-Organization details come from `staff-app/src/organization.js`. Finalization stores
-the issuer snapshot and exact PDF bytes in PostgreSQL. Later configuration or
-template changes do not change previously finalized documents.
-
-Offline visual verification:
+Generate synthetic samples locally without a database or email transport.
 
 ```sh
-node staff-app/scripts/preview-financial.mjs
+node staff-app/scripts/preview-financial-docx.mjs
 ```
 
-This generates only synthetic specimens in ignored `staff-app/private/generated`.
-It does not connect to the database or send mail. Render all pages with Poppler.
+The script writes basic and multipage invoice pairs and Word quotations under
+the ignored `staff-app/private/generated/financial-docx` directory.

@@ -412,7 +412,8 @@ export const aiRequestSchema = z.object({
     "expense.necessity",
     "expense.participants",
     "invoice.description",
-    "invoice.additionalInfo"
+    "invoice.additionalInfo",
+    "resignation.reason"
   ]),
   mode: z.enum(["fix_language", "formal", "news"]),
   language: z.enum(["et", "en", "ru"])

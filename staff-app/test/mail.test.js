@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 
 import { createMailService } from "../src/mail.js";
 import { createInvoiceNotifier } from '../src/invoice-notifications.js';
+
+const invoiceDocx = await readFile(new URL('../private/templates/documents/financial/invoice.docx', import.meta.url));
+const invoicePdf = Buffer.from('%PDF-test\n%%EOF\n');
 
 test('invoice notification errors record uncertainty and log no raw SMTP details', async () => {
   const logs = [];
@@ -17,26 +21,32 @@ test('invoice notification errors record uncertainty and log no raw SMTP details
     }); } },
     logger: { error(...args) { logs.push(args); } },
   });
-  await notify({ id: 'invoice', number: 'NT-TEST', data: { customer: 'Synthetic', totals: { total: 100 } } }, Buffer.from('%PDF-test'), 'actor');
+  await notify({ id: 'invoice', number: 'NT-TEST', data: { customer: 'Synthetic', totals: { total: 100 } } }, { pdf: invoicePdf, docx: invoiceDocx }, 'actor');
   assert.deepEqual(finished, { deliveryId: 'claim', accepted: false });
   assert.equal(logs[0][1].code, 'EAUTH');
   assert.equal(logs[0][1].responseCode, 535);
   assert.doesNotMatch(JSON.stringify(logs), /private|credentials/);
 });
 
-test('automatic invoice PDFs always target Egor independently of finance configuration and caller', async () => {
+test('automatic invoice pairs always target Egor independently of finance configuration and caller', async () => {
   let captured;
   const service = createMailService(mailConfig({ financeNotificationEmail: 'another@example.test' }), {
     transport: { async sendMail(message) { captured = message; return { accepted: [message.to] }; } },
   });
-  const pdf = Buffer.from('%PDF-test');
-  await service.sendFinancialDocument({ recipient: 'wrong@example.test', invoiceCopy: true, number: 'NT-AR-TEST',
-    pdf, deliveryId: 'test', subject: 'Invoice', message: 'Details' });
+  const mail = { recipient: 'wrong@example.test', invoiceCopy: true, number: 'NT-AR-TEST',
+    pdf: invoicePdf, docx: invoiceDocx, deliveryId: 'test', subject: 'Invoice', message: 'Details' };
+  for (const attachments of [{ docx: null }, { pdf: null }, { docx: Buffer.from('broken') }]) {
+    await assert.rejects(service.sendFinancialDocument({ ...mail, ...attachments }), { code: 'MAIL_ATTACHMENT_INVALID' });
+    assert.equal(captured, undefined);
+  }
+  await service.sendFinancialDocument(mail);
   assert.equal(captured.to, 'egor.stepanov@noortetugi.ee');
   assert.equal(captured.cc, undefined);
   assert.equal(captured.attachments[0].filename, 'NT-AR-TEST.pdf');
   assert.equal(captured.attachments[0].contentType, 'application/pdf');
-  assert.deepEqual(captured.attachments[0].content, pdf);
+  assert.deepEqual(captured.attachments[0].content, invoicePdf);
+  assert.equal(captured.attachments[1].filename, 'NT-AR-TEST.docx');
+  assert.deepEqual(captured.attachments[1].content, invoiceDocx);
 });
 
 test("financial mail uses the configured finance recipient for copies and replies", async () => {

@@ -48,7 +48,7 @@ export function validateFinancialData(value, issuer, complete = false) {
   try {
     const data = schema.parse(value);
     if (data.dueDate < data.date) throw new Error();
-    const sums = totals(data.items, issuer.vatRate, { allowIncomplete: !complete });
+    const sums = totals(data.items, issuer.vatRegistered ? issuer.vatRate : 0, { allowIncomplete: !complete });
     if (
       complete &&
       (!data.customer ||

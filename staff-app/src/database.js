@@ -514,7 +514,7 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       reimbursementRecipientEmail = null,
       reimbursementRecipientName = null
     }) {
-      if (idempotencyKey !== null && (type !== "news" ||
+      if (idempotencyKey !== null && (!["news", "resignation"].includes(type) ||
           typeof idempotencyKey !== "string" ||
           !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(idempotencyKey))) {
         throw Object.assign(new Error("The news idempotency key must be a UUID."), {
@@ -1029,6 +1029,39 @@ export function openDatabase(storageDatabaseUrl, options = {}) {
       const action = result.rows[0]?.action;
       return action === 'EXPENSE_NOTIFICATION_SENT' ? 'sent'
         : action === 'EXPENSE_NOTIFICATION_STARTED' ? 'uncertain' : 'ready';
+    },
+
+    // A durable claim commits before SMTP starts. Uncertain outcomes are never
+    // retried automatically, including after process death or a lost response.
+    async claimResignation({ id, userId, revision, delivery }) {
+      return transaction(async client => {
+        const doc = await getSubmissionWith(client, id, { forUpdate: true });
+        if (!doc || doc.type !== 'resignation' || doc.creatorId !== userId ||
+            doc.revision !== revision || !['DRAFT', 'SEND_FAILED'].includes(doc.status))
+          throw Object.assign(new Error('Avaldus on muutunud või juba saatmisele antud.'), { status: 409 });
+        const data = { ...doc.data, _delivery: delivery };
+        await client.query(`UPDATE submissions SET data_json=$2::jsonb, status='SENDING',
+          revision_no=revision_no+1, updated_at=NOW(), submitted_at=NOW() WHERE id=$1`, [id, JSON.stringify(data)]);
+        await client.query(`INSERT INTO revisions (id,submission_id,revision_no,data_json,event,created_by,created_at)
+          VALUES ($1,$2,$3,$4::jsonb,'RESIGNATION_CONFIRMED',$5,NOW())`,
+          [randomUUID(), id, revision + 1, JSON.stringify(data), userId]);
+        return getSubmissionWith(client, id);
+      });
+    },
+
+    async finishResignation({ id, userId, status, messageId = null, errorCode = null }) {
+      return transaction(async client => {
+        const doc = await getSubmissionWith(client, id, { forUpdate: true });
+        if (!doc || doc.type !== 'resignation' || doc.creatorId !== userId || doc.status !== 'SENDING' ||
+            !['SENT', 'SEND_FAILED', 'UNCERTAIN'].includes(status)) throw createWorkflowStateError();
+        const data = { ...doc.data, _delivery: { ...doc.data._delivery, messageId, errorCode, completedAt: new Date().toISOString() } };
+        await client.query(`UPDATE submissions SET data_json=$2::jsonb, status=$3,
+          revision_no=revision_no+1, updated_at=NOW() WHERE id=$1`, [id, JSON.stringify(data), status]);
+        await client.query(`INSERT INTO revisions (id,submission_id,revision_no,data_json,event,created_by,created_at)
+          VALUES ($1,$2,$3,$4::jsonb,$5,$6,NOW())`,
+          [randomUUID(), id, doc.revision + 1, JSON.stringify(data), `RESIGNATION_${status}`, userId]);
+        return getSubmissionWith(client, id);
+      });
     },
 
     async listAudit(limit = 200) {

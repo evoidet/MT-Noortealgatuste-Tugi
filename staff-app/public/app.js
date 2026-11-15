@@ -697,7 +697,9 @@ async function navigate(view, options = {}) {
   if (view === "home") {
     renderHome();
   } else if (view === "resignation") {
-    elements.viewRoot.innerHTML = '<section class="staff-home"><h1>Lahkumisavaldus</h1><p>Lahkumisavalduse vorm on koostamisel.</p></section>';
+    const { mountResignation } = await import('./resignation.js');
+    if (state.view !== 'resignation') return;
+    await mountResignation(elements.viewRoot, { user: state.session.user });
   } else if (view === "financial") {
     if (!state.session?.financialAccess) return;
     const { mountFinancial } = await import('./financial.js');
@@ -781,7 +783,7 @@ function renderHome() {
             text: "staff.home.addNewsText"
           })}
           ${canCreate("invoice") ? '<button class="staff-action-card" type="button" data-action="navigate" data-view="mine" data-type="invoice"><span class="staff-action-copy"><strong>Varasemad arved</strong><small>Varem koostatud arvete arhiiv</small></span></button>' : ''}
-          <button class="staff-action-card" type="button" data-action="navigate" data-view="resignation"><span class="staff-action-copy"><strong>Lahkumisavaldus</strong><small>Liikmesusest lahkumise avaldus</small></span></button>
+          <button class="staff-action-card" type="button" data-action="navigate" data-view="resignation"><span class="staff-action-copy"><strong>Lahkumisavaldus</strong><small>Töölepingu ülesütlemise avaldus</small></span></button>
         </div>
         ${availableTypes("mine").some((type) => ["expense", "invoice"].includes(type) && !templateAvailable(type)) ? `
           <aside class="staff-template-warning" role="status">
@@ -2289,7 +2291,7 @@ function detailActions(record, scope) {
   const documentAction = hasDocument && templateAvailable(record.type)
     ? `<a class="staff-button staff-button--secondary" href="/api/staff/submissions/${encodeURIComponent(record.id)}/document" target="_blank" rel="noopener">
          <span aria-hidden="true">↓</span><span>${escapeHtml(t("staff.detail.document"))}</span>
-       </a>`
+       </a>${record.type === 'invoice' ? `<a class="staff-button staff-button--secondary" href="/api/staff/submissions/${encodeURIComponent(record.id)}/document?format=pdf" target="_blank" rel="noopener">↓ PDF</a>` : ''}`
     : hasDocument
       ? `<p class="staff-template-warning staff-template-warning--inline" role="status">${escapeHtml(t(`staff.templates.${record.type}Missing`))}</p>`
       : "";
