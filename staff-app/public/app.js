@@ -782,8 +782,8 @@ function renderHome() {
             title: "staff.home.addNews",
             text: "staff.home.addNewsText"
           })}
-          ${canCreate("invoice") ? '<button class="staff-action-card" type="button" data-action="navigate" data-view="mine" data-type="invoice"><span class="staff-action-copy"><strong>Varasemad arved</strong><small>Varem koostatud arvete arhiiv</small></span></button>' : ''}
-          <button class="staff-action-card" type="button" data-action="navigate" data-view="resignation"><span class="staff-action-copy"><strong>Lahkumisavaldus</strong><small>Töölepingu ülesütlemise avaldus</small></span></button>
+          ${canCreate("invoice") ? '<button class="staff-action-card staff-action-card--archive" type="button" data-action="navigate" data-view="mine" data-type="invoice"><span class="staff-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9m-9 4h4"/></svg></span><span class="staff-action-copy"><strong>Varasemad arved</strong><small>Vaata ja halda varem koostatud arveid.</small></span><span class="staff-action-arrow" aria-hidden="true">→</span></button>' : ''}
+          <button class="staff-action-card staff-action-card--departure" type="button" data-action="navigate" data-view="resignation"><span class="staff-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5m5-12 4 4-4 4m-6-4h10"/></svg></span><span class="staff-action-copy"><strong>Lahkumisavaldus</strong><small>Koosta organisatsioonist lahkumise või rollist loobumise avaldus.</small></span><span class="staff-action-arrow" aria-hidden="true">→</span></button>
         </div>
         ${availableTypes("mine").some((type) => ["expense", "invoice"].includes(type) && !templateAvailable(type)) ? `
           <aside class="staff-template-warning" role="status">

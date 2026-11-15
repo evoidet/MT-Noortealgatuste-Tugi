@@ -1,4 +1,4 @@
-import { dateText, decimalUnits, money, termLabels } from '../public/financial-values.js';
+import { dateText, decimalUnits, money, sellerContactLines, sellerVatDescription, termLabels } from '../public/financial-values.js';
 
 export const invoiceLabels = {
   number: 'Arve number', date: 'Arve kuupäev', dueDate: 'Maksetähtaeg', currency: 'Valuuta',
@@ -32,7 +32,9 @@ export function invoiceFields({ data: d, issuer: o, number, correction_number })
     project: value([d.project, correction_number && `Parandus: ${correction_number}`].filter(Boolean).join('\n')),
     reference: value(d.reference), referenceNumber: value(d.referenceNumber),
     sellerName: o.name,
-    sellerDetails: [`Registrikood: ${o.registrationCode}`, `Aadress: ${o.address}`, `E-post: ${o.email}`].join('\n'),
+    sellerDetails: [
+      `Registrikood: ${o.registrationCode}`, `Aadress: ${o.address}`, `E-post: ${o.email}`, ...sellerContactLines(o),
+    ].join('\n'),
     customer: d.customer,
     buyerDetails: [
       `Registrikood: ${value(d.registrationCode)}`, `Aadress: ${value(d.address)}`,
@@ -53,8 +55,6 @@ export function invoiceFields({ data: d, issuer: o, number, correction_number })
       d.additionalInfo && d.additionalInfo !== d.explanation ? d.additionalInfo : '',
       ...Object.entries(termLabels).filter(([key]) => d.terms?.[key]).map(([key, label]) => `${label}: ${d.terms[key]}`),
     ].filter(Boolean).join('\n'),
-    footerVat: o.vatRegistered
-      ? [o.vatNumber && `Käibemaksukohustuslase number: ${o.vatNumber}.`, 'Täname õigeaegse tasumise eest!'].filter(Boolean).join(' ')
-      : 'Käibemaksu ei lisandu, sest müüja ei ole käibemaksukohustuslane. Täname õigeaegse tasumise eest!',
+    footerVat: `${sellerVatDescription(o)} Täname õigeaegse tasumise eest!`,
   };
 }

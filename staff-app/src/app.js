@@ -473,7 +473,6 @@ export function createStaffApp({
   background = waitUntil,
   mailService = createMailService(config),
   aiAssistant = createAiAssistant(config),
-  resignationEmployeeVerifier = null,
   driveArchiveService = createDriveArchiveService(config),
   documentGenerator = generateSubmissionDocument,
   clientUploadGrantCreator = createClientUploadGrant,
@@ -1045,7 +1044,7 @@ export function createStaffApp({
   app.use("/api/staff", auth.requireSession);
 
   app.use("/api/staff/financial", financialRoutes({ database, auth, mailService, background, limiter: mutationLimiter }));
-  app.use('/api/staff/resignations', resignationRoutes({ database, auth, mailService, limiter: mutationLimiter, verifyEmployee: resignationEmployeeVerifier }));
+  app.use('/api/staff/resignations', resignationRoutes({ database, auth, limiter: mutationLimiter }));
 
   app.get("/api/staff/submissions", asyncRoute(async (request, response) => {
     const scope = request.query.scope === "review" ? "review" : "mine";

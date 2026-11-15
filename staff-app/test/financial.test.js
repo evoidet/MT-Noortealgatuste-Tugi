@@ -252,12 +252,13 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
     .send({ version: doc.version, data })
     .expect(409);
   doc = (await authorized("get", `/${id}`)).body.document;
-  configuredIssuer = { ...issuer, vatRegistered: true, vatRate: 24, vatNumber: "EE123456789" };
-  await authorized("post", `/${id}/finalize`).send({ version: doc.version }).expect(409);
-  configuredIssuer = issuer;
-  await authorized("post", `/${id}/finalize`)
+  configuredIssuer = { ...issuer, address: 'Uus müüja aadress', vatRegistered: true, vatRate: 24, vatNumber: "EE123456789" };
+  const issued = await authorized("post", `/${id}/finalize`)
     .send({ version: doc.version })
     .expect(200);
+  assert.deepEqual(issued.body.document.issuer, issuer);
+  assert.deepEqual(issued.body.document.data.totals, doc.data.totals);
+  configuredIssuer = issuer;
   const download = await authorized("get", `/${id}/docx`).buffer(true).parse((res, cb) => {
     const chunks = []; res.on('data', c => chunks.push(c)); res.on('end', () => cb(null, Buffer.concat(chunks)));
   }).expect(200);
@@ -417,14 +418,53 @@ test("financial lifecycle is private, numbered, durable, immutable and sends onl
     assert.equal(sent.length, before + 1);
   }
 
-  // Downloading the current draft and then confirming it also shares one copy.
-  const draft = (await authorized('post', '').send({ id: randomUUID(), kind: 'invoice', data }).expect(201)).body.document;
+  // Old drafts get missing fields while keeping their own address, buyer, dates, prices and identifiers.
+  const historical = { ...issuer, address: 'Varasem müüja aadress', phone: 'Varasem telefon' };
+  delete historical.mobile;
+  delete historical.website;
+  const draft = await db.createFinancialDocument({ id: randomUUID(), kind: 'invoice',
+    data: validateFinancialData({ ...data, email: 'buyer@example.test', phone: '+372 5550 0000', contact: 'Testkontakt' }, historical),
+    issuer: historical, actor: egor.id,
+  });
+  configuredIssuer = { ...issuer, address: 'Uus müüja aadress', mobile: '+372 5555 0000' };
+  const opened = (await authorized('get', `/${draft.id}`).expect(200)).body.document;
+  const completedIssuer = { ...historical, mobile: configuredIssuer.mobile, website: configuredIssuer.website };
+  assert.deepEqual(opened.issuer, completedIssuer);
+  assert.deepEqual(opened.data, draft.data);
+  assert.deepEqual((await db.getFinancialDocument(draft.id)).issuer, historical);
+
+  // Downloading an enriched draft and then confirming it shares one copy.
+
   const beforeDraft = sent.length;
   await authorized('get', `/${draft.id}/pdf?download=1`).expect(200);
   await Promise.all(pendingNotifications.splice(0));
   await authorized('post', `/${draft.id}/finalize`).send({ version: draft.version }).expect(200);
-  assert.equal(sent.length, beforeDraft + 1);
+  await authorized('get', `/${draft.id}/pdf?download=1`).expect(200);
   await Promise.all(pendingNotifications.splice(0));
+  assert.equal(sent.length, beforeDraft + 1);
+  const archived = await db.getFinancialDocument(draft.id, true);
+  assert.deepEqual(archived.issuer, completedIssuer);
+  assert.equal(archived.number, draft.number);
+  assert.deepEqual(archived.data, draft.data);
+  for (const kind of ['invoice', 'quotation']) {
+    const newDoc = (await authorized('post', '').send({ id: randomUUID(), kind, data,
+      issuer: { name: 'Client-supplied seller' },
+    }).expect(201)).body.document;
+    assert.deepEqual(newDoc.issuer, configuredIssuer);
+    assert.equal(newDoc.data.customer, data.customer);
+    const changedData = { ...newDoc.data, customer: 'Uus klient', contact: 'Teine kontakt' };
+    configuredIssuer = { ...configuredIssuer, name: 'Hiljem muudetud müüja' };
+    const edited = (await authorized('patch', `/${newDoc.id}`).send({ version: newDoc.version,
+      data: changedData, issuer: configuredIssuer,
+    }).expect(200)).body.document;
+    assert.deepEqual(edited.issuer, newDoc.issuer);
+    assert.deepEqual(edited.data, changedData);
+    assert.equal(edited.number, newDoc.number);
+  }
+  const stillArchived = await db.getFinancialDocument(draft.id, true);
+  assert.deepEqual(stillArchived.issuer, archived.issuer);
+  assert.deepEqual(stillArchived.pdf, archived.pdf);
+  assert.deepEqual(stillArchived.docx, archived.docx);
 
 });
 

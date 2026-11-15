@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
-import { money, dateText, termLabels } from '../public/financial-values.js';
+import { money, dateText, sellerContactLines, sellerVatDescription, termLabels } from '../public/financial-values.js';
 import { invoiceFields } from './invoice-layout.js';
 
 export const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -22,13 +22,14 @@ function quotationFields(record) {
     number: record.number, date: dateText(d.date), dueDate: dateText(d.dueDate), currency: d.currency,
     execution: value(d.execution),
     project: value([d.project, record.correction_number ? `Parandus: ${record.correction_number}` : ''].filter(Boolean).join('\n')),
-    sellerName: o.name, sellerRegistry: o.registrationCode, sellerAddress: o.address, sellerEmail: o.email, sellerPhone: value(o.phone),
-    customer: d.customer, registrationCode: value(d.registrationCode), address: d.address, contact: value(d.contact),
-    customerContact: value([d.email,d.phone].filter(Boolean).join(' / ')),
+    sellerName: o.name, sellerRegistry: o.registrationCode, sellerAddress: o.address, sellerEmail: o.email,
+    sellerContacts: sellerContactLines(o).join('\n'),
+    customer: d.customer, registrationCode: value(d.registrationCode), address: d.address,
+    buyerContactPerson: d.contact ? `Kontaktisik: ${d.contact}` : '',
+    buyerChannels: [d.email && `E-post: ${d.email}`, d.phone && `Telefon: ${d.phone}`].filter(Boolean).join(' / '),
     items, subtotal: money(d.totals.subtotal), vat: o.vatRegistered ? `${o.vatRate}% · ${money(d.totals.vat)}` : 'Ei lisandu', total: money(d.totals.total),
     iban: o.iban, bic: o.bic, bank: o.bank,
-    footerVat: o.vatRegistered ? `Käibemaksukohustuslase number: ${o.vatNumber}.`
-      : 'Käibemaksu ei lisandu, sest pakkuja ei ole käibemaksukohustuslane.',
+    footerVat: sellerVatDescription(o),
     footerBank: `${o.name}  |  ${o.bank}  |  IBAN: ${o.iban}  |  BIC/SWIFT: ${o.bic}`,
     ...Object.fromEntries(Object.keys(termLabels).map(k => [k, value(d.terms?.[k])])),
   };

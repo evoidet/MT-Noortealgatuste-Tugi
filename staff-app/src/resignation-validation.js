@@ -1,53 +1,63 @@
 import { z } from 'zod';
-import { validDate, tallinnToday, noticeInfo } from '../public/resignation-values.js';
-const text = max => z.string().trim().max(max).default('');
-const date = z.string().refine(v => !v || validDate(v), 'Sisestage kehtiv kuupäev.').default('');
-export const resignationSchema = z.object({
-  employeeName: text(200), position: text(200), contractDate: date,
-  contractType: z.enum(['indefinite', 'fixed']).default('indefinite'), replacement: z.boolean().default(false),
-  email: z.string().trim().max(254).refine(v => !v || z.email().safeParse(v).success, 'Sisestage kehtiv e-posti aadress.').default(''),
-  employmentConfirmed: z.boolean().default(false),
-  terminationType: z.enum(['ordinary', 'probation', 'extraordinary']).default('ordinary'),
-  documentDate: date, submissionDate: date, receiptDate: date, lastDay: date,
-  probationStart: date, probationEnd: date, probationConfirmed: z.boolean().default(false),
-  reason: text(8000), shortNoticeAcknowledged: z.boolean().default(false),
-  extraordinaryAcknowledged: z.boolean().default(false), demonstration: z.boolean().default(false)
-}).strict();
-export function validateResignation(input, { final = false, submitting = false, today = tallinnToday() } = {}) {
-  const parsed = resignationSchema.safeParse(input);
-  const issues = parsed.success ? [] : parsed.error.issues.map(i => ({ field: i.path.join('.'), message: i.message.startsWith('Sisestage') ? i.message : 'Kontrollige välja väärtust.' }));
-  if (!parsed.success) throw invalid(issues);
-  const d = parsed.data;
-  if (!final) return d;
-  const require = (ok, field, message) => { if (!ok) issues.push({ field, message }); };
-  require(/^[\p{L}\p{M}][\p{L}\p{M} .’'\-]* [\p{L}\p{M} .’'\-]+$/u.test(d.employeeName), 'employeeName', 'Sisestage ees- ja perekonnanimi.');
-  require(!/[\r\n]/.test(d.position), 'position', 'Sisestage ametikoht ühel real.');
-  require(d.employmentConfirmed, 'employmentConfirmed', 'Kinnitage, et avaldus puudutab töölepingut. Liikmesuse, juhatuse liikme või teenuslepingu lõpetamiseks kasutage teist dokumenti.');
-  require(Boolean(d.documentDate), 'documentDate', 'Sisestage avalduse koostamise kuupäev.');
-  require(!d.documentDate || d.documentDate <= today, 'documentDate', 'Avalduse koostamise kuupäev ei saa olla tulevikus.');
-  require(Boolean(d.lastDay), 'lastDay', 'Sisestage viimane tööpäev.');
-  require(!d.lastDay || d.lastDay >= today, 'lastDay', 'Tagasiulatuvat ülesütlemist ei saa selle vormiga koostada.');
-  require(!d.lastDay || !d.documentDate || d.lastDay >= d.documentDate, 'lastDay', 'Viimane tööpäev ei saa eelneda avalduse kuupäevale.');
-  require(!d.contractDate || d.contractDate <= d.documentDate, 'contractDate', 'Töölepingu kuupäev ei saa olla avalduse kuupäevast hilisem.');
-  for (const key of ['submissionDate', 'receiptDate']) {
-    require(!d[key] || d[key] <= today, key, 'Tegelik esitamise või kättesaamise kuupäev ei saa olla tulevikus.');
-    require(!d[key] || !d.lastDay || d[key] <= d.lastDay, key, 'Kuupäev ei saa olla viimasest tööpäevast hilisem.');
+import { addDays, addMonths, validDate } from '../public/resignation-values.js';
+
+const text = max => z.string().trim().max(max)
+  .refine(value => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/u.test(value), 'Eemaldage tekstist sobimatud märgid.').default('');
+const date = z.string().refine(validDate, 'Sisestage kehtiv kuupäev.');
+const optionalDate = z.union([date, z.literal('')]).default('');
+const optionalNumber = (min, max) => z.number().int().min(min).max(max).optional();
+const common = {
+  role: text(240), effectiveDate: optionalDate, reason: text(2400), explanation: text(2400),
+};
+const action = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('board'), ...common, appointingBody: text(180), boardCount: optionalNumber(1, 99) }).strict(),
+  z.object({ kind: z.literal('member'), ...common }).strict(),
+  z.object({ kind: z.literal('volunteer'), ...common, writtenAgreement: z.boolean().default(false) }).strict(),
+  z.object({
+    kind: z.literal('mandate'), ...common, actualAgreement: z.boolean().default(false),
+    termsReviewed: z.boolean().default(false), alternativePerformance: z.boolean().default(false),
+    contractDate: optionalDate, contractNumber: text(100), contractTerms: text(1800),
+    party: z.enum(['', 'provider', 'client']).default(''),
+    termination: z.enum(['', 'ordinary', 'extraordinary']).default(''),
+    contractTerm: z.enum(['', 'indefinite', 'fixed', 'long']).default(''),
+    ordinaryClause: z.boolean().default(false),
+    noticeDays: optionalNumber(0, 3650), receiptDate: optionalDate,
+  }).strict(),
+]);
+const schema = z.object({
+  name: text(160), email: z.union([z.email().max(254), z.literal('')]).default(''),
+  noticeDate: date,
+  actions: z.array(action).min(1).max(4),
+}).strict().refine(data => new Set(data.actions.map(entry => entry.kind)).size === data.actions.length,
+  'Valige iga avalduse liik üks kord.');
+
+export function validateResignation(input, { final = false } = {}) {
+  const data = schema.parse(input);
+  if (!final) return data;
+  const issue = message => { throw Object.assign(new Error(message), { status: 422 }); };
+  if (!data.name || !data.email) issue('Sisestage avalduse esitaja nimi ja e-posti aadress.');
+  for (const entry of data.actions) {
+    if (entry.effectiveDate && entry.effectiveDate < data.noticeDate)
+      issue('Soovitud lõppkuupäev peab olema avalduse kuupäeval või hiljem.');
+    if (entry.kind === 'volunteer' && !entry.role) issue('Kirjeldage vabatahtliku rolli või ülesandeid.');
+    if (entry.kind !== 'mandate') continue;
+    if (!entry.actualAgreement || !entry.termsReviewed || !entry.contractDate || !entry.party || !entry.contractTerm ||
+        !entry.termination || !entry.effectiveDate || !entry.contractTerms || !entry.receiptDate || entry.noticeDays == null)
+      issue('Käsunduslepingu avalduseks täitke lepingu ja etteteatamise andmed ning kinnitage nende kontrollimine.');
+    if (entry.contractDate > data.noticeDate || entry.receiptDate < data.noticeDate)
+      issue('Kontrollige lepingu sõlmimise, avalduse ja eeldatava kättesaamise kuupäevi.');
+    if (entry.termination === 'ordinary') {
+      if (entry.contractTerm === 'long' && entry.party === 'provider' && !entry.ordinaryClause) {
+        if (entry.receiptDate < addMonths(entry.contractDate, 60) || entry.effectiveDate < addMonths(entry.receiptDate, 6))
+          issue('VÕS § 630 lg 3 järgi kontrollige viie aasta möödumist ja jätke vähemalt kuus kuud etteteatamiseks.');
+      } else if (entry.contractTerm !== 'indefinite' && !entry.ordinaryClause) {
+        issue('Tähtajalise käsunduslepingu korraliseks ülesütlemiseks kontrollige lepingus sätestatud õigust.');
+      }
+      if (entry.party === 'provider' && entry.contractTerm === 'indefinite' && !entry.alternativePerformance)
+        issue('Käsundisaajana kontrollige VÕS § 630 lg 2 kohaselt, kas käsundiandja saab teenuse või tehingu korraldada muul viisil.');
+    } else if (!entry.reason) issue('Kirjeldage erakorralise ülesütlemise asjaolusid.');
+    if (entry.effectiveDate < addDays(entry.receiptDate, entry.noticeDays))
+      issue('Soovitud lõppkuupäev on varasem kui sisestatud etteteatamistähtaja lõpp.');
   }
-  require(!d.receiptDate || !d.submissionDate || d.receiptDate >= d.submissionDate, 'receiptDate', 'Kättesaamine ei saa eelneda esitamisele.');
-  if (d.terminationType === 'ordinary') require(d.contractType !== 'fixed' || d.replacement, 'contractType', 'TLS § 85 lg 2 lubab tähtajalise töölepingu korralist ülesütlemist üksnes töötaja asendamise ajaks sõlmitud lepingu puhul.');
-  const notice = noticeInfo(d, today);
-  if (d.terminationType === 'probation') {
-    require(d.probationConfirmed && Boolean(d.probationStart && d.probationEnd), 'probationConfirmed', 'Kontrollige töölepingu järgi katseaja tegelikku kestust, kokkuleppeid ja peatumisi ning kinnitage katseaja kehtivus.');
-    require(d.probationStart <= notice.base && d.probationEnd >= notice.base, 'probationEnd', 'Avaldus peab jõudma tööandjani kehtiva katseaja jooksul.');
-  }
-  if (d.terminationType === 'extraordinary') {
-    require(Boolean(d.reason), 'reason', 'Kirjeldage erakorralise ülesütlemise tegelikke asjaolusid.');
-    require(d.extraordinaryAcknowledged, 'extraordinaryAcknowledged', 'Kinnitage, et mõistate: mõjuvat põhjust ja etteteatamata jätmise õigust süsteem ei tuvasta (TLS § 91 ja § 98 lg 2).');
-  }
-  require(!notice.short || d.shortNoticeAcknowledged, 'shortNoticeAcknowledged', 'Lühem etteteatamine ei muuda avaldust automaatselt tühiseks, kuid võib kaasa tuua hüvitise või kahju nõude. Kinnitage, et mõistate seda.');
-  for (const key of ['employeeName', 'position', ...(d.terminationType === 'extraordinary' ? ['reason'] : [])]) require(!/\[[^\]]+\]|\{\{|<[^>]*>|\b(?:Eesnimi Perekonnanimi|Nimi Perekonnanimi)\b/i.test(d[key]) && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(d[key]), key, 'Eemaldage täitmata kohatäited, märgendid ja juhtmärgid.');
-  if (submitting) require(!d.demonstration && d.employeeName !== 'Mari Näidis', 'demonstration', 'Näidisdokumenti ei saa esitada.');
-  if (issues.length) throw invalid(issues);
-  return d;
+  return data;
 }
-function invalid(issues) { return Object.assign(new Error('Kontrollige avalduse andmeid.'), { status: 422, issues }); }

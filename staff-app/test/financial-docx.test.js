@@ -29,21 +29,27 @@ test('Word templates retain editable tables, image bytes, geometry, fonts and se
     assert.ok(footer.includes('EE123456789'));
     assert.ok(!footer.includes('ei lisandu'));
     if(kind==='quotation') { assert.ok(footer.includes('TEST-IBAN')); assert.ok(footer.includes('Testmüüja ÕÜ')); }
+    const sellerCell = xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g)[2].match(/<w:tc>[\s\S]*?<\/w:tc>/g)[0];
+    for (const detail of [issuer.name, issuer.registrationCode, issuer.address, issuer.email, issuer.phone, issuer.mobile, issuer.website])
+      assert.ok(sellerCell.includes(detail), detail);
+    assert.doesNotMatch(sellerCell, /Tellija ÕÄÖÜ|test@example\.test/);
   }
 });
 
 test('reference fields stay in the information table and invoice instructions adapt', async () => {
-  const issuer = { ...organization, vatRegistered: false, vatRate: 0 };
+  const issuer = { ...organization, phone: '', mobile: null, website: undefined, vatRegistered: false, vatRate: 0 };
   for (const kind of ['invoice', 'quotation']) {
     for (const referenceNumber of ['', '1234561']) {
       const data = validateFinancialData({ date: '2026-10-29', dueDate: '2026-11-05',
         customer: 'Testklient', address: 'Testi 1', reference: 'Leping & kokkulepe', referenceNumber,
         explanation: 'Lisainfo', items: [{ description: 'Teenus', quantity: 1, unit: 'tk', unitPrice: 10 }],
       }, issuer, true);
-      const xml = new PizZip(await generateFinancialDocx({ kind, number: 'TEST-042', issuer, data }))
-        .file('word/document.xml').asText();
+      const docx = new PizZip(await generateFinancialDocx({ kind, number: 'TEST-042', issuer, data }));
+      const xml = docx.file('word/document.xml').asText();
       const tables = xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g);
       const info = tables[1];
+      assert.doesNotMatch(tables[2], /Kontaktisik:|Telefon:|Mobiil:|Veebileht:|undefined|null|E-post \/ telefon:/);
+      assert.match(docx.file('word/footer1.xml').asText(), /Ei ole käibemaksukohustuslane\./);
       assert.match(info, /Viide/);
       assert.match(info, /Leping &amp; kokkulepe/);
       if (kind === 'invoice') {
@@ -52,7 +58,10 @@ test('reference fields stay in the information table and invoice instructions ad
         assert.match(xml, /Arve TEST-042 · Lisainfo/);
         assert.match(xml, /Makse selgitusse palume märkida arve number/);
         assert.equal(xml.includes('viitenumbri väljale'), Boolean(referenceNumber));
-        if (referenceNumber) assert.ok(info.includes(referenceNumber));
+        if (referenceNumber) {
+          assert.ok(info.includes(referenceNumber));
+          assert.ok(tables[5].includes(referenceNumber));
+        }
       } else {
         assert.ok(!xml.includes('Viitenumber'));
         assert.ok(!xml.includes('1234561'));

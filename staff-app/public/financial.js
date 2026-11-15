@@ -1,5 +1,5 @@
 import { request } from "./api.js";
-import { totals, money, dateText, termLabels } from "./financial-values.js";
+import { totals, money, dateText, sellerContactLines, sellerVatDescription, termLabels } from "./financial-values.js";
 const esc = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -77,16 +77,23 @@ export async function mountFinancial(root, { kind = "" } = {}) {
     current = doc;
     const v = doc.data,
       quote = doc.kind === "quotation";
+    const seller = doc.issuer;
     render(`${button("list", "← Dokumentide loend")}<h2>${typeNames[doc.kind]} ${esc(doc.number || "— uus mustand")}</h2>
-      <p>Organisatsiooni andmed lisatakse automaatselt. Valuuta: EUR. ${doc.issuer?.vatRegistered ? `Käibemaks: ${doc.issuer.vatRate}%` : "Käibemaks ei lisandu."}</p>
+      <h3>${quote ? 'Pakkuja' : 'Müüja'}</h3>
+      <p><strong>${esc(seller.name)}</strong><br>
+      ${[`Registrikood: ${seller.registrationCode}`, `Aadress: ${seller.address}`, `E-post: ${seller.email}`,
+        ...sellerContactLines(seller), `Pank: ${seller.bank}`, `IBAN: ${seller.iban}`, `BIC/SWIFT: ${seller.bic}`,
+        sellerVatDescription(seller)].map(esc).join('<br>')}</p>
       <form data-finance-form="save"><div class="financial-fields">
       ${input("date", "Kuupäev", v.date, "date")}${input("dueDate", quote ? "Kehtib kuni" : "Maksetähtaeg", v.dueDate, "date")}
       ${quote ? input("execution", "Täitmise aeg", v.execution, "text", "Kuupäev või periood") : input("supplyDate", "Kauba / teenuse kuupäev", v.supplyDate || "", "date") + input("execution", "Teenuse periood", v.execution, "text", "Kuupäev või periood")}
       ${input("project", "Projekti / lepingu viide", v.project, "text", "GALA-2026")}
       ${input("reference", "Viide", v.reference)}
-      ${input("customer", "Tellija nimi", v.customer, "text", "Ettevõtte, asutuse või eraisiku nimi")}${input("registrationCode", "Registrikood", v.registrationCode)}
-      ${input("address", "Aadress", v.address)}${input("contact", "Kontaktisik", v.contact)}${input("email", "E-post", v.email, "email")}${input("phone", "Telefon", v.phone, "tel")}
       ${!quote ? input("referenceNumber", "Viitenumber (valikuline)", v.referenceNumber) + input("explanation", "Selgitus", v.explanation) : ""}</div>
+      <h3>${quote ? 'Tellija' : 'Ostja'}</h3>
+      <div class="financial-fields">${input("customer", "Tellija nimi", v.customer, "text", "Ettevõtte, asutuse või eraisiku nimi")}${input("registrationCode", "Registrikood", v.registrationCode)}
+      ${input("address", "Aadress", v.address)}${input("contact", "Kontaktisik", v.contact)}${input("email", "E-post", v.email, "email")}${input("phone", "Telefon", v.phone, "tel")}
+      </div>
       <h3>Kaubad ja teenused</h3><div class="financial-items">${v.items.map(row).join("")}</div>${button("add-line", "Lisa kauba / teenuse rida")}<p class="financial-total" aria-live="polite"></p>
       <h3>Tingimused</h3><p>${quote ? "Tingimused lisatakse Wordi faili. Täitmata väljad märgitakse kriipsuga." : "Sisestatud tingimused lisatakse mõlemasse faili."}</p>
       ${Object.entries(termLabels)
@@ -100,7 +107,7 @@ export async function mountFinancial(root, { kind = "" } = {}) {
   }
   function values() {
     const form = section.querySelector('form[data-finance-form="save"]');
-    const read = (name) => form.querySelector(`[name="${name}"]`)?.value || "";
+    const read = (name, fallback = "") => form.querySelector(`[name="${name}"]`)?.value ?? fallback;
     const data = Object.fromEntries(
       [
         "date",
@@ -116,7 +123,7 @@ export async function mountFinancial(root, { kind = "" } = {}) {
         "reference",
         "referenceNumber",
         "explanation",
-      ].map((k) => [k, read(k)]),
+      ].map((k) => [k, read(k, current.data[k])]),
     );
     if (current.kind === "invoice") data.supplyDate = read("supplyDate");
     data.currency = "EUR";

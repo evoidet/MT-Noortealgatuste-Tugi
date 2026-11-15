@@ -145,14 +145,14 @@ export function financialRepository(pool, transaction) {
         return clean(row);
       });
     },
-    async finalizeFinancialDocument({ id, version, pdf = null, docx = null, actor, confirmation = null }) {
+    async finalizeFinancialDocument({ id, version, pdf = null, docx = null, issuer = null, actor, confirmation = null }) {
       return transaction(async (client) => {
         const row = (
           await client.query(
             `UPDATE financial_documents SET pdf=$3,docx=$4,status='READY',version=version+1,updated_at=NOW(),
-            confirmed_at=NOW(),confirmed_by=$5,confirmation_delivery_status=$6
+            confirmed_at=NOW(),confirmed_by=$5,confirmation_delivery_status=$6,issuer=COALESCE($7::jsonb,issuer)
           WHERE id=$1 AND version=$2 AND status='DRAFT' RETURNING *`,
-            [id, version, pdf, docx, actor, confirmation ? 'SENDING' : null],
+            [id, version, pdf, docx, actor, confirmation ? 'SENDING' : null, issuer],
           )
         ).rows[0];
         if (!row) throw conflict();

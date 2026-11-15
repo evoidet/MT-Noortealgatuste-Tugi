@@ -2,23 +2,24 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { organization } from './organization.js';
 import { validateResignation } from './resignation-validation.js';
-import { generateResignationPdf } from './resignation-pdf.js';
-import { resignationFilename, tallinnToday } from '../public/resignation-values.js';
+import { generateResignationPdf, generateResignationDocx } from './resignation-pdf.js';
+import { departureDocument, followUp, nextProgress } from '../public/resignation-values.js';
 import { downloadFilenameHeader } from './storage.js';
+import { DOCX_MIME } from './financial-docx.js';
 
-export const submissionUnavailable = 'Elektrooniline esitamine ei ole veel toetatud: süsteemis puudub kontrollitud seos konto ja töötaja töösuhte vahel. Salvestage ja laadige avaldus alla ning esitage see ise tuvastataval viisil.';
 const uuid = z.string().uuid();
-const editable = doc => doc.status === 'DRAFT';
+const kindSchema = z.enum(['board', 'member', 'volunteer', 'mandate']);
+const organizationDetails = () => ({ name: organization.name, registrationCode: organization.registrationCode, address: organization.address });
+const isLegacy = doc => !Array.isArray(doc.data.actions);
 const payload = doc => {
-  const { _delivery, ...data } = doc.data;
-  const { pdfBase64, ...delivery } = _delivery || {};
-  return { ...doc, data, delivery: _delivery ? delivery : null };
+  const { data, ...record } = doc;
+  if (isLegacy(doc)) return { ...record, legacy: true, legacyPdf: Boolean(data._delivery?.pdfBase64) };
+  const { _workflow, ...fields } = data;
+  return { ...record, data: fields, workflow: _workflow || null };
 };
+const conflict = message => Object.assign(new Error(message), { status: 409 });
 
-// verifyEmployee is a trusted server integration, NEVER a client assertion or
-// name match. No employment registry exists today, so production fails closed.
-export function resignationRoutes({ database, auth, mailService, limiter,
-  verifyEmployee = null, pdfGenerator = generateResignationPdf }) {
+export function resignationRoutes({ database, auth, limiter }) {
   const router = Router();
   router.use((req, res, next) => {
     res.set('Cache-Control', 'private, no-store');
@@ -27,8 +28,8 @@ export function resignationRoutes({ database, auth, mailService, limiter,
   });
   const route = work => async (req, res, next) => {
     try { await work(req, res); } catch (e) {
-      if (e instanceof z.ZodError) return res.status(422).json({ error: 'Kontrollige sisestatud andmeid.' });
-      if ([404, 409, 422, 503].includes(e.status)) return res.status(e.status).json({ error: e.message, issues: e.issues });
+      if (e instanceof z.ZodError) return res.status(422).json({ error: 'Kontrollige sisestatud andmeid.', issues: e.issues });
+      if ([404, 409, 422].includes(e.status)) return res.status(e.status).json({ error: e.message });
       next(e);
     }
   };
@@ -38,80 +39,88 @@ export function resignationRoutes({ database, auth, mailService, limiter,
       throw Object.assign(new Error('Avaldust ei leitud.'), { status: 404 });
     return doc;
   }
-  router.get('/settings', route(async (_req, res) => res.json({ employer: {
-    name: organization.name, registrationCode: organization.registrationCode, address: organization.address
-  }, recipient: organization.email, submissionSupported: typeof verifyEmployee === 'function',
-    submissionExplanation: typeof verifyEmployee === 'function' ? 'Esitada saab ainult kontrollitud töösuhtega töötaja enda kinnitatud avalduse.' : submissionUnavailable })));
-  router.get('/', route(async (req, res) => res.json({ items: (await database.listSubmissionsByCreator(req.user.id, { type: 'resignation' })).map(payload) })));
+  function checkRevision(doc, revision) {
+    if (revision !== doc.revision) throw conflict('Avaldus on muutunud. Avage salvestatud versioon uuesti.');
+  }
+  function review(doc) {
+    if (isLegacy(doc)) throw conflict('Varasem avaldus on arhiivis. Koostamiseks avage uus avaldus.');
+    const { _workflow, ...input } = doc.data;
+    return validateResignation(input, { final: true });
+  }
+  function mutate(work) {
+    return route(async (req, res) => database.withSubmissionLock(uuid.parse(req.params.id), async () => {
+      const doc = await own(req);
+      checkRevision(doc, req.body.revision);
+      await work(req, res, doc);
+    }));
+  }
+  async function save(doc, userId, data, event) {
+    return payload(await database.updateSubmission({ id: doc.id, userId, data, event }));
+  }
+
+  router.get('/settings', route(async (_req, res) => res.json({ organization: organizationDetails() })));
+  router.get('/', route(async (req, res) => res.json({
+    items: (await database.listSubmissionsByCreator(req.user.id, { type: 'resignation' })).map(payload),
+  })));
   router.post('/', route(async (req, res) => {
     const data = validateResignation(req.body.data);
     const item = await database.createSubmission({ type: 'resignation', creatorId: req.user.id, data, idempotencyKey: uuid.parse(req.body.id) });
     res.status(201).json({ item: payload(item) });
   }));
   router.get('/:id', route(async (req, res) => res.json({ item: payload(await own(req)) })));
-  router.patch('/:id', route(async (req, res) => database.withSubmissionLock(req.params.id, async () => {
-    const doc = await own(req);
-    if (!editable(doc) || req.body.revision !== doc.revision) return res.status(409).json({ error: 'Avaldus on muutunud või lukustatud. Avage salvestatud versioon uuesti.' });
-    const data = validateResignation(req.body.data);
-    // Once a document has been demonstration data it cannot be promoted into
-    // an actual declaration by deleting a client-side flag.
-    if (doc.data.demonstration) data.demonstration = true;
-    const item = await database.updateSubmission({ id: doc.id, userId: req.user.id, data });
-    res.json({ item: payload(item) });
-  })));
+  router.patch('/:id', mutate(async (req, res, doc) => {
+    if (isLegacy(doc) || doc.data._workflow || doc.status !== 'DRAFT') throw conflict('Avaldus on lukustatud. Muudatusteks looge uus avaldus.');
+    res.json({ item: await save(doc, req.user.id, validateResignation(req.body.data), 'UPDATED') });
+  }));
   router.post('/:id/preview', route(async (req, res) => {
     const doc = await own(req);
-    if (req.body.revision !== doc.revision) return res.status(409).json({ error: 'Avaldus on vahepeal muutunud. Avage salvestatud versioon uuesti.' });
-    const { _delivery, ...input } = doc.data;
-    if (!_delivery) validateResignation(input, { final: true });
-    res.json({ revision: doc.revision, pdfUrl: `/api/staff/resignations/${doc.id}/pdf?revision=${doc.revision}` });
+    checkRevision(doc, req.body.revision);
+    const data = review(doc);
+    const org = doc.data._workflow?.organization || organizationDetails();
+    res.json({ revision: doc.revision, documents: data.actions.map(action => ({
+      kind: action.kind, ...departureDocument(data, action, org), followUp: followUp(action),
+    })) });
   }));
-  router.get('/:id/pdf', route(async (req, res) => {
+  router.post('/:id/prepare', mutate(async (req, res, doc) => {
+    if (req.body.confirm !== true || doc.data._workflow || doc.status !== 'DRAFT')
+      throw conflict('Vaadake valitud avaldused üle ja kinnitage nende koostamine.');
+    const data = review(doc);
+    const now = new Date().toISOString();
+    const progress = Object.fromEntries(data.actions.map(action => [action.kind, { status: 'prepared', at: now }]));
+    const _workflow = { organization: organizationDetails(), progress };
+    res.json({ item: await save(doc, req.user.id, { ...data, _workflow }, 'DEPARTURE_PREPARED') });
+  }));
+  router.post('/:id/progress', mutate(async (req, res, doc) => {
+    const kind = kindSchema.parse(req.body.kind);
+    const workflow = doc.data._workflow;
+    const next = nextProgress[workflow?.progress[kind]?.status];
+    if (!next || req.body.status !== next || req.body.confirm !== true)
+      throw conflict('Kinnitage avalduse järgmine toiming.');
+    const progress = { ...workflow.progress, [kind]: { status: next, at: new Date().toISOString() } };
+    res.json({ item: await save(doc, req.user.id, { ...doc.data, _workflow: { ...workflow, progress } }, 'DEPARTURE_PROGRESS') });
+  }));
+  router.get('/:id/documents/:kind/:format', route(async (req, res) => {
     const doc = await own(req);
-    if (req.query.revision !== undefined && Number(req.query.revision) !== doc.revision)
-      return res.status(409).json({ error: 'Eelvaade on aegunud. Avage avaldus uuesti.' });
-    const { _delivery, ...input } = doc.data;
-    // Always return the exact preserved attachment after confirmation.
-    const buffer = _delivery?.pdfBase64 ? Buffer.from(_delivery.pdfBase64, 'base64')
-      : await pdfGenerator(validateResignation(input, { final: true }), organization);
-    res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': downloadFilenameHeader(resignationFilename(input)).replace(/^attachment/, req.query.download === '1' ? 'attachment' : 'inline'),
-      'X-Frame-Options': 'SAMEORIGIN', 'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; base-uri 'none'" });
+    checkRevision(doc, Number(req.query.revision));
+    if (!doc.data._workflow) throw conflict('Vaadake avaldused üle ja kinnitage nende koostamine.');
+    const kind = kindSchema.parse(req.params.kind);
+    const format = z.enum(['pdf', 'docx']).parse(req.params.format);
+    const data = review(doc);
+    const action = data.actions.find(entry => entry.kind === kind);
+    if (!action) return res.status(404).json({ error: 'Avaldust ei leitud.' });
+    const document = departureDocument(data, action, doc.data._workflow.organization);
+    const buffer = format === 'pdf' ? await generateResignationPdf(document) : await generateResignationDocx(document);
+    res.set({ 'Content-Type': format === 'pdf' ? 'application/pdf' : DOCX_MIME,
+      'Content-Disposition': downloadFilenameHeader(document.filename + '.' + format) });
     res.send(buffer);
   }));
-  router.post('/:id/submit', route(async (req, res) => database.withSubmissionLock(req.params.id, async () => {
-    let doc = await own(req);
-    if (doc.status === 'SENT') return res.json({ item: payload(doc), replayed: true });
-    if (!['DRAFT', 'SEND_FAILED'].includes(doc.status)) return res.status(409).json({ error: 'Saatmise tulemus vajab kontrollimist. Avaldust ei saadeta uuesti.' });
-    if (req.body.confirm !== true || req.body.revision !== doc.revision)
-      return res.status(409).json({ error: 'Vaadake lõplik avaldus üle ja kinnitage esitamine.' });
-    const { _delivery, ...input } = doc.data;
-    const data = validateResignation(input, { final: true, submitting: true });
-    const identity = await verifyEmployee?.({ user: req.user, document: doc });
-    if (!identity || identity.userId !== req.user.id || identity.employeeName !== data.employeeName ||
-        !identity.employmentVerified || !identity.authorizationVerified || !z.email().safeParse(identity.email).success)
-      return res.status(409).json({ error: submissionUnavailable });
-    if (!z.email().safeParse(organization.email).success || !mailService.available)
-      return res.status(503).json({ error: 'E-posti saatmine ei ole seadistatud. Avaldus on alles.' });
-    if (data.receiptDate || (data.submissionDate && data.submissionDate !== tallinnToday()))
-      return res.status(422).json({ error: 'Uue elektroonilise esitamise kättesaamise aeg ei ole veel teada. Eemaldage varasema esitamise ja kättesaamise kuupäevad.' });
-    const pdf = await pdfGenerator(data, organization);
-    doc = await database.claimResignation({ id: doc.id, userId: req.user.id, revision: doc.revision,
-      delivery: { recipient: organization.email, actorId: req.user.id, verifiedEmail: identity.email,
-        confirmedAt: new Date().toISOString(), employer: { name: organization.name, registrationCode: organization.registrationCode, address: organization.address }, pdfBase64: pdf.toString('base64') } });
-    let result, status, errorCode = null;
-    try {
-      result = await mailService.sendResignation({ document: { ...doc, data }, pdf, filename: resignationFilename(data), verifiedEmail: identity.email });
-      status = (result.accepted || []).some(v => String(v).toLowerCase() === organization.email) ? 'SENT'
-        : (result.rejected || []).some(v => String(v).toLowerCase() === organization.email) ? 'SEND_FAILED' : 'UNCERTAIN';
-    } catch (e) {
-      // An explicit negative SMTP reply means rejection. Timeouts/disconnects
-      // may happen after acceptance; never resend those automatically.
-      status = e.responseCode >= 400 && e.responseCode <= 599 ? 'SEND_FAILED' : 'UNCERTAIN';
-      errorCode = status === 'SEND_FAILED' ? 'SMTP_REJECTED' : 'SMTP_OUTCOME_UNKNOWN';
-    }
-    const item = await database.finishResignation({ id: doc.id, userId: req.user.id, status,
-      messageId: typeof result?.messageId === 'string' ? result.messageId.slice(0, 250) : null, errorCode });
-    res.status(status === 'SENT' ? 200 : 409).json({ item: payload(item), ...(status === 'SENT' ? {} : { error: status === 'SEND_FAILED' ? 'E-posti teenus lükkas kirja tagasi. Avaldus on alles.' : 'Saatmise tulemus ei ole teada. Kontrollige enne uut katset saatmise tulemust.' }) });
-  })));
+  // Archived attachments from the former workflow remain accessible to their owner.
+  router.get('/:id/pdf', route(async (req, res) => {
+    const doc = await own(req);
+    if (!isLegacy(doc) || !doc.data._delivery?.pdfBase64)
+      return res.status(404).json({ error: 'Arhiveeritud PDF-i ei leitud.' });
+    res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': downloadFilenameHeader('varasem-avaldus.pdf') });
+    res.send(Buffer.from(doc.data._delivery.pdfBase64, 'base64'));
+  }));
   return router;
 }

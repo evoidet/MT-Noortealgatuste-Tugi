@@ -50,3 +50,14 @@ export const dateText = (value) =>
   /^\d{4}-\d{2}-\d{2}$/.test(value || "")
     ? value.split("-").reverse().join(".")
     : "";
+
+export function sellerContactLines(issuer) {
+  return [
+    ['Telefon', issuer.phone], ['Mobiil', issuer.mobile], ['Veebileht', issuer.website],
+  ].filter(([, value]) => value?.trim()).map(([label, value]) => `${label}: ${value.trim()}`);
+}
+
+export function sellerVatDescription(issuer) {
+  if (!issuer.vatRegistered) return 'Ei ole käibemaksukohustuslane.';
+  return issuer.vatNumber ? `Käibemaksukohustuslase number: ${issuer.vatNumber}.` : 'Käibemaksukohustuslane.';
+}

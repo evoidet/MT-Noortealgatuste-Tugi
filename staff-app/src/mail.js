@@ -1,8 +1,6 @@
 import PizZip from 'pizzip';
 import nodemailer from "nodemailer";
 import { DOCX_MIME, financialFileStem } from "./financial-docx.js";
-import { organization } from './organization.js';
-import { documentParagraphs, terminationLabels } from '../public/resignation-values.js';
 export const INVOICE_COPY_EMAIL = 'egor.stepanov@noortetugi.ee';
 
 function cleanHeader(value, fallback = "") {
@@ -108,20 +106,6 @@ export function createMailService(config, overrides = {}) {
   return Object.freeze({
     financeEmail: config.financeNotificationEmail,
     available: Boolean(transport && config.mailFrom && config.financeNotificationEmail),
-
-    async sendResignation({ document, pdf, filename, verifiedEmail }) {
-      if (!transport || !config.mailFrom || !organization.email) throw mailUnavailableError();
-      return transport.sendMail({
-        from: config.mailFrom, to: organization.email, replyTo: verifiedEmail,
-        messageId: `<resignation-${document.id}@noortetugi.ee>`,
-        subject: `Töölepingu ülesütlemise avaldus – ${cleanHeader(document.data.employeeName)}`,
-        text: ['Tere!', '', ...documentParagraphs(document.data, organization).filter(p => !p.startsWith('Allkiri:')),
-          '', `Ülesütlemise liik: ${terminationLabels[document.data.terminationType]}`,
-          'Avaldus on lisatud kirjale PDF-failina.', '', 'Lugupidamisega', document.data.employeeName].join('\n\n'),
-        attachments: normalizedAttachments([{ filename, content: pdf, contentType: 'application/pdf' }]),
-        disableFileAccess: true, disableUrlAccess: true
-      });
-    },
 
     async sendFinancialDocument({ recipient, subject, message, number = '', pdf = null, docx = null, filename = '', deliveryId, invoiceCopy = false, invoice = invoiceCopy }) {
       if (!transport || !config.mailFrom) throw mailUnavailableError();

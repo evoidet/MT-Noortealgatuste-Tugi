@@ -1,6 +1,6 @@
 import PDFDocument from "pdfkit";
 import { fileURLToPath } from "node:url";
-import { money, dateText, termLabels } from "../public/financial-values.js";
+import { money, dateText, sellerContactLines, sellerVatDescription, termLabels } from "../public/financial-values.js";
 import { generateInvoicePdf } from './invoice-pdf.js';
 
 const assets = fileURLToPath(
@@ -95,9 +95,8 @@ export function generateFinancialPdf(record) {
       `Registrikood: ${org.registrationCode}`,
       org.address,
       org.email,
-      org.vatRegistered
-        ? `KMKR: ${org.vatNumber}`
-        : "Ei ole käibemaksukohustuslane",
+      ...sellerContactLines(org),
+      sellerVatDescription(org),
     ].join("\n");
     const buyer = [
       data.customer,

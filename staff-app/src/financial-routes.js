@@ -8,7 +8,7 @@ import { safeOperationalError } from './safe-errors.js';
 import { generateFinancialDocx, financialFilename, financialFileStem, DOCX_MIME } from './financial-docx.js';
 import { money } from '../public/financial-values.js';
 import { z } from "zod";
-import { financialIssuer } from "./organization.js";
+import { completeDraftIssuer, financialIssuer } from "./organization.js";
 import {
   validateFinancialData,
   deliverySchema,
@@ -58,7 +58,7 @@ export function financialRoutes({
     const doc = await database.getFinancialDocument(uuid.parse(id));
     if (!doc)
       throw Object.assign(new Error("Dokumenti ei leitud."), { status: 422 });
-    return doc;
+    return doc.status === 'DRAFT' ? { ...doc, issuer: completeDraftIssuer(doc.issuer, issuer()) } : doc;
   }
   async function generate(doc, format) {
     const correction_number = doc.correction_of ? (await get(doc.correction_of)).number : undefined;
@@ -156,18 +156,11 @@ export function financialRoutes({
     "/:id",
     route(async (req, res) => {
       const doc = await get(req.params.id);
-      const org = issuer();
-      if (!org)
-        return res
-          .status(503)
-          .json({
-            error: "Käibemaksu staatus vajab administraatori kinnitust.",
-          });
       const document = await database.updateFinancialDocument({
         id: doc.id,
         version: z.number().int().positive().parse(req.body.version),
-        data: validateFinancialData(req.body.data, org),
-        issuer: org,
+        data: validateFinancialData(req.body.data, doc.issuer),
+        issuer: doc.issuer,
         actor: req.user.id,
       });
       res.json({ document });
@@ -208,13 +201,6 @@ export function financialRoutes({
       const doc = await get(req.params.id);
       if (doc.status !== "DRAFT")
         return res.status(409).json({ error: "Dokument on juba kinnitatud." });
-      if (!isDeepStrictEqual(issuer(), doc.issuer))
-        return res
-          .status(409)
-          .json({
-            error:
-              "Organisatsiooni andmed on muutunud. Salvestage mustand uuesti ja kontrollige summat.",
-          });
       if (doc.kind === 'quotation') validateFinancialData(doc.data, doc.issuer, true);
       if (req.body.version !== doc.version)
         return res.status(409).json({ error: "Dokument on muutunud." });
@@ -235,6 +221,7 @@ export function financialRoutes({
       let document = await database.finalizeFinancialDocument({
           id: doc.id,
           version: doc.version,
+          issuer: doc.issuer,
           docx,
           pdf,
           actor: req.user.id,

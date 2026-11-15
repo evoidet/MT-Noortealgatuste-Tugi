@@ -3,8 +3,14 @@ import { assertInvoiceAttachments, INVOICE_COPY_EMAIL } from './mail.js';
 import { safeOperationalError } from './safe-errors.js';
 import { money } from '../public/financial-values.js';
 
-export const invoiceSnapshotKey = (doc) => createHash('sha256')
-  .update(JSON.stringify([doc.number, doc.data, doc.issuer, doc.correction_of])).digest('hex');
+export function invoiceSnapshotKey(doc) {
+  const { issuer } = doc;
+  // Enriched drafts and persisted JSONB snapshots can have different key order.
+  // Keep existing delivery keys for older snapshots.
+  const hasContacts = issuer && ['phone', 'mobile', 'website'].some(key => Object.hasOwn(issuer, key));
+  const snapshot = hasContacts ? Object.fromEntries(Object.keys(issuer).sort().map(key => [key, issuer[key]])) : issuer;
+  return createHash('sha256').update(JSON.stringify([doc.number, doc.data, snapshot, doc.correction_of])).digest('hex');
+}
 
 export function createInvoiceNotifier({ database, mailService, logger = console }) {
   return async function notify(doc, { pdf, docx }, actor, legacy = false) {

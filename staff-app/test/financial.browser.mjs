@@ -129,7 +129,9 @@ try {
       await page.getByRole("heading", { name: heading, exact: true }).waitFor();
       assert.equal(await page.locator(`.staff-sidebar-nav [data-view="financial"][data-type="${kind}"]`).getAttribute("aria-current"), "page");
       await page.locator(`[data-finance="new-${kind}"]`).click();
-      await page.getByLabel("Tellija nimi", { exact: true }).waitFor();
+      await page.getByRole("heading", { name: kind === "invoice" ? "Müüja" : "Pakkuja", exact: true }).waitFor();
+      assert.equal(await page.getByLabel("Tellija nimi", { exact: true }).inputValue(), "");
+      await page.getByText(`Mobiil: ${issuer.mobile}`, { exact: false }).waitFor();
       await page.getByLabel("Viide", { exact: true }).fill("Testviide");
       assert.equal(await page.locator('[name="referenceNumber"]').count(), kind === "invoice" ? 1 : 0);
       if (kind === "invoice") await page.getByLabel("Viitenumber (valikuline)", { exact: true }).fill("1234561");

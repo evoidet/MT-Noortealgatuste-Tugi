@@ -42,6 +42,12 @@ def add_reference_fields(doc, kind):
         tables[1].append(row)
     if kind == 'invoice':
         prepare_invoice_layout(tables)
+    else:
+        seller, buyer = find(tables[2], './w:tr/w:tc')
+        text(find(seller, './w:p')[-1], '{sellerContacts}')
+        buyer_paragraphs = find(buyer, './w:p')
+        text(buyer_paragraphs[-2], '{buyerContactPerson}')
+        text(buyer_paragraphs[-1], '{buyerChannels}')
 
 def prepare_invoice_layout(tables):
     # Render the same labels and formatted fields in Word and PDF.
